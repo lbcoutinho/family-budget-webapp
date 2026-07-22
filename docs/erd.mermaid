@@ -1,0 +1,102 @@
+erDiagram
+  USER ||--o{ ACCOUNT : owns
+  USER ||--o{ CATEGORY : owns
+  USER ||--o{ CASHBOX : owns
+  USER ||--o{ TRANSACTION : owns
+  USER ||--o{ RECURRENCE_RULE : owns
+
+  CATEGORY ||--o{ CATEGORY : "parent of"
+
+  ACCOUNT |o--o{ TRANSACTION : "source account"
+  ACCOUNT |o--o{ TRANSACTION : "destination account"
+  CASHBOX |o--o{ TRANSACTION : "source cashbox"
+  CASHBOX |o--o{ TRANSACTION : "destination cashbox"
+  CATEGORY |o--o{ TRANSACTION : "category"
+  CATEGORY |o--o{ TRANSACTION : "subcategory"
+  RECURRENCE_RULE |o--o{ TRANSACTION : "generates"
+
+  ACCOUNT ||--o{ RECURRENCE_RULE : "default account"
+  CATEGORY |o--o{ RECURRENCE_RULE : "default category"
+
+  USER {
+    uuid id PK
+    string email UK
+    string passwordHash
+    string name
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  ACCOUNT {
+    uuid id PK
+    uuid userId FK
+    string name
+    int initialBalance
+    boolean isActive
+    int sortOrder
+  }
+
+  CATEGORY {
+    uuid id PK
+    uuid userId FK
+    uuid parentId FK
+    string name
+    enum kind
+    string color
+    boolean isActive
+    int sortOrder
+  }
+
+  CASHBOX {
+    uuid id PK
+    uuid userId FK
+    string name
+    string description
+    int targetAmount
+    boolean isActive
+    int sortOrder
+  }
+
+  TRANSACTION {
+    uuid id PK
+    uuid userId FK
+    enum type
+    enum status
+    enum source
+    date date
+    date referenceMonth
+    boolean isCreditCard
+    int amount
+    string description
+    string notes
+    uuid accountId FK
+    uuid destinationAccountId FK
+    uuid cashboxId FK
+    uuid destinationCashboxId FK
+    uuid categoryId FK
+    uuid subcategoryId FK
+    uuid recurrenceRuleId FK
+    int installmentNumber
+    int installmentTotal
+  }
+
+  RECURRENCE_RULE {
+    uuid id PK
+    uuid userId FK
+    uuid accountId FK
+    uuid categoryId FK
+    uuid subcategoryId FK
+    enum type
+    int amount
+    string description
+    string notes
+    enum frequency
+    int interval
+    int dayOfMonth
+    date startDate
+    date endDate
+    int totalOccurrences
+    boolean autoConfirm
+    boolean isActive
+    date generatedUntil
+  }
