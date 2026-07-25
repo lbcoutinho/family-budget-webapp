@@ -44,6 +44,7 @@ Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm 
 ## Conventions
 
 - **Branch-per-implementation.** All implementation goes on a branch off `main` — never commit directly to `main`. Commit and push to the feature branch and open a pull request to `main`. **Never merge to `main`** — the user reviews and merges.
+- **Use `PR-TEMPLATE.md` (project root) as the structure for every PR description** — fill in its placeholders (`What's in here` / `Decisions worth a look` / `Verification`) rather than freeform text.
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings are localized.
 - **One task = one small PR**; split if the diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
