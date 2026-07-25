@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: family-budget-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-budget}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-budget}
+      POSTGRES_DB: ${POSTGRES_DB:-budget}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-budget} -d ${POSTGRES_DB:-budget}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Isolated database for integration tests, on a separate port so it never clashes with the
+  # main instance. Uses a tmpfs volume: test data is disposable and never needs to survive a restart.
+  postgres_test:
+    image: postgres:16-alpine
+    container_name: family-budget-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-budget}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-budget}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-budget_test}
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_TEST_USER:-budget} -d ${POSTGRES_TEST_DB:-budget_test}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
