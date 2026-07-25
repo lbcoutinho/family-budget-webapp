@@ -15,7 +15,7 @@ There is **no application code yet** — only planning and architecture docs. `p
 
 - **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
 - **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
-- **Create the GitHub Issue immediately before starting a ticket** (per the mirroring convention below), so GitHub never drifts from the plan docs.
+- **Create the GitHub Issue immediately before starting a ticket** (run the `github-mirroring` skill), so GitHub never drifts from the plan docs.
 - **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
 - **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
 - **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
@@ -49,10 +49,6 @@ Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm 
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`. ESLint flat config; **`@typescript-eslint/no-floating-promises` is enabled and critical for NestJS** — always await or explicitly void promises.
 
-## GitHub milestone/issue mirroring (drive this automatically when starting a milestone)
+## GitHub milestone/issue mirroring
 
-Mirror plans to GitHub and keep `plans/MEMORY.md` updated:
-- Each milestone → a GitHub Milestone titled `M<N> - <Name>`.
-- Each task → an Issue titled `M<N>-T<NN> — <title>`, body copied verbatim from the plan.
-- Labels: `milestone: m<N>-<slug>` (purple `#5319E7`), plus `backend` (blue `#1D76DB`) and/or `frontend` (green `#0E8A16`) by judgment.
-- After creating a milestone's issues, update `plans/MEMORY.md`. Currently only M1's issues (#1–#7) exist.
+Plans are mirrored onto GitHub Milestones and Issues, with `plans/MEMORY.md` tracking what exists. Run the **`github-mirroring` skill** (`.claude/skills/github-mirroring/`) when starting a milestone — drive it automatically, without being asked — and before starting any individual ticket.
