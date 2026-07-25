@@ -13,12 +13,12 @@ There is **no application code yet** — only planning and architecture docs. `p
 
 ## Ticket workflow (follow for every task)
 
-* **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
-* **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
-* **Create the GitHub Issue immediately before starting a ticket** (per the mirroring convention below), so GitHub never drifts from the plan docs.
-* **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
-* **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
-* **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
+- **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
+- **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
+- **Create the GitHub Issue immediately before starting a ticket** (per the mirroring convention below), so GitHub never drifts from the plan docs.
+- **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
+- **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
+- **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
 
 ## Planned stack & layout (aspirational — scripts below don't exist until scaffolded)
 
@@ -42,7 +42,7 @@ Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm 
 
 ## Conventions
 
-- **Never `git commit` or `git push` without an explicit command from the user.** Make changes, report them, and wait.
+- **Branch-per-implementation.** All implementation goes on a branch off `main` — never commit directly to `main`. Commit and push to the feature branch and open a pull request to `main`. **Never merge to `main`** — the user reviews and merges.
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings are localized.
 - **One task = one small PR**; split if the diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
