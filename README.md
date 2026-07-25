@@ -77,7 +77,9 @@ arrives, since an unawaited promise there fails silently. `eslint-config-prettie
 last, so ESLint never argues with Prettier about formatting.
 
 Prettier deviates from its defaults in three places, in [`.prettierrc`](.prettierrc):
-`singleQuote: true`, `trailingComma: "all"`, `printWidth: 100`.
+`singleQuote: true`, `trailingComma: "all"`, `printWidth: 160`. The plan asked for a
+100-column width; 160 was chosen instead, so wide-but-readable lines (NestJS decorators,
+Tailwind class lists, table-driven tests) stop being wrapped into unreadable stacks.
 
 Two trees are excluded from both tools: `packages/api-client`, which Orval generates and
 nobody edits, and — for Prettier only — `docs/adr/` and `plans/`, whose text is either

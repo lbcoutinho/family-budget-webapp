@@ -40,7 +40,8 @@ Code style standardized from the first commit. Fixing style after 5,000 lines ha
 - ESLint flat config (`eslint.config.js`) at the root, with per-workspace overrides
 - Plugins: `@typescript-eslint`, `eslint-plugin-import`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`
 - `eslint-config-prettier` last, to disable conflicting rules
-- Prettier `.prettierrc`: `singleQuote: true`, `trailingComma: "all"`, `printWidth: 100`
+- Prettier `.prettierrc`: `singleQuote: true`, `trailingComma: "all"`, `printWidth: 160`
+  (the plan originally said 100; widened at the user's request during implementation)
 - Husky `pre-commit` hook running `lint-staged`
 - `lint-staged`: ESLint `--fix` plus Prettier on staged files
 - Enable `@typescript-eslint/no-floating-promises` (critical in NestJS)

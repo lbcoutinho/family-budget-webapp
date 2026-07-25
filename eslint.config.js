@@ -69,11 +69,7 @@ module.exports = tseslint.config(
   {
     name: 'family-budget/typescript',
     files: TS_FILES,
-    extends: [
-      tseslint.configs.recommendedTypeChecked,
-      tseslint.configs.stylisticTypeChecked,
-      importPlugin.flatConfigs.typescript,
-    ],
+    extends: [tseslint.configs.recommendedTypeChecked, tseslint.configs.stylisticTypeChecked, importPlugin.flatConfigs.typescript],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -91,14 +87,8 @@ module.exports = tseslint.config(
       // The whole reason this project stays on a TypeScript version with a JS compiler API.
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
-      ],
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       // TypeScript already resolves modules; the import plugin only duplicates the work
       // (and mis-resolves path aliases).
       'import/no-unresolved': 'off',

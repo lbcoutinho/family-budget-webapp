@@ -13,8 +13,9 @@ There is **no application code yet** — only planning and architecture docs. `p
 
 ## Ticket workflow (follow for every task)
 
-- **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
-- **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
+- **Read `MEMORY.md` at the project root before writing any new code.** It is the handoff file: it exists so a session that ends mid-implementation can be resumed by the next one. (Distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
+- **Write `MEMORY.md` when you finish or stop work on a ticket, and whenever the user says "salve o progresso" / "vamos parar aqui"** (or the equivalent in any language) — that phrase is the explicit signal to checkpoint the current state there.
+- **Keep `MEMORY.md` minimal, and rewrite it rather than appending.** It holds only what is needed to resume interrupted work or to start the next ticket — where an unfinished change stopped, and any non-obvious gotcha the next ticket will hit. Nothing else: what was built and why belongs in the Issue, the PR body and `docs/adr/`. If the last ticket is finished and unrelated to what comes next, one line naming it is enough.
 - **Create the GitHub Issue immediately before starting a ticket**, so GitHub never drifts from the plan docs. Run `.claude/skills/github-mirroring/` skill when starting a milestone — drive it automatically, without being asked — and before starting any individual ticket.
 - **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
 - **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
@@ -49,4 +50,4 @@ Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm 
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings are localized.
 - **One task = one small PR**; split if the diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
-- Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`. ESLint flat config; **`@typescript-eslint/no-floating-promises` is enabled and critical for NestJS** — always await or explicitly void promises.
+- Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises` is enabled and critical for NestJS** — always await or explicitly void promises.
