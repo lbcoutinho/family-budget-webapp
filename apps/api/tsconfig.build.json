@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    // `nest build` sets `deleteOutDir`, so every build starts from an empty `dist`. Incremental
+    // state (inherited from the base config) would otherwise persist in a buildinfo file that
+    // outlives that cleanup, and tsc would then emit nothing — leaving `dist` empty.
+    "incremental": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
+}
