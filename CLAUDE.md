@@ -15,7 +15,7 @@ There is **no application code yet** — only planning and architecture docs. `p
 
 - **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
 - **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
-- **Create the GitHub Issue immediately before starting a ticket** (run the `github-mirroring` skill), so GitHub never drifts from the plan docs.
+- **Create the GitHub Issue immediately before starting a ticket**, so GitHub never drifts from the plan docs. Run `.claude/skills/github-mirroring/` skill when starting a milestone — drive it automatically, without being asked — and before starting any individual ticket.
 - **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
 - **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
 - **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
@@ -48,7 +48,3 @@ Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm 
 - **One task = one small PR**; split if the diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`. ESLint flat config; **`@typescript-eslint/no-floating-promises` is enabled and critical for NestJS** — always await or explicitly void promises.
-
-## GitHub milestone/issue mirroring
-
-Plans are mirrored onto GitHub Milestones and Issues, with `plans/MEMORY.md` tracking what exists. Run the **`github-mirroring` skill** (`.claude/skills/github-mirroring/`) when starting a milestone — drive it automatically, without being asked — and before starting any individual ticket.
