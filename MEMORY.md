@@ -11,9 +11,9 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**Last done:** M1-T02 — ESLint, Prettier, Husky, lint-staged
-([issue #2](https://github.com/lbcoutinho/family-budget-webapp/issues/2),
-[PR #9](https://github.com/lbcoutinho/family-budget-webapp/pull/9), open, awaiting review).
+**Last done:** M1-T03 — Docker Compose + PostgreSQL + env validation
+([issue #3](https://github.com/lbcoutinho/family-budget-webapp/issues/3),
+[PR #12](https://github.com/lbcoutinho/family-budget-webapp/pull/12), open, awaiting review).
 
 Nothing is half-finished.
 
@@ -26,14 +26,15 @@ fail on anything else. First command in a fresh session:
 export NVM_DIR=/opt/nvm && . "$NVM_DIR/nvm.sh" && nvm install 24 && corepack enable
 ```
 
-## Next: M1-T03 — Docker Compose with PostgreSQL and environment validation
+## Next: M1-T04 — Bootstrap the NestJS API with a health check
 
-[Issue #3](https://github.com/lbcoutinho/family-budget-webapp/issues/3). Read the ticket in
-`plans/milestones/m01-foundation.md` first. Two things the ticket text does not tell you:
+Read the ticket in `plans/milestones/m01-foundation.md` first. Carry-over from T03:
 
-- **Ordering problem.** T03 asks for `apps/api/src/config/env.validation.ts` using
-  `@nestjs/config` + `class-validator`, but `nest new` only runs in T04, so `apps/api` has no
-  NestJS dependencies yet. Either install those two packages by hand now, or do T04 first.
-- **First test runner in the repo.** T03's `env.validation.spec.ts` is the first test anywhere,
-  so Jest lands in `apps/api` here — and with it the `test` script that the root `pnpm test`
-  fans out to.
+- **Wire the env validator.** `validate()` from `apps/api/src/config/env.validation.ts` already
+  exists (with tests). T04 must import it into `ConfigModule.forRoot({ isGlobal: true, validate })`
+  in the new `AppModule` — this is the deferred half of T03 (see issue #3 comment).
+- **`nest new` into an already-populated `apps/api`.** The dir already has `package.json`,
+  `tsconfig.json`, `jest.config.js`, `src/config/`, and installed deps (class-validator,
+  class-transformer, reflect-metadata, jest, ts-jest). Scaffold carefully — don't clobber these;
+  merge Nest's additions instead of overwriting.
+- **Delete the `src/index.ts` placeholder** once `main.ts` / `app.module.ts` exist.
