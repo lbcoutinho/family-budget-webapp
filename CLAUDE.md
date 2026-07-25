@@ -1,0 +1,57 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project state: pre-implementation
+
+There is **no application code yet** — only planning and architecture docs. `plans/` and `docs/adr/` are the **strict source of truth**. Before writing code, read the relevant plan and ADR; if your implementation would deviate from them, **stop and flag it** rather than improvising.
+
+- `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
+- `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry), each a list of small tasks. First user-visible value lands at end of M5.
+- `plans/MEMORY.md` — GitHub mirroring convention + progress tracker.
+- `docs/adr/` — 15 accepted ADRs. **Accepted ADRs are never edited** — supersede with a new one (sequential 4-digit, kebab-case, use `template.md`).
+
+## Ticket workflow (follow for every task)
+
+* **When you finish or stop work on a ticket, write/update `MEMORY.md` at the project root** with where we stopped and the next steps.
+* **Read `MEMORY.md` at the project root before writing any new code.** It records where the last ticket stopped and the next steps. (This is a handoff file — distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
+* **Create the GitHub Issue immediately before starting a ticket** (per the mirroring convention below), so GitHub never drifts from the plan docs.
+* **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
+* **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
+* **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
+
+## Planned stack & layout (aspirational — scripts below don't exist until scaffolded)
+
+pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 22.
+- `apps/api/` — NestJS + Prisma + PostgreSQL 16. Jest + Supertest.
+- `apps/web/` — Vite + React 19 + Tailwind v4/shadcn + TanStack Query. **Organized by feature, not by file type.** Vitest + Testing Library + MSW.
+- `packages/api-client/` — Orval-generated typed React-Query client. **Never hand-edit; excluded from lint/format.**
+
+Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates the API client (OpenAPI export → Orval); CI fails if the generated client is stale. `docker compose up -d` runs Postgres on 5432 (main) and 5433 (test).
+
+## Domain rules (get these wrong and reports break)
+
+- **Money is always integer cents** — never float/Decimal. Formatting lives only in `apps/web/src/lib/money.ts`. Single currency (euro).
+- **Dual dates on every transaction:** `date` (when it happened) vs `referenceMonth` (which month it reports in, normalized to the 1st). Credit-card transactions keep `referenceMonth` when `date` changes; others recompute it.
+- **6 transaction types:** INCOME, EXPENSE, TRANSFER, CASHBOX_IN, CASHBOX_OUT, CASHBOX_TRANSFER. Cashbox is a **transaction type, not a category**. Only EXPENSE counts as an expense in reports. `amount` is always positive; sign is derived from `type`.
+- **Balances & reports only include `status = CONFIRMED`.** Voice-entered transactions save as `DRAFT` and affect nothing until approved.
+- **Deactivate, don't delete** — deleting an Account/Category/Cashbox that has transactions is blocked; inactive entities can't be used in new/edited transactions.
+- **`userId` on every entity** (single-user now, designed so multi-user needs no structural migration).
+- Categories self-reference, **max depth 2** (parent has `parentId IS NULL`).
+- Env vars are validated at boot (fail-fast): `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIRES_IN`, `CORS_ORIGIN`.
+
+## Conventions
+
+- **Never `git commit` or `git push` without an explicit command from the user.** Make changes, report them, and wait.
+- **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings are localized.
+- **One task = one small PR**; split if the diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
+- **One migration per schema-changing task**; never edited after commit.
+- Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`. ESLint flat config; **`@typescript-eslint/no-floating-promises` is enabled and critical for NestJS** — always await or explicitly void promises.
+
+## GitHub milestone/issue mirroring (drive this automatically when starting a milestone)
+
+Mirror plans to GitHub and keep `plans/MEMORY.md` updated:
+- Each milestone → a GitHub Milestone titled `M<N> - <Name>`.
+- Each task → an Issue titled `M<N>-T<NN> — <title>`, body copied verbatim from the plan.
+- Labels: `milestone: m<N>-<slug>` (purple `#5319E7`), plus `backend` (blue `#1D76DB`) and/or `frontend` (green `#0E8A16`) by judgment.
+- After creating a milestone's issues, update `plans/MEMORY.md`. Currently only M1's issues (#1–#7) exist.
