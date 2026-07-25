@@ -11,9 +11,12 @@ setting money aside (cashboxes).
 
 | Tool | Version | Notes |
 |---|---|---|
-| Node.js | 22 LTS | pinned in [`.nvmrc`](.nvmrc) — `nvm use` |
-| pnpm | 10.x | `corepack enable` activates the version pinned in `packageManager` |
+| Node.js | 22 LTS (≥ 22.13) | pinned in [`.nvmrc`](.nvmrc) — `nvm use`; the minor floor comes from pnpm 11 |
+| pnpm | 11.x | `corepack enable` activates the version pinned in `packageManager` |
 | Docker | recent | for PostgreSQL 16 via `docker compose` (added in M1-T03) |
+
+`corepack enable` is not optional: the root scripts call `pnpm` recursively, and
+`engines.pnpm` rejects an older standalone pnpm found on the `PATH`.
 
 ## Local setup
 
@@ -59,6 +62,14 @@ applications are still being scaffolded (M1-T02 through M1-T05 add the real scri
 `noImplicitOverride` / `noFallthroughCasesInSwitch` / `noUnused*` checks. Each workspace
 has its own `tsconfig.json` extending it and adding only what is specific to its runtime
 (module system, `lib`, JSX, path aliases).
+
+**TypeScript is pinned to 6.x, not 7.x.** TypeScript 7 is the native (Go) compiler: it ships
+no JavaScript compiler API, and the tools this project depends on still need one —
+`typescript-eslint` declares `typescript >=4.8.4 <6.1.0` and `ts-jest` declares
+`>=4.3 <7`. Without them there is no type-aware linting (including
+`@typescript-eslint/no-floating-promises`) and no NestJS test transform. The configuration
+here is already free of what TypeScript 7 removed — no `baseUrl`, no `moduleResolution:
+node10` — so the upgrade is a version bump once the toolchain catches up.
 
 ## Documentation
 

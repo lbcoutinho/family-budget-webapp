@@ -38,14 +38,36 @@ Where the last ticket stopped and what comes next. Update this at the end of eve
 3. **Package names.** Apps are named `api` and `web` (plain), so the plan's
    `pnpm --filter api dev` works verbatim; the shared package is scoped
    (`@family-budget/api-client`) because it is imported by name from application code.
-4. **TypeScript pinned to `^5.9.3`** (7.x exists but the NestJS/Vite toolchain in the plan
-   targets 5.x). `@types/node ^22` added to `apps/api` so its `types: ["node"]` resolves.
+4. **Latest compatible versions, checked against peer ranges** (user request):
+   - **TypeScript `^6.0.3`, not 7.x.** TS 7 is the native Go compiler and ships no JS
+     compiler API (`require('typescript')` exposes 2 keys, no `createProgram`).
+     `typescript-eslint@8` requires `typescript >=4.8.4 <6.1.0` and `ts-jest@29` requires
+     `>=4.3 <7`, so 7.x would cost type-aware linting (`no-floating-promises`) and the
+     NestJS Jest transform. 6.0.3 keeps the full API and is the newest version inside both
+     ranges.
+   - **pnpm `11.17.0`** (`packageManager` + `engines.pnpm >=11`), which requires Node
+     ≥ 22.13 — reflected in `engines.node`.
+   - **`@types/node ^22.20.1`**, not 26.x: the types major must track the Node runtime
+     major pinned in `.nvmrc`.
 
 No new ADR was needed — everything follows ADR-0001.
 
+### TypeScript 6 gotchas for the next tickets
+
+- `baseUrl` and `moduleResolution: node10` are deprecated (hard error without
+  `ignoreDeprecations`, removed in 7). `apps/api` therefore uses `module: "Node16"` — which
+  still emits CommonJS, since `apps/api/package.json` has no `"type": "module"` — and
+  `apps/web` declares `paths` without `baseUrl`. **Re-check this after `nest new` and
+  `create vite` in T04/T05**, since both scaffolds still generate the deprecated options.
+- TS 6 requires an explicit `rootDir` when emitting (TS5011). Harmless today
+  (`typecheck` is `--noEmit`), but T04's build config must set `rootDir: "./src"`.
+- `corepack enable` is now mandatory: the root scripts shell out to `pnpm` recursively, and
+  `engines.pnpm` rejects an older standalone pnpm on the `PATH`.
+
 ### Verified
 
-`pnpm install` → 4 workspace projects. `pnpm -r typecheck` → 3 projects pass.
+With corepack active (pnpm 11.17.0, TypeScript 6.0.3 in all three workspaces):
+`pnpm install` → 4 workspace projects, lockfile v9. `pnpm -r typecheck` → 3 projects pass.
 `pnpm dev` / `build` / `lint` / `test` → exit 0 (no-ops for now).
 
 ---
@@ -56,7 +78,8 @@ Issue [#2](https://github.com/lbcoutinho/family-budget-webapp/issues/2). Notes f
 picks it up:
 
 - Root `eslint.config.js` (flat), per-workspace overrides, `eslint-config-prettier` last,
-  `@typescript-eslint/no-floating-promises` enabled.
+  `@typescript-eslint/no-floating-promises` enabled. The rule is type-aware, so it needs
+  `parserOptions.projectService` — and it is the reason TypeScript stays on 6.x (see above).
 - Prettier: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`.
 - Add the real `lint` script to each workspace (the root `lint` will then stop being a
   no-op) and a root `format` script — `format` was intentionally left out of T01 since

@@ -4,10 +4,10 @@
   "private": true,
   "description": "Family budget management and expense tracking web application",
   "license": "UNLICENSED",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.17.0",
   "engines": {
-    "node": ">=22.0.0 <23.0.0",
-    "pnpm": ">=10.0.0"
+    "node": ">=22.13.0 <23.0.0",
+    "pnpm": ">=11.0.0"
   },
   "scripts": {
     "dev": "pnpm -r --parallel --if-present dev",
@@ -17,6 +17,6 @@
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }
