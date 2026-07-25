@@ -22,7 +22,7 @@ There is **no application code yet** — only planning and architecture docs. `p
 
 ## Planned stack & layout (aspirational — scripts below don't exist until scaffolded)
 
-pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 22.
+pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 24 LTS (ADR-0016).
 - `apps/api/` — NestJS + Prisma + PostgreSQL 16. Jest + Supertest.
 - `apps/web/` — Vite + React 19 + Tailwind v4/shadcn + TanStack Query. **Organized by feature, not by file type.** Vitest + Testing Library + MSW.
 - `packages/api-client/` — Orval-generated typed React-Query client. **Never hand-edit; excluded from lint/format.**

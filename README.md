@@ -11,12 +11,15 @@ setting money aside (cashboxes).
 
 | Tool | Version | Notes |
 |---|---|---|
-| Node.js | 22 LTS (≥ 22.13) | pinned in [`.nvmrc`](.nvmrc) — `nvm use`; the minor floor comes from pnpm 11 |
+| Node.js | 24 LTS | pinned in [`.nvmrc`](.nvmrc) — `nvm use`; see [ADR-0016](docs/adr/0016-node-24-lts-as-the-runtime.md) |
 | pnpm | 11.x | `corepack enable` activates the version pinned in `packageManager` |
 | Docker | recent | for PostgreSQL 16 via `docker compose` (added in M1-T03) |
 
-`corepack enable` is not optional: the root scripts call `pnpm` recursively, and
-`engines.pnpm` rejects an older standalone pnpm found on the `PATH`.
+Both versions are enforced, not suggested: `engineStrict` in
+[`pnpm-workspace.yaml`](pnpm-workspace.yaml) makes `pnpm install` fail with
+`ERR_PNPM_UNSUPPORTED_ENGINE` on a runtime outside `engines.node`. And `corepack enable` is
+not optional — the root scripts call `pnpm` recursively, and `engines.pnpm` rejects an older
+standalone pnpm found on the `PATH`.
 
 ## Local setup
 

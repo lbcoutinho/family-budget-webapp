@@ -45,12 +45,18 @@ Where the last ticket stopped and what comes next. Update this at the end of eve
      `>=4.3 <7`, so 7.x would cost type-aware linting (`no-floating-promises`) and the
      NestJS Jest transform. 6.0.3 keeps the full API and is the newest version inside both
      ranges.
-   - **pnpm `11.17.0`** (`packageManager` + `engines.pnpm >=11`), which requires Node
-     ≥ 22.13 — reflected in `engines.node`.
-   - **`@types/node ^22.20.1`**, not 26.x: the types major must track the Node runtime
+   - **pnpm `11.17.0`** (`packageManager` + `engines.pnpm >=11`).
+   - **`@types/node ^24.13.3`**, not 26.x: the types major must track the Node runtime
      major pinned in `.nvmrc`.
+5. **Node 24 LTS instead of the planned 22 LTS** — recorded as
+   [ADR-0016](docs/adr/0016-node-24-lts-as-the-runtime.md), since 22 is now maintenance-only.
+   `.nvmrc` = `24`, `engines.node` = `>=24.0.0 <25.0.0`, and `engineStrict: true` in
+   `pnpm-workspace.yaml` makes a wrong runtime fail the install instead of warning.
+   `plans/milestones/m01-foundation.md` and `CLAUDE.md` were corrected to match, and the
+   deviation is commented on issue #1.
 
-No new ADR was needed — everything follows ADR-0001.
+**Config note:** pnpm 11 reads `engineStrict` from `pnpm-workspace.yaml`, *not* from
+`.npmrc` — an `.npmrc` with `engine-strict=true` is silently ignored (verified).
 
 ### TypeScript 6 gotchas for the next tickets
 
@@ -63,12 +69,16 @@ No new ADR was needed — everything follows ADR-0001.
   (`typecheck` is `--noEmit`), but T04's build config must set `rootDir: "./src"`.
 - `corepack enable` is now mandatory: the root scripts shell out to `pnpm` recursively, and
   `engines.pnpm` rejects an older standalone pnpm on the `PATH`.
+- M1-T06 must read the Node version from `.nvmrc` (`actions/setup-node` with
+  `node-version-file`) rather than hardcoding it, so CI cannot drift from ADR-0016.
 
 ### Verified
 
-With corepack active (pnpm 11.17.0, TypeScript 6.0.3 in all three workspaces):
-`pnpm install` → 4 workspace projects, lockfile v9. `pnpm -r typecheck` → 3 projects pass.
-`pnpm dev` / `build` / `lint` / `test` → exit 0 (no-ops for now).
+On Node 24.18.0 with corepack active (pnpm 11.17.0, TypeScript 6.0.3 in all three
+workspaces): `pnpm install` → 4 workspace projects, lockfile v9. `pnpm -r typecheck` →
+3 projects pass. `pnpm dev` / `build` / `lint` / `test` → exit 0 (no-ops for now).
+The runtime guard was checked in both directions: the same install aborts with
+`ERR_PNPM_UNSUPPORTED_ENGINE` on Node 22.22.2.
 
 ---
 

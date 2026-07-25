@@ -16,7 +16,8 @@ Backend and frontend need to share the generated client (`packages/api-client`) 
 - Root `package.json` with orchestrating scripts (`dev`, `build`, `lint`, `test`, `typecheck`)
 - `tsconfig.base.json` at the root with `strict: true`, `noUncheckedIndexedAccess: true`, `target: ES2022`
 - Each app extends the base config
-- `.nvmrc` pinning the Node version (22 LTS)
+- `.nvmrc` pinning the Node version (24 LTS — see ADR-0016; the plan originally said 22 LTS,
+  which had moved to maintenance by the time this was implemented)
 - `.gitignore` covering `node_modules`, `dist`, `.env`, `coverage`
 
 ### Acceptance criteria

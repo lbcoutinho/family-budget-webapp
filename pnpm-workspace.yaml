@@ -1,3 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Refuse to install on a Node version outside the `engines` range in package.json,
+# instead of printing a warning nobody reads. (pnpm 11 reads this here, not from .npmrc.)
+engineStrict: true
