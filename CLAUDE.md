@@ -19,6 +19,17 @@ There is **no application code yet** — only planning and architecture docs. `p
 - **When implementation reveals a new architectural decision, record a new ADR** in `docs/adr/` (never edit accepted ones) and **update the affected future tickets/issues** to match.
 - **When a decision deviates from the ticket's original plan, add a comment to that Issue** explaining the deviation.
 - **When a milestone is completed, review this `CLAUDE.md` and update it** if anything has changed (e.g. once code exists, mark the planned commands/layout as real; refresh conventions or gotchas that shifted).
+- **When a milestone is completed, review every dependency version and upgrade to the latest *compatible* release** — see below.
+
+## Dependency version review (end of every milestone)
+
+Everything the project uses — frameworks, libraries, `@types/*`, Node, pnpm, Docker images, GitHub Actions — is reviewed at the end of each milestone and moved to the **latest version that is compatible with the rest of the stack**. Newest wins, but only after compatibility is proven, never assumed.
+
+- **Verify, don't guess.** Read the actual `peerDependencies` of the tools that consume the package (`npm view <pkg> peerDependencies`), then install and run `pnpm -r typecheck`, `pnpm lint` and `pnpm test`. A version that satisfies the ranges but breaks a build is not compatible.
+- **A major nobody supports yet is not an upgrade.** Precedent: TypeScript 7 (native Go compiler) ships no JS compiler API, and `typescript-eslint` (`<6.1.0`) and `ts-jest` (`<7`) refuse it — so the project sits on 6.x and `no-floating-promises` keeps working. When this happens, **stay on the newest supported version and prepare for the jump**: remove what the next major drops (e.g. `baseUrl`, `moduleResolution: node10`) so the eventual bump is a version number.
+- **Some versions are pinned to something other than "latest" on purpose.** `@types/node` tracks the Node major in `.nvmrc` (ADR-0016); PostgreSQL is 16 (ADR-0002). Don't bump those to chase a newer number — changing them is an architectural decision and needs a new ADR.
+- **Upgrade in its own commit**, separate from feature work, so a regression is easy to bisect and revert.
+- **Record the outcome in `MEMORY.md`**: what moved, and — more useful to the next ticket — what was deliberately *not* moved and why. If an upgrade forces a config or API change, note the gotcha there too.
 
 ## Planned stack & layout (aspirational — scripts below don't exist until scaffolded)
 
