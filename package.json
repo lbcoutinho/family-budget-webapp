@@ -1,0 +1,22 @@
+{
+  "name": "family-budget-webapp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Family budget management and expense tracking web application",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

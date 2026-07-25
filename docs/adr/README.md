@@ -37,3 +37,4 @@ A record of the project's architectural decisions and the reasoning behind them.
 | [0013](0013-dropping-external-hash.md) | Dropping `externalHash` for deduplication | Accepted |
 | [0014](0014-unified-recurrence-and-installments.md) | Unified recurrence and installments | Accepted |
 | [0015](0015-deactivation-instead-of-deletion.md) | Deactivation instead of deletion | Accepted |
+| [0016](0016-node-24-lts-as-the-runtime.md) | Node 24 LTS as the runtime | Accepted |

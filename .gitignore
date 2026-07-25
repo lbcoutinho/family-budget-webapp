@@ -1,6 +1,35 @@
-# Default ignored files
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test output
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
 /shelf/
 /.idea
+/.vscode/*
+!/.vscode/extensions.json
 # Editor-based HTTP Client requests
 /httpRequests/
 # Ignored default folder with query files
