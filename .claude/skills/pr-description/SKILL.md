@@ -15,14 +15,14 @@ Closes #<issue-number>.
 
 <One or two sentences on what this PR prepares/delivers and why, in plain language.>
 
-## What's in here
+#### What's in here
 
 - **`<file-or-path>`** — <what it is / what it declares>.
 - **<file-or-path>** — <what it configures, one clause per notable setting>.
 - **<file-or-path>** — <what it configures>.
 - <Repeat one bullet per meaningful file/change. Group related files under a single bullet with a short sub-list or table when there are several similar items (e.g. one row per workspace/module).>
 
-## Decisions worth a look
+#### Decisions worth a look
 
 <Detailed on issue #<issue-number>; the short version:>
 
@@ -32,7 +32,7 @@ Closes #<issue-number>.
 4. <Any version pin and why (e.g. toolchain compatibility).>
 5. <Anything intentionally deferred to a later ticket, and which one.>
 
-## Verification
+#### Verification
 
 <How this was checked — commands run and their expected/actual result. If no automated tests apply yet, say so explicitly and list the manual checks instead.>
 
