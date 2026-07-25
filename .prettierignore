@@ -1,0 +1,27 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Lockfiles and generated metadata
+pnpm-lock.yaml
+
+# Husky's generated shim directory
+.husky/_/
+
+# Generated API client (Orval output, M1-T07) — never hand-edited, never formatted
+packages/api-client/
+
+# Prisma migrations are generated SQL and must stay byte-identical after being committed
+apps/api/prisma/migrations/
+
+# Source-of-truth documents, deliberately left untouched:
+#   - accepted ADRs are never edited (see CLAUDE.md), and reflowing one is an edit;
+#   - plan text is copied verbatim into GitHub Issues, so reflowing it desyncs the mirror.
+docs/adr/
+plans/
+
+# Skill definitions are prompts; wrapping them changes what the model reads
+.claude/

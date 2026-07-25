@@ -2,6 +2,11 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
+# Native module used by `eslint-import-resolver-typescript`; its postinstall selects the
+# platform-specific binding. Denying the build leaves the resolver without a native backend.
+allowBuilds:
+  unrs-resolver: true
+
 # Refuse to install on a Node version outside the `engines` range in package.json,
 # instead of printing a warning nobody reads. (pnpm 11 reads this here, not from .npmrc.)
 engineStrict: true

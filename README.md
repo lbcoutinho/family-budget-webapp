@@ -9,11 +9,11 @@ setting money aside (cashboxes).
 
 ## Requirements
 
-| Tool | Version | Notes |
-|---|---|---|
-| Node.js | 24 LTS | pinned in [`.nvmrc`](.nvmrc) — `nvm use`; see [ADR-0016](docs/adr/0016-node-24-lts-as-the-runtime.md) |
-| pnpm | 11.x | `corepack enable` activates the version pinned in `packageManager` |
-| Docker | recent | for PostgreSQL 16 via `docker compose` (added in M1-T03) |
+| Tool    | Version | Notes                                                                                                 |
+| ------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| Node.js | 24 LTS  | pinned in [`.nvmrc`](.nvmrc) — `nvm use`; see [ADR-0016](docs/adr/0016-node-24-lts-as-the-runtime.md) |
+| pnpm    | 11.x    | `corepack enable` activates the version pinned in `packageManager`                                    |
+| Docker  | recent  | for PostgreSQL 16 via `docker compose` (added in M1-T03)                                              |
 
 Both versions are enforced, not suggested: `engineStrict` in
 [`pnpm-workspace.yaml`](pnpm-workspace.yaml) makes `pnpm install` fail with
@@ -24,7 +24,7 @@ standalone pnpm found on the `PATH`.
 ## Local setup
 
 ```bash
-nvm use              # Node 22, as pinned in .nvmrc
+nvm use              # Node 24, as pinned in .nvmrc
 corepack enable      # activates the pnpm version pinned in package.json
 pnpm install         # installs every workspace in one pass
 pnpm typecheck       # verifies the TypeScript setup across all workspaces
@@ -34,10 +34,10 @@ pnpm typecheck       # verifies the TypeScript setup across all workspaces
 
 Declared in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) as `apps/*` and `packages/*`:
 
-| Path | Package name | Purpose |
-|---|---|---|
-| `apps/api` | `api` | REST API — NestJS + Prisma + PostgreSQL 16 |
-| `apps/web` | `web` | Web client — Vite + React 19 + Tailwind + shadcn/ui |
+| Path                  | Package name                | Purpose                                                                 |
+| --------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| `apps/api`            | `api`                       | REST API — NestJS + Prisma + PostgreSQL 16                              |
+| `apps/web`            | `web`                       | Web client — Vite + React 19 + Tailwind + shadcn/ui                     |
 | `packages/api-client` | `@family-budget/api-client` | Typed client generated from OpenAPI by Orval — **never edited by hand** |
 
 Target a single workspace with `--filter`, e.g. `pnpm --filter api typecheck`.
@@ -46,17 +46,55 @@ Target a single workspace with `--filter`, e.g. `pnpm --filter api typecheck`.
 
 Run from the repository root; each one fans out over the workspaces.
 
-| Script | What it does |
-|---|---|
-| `pnpm dev` | starts every app in watch mode, in parallel |
-| `pnpm build` | builds every workspace |
-| `pnpm lint` | lints every workspace |
-| `pnpm test` | runs every workspace's test suite |
-| `pnpm typecheck` | runs `tsc --noEmit` in every workspace |
+| Script              | What it does                                     |
+| ------------------- | ------------------------------------------------ |
+| `pnpm dev`          | starts every app in watch mode, in parallel      |
+| `pnpm build`        | builds every workspace                           |
+| `pnpm lint`         | runs ESLint over the whole repository            |
+| `pnpm lint:fix`     | same, applying every autofix                     |
+| `pnpm format`       | rewrites the repository with Prettier            |
+| `pnpm format:check` | verifies formatting without writing (used by CI) |
+| `pnpm test`         | runs every workspace's test suite                |
+| `pnpm typecheck`    | runs `tsc --noEmit` in every workspace           |
 
-`dev`, `build`, `lint` and `test` use `--if-present`, so they stay green while the
-applications are still being scaffolded (M1-T02 through M1-T05 add the real scripts).
-`typecheck` does not: every workspace is expected to define it.
+`dev`, `build` and `test` fan out over the workspaces with `--if-present`, so they stay
+green while the applications are still being scaffolded (M1-T03 through M1-T05 add the real
+scripts). `typecheck` does not: every workspace is expected to define it. `lint` and
+`format` do not fan out at all — see below.
+
+## Code style
+
+One ESLint flat config ([`eslint.config.js`](eslint.config.js)) covers the whole monorepo
+and is run in a **single pass from the root**, rather than once per workspace. A single pass
+is faster, and it also reaches the files that live outside any workspace — the root config
+files themselves. The per-workspace differences (Node globals and NestJS allowances for
+`apps/api`, browser globals plus `react-hooks` and `jsx-a11y` for `apps/web`) are expressed
+as overrides inside that one config.
+
+TypeScript is linted with **type information** (`projectService`), which is what makes
+`@typescript-eslint/no-floating-promises` work — the rule that matters most once NestJS
+arrives, since an unawaited promise there fails silently. `eslint-config-prettier` is applied
+last, so ESLint never argues with Prettier about formatting.
+
+Prettier deviates from its defaults in three places, in [`.prettierrc`](.prettierrc):
+`singleQuote: true`, `trailingComma: "all"`, `printWidth: 160`. The plan asked for a
+100-column width; 160 was chosen instead, so wide-but-readable lines (NestJS decorators,
+Tailwind class lists, table-driven tests) stop being wrapped into unreadable stacks.
+
+Two trees are excluded from both tools: `packages/api-client`, which Orval generates and
+nobody edits, and — for Prettier only — `docs/adr/` and `plans/`, whose text is either
+immutable once accepted or copied verbatim into GitHub Issues.
+
+A Husky `pre-commit` hook runs `lint-staged` over the staged files: ESLint `--fix` followed
+by Prettier on TypeScript and JavaScript, Prettier alone on JSON, Markdown, YAML and CSS. A
+lint error that no autofix can repair aborts the commit. The hook is installed by the
+`prepare` script, so a fresh `pnpm install` is all it takes; to bypass it deliberately, use
+`git commit --no-verify`.
+
+**ESLint is pinned to 9.x, not 10.x.** Two of the plugins this project requires —
+`eslint-plugin-import` and `eslint-plugin-jsx-a11y` — still declare a peer range that stops
+at ESLint 9. Following the same rule used for TypeScript below, the version chosen is the
+newest one inside every peer range.
 
 ## TypeScript configuration
 
