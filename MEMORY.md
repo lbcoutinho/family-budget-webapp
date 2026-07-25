@@ -5,7 +5,7 @@ Where the last ticket stopped and what comes next. Update this at the end of eve
 
 ---
 
-## Last ticket: M1-T01 — Set up pnpm monorepo with workspaces
+## Earlier ticket: M1-T01 — Set up pnpm monorepo with workspaces
 
 **Issue:** [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1) ·
 **Branch:** `claude/m1-t01-implementation-6rizah` · **Date:** 2026-07-25 · **Status:** done
@@ -55,7 +55,7 @@ Where the last ticket stopped and what comes next. Update this at the end of eve
    `plans/milestones/m01-foundation.md` and `CLAUDE.md` were corrected to match, and the
    deviation is commented on issue #1.
 
-**Config note:** pnpm 11 reads `engineStrict` from `pnpm-workspace.yaml`, *not* from
+**Config note:** pnpm 11 reads `engineStrict` from `pnpm-workspace.yaml`, _not_ from
 `.npmrc` — an `.npmrc` with `engine-strict=true` is silently ignored (verified).
 
 ### TypeScript 6 gotchas for the next tickets
@@ -82,21 +82,99 @@ The runtime guard was checked in both directions: the same install aborts with
 
 ---
 
-## Next up: M1-T02 — Configure ESLint, Prettier, Husky and lint-staged
+## Last ticket: M1-T02 — Configure ESLint, Prettier, Husky and lint-staged
 
-Issue [#2](https://github.com/lbcoutinho/family-budget-webapp/issues/2). Notes for whoever
+**Issue:** [#2](https://github.com/lbcoutinho/family-budget-webapp/issues/2) ·
+**Branch:** `claude/m1-t02-hhuawz` · **Date:** 2026-07-25 · **Status:** done
+
+### What was done
+
+- Root `eslint.config.js` — flat config, CommonJS (every plugin ships CJS and the root
+  package has no `"type": "module"`), built with `tseslint.config()`. Sections, in order:
+  global `ignores`; a shared base (`js.configs.recommended` + `import` recommended,
+  `import/order`, `eqeqeq`, `prefer-const`, `no-console`); type-aware TypeScript
+  (`recommendedTypeChecked` + `stylisticTypeChecked` + `import` TypeScript preset);
+  an `apps/api` override; an `apps/api` test override; an `apps/web` override
+  (`jsx-a11y` + `react-hooks`); a plain-JavaScript override that switches type-aware rules
+  back off; and `eslint-config-prettier/flat` **last**.
+- `.prettierrc` (`singleQuote`, `trailingComma: "all"`, `printWidth: 100`, plus
+  `endOfLine: "lf"`), `.prettierignore`, `.lintstagedrc.json`.
+- Husky 9 initialized (`prepare: "husky"`, `core.hooksPath = .husky/_`); `.husky/pre-commit`
+  runs `pnpm exec lint-staged`.
+- Root scripts: `lint`, `lint:fix`, `format`, `format:check` added; `README.md` gained a
+  "Code style" section.
+
+### Decisions taken during implementation (deviations noted on issue #2)
+
+1. **No `.eslintignore`** — ESLint 9 flat config dropped support for the file entirely;
+   ignores live in the config's `ignores` key. The acceptance criterion's intent
+   (`packages/api-client` is never linted) is met, the mechanism differs.
+2. **`pnpm lint` is one root-level `eslint .`, not a `pnpm -r` fan-out.** The T01 handoff
+   note expected a `lint` script per workspace. A single pass over a shared config is
+   faster and also covers files outside every workspace (`eslint.config.js` itself); the
+   per-workspace differences the plan asks for are config overrides, which is what the plan
+   actually says ("per-workspace overrides"). Consequence: `apps/api` and `apps/web` have
+   **no** `lint` script, so `eslint` is not a dependency of either workspace.
+3. **ESLint pinned to 9.x, not the latest 10.x.** `eslint-plugin-import@2.32.0` and
+   `eslint-plugin-jsx-a11y@6.10.2` — both named in the plan — cap their peer range at
+   ESLint 9. Same rule as T01's TypeScript decision: newest version inside every peer range.
+   Revisit when both plugins ship ESLint 10 support.
+4. **`docs/adr/`, `plans/` and `.claude/` are in `.prettierignore`.** Prettier reflows
+   Markdown (tables, `*emphasis*` → `_emphasis_`, list spacing); left alone it rewrote
+   ~370 lines of accepted ADRs and plan text. Accepted ADRs are never edited, and plan text
+   is copied verbatim into GitHub Issues, so reformatting it would desync the mirror.
+   `README.md`, `CLAUDE.md` and this file **are** formatted.
+5. **`allowBuilds: { unrs-resolver: true }` in `pnpm-workspace.yaml`.** pnpm 11 blocks
+   dependency build scripts by default and **fails the whole install** until each one is
+   declared. `unrs-resolver` is the native backend of `eslint-import-resolver-typescript`.
+   Expect this again whenever a dependency with a postinstall is added (Prisma, esbuild).
+
+### Gotchas for the next tickets
+
+- **`--no-warn-ignored` is required in `.lintstagedrc.json`.** lint-staged passes explicit
+  file paths, and ESLint emits a warning for an explicitly-passed ignored file, which
+  `--max-warnings 0` would turn into a failed commit.
+- `import/no-unresolved` and `import/named` are **off** for TypeScript — the compiler
+  already does that, and the plugin mis-resolves path aliases. The TypeScript import
+  resolver is still installed, because `import/order` needs it to classify groups.
+- The `import/resolver.typescript` setting deliberately has **no `project` key**; resolver
+  v4 discovers the nearest `tsconfig.json` per file. Passing a glob of every workspace
+  tsconfig triggers a "Multiple projects found" warning on every run.
+- Type-aware linting uses `projectService: true`, so **every linted `.ts` file must belong
+  to a `tsconfig.json`**. T04's `nest new` and T05's `create vite` drop config files
+  (`jest.config.ts`, `vite.config.ts`) outside `include` — either add them to the tsconfig
+  or add `projectService.allowDefaultProject`.
+- T06 (CI) should run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`.
+- T05 will need `eslint-plugin-react` if React rules beyond hooks/a11y are wanted; the plan
+  only lists `react-hooks` and `jsx-a11y`, so neither `react` nor `react-refresh` is installed.
+
+### Verified
+
+`pnpm lint` → 0 problems. `pnpm format` → whole repo, `pnpm format:check` clean afterwards.
+`pnpm typecheck` → 3 projects pass. Rules were checked by lint-and-delete probes: a floating
+promise in `apps/api` errors with `no-floating-promises` (type-aware linting works), a
+conditional `useState` in `apps/web` errors with `react-hooks/rules-of-hooks`, and a file
+full of errors under `packages/api-client` produces nothing. The `pre-commit` hook was
+exercised in both directions: a clean commit passes, a staged lint error aborts it.
+
+---
+
+## Next up: M1-T03 — Docker Compose with PostgreSQL and environment validation
+
+Issue [#3](https://github.com/lbcoutinho/family-budget-webapp/issues/3). Notes for whoever
 picks it up:
 
-- Root `eslint.config.js` (flat), per-workspace overrides, `eslint-config-prettier` last,
-  `@typescript-eslint/no-floating-promises` enabled. The rule is type-aware, so it needs
-  `parserOptions.projectService` — and it is the reason TypeScript stays on 6.x (see above).
-- Prettier: `singleQuote`, `trailingComma: "all"`, `printWidth: 100`.
-- Add the real `lint` script to each workspace (the root `lint` will then stop being a
-  no-op) and a root `format` script — `format` was intentionally left out of T01 since
-  Prettier is not installed yet.
-- Exclude `packages/api-client` from lint and format (generated code), and remember its
-  placeholder `src/index.ts` from T01.
-- Husky `pre-commit` → `lint-staged`.
+- `docker-compose.yml`: `postgres:16-alpine`, named volume, main DB on 5432 and a second
+  `postgres_test` on 5433.
+- `.env.example` committed (`.gitignore` already allows it); `.env` stays ignored.
+- `apps/api/src/config/env.validation.ts` with `class-validator`, wired into
+  `@nestjs/config` (`isGlobal: true`, `validate`). Boot must fail naming the missing variable.
+- Keys: `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`,
+  `REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIRES_IN`, `CORS_ORIGIN`.
+- Unit test `env.validation.spec.ts` — this is the first ticket that needs a test runner in
+  `apps/api`, so Jest lands here (and with it the `test` script the root `test` fans out to).
+- Ordering note: T03 writes NestJS-flavored code but `nest new` only runs in T04. Either
+  install `@nestjs/config` + `class-validator` by hand now, or reorder T03 after T04.
 
-Remaining M1 tickets: T03 Docker Compose + env validation, T04 NestJS bootstrap + health
-check, T05 Vite/Tailwind/shadcn bootstrap, T06 GitHub Actions CI, T07 Orval client.
+Remaining M1 tickets: T04 NestJS bootstrap + health check, T05 Vite/Tailwind/shadcn
+bootstrap, T06 GitHub Actions CI, T07 Orval client.

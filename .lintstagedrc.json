@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json.schemastore.org/lintstagedrc.json",
+  "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": [
+    "eslint --fix --no-warn-ignored --max-warnings 0",
+    "prettier --write"
+  ],
+  "*.{json,jsonc,md,yml,yaml,css,scss,html}": ["prettier --write"]
+}
