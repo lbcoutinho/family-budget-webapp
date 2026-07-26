@@ -11,27 +11,49 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**Last done:** M1-T05 — frontend bootstrap (Vite 8 + React 19 + Tailwind v4 + shadcn/ui + React
-Query + React Router + Vitest) in `apps/web`
-([issue #5](https://github.com/lbcoutinho/family-budget-webapp/issues/5), PR open, awaiting review).
-M1-T04 (`apps/api` health check, PR #13) still open awaiting review too.
+**Last done:** M1-T07 — OpenAPI → Orval client pipeline. Branch `m01-t07-orval-client-pipeline`,
+PR open, awaiting review. This is the **last ticket of M1**.
 
-Nothing half-finished. `pnpm --filter web dev` boots on :5173, landing page renders a styled shadcn
-Card+Button, `test`/`build`/`typecheck`/`lint` all green.
+Green locally: lint, `pnpm -r typecheck`, web vitest, api unit + e2e (health + new openapi spec),
+and the CI stale-client check (`pnpm gen` then `git diff --exit-code` is clean/deterministic). API
+boots with `/api/health` 200 and Swagger UI at `/api/docs` 200.
+
+## After this PR merges — M1 is COMPLETE. Two required follow-ups (CLAUDE.md):
+
+1. Run the `dependency-review` skill. Known pins to look at: `actions/checkout`, `setup-node`,
+   `pnpm/action-setup` still `@v4` (Node 20, one harmless CI annotation); `@nestjs/swagger@11.4.6`,
+   `orval@8.23.0`, `axios@1.18.1`, `tsx@4.23.1` just added; Prisma 6.19 has a 7.x major available.
+2. Review/update `CLAUDE.md` — code now exists, so mark planned commands/layout real. Note that
+   `pnpm gen` (OpenAPI export → Orval) is now wired, and `.env.example` → `.env` at repo root.
+
+## Non-obvious T07 gotchas (for reviewers / next session)
+
+- Orval v8 defaults to a **fetch** client; had to set `httpClient: 'axios'` to match the mutator.
+- tags-split emits **no root barrel** → `packages/api-client/src/index.ts` is a hand-written barrel;
+  add one `export * from './generated/<tag>/<tag>'` line per new API tag.
+- Custom axios instance lives **inside** `packages/api-client` (`src/lib/axios.ts`), not `apps/web`,
+  so the client is self-contained and there is no web→client→web import cycle. Ticket said
+  "src/lib/axios.ts" without a package; deviation noted on Issue #7.
+- `openapi:export` uses `NestFactory.create(AppModule, { preview: true })` so it never connects to
+  the DB, but env validation still runs → the export needs the standard env vars present.
+- `apps/api/openapi.json` is **git-ignored** (intermediate); only the generated client is committed.
+- `.gitattributes` pins `packages/api-client/**` to LF so the CI diff can't flake on CRLF checkouts.
 
 ## Environment notes (this machine)
 
-- Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format` (`prettier --write .`)** — it
-  rewrites/CRLF-touches the whole repo and pollutes the diff. lint-staged formats staged files on
-  commit; scope any manual prettier run to the files you changed.
-- Local dev needs `docker compose up -d postgres postgres_test` and a root `.env`
-  (`cp .env.example .env`; git-ignored). e2e and api boot both read that root `.env`.
+- Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format`** — rewrites the whole repo.
+  lint-staged formats staged files on commit; scope manual prettier to files you changed.
+- Local dev needs `docker compose up -d postgres postgres_test` (both currently up) and a root
+  `.env` (`cp .env.example .env`; git-ignored). e2e, api boot and `pnpm gen` all read root `.env`.
+- `esbuild` added to `pnpm-workspace.yaml` `allowBuilds` (tsx/vite/vitest need its native binary).
 
-## Next: M1-T06 — GitHub Actions CI pipeline
+## Still blocked for me (carried over from T06)
 
-Read the ticket in `plans/milestones/m01-foundation.md`. Notes:
+Branch protection on `main` requiring the `ci` check — the `gh api -X PUT .../branches/main/protection`
+call is denied by the Claude Code permission classifier. User must run it:
 
-- Single job, sequential: install (pnpm cache) → lint → typecheck → test; `postgres:16-alpine`
-  service container + `prisma migrate deploy` on the test DB before tests; concurrency group
-  cancelling stale PR runs. End of ticket: enable branch protection requiring green CI on `main`.
-- Issue #6 already exists. Both T04 (#13) and T05 PRs are still open — CI will run against them.
+```bash
+gh api -X PUT repos/lbcoutinho/family-budget-webapp/branches/main/protection \
+  -f 'required_status_checks[strict]=true' -f 'required_status_checks[contexts][]=ci' \
+  -F 'enforce_admins=false' -F 'required_pull_request_reviews=null' -F 'restrictions=null'
+```

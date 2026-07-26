@@ -65,6 +65,14 @@ jobs:
       - name: Typecheck
         run: pnpm -r typecheck
 
+      # Regenerate the API client from the DTOs and fail if it differs from what is committed.
+      # Catches a backend contract change that was not followed by `pnpm gen`. `openapi.json` is
+      # git-ignored, so only the committed client under packages/api-client counts.
+      - name: Verify generated API client is up to date
+        run: |
+          pnpm gen
+          git diff --exit-code -- packages/api-client
+
       # Apply migrations to the test database before any test touches it. A no-op until the
       # first schema-changing task adds a migration, but wiring it here means later milestones
       # need no CI change.

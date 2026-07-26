@@ -1,0 +1,5 @@
+# The Orval-generated client is verified in CI with `git diff --exit-code` after `pnpm gen`.
+# Pin it to LF so a CRLF checkout on Windows can never diff against the LF output Orval writes
+# on the Linux CI runner. (The package is excluded from Prettier, which would otherwise enforce
+# line endings.)
+packages/api-client/** text eol=lf
