@@ -2,9 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project state: pre-implementation
+## Project state: M1 complete (Foundation)
 
-**No application code yet** — only planning + architecture docs. `plans/` and `docs/adr/` are **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
+**M1 Foundation scaffolded** — monorepo, tooling, CI, health-check API, web bootstrap, and the OpenAPI→Orval client all exist. **M2 Authentication is next; no feature/domain code yet.** `plans/` and `docs/adr/` remain **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
 - `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry), each list of small tasks. First user-visible value at end of M5.
@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **When milestone completed, review this `CLAUDE.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh shifted conventions/gotchas).
 - **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm, Docker images, Actions — moves to latest release proven compatible with rest of stack.
 
-## Planned stack & layout (aspirational — scripts below don't exist until scaffolded)
+## Stack & layout
 
 pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 24 LTS (ADR-0016).
 
@@ -30,7 +30,7 @@ pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 24 LTS (ADR-
 - `apps/web/` — Vite + React 19 + Tailwind v4/shadcn + TanStack Query. **Organized by feature, not file type.** Vitest + Testing Library + MSW.
 - `packages/api-client/` — Orval-generated typed React-Query client. **Never hand-edit; excluded from lint/format.**
 
-Planned commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test).
+Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test).
 
 ## Domain rules (get these wrong and reports break)
 

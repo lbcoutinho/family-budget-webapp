@@ -14,6 +14,7 @@
 The first migration in the project. It establishes the conventions every later migration inherits.
 
 ### Implementation notes
+- **Pre-work — decide the Prisma major (6 vs 7).** The M1-close dependency review surfaced Prisma 7 (works with Node 24) but held the project on 6, because 7 is a breaking major (config file, generator/output changes) that reshapes this scaffold. Investigate 7's migration cost before writing the first schema, and adopt it here if worthwhile — this is the clean window, before any migration exists. If 7 is adopted, record an ADR and update the rest of this ticket to match.
 - `schema.prisma` with the PostgreSQL datasource and client generator
 - `User` model: `id` (uuid), `email` (unique), `passwordHash`, `name`, `createdAt`, `updatedAt`
 - Convention: models named in singular PascalCase, mapped to snake_case tables via `@@map`
@@ -21,6 +22,7 @@ The first migration in the project. It establishes the conventions every later m
 - `tsx` wired up to run the seed
 
 ### Acceptance criteria
+- [ ] Prisma major (6 vs 7) decided; if 7 is adopted, an ADR is recorded and this ticket updated
 - [ ] `pnpm --filter api db:migrate` applies the migration
 - [ ] Prisma Client is generated and typed
 - [ ] The migration is committed under `prisma/migrations/`

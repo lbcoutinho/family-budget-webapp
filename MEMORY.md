@@ -11,49 +11,41 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**Last done:** M1-T07 — OpenAPI → Orval client pipeline. Branch `m01-t07-orval-client-pipeline`,
-PR open, awaiting review. This is the **last ticket of M1**.
+**M1 Foundation complete.** All 7 tickets merged to `main` (last: #16, Orval client). CLAUDE.md
+refreshed (no longer "pre-implementation"). Dependency review done at M1 close on branch
+`chore/m1-dependency-review` — **still needs a PR to `main`.**
 
-Green locally: lint, `pnpm -r typecheck`, web vitest, api unit + e2e (health + new openapi spec),
-and the CI stale-client check (`pnpm gen` then `git diff --exit-code` is clean/deterministic). API
-boots with `/api/health` 200 and Swagger UI at `/api/docs` 200.
+**M2 mirrored to GitHub:** Milestone #2 + issues #17–#22 created. Ready to start M2-T01.
 
-## After this PR merges — M1 is COMPLETE. Two required follow-ups (CLAUDE.md):
+## Open decisions / blocked items
 
-1. Run the `dependency-review` skill. Known pins to look at: `actions/checkout`, `setup-node`,
-   `pnpm/action-setup` still `@v4` (Node 20, one harmless CI annotation); `@nestjs/swagger@11.4.6`,
-   `orval@8.23.0`, `axios@1.18.1`, `tsx@4.23.1` just added; Prisma 6.19 has a 7.x major available.
-2. Review/update `CLAUDE.md` — code now exists, so mark planned commands/layout real. Note that
-   `pnpm gen` (OpenAPI export → Orval) is now wired, and `.env.example` → `.env` at repo root.
-
-## Non-obvious T07 gotchas (for reviewers / next session)
-
-- Orval v8 defaults to a **fetch** client; had to set `httpClient: 'axios'` to match the mutator.
-- tags-split emits **no root barrel** → `packages/api-client/src/index.ts` is a hand-written barrel;
-  add one `export * from './generated/<tag>/<tag>'` line per new API tag.
-- Custom axios instance lives **inside** `packages/api-client` (`src/lib/axios.ts`), not `apps/web`,
-  so the client is self-contained and there is no web→client→web import cycle. Ticket said
-  "src/lib/axios.ts" without a package; deviation noted on Issue #7.
-- `openapi:export` uses `NestFactory.create(AppModule, { preview: true })` so it never connects to
-  the DB, but env validation still runs → the export needs the standard env vars present.
-- `apps/api/openapi.json` is **git-ignored** (intermediate); only the generated client is committed.
-- `.gitattributes` pins `packages/api-client/**` to LF so the CI diff can't flake on CRLF checkouts.
+- **Prisma 6 → 7 deferred, needs a decision before M2-T01.** Prisma 7 is out and works with Node
+  24, but it is a breaking major (config file, generator/output changes) that reshapes the
+  M2-T01 schema/migration scaffold. Kept on 6 in the dep-review commit. Decide + write an ADR
+  and update the M2-T01 plan/issue _before_ implementing the first migration.
+- **Branch protection on `main` still not set** (requiring the `ci` check). The
+  `gh api -X PUT .../branches/main/protection` call is blocked by the Claude Code permission
+  classifier — user must run it:
+  ```bash
+  gh api -X PUT repos/lbcoutinho/family-budget-webapp/branches/main/protection --input - <<'JSON'
+  { "required_status_checks": { "strict": true, "contexts": ["ci"] },
+    "enforce_admins": false, "required_pull_request_reviews": null, "restrictions": null }
+  JSON
+  ```
 
 ## Environment notes (this machine)
 
-- Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format`** — rewrites the whole repo.
-  lint-staged formats staged files on commit; scope manual prettier to files you changed.
-- Local dev needs `docker compose up -d postgres postgres_test` (both currently up) and a root
-  `.env` (`cp .env.example .env`; git-ignored). e2e, api boot and `pnpm gen` all read root `.env`.
-- `esbuild` added to `pnpm-workspace.yaml` `allowBuilds` (tsx/vite/vitest need its native binary).
+- Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format` (`prettier --write .`)** — it
+  rewrites/CRLF-touches the whole repo. lint-staged formats staged files on commit.
+- **Windows Prisma gotcha:** `prisma generate` (api `postinstall`) can fail with
+  `EPERM ... rename query_engine-windows.dll.node` when a leftover node process holds the DLL.
+  Harmless if the client is already generated at that version; otherwise close stray node
+  processes and retry. Does not block typecheck/lint/test.
+- Local dev needs `docker compose up -d postgres postgres_test` and a root `.env`
+  (`cp .env.example .env`; git-ignored). Postgres 5432 (main) / 5433 (test).
 
-## Still blocked for me (carried over from T06)
+## Next: M2-T01 — User model and Prisma setup
 
-Branch protection on `main` requiring the `ci` check — the `gh api -X PUT .../branches/main/protection`
-call is denied by the Claude Code permission classifier. User must run it:
-
-```bash
-gh api -X PUT repos/lbcoutinho/family-budget-webapp/branches/main/protection \
-  -f 'required_status_checks[strict]=true' -f 'required_status_checks[contexts][]=ci' \
-  -F 'enforce_admins=false' -F 'required_pull_request_reviews=null' -F 'restrictions=null'
-```
+Issue #17. First migration in the project — sets conventions all later migrations inherit.
+**Resolve the Prisma 6-vs-7 decision above first.** Read the ticket in
+`plans/milestones/m02-authentication.md`.
