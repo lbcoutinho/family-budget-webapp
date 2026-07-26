@@ -1,0 +1,11 @@
+// Prisma schema. Models are added per feature in later milestones; M1-T04 only needs the
+// generated client so the health check can run `SELECT 1` through a typed PrismaService.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
