@@ -19,10 +19,12 @@ refreshed (no longer "pre-implementation"). Dependency review done at M1 close o
 
 ## Open decisions / blocked items
 
-- **Prisma 6 → 7 deferred, needs a decision before M2-T01.** Prisma 7 is out and works with Node
-  24, but it is a breaking major (config file, generator/output changes) that reshapes the
-  M2-T01 schema/migration scaffold. Kept on 6 in the dep-review commit. Decide + write an ADR
-  and update the M2-T01 plan/issue _before_ implementing the first migration.
+- **Prisma 6 → 7: investigated, ADR written, awaiting the user's call.**
+  `docs/adr/0017-prisma-7-with-the-rust-free-client.md` (**Proposed**) recommends adopting
+  `^7.9.0` in M2-T01 and carries the ordered implementation steps + spike evidence. Nothing in
+  the app changed yet. When the user accepts: flip the status to `Accepted`, update the README
+  index, follow the steps, and update the M2-T01 plan text + a comment on issue #17. If the user
+  rejects, mark it `Rejected` and start M2-T01 on Prisma 6 unchanged.
 - **Branch protection on `main` still not set** (requiring the `ci` check). The
   `gh api -X PUT .../branches/main/protection` call is blocked by the Claude Code permission
   classifier — user must run it:
