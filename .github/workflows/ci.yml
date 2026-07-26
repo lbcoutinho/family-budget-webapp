@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# One in-flight run per branch: pushing a new commit to a PR cancels the stale run so CI
+# never wastes minutes validating a superseded commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    # Integration tests (apps/api e2e) run a real `SELECT 1`, so they need a reachable database.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: budget
+          POSTGRES_PASSWORD: budget
+          POSTGRES_DB: budget_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U budget -d budget_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Boot-time env validation (M1-T03) rejects a missing or malformed variable, so the API
+    # cannot start under test without the full set. There is no `.env` on the runner; these
+    # feed both the API and Prisma. Secrets are throwaway CI values, not real credentials.
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_URL: postgresql://budget:budget@localhost:5432/budget_test?schema=public
+      JWT_SECRET: ci-jwt-secret
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_SECRET: ci-refresh-secret
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm before setup-node so the latter can prime the pnpm store cache. Version comes from
+      # the `packageManager` field in package.json — kept in one place.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      # Apply migrations to the test database before any test touches it. A no-op until the
+      # first schema-changing task adds a migration, but wiring it here means later milestones
+      # need no CI change.
+      - name: Migrate test database
+        run: pnpm --filter api exec prisma migrate deploy
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Integration tests (e2e)
+        run: pnpm --filter api test:e2e
