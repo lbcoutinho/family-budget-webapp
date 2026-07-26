@@ -37,7 +37,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | Milestone | GitHub Milestone | Issues | Status |
 |---|---|---|---|
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1)–[#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | Created 2026-07-25 |
-| M2 — Authentication | — | — | Not started |
+| M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26 |
 | M3 — Master data | — | — | Not started |
 | M4 — Transactions (API) | — | — | Not started |
 | M5 — Entries (UI) | — | — | Not started |
@@ -60,3 +60,18 @@ Created GitHub Milestone `M1 - Foundation` and 7 issues from `plans/milestones/m
 | [#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | M1-T07 — OpenAPI → TypeScript client (Orval) | backend, frontend |
 
 Labels created at this point (reused for all future milestones): `milestone: m1-foundation`, `backend`, `frontend`.
+
+### M2 — Authentication (2026-07-26)
+
+Created GitHub Milestone `M2 - Authentication` (#2) and 6 issues from `plans/milestones/m02-authentication.md`:
+
+| Issue | Task | Labels |
+|---|---|---|
+| [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17) | M2-T01 — User model and Prisma setup | backend |
+| [#18](https://github.com/lbcoutinho/family-budget-webapp/issues/18) | M2-T02 — argon2 hashing service and initial user seed | backend |
+| [#19](https://github.com/lbcoutinho/family-budget-webapp/issues/19) | M2-T03 — Local login with Passport and JWT issuance | backend |
+| [#20](https://github.com/lbcoutinho/family-budget-webapp/issues/20) | M2-T04 — Global JWT guard and @CurrentUser decorator | backend |
+| [#21](https://github.com/lbcoutinho/family-budget-webapp/issues/21) | M2-T05 — Axios instance with refresh interceptor | frontend |
+| [#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | M2-T06 — Login screen and route protection | frontend |
+
+New label created: `milestone: m2-authentication` (purple `#5319E7`).
