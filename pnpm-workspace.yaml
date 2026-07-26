@@ -7,6 +7,11 @@ packages:
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  # esbuild ships a platform-specific binary via its install script; tsx (the OpenAPI export)
+  # and Vite/Vitest all drive it, so the binding must be built.
+  esbuild: true
+  # Telemetry-only package; nothing needs its install script to run.
+  '@scarf/scarf': false
   prisma: true
   unrs-resolver: true
 
