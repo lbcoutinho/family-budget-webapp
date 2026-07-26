@@ -11,24 +11,27 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**Last done:** M1-T04 — NestJS API + `GET /api/health`
-([issue #4](https://github.com/lbcoutinho/family-budget-webapp/issues/4),
-[PR #13](https://github.com/lbcoutinho/family-budget-webapp/pull/13), open, awaiting review).
+**Last done:** M1-T05 — frontend bootstrap (Vite 8 + React 19 + Tailwind v4 + shadcn/ui + React
+Query + React Router + Vitest) in `apps/web`
+([issue #5](https://github.com/lbcoutinho/family-budget-webapp/issues/5), PR open, awaiting review).
+M1-T04 (`apps/api` health check, PR #13) still open awaiting review too.
 
-Nothing is half-finished. `apps/api` now boots (`pnpm --filter api dev`), health check green.
+Nothing half-finished. `pnpm --filter web dev` boots on :5173, landing page renders a styled shadcn
+Card+Button, `test`/`build`/`typecheck`/`lint` all green.
 
 ## Environment notes (this machine)
 
-- Native Windows, Node 24.18 / pnpm 11.17 already correct — the old container/nvm note is gone.
+- Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format` (`prettier --write .`)** — it
+  rewrites/CRLF-touches the whole repo and pollutes the diff. lint-staged formats staged files on
+  commit; scope any manual prettier run to the files you changed.
 - Local dev needs `docker compose up -d postgres postgres_test` and a root `.env`
-  (`cp .env.example .env`; git-ignored). e2e and app boot both read that root `.env`.
+  (`cp .env.example .env`; git-ignored). e2e and api boot both read that root `.env`.
 
-## Next: M1-T05 — Bootstrap the frontend with Vite, Tailwind and shadcn/ui
+## Next: M1-T06 — GitHub Actions CI pipeline
 
-Read the ticket in `plans/milestones/m01-foundation.md` first. Notes:
+Read the ticket in `plans/milestones/m01-foundation.md`. Notes:
 
-- **`apps/web` is already a populated workspace** (has `package.json`/`tsconfig` from T01) — same
-  as T04, scaffold into it carefully with `pnpm create vite`, don't clobber. Confirm before overwriting.
-- **Vite dev proxy `/api` → `http://localhost:3000`** (the API's `PORT`); the API serves under the
-  global `/api` prefix, so proxy the `/api` path straight through.
-- Issue #5 likely already exists (run github-mirroring / check before creating).
+- Single job, sequential: install (pnpm cache) → lint → typecheck → test; `postgres:16-alpine`
+  service container + `prisma migrate deploy` on the test DB before tests; concurrency group
+  cancelling stale PR runs. End of ticket: enable branch protection requiring green CI on `main`.
+- Issue #6 already exists. Both T04 (#13) and T05 PRs are still open — CI will run against them.

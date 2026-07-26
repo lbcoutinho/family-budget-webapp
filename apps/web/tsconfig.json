@@ -8,10 +8,11 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
