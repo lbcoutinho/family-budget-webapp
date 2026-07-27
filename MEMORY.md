@@ -19,12 +19,9 @@ refreshed (no longer "pre-implementation"). Dependency review done at M1 close o
 
 ## Open decisions / blocked items
 
-- **Prisma 6 → 7: investigated, ADR written, awaiting the user's call.**
-  `docs/adr/0017-prisma-7-with-the-rust-free-client.md` (**Proposed**) recommends adopting
-  `^7.9.0` in M2-T01 and carries the ordered implementation steps + spike evidence. Nothing in
-  the app changed yet. When the user accepts: flip the status to `Accepted`, update the README
-  index, follow the steps, and update the M2-T01 plan text + a comment on issue #17. If the user
-  rejects, mark it `Rejected` and start M2-T01 on Prisma 6 unchanged.
+- **Prisma 6 → 7: decided and done** (ADR-0017, upgrade PR from
+  `claude/family-budget-prework-adr-q5lbnl`). Waiting on review/merge; M2-T01 should start from
+  `main` after it lands, not from that branch.
 - **Branch protection on `main` still not set** (requiring the `ci` check). The
   `gh api -X PUT .../branches/main/protection` call is blocked by the Claude Code permission
   classifier — user must run it:
@@ -48,6 +45,7 @@ refreshed (no longer "pre-implementation"). Dependency review done at M1 close o
 
 ## Next: M2-T01 — User model and Prisma setup
 
-Issue #17. First migration in the project — sets conventions all later migrations inherit.
-**Resolve the Prisma 6-vs-7 decision above first.** Read the ticket in
-`plans/milestones/m02-authentication.md`.
+Issue #17. First migration in the project — sets conventions all later migrations inherit. The
+Prisma 7 toolchain is already in place, so what is left is the `User` model, the `db:*` scripts
+and the migration. Read the ticket in `plans/milestones/m02-authentication.md`; the spike that
+validated the migration/seed flow is described in ADR-0017's Evidence section.

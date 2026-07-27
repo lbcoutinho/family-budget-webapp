@@ -14,15 +14,15 @@
 The first migration in the project. It establishes the conventions every later migration inherits.
 
 ### Implementation notes
-- **Pre-work — decide the Prisma major (6 vs 7).** The M1-close dependency review surfaced Prisma 7 (works with Node 24) but held the project on 6, because 7 is a breaking major (config file, generator/output changes) that reshapes this scaffold. Investigate 7's migration cost before writing the first schema, and adopt it here if worthwhile — this is the clean window, before any migration exists. If 7 is adopted, record an ADR and update the rest of this ticket to match.
-- `schema.prisma` with the PostgreSQL datasource and client generator
+- ~~**Pre-work — decide the Prisma major (6 vs 7).**~~ Done: Prisma 7 adopted (ADR-0017) and the upgrade landed in its own PR ahead of this ticket. `apps/api` is on `prisma`/`@prisma/client` `^7.9.0` with a `prisma.config.ts`, the `prisma-client` generator emitting CommonJS TypeScript into the git-ignored `src/generated/prisma`, and `PrismaService` connecting through the `@prisma/adapter-pg` driver adapter. What is left below is the `User` model and the scripts.
+- `schema.prisma` already carries the PostgreSQL datasource and the client generator; the connection URL lives in `prisma.config.ts`, not in the datasource block
 - `User` model: `id` (uuid), `email` (unique), `passwordHash`, `name`, `createdAt`, `updatedAt`
 - Convention: models named in singular PascalCase, mapped to snake_case tables via `@@map`
-- `db:migrate`, `db:reset` and `db:studio` scripts in the API `package.json`
+- `db:migrate`, `db:reset` and `db:studio` scripts in the API `package.json`. `db:reset` is run by the user, never by Claude: the Prisma 7 CLI refuses `migrate reset` when it detects an AI agent unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` carries the user's verbatim consent
 - `tsx` wired up to run the seed
 
 ### Acceptance criteria
-- [ ] Prisma major (6 vs 7) decided; if 7 is adopted, an ADR is recorded and this ticket updated
+- [x] Prisma major (6 vs 7) decided; if 7 is adopted, an ADR is recorded and this ticket updated — ADR-0017, upgrade merged separately
 - [ ] `pnpm --filter api db:migrate` applies the migration
 - [ ] Prisma Client is generated and typed
 - [ ] The migration is committed under `prisma/migrations/`

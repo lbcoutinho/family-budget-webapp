@@ -1,7 +1,7 @@
 # ADR-0017 — Prisma 7 with the Rust-free client
 
-**Status:** Proposed
-**Date:** 2026-07-26
+**Status:** Accepted
+**Date:** 2026-07-27
 
 ## Context
 
@@ -25,7 +25,7 @@ What actually breaks in 7 (verified, not read off a changelog — see "Evidence"
 1. **`url` is gone from the `datasource` block.** The CLI rejects it outright:
    *"The datasource property `url` is no longer supported in schema files. Move connection URLs for
    Migrate to `prisma.config.ts` and pass either `adapter` for a direct database connection or
-   `accelerateUrl` for the `PrismaClient` constructor."* So the project gains a
+   `accelerateUrl` for Accelerate to the `PrismaClient` constructor."* So the project gains a
    `prisma.config.ts`, and `PrismaService` must construct the client with a **driver adapter**
    (`@prisma/adapter-pg`, which pulls in `pg` and `@types/pg` itself).
 2. **The CLI no longer loads `.env` by default.** Any `prisma` command fails with
@@ -58,10 +58,12 @@ What actually breaks in 7 (verified, not read off a changelog — see "Evidence"
 
 ## Decision
 
-**Adopt Prisma 7 (`^7.9.0`) in M2-T01**, before the first migration exists, with:
+**Adopt Prisma 7 (`^7.9.0`) now**, ahead of M2-T01 and before the first migration exists, as a
+standalone upgrade so that ticket starts on the final toolchain and its diff is only the `User`
+model. The upgrade consists of:
 
-- a `prisma.config.ts` in `apps/api/` holding the datasource URL, the migrations path and the seed
-  command, loading `.env` explicitly via `dotenv`;
+- a `prisma.config.ts` in `apps/api/` holding the datasource URL and the migrations path (M2-T02
+  adds the seed command there), loading `.env` explicitly via `dotenv`;
 - the `prisma-client` generator emitting to `apps/api/src/generated/prisma`, with
   `moduleFormat = "cjs"` and `importFileExtension = ""`, so the API stays CommonJS and no
   `tsconfig`/Jest/`nest build` setting changes;
@@ -99,7 +101,7 @@ major and the client architecture.
   database without the user's explicit, quoted consent
 
 ### Negative
-- Two new production dependencies (`@prisma/adapter-pg`, and `dotenv` for the config file), and one
+- Two new dependencies (`@prisma/adapter-pg` at runtime, `dotenv` for the config file), and one
   more config file to keep in sync with `.env`
 - `PrismaService` gains a constructor and a `ConfigService` dependency, so any test instantiating it
   must provide one
@@ -124,78 +126,59 @@ major and the client architecture.
 - **A future Prisma major breaks again** → the surface is now `prisma.config.ts`, `PrismaService`
   and generated-code imports; recorded here so the next upgrade knows where to look
 
-## Implementation steps
+## Implementation
 
-Ordered so the tree is never in a state where `pnpm install` cannot run. Fits inside M2-T01 and
-keeps that ticket well under the ~400-line PR limit.
+Carried out in the upgrade PR that accepts this ADR — no `User` model, no migration, so the
+toolchain change stays reviewable on its own.
 
-1. **Bump the packages.** `apps/api`: `prisma` and `@prisma/client` to `^7.9.0`, add
-   `@prisma/adapter-pg` (runtime) and `dotenv` (dev). Temporarily drop the `postinstall`
-   `prisma generate` for this one install — it runs before the new config exists and fails the
-   install otherwise — and restore it in step 4.
-2. **Add `apps/api/prisma.config.ts`:**
-   ```ts
-   import { config } from 'dotenv';
-   import { defineConfig, env } from 'prisma/config';
+1. **Packages.** `apps/api`: `prisma` and `@prisma/client` to `^7.9.0`, `@prisma/adapter-pg` added
+   as a runtime dependency (it brings `pg` and `@types/pg`), `dotenv` as a dev dependency for the
+   config file.
+2. **`apps/api/prisma.config.ts`** holds the schema path, the migrations path and the datasource
+   URL, loading `.env` from both `apps/api` and the repo root. The URL is
+   `process.env.DATABASE_URL ?? ''` rather than the `env()` helper from `prisma/config`: `env()`
+   throws when the variable is missing, and `postinstall` runs `prisma generate` on a fresh clone,
+   before anyone has copied `.env.example`. Generating needs no database; the commands that do —
+   `migrate`, `studio` — still fail on their own with a clear error. CI needs neither path, since
+   the workflow exports the variables at job level.
+3. **`apps/api/prisma/schema.prisma`:** `url` dropped from `datasource`, generator switched to
+   `prisma-client` with `output = "../src/generated/prisma"`, `moduleFormat = "cjs"` and
+   `importFileExtension = ""`.
+4. **`PrismaService`** imports `PrismaClient` from `../generated/prisma/client`, injects
+   `ConfigService`, and calls `super({ adapter: new PrismaPg({ connectionString: … }) })`, keeping
+   the `$connect`/`$disconnect` lifecycle hooks. `PrismaExceptionFilter` and its spec import the
+   `Prisma` namespace from the same generated path. Those three files were the only `@prisma/client`
+   importers in the API.
+5. **Generated output treated as build output:** `apps/api/src/generated/` added to `.gitignore`,
+   `.prettierignore` and the ESLint `ignores` list, and excluded from `collectCoverageFrom`.
+6. **`apps/api/tsconfig.json` `include`** widened to `prisma.config.ts` and `prisma/**/*.ts`, so
+   `tsc` and typed ESLint cover the config file and the seed M2-T02 will add. Without it, typed
+   linting fails on `prisma.config.ts` with *"was not found by the project service"*.
 
-   config({ path: ['.env', '../../.env'], quiet: true });
-
-   export default defineConfig({
-     schema: 'prisma/schema.prisma',
-     migrations: { path: 'prisma/migrations', seed: 'tsx prisma/seed.ts' },
-     datasource: { url: env('DATABASE_URL') },
-   });
-   ```
-   The two `.env` paths cover running from `apps/api` and from the repo root; CI needs neither,
-   since the workflow already exports the variables.
-3. **Rewrite `apps/api/prisma/schema.prisma`:** drop `url` from `datasource`, switch the generator
-   to
-   ```prisma
-   generator client {
-     provider            = "prisma-client"
-     output              = "../src/generated/prisma"
-     moduleFormat        = "cjs"
-     importFileExtension = ""
-   }
-   ```
-   and add the `User` model from the ticket (singular PascalCase, `@@map("user")`, snake_case
-   columns), with the naming conventions documented at the top of the file as the ticket requires.
-4. **Restore `postinstall: prisma generate`** and add the `db:migrate` (`prisma migrate dev`),
-   `db:deploy` (`prisma migrate deploy`), `db:reset` (`prisma migrate reset`) and `db:studio`
-   (`prisma studio`) scripts. Run `pnpm install` and confirm the client generates from a clean tree.
-5. **Ignore the generated directory** in `.gitignore`, `.prettierignore` and the ESLint `ignores`
-   list (`apps/api/src/generated/`), and exclude it from `collectCoverageFrom` in
-   `apps/api/jest.config.js`.
-6. **Widen `apps/api/tsconfig.json` `include`** to `prisma.config.ts` and `prisma/**/*.ts`, so both
-   `tsc --noEmit` and typed ESLint cover them.
-7. **Rewire `PrismaService`:** import `PrismaClient` from `../generated/prisma/client`, inject
-   `ConfigService`, and `super({ adapter: new PrismaPg({ connectionString: config.getOrThrow<string>('DATABASE_URL') }) })`.
-   Keep the existing `$connect`/`$disconnect` lifecycle hooks.
-8. **Repoint the remaining `@prisma/client` imports** — `src/common/filters/prisma-exception.filter.ts`
-   and its spec — at `../../generated/prisma/client`. Nothing else in `apps/api` imports Prisma today.
-9. **Create the first migration:** `pnpm --filter api db:migrate --name init_user`, and commit
-   `prisma/migrations/`. One migration for the ticket, never edited afterwards.
-10. **Verify the whole chain:** `pnpm -r typecheck`, `pnpm lint`, `pnpm --filter api test` (including
-    the ticket's integration test creating and reading a user through `PrismaService`),
-    `pnpm --filter api build` plus a `node dist/main` smoke check that `/api/health` still reports
-    `db: up`, and `pnpm gen` to confirm the OpenAPI export is unaffected.
-11. **Update the docs that name the version:** this ADR's status to `Accepted` and the
-    `docs/adr/README.md` index, the M2-T01 notes in `plans/milestones/m02-authentication.md` (config
-    file, generator, adapter), a comment on issue #17 recording the deviation, and `CLAUDE.md` where
-    it lists the stack and the `db:*` commands — including the note that `db:reset` is user-run.
+Left to the tickets that own them: the `db:migrate` / `db:reset` / `db:studio` scripts and the first
+migration (M2-T01), and `migrations.seed` in the config plus `prisma/seed.ts` (M2-T02). `db:reset`
+must be documented as user-run, per the agent guardrail above.
 
 ## Evidence
 
-Measured on a throwaway copy of the repo at `d0e7902` against a local PostgreSQL 16, upgraded to
-`prisma`/`@prisma/client` `7.9.0` exactly as the steps above describe (Node 22 on the spike
-machine; the project targets Node 24, which is inside Prisma 7's supported range):
+Two rounds. First a spike on a throwaway copy of the repo at `d0e7902` — that one carried a `User`
+model, a real migration and a seed, which is how the ticket's own steps were validated ahead of
+time:
 
-- `prisma migrate dev --name init_user` created and applied the first migration
-- `prisma migrate deploy` (the CI path, env from the shell only) reported no pending migrations
-- `prisma db seed` ran the `tsx` seed through `migrations.seed`, twice, idempotently
+- `prisma migrate dev --name init_user` created and applied a first migration
+- `prisma db seed` ran a `tsx` seed through `migrations.seed`, twice, idempotently
 - an integration spec created and re-read a `User` and ran `$queryRaw` through `PrismaService`
-- `tsc --noEmit`, `jest` (6 existing + 2 new specs), `nest build`, and `tsx src/openapi/export.ts`
-  all passed with **no `tsconfig` or Jest changes**
-- `node dist/main` booted and `GET /api/health` returned `{"status":"ok","db":"up"}`
-- a clean `pnpm install` regenerated the client through `postinstall`
 - `prisma migrate reset` was refused by the agent guardrail described above, and was not run
+
+Then the upgrade itself, on the real repository under Node 24.18 against a local PostgreSQL 16,
+with the generated client produced by `postinstall`:
+
+- `pnpm install` on a tree with no `.env` present: `postinstall` generated the client
+- `pnpm -r typecheck` and `pnpm lint` clean, with **no `tsconfig`, Jest or `nest build` changes**
+  beyond the `include` widening above
+- `pnpm --filter api test` (6 unit specs) and `pnpm --filter api test:e2e` (4 specs, real database)
+  both green; `pnpm --filter web test` unaffected
+- `pnpm --filter api exec prisma migrate deploy` — the CI step — reported no pending migrations
+- `pnpm build` across the workspace, then `node dist/main` booted and `GET /api/health` returned
+  `{"status":"ok","db":"up"}`
+- `pnpm gen` left `packages/api-client` byte-identical, so the OpenAPI contract is untouched

@@ -1,6 +1,7 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { type Response } from 'express';
+
+import { Prisma } from '../../generated/prisma/client';
 
 /**
  * Translates the handful of Prisma error codes that map cleanly onto HTTP semantics into proper

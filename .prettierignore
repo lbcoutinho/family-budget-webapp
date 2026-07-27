@@ -17,6 +17,9 @@ packages/api-client/
 # Prisma migrations are generated SQL and must stay byte-identical after being committed
 apps/api/prisma/migrations/
 
+# Generated Prisma client (ADR-0017) — same rule as the Orval output above
+apps/api/src/generated/
+
 # Source-of-truth documents, deliberately left untouched:
 #   - accepted ADRs are never edited (see CLAUDE.md), and reflowing one is an edit;
 #   - plan text is copied verbatim into GitHub Issues, so reflowing it desyncs the mirror.

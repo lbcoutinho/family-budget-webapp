@@ -26,11 +26,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 24 LTS (ADR-0016).
 
-- `apps/api/` — NestJS + Prisma + PostgreSQL 16. Jest + Supertest.
+- `apps/api/` — NestJS + Prisma 7 + PostgreSQL 16. Jest + Supertest. Client generated as CommonJS TypeScript into `src/generated/prisma` (git-ignored, rebuilt by `postinstall`) — **never hand-edit; excluded from lint/format/coverage.** Connection URL lives in `prisma.config.ts` for the CLI and comes from `ConfigService` at runtime, never from a `url` in `schema.prisma` (ADR-0017).
 - `apps/web/` — Vite + React 19 + Tailwind v4/shadcn + TanStack Query. **Organized by feature, not file type.** Vitest + Testing Library + MSW.
 - `packages/api-client/` — Orval-generated typed React-Query client. **Never hand-edit; excluded from lint/format.**
 
-Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test).
+Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test). **`prisma migrate reset` is user-run:** the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim consent in `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`.
 
 ## Domain rules (get these wrong and reports break)
 
