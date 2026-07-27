@@ -1,5 +1,19 @@
-// Prisma schema. Models are added per feature in later milestones; M1-T04 only needs the
-// generated client so the health check can run `SELECT 1` through a typed PrismaService.
+// Prisma schema — the single source of truth for the database. Models are added per feature as
+// the milestones progress; every one of them follows the naming conventions below.
+//
+// Naming conventions (established by M2-T01; every later model inherits them):
+//   - Models are singular PascalCase (`User`, `Transaction`), mapped to a snake_case plural table
+//     with `@@map` (`users`, `transactions`). Plural because a table holds many rows, and because
+//     several natural model names — `user`, `order` — are reserved words in PostgreSQL.
+//   - Fields are camelCase in the schema, mapped to snake_case columns with `@map`
+//     (`passwordHash` → `password_hash`). TypeScript reads as TypeScript; SQL reads as SQL.
+//   - Primary keys are `id String @id @default(uuid()) @db.Uuid` — a real PostgreSQL `uuid`
+//     column, not text, so it indexes and compares as a native type.
+//   - Every model carries `createdAt` / `updatedAt` (`@default(now())` / `@updatedAt`).
+//   - Enums are singular PascalCase with SCREAMING_SNAKE_CASE values, mapped with `@@map` too.
+//   - Money is always an `Int` of cents, never `Float` or `Decimal` (ADR-0005).
+//   - Every domain entity carries a `userId` (ADR-0006), so the single-user app becomes
+//     multi-user without a structural migration.
 //
 // The client is generated as TypeScript into `src/generated/prisma` (ADR-0017): CommonJS, with
 // extensionless relative imports, so the API's `module: Node16` build and the ts-jest CommonJS
@@ -18,4 +32,18 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// The person who signs in. The application is single-user (ADR-0006): there is no sign-up
+/// screen, and the one account is created by the seed (M2-T02). Only the hash of the password is
+/// ever stored — argon2id, produced by the hashing service that same ticket adds.
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 }

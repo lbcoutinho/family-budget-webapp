@@ -4,8 +4,8 @@ Personal web application for family budget management and expense tracking: stru
 recording of income and expenses, a consolidated view by category, and a mechanism for
 setting money aside (cashboxes).
 
-> **Status:** foundation in progress (milestone M1). The applications are not bootstrapped
-> yet — `apps/api` and `apps/web` currently hold only workspace and TypeScript configuration.
+> **Status:** foundation complete (milestone M1); authentication in progress (milestone M2).
+> The API and the web client are bootstrapped, but no domain feature is usable yet.
 
 ## Requirements
 
@@ -29,6 +29,33 @@ corepack enable      # activates the pnpm version pinned in package.json
 pnpm install         # installs every workspace in one pass
 pnpm typecheck       # verifies the TypeScript setup across all workspaces
 ```
+
+## Database
+
+PostgreSQL 16 runs in Docker: `docker compose up -d postgres postgres_test` (main on 5432, a
+disposable instance for integration tests on 5433). Copy `.env.example` to `.env` first — it
+feeds both `docker-compose.yml` and the API.
+
+The schema lives in [`apps/api/prisma/schema.prisma`](apps/api/prisma/schema.prisma), whose
+header states the naming conventions every model follows. The connection URL is **not** in the
+datasource block: the Prisma CLI reads it from `apps/api/prisma.config.ts` and the running
+application takes it from the validated environment
+([ADR-0017](docs/adr/0017-prisma-7-with-the-rust-free-client.md)).
+
+| Script                         | What it does                                                     |
+| ------------------------------ | ---------------------------------------------------------------- |
+| `pnpm --filter api db:migrate` | creates and applies a migration from the current schema          |
+| `pnpm --filter api db:studio`  | opens Prisma Studio against the main database                    |
+| `pnpm --filter api db:reset`   | **drops and recreates the database** — run by a human, see below |
+
+Migrations are committed under `apps/api/prisma/migrations/` and never edited once pushed; a
+schema change means a new migration. CI applies them with `prisma migrate deploy` before the
+tests run.
+
+`db:reset` is destructive and the Prisma 7 CLI knows it: it detects a coding agent and refuses
+to run unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` carries the user's verbatim
+consent. That guardrail is deliberate — in this repository resetting the database is always a
+human action, never Claude's.
 
 ## Workspaces
 
