@@ -11,9 +11,13 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T01 done** (issue #17): `User` model, first migration `20260727120653_init_user`, `db:migrate`
-/ `db:reset` / `db:studio` scripts, integration spec. On branch `claude/next-task-1hsghf`, PR open
-to `main` — nothing half-finished.
+**M2-T01 merged** (issue #17, PR #26): `User` model, first migration `20260727120653_init_user`,
+`db:migrate` / `db:reset` / `db:studio` scripts, integration spec. Nothing half-finished.
+
+**M2-T02 widened** (issue #18): the seed now also creates a demo account on the `+demo` sub-address
+of `SEED_USER_EMAIL`, with its own `SEED_DEMO_USER_PASSWORD`. A sign-up-endpoint ticket (M2-T07,
+issue #27) was opened and then closed as not planned — M2-T02 already covers single-account
+creation from the environment. M2 is six tasks again.
 
 ## Open decisions / blocked items
 

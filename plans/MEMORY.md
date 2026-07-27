@@ -37,7 +37,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | Milestone | GitHub Milestone | Issues | Status |
 |---|---|---|---|
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1)–[#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | Created 2026-07-25 |
-| M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26 |
+| M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26; #18 widened 2026-07-27 |
 | M3 — Master data | — | — | Not started |
 | M4 — Transactions (API) | — | — | Not started |
 | M5 — Entries (UI) | — | — | Not started |
@@ -75,3 +75,11 @@ Created GitHub Milestone `M2 - Authentication` (#2) and 6 issues from `plans/mil
 | [#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | M2-T06 — Login screen and route protection | frontend |
 
 New label created: `milestone: m2-authentication` (purple `#5319E7`).
+
+**2026-07-27 — demo account folded into M2-T02.** A seventh task, *M2-T07 — Registration restricted
+to a single allowed email*, was briefly opened as [#27](https://github.com/lbcoutinho/family-budget-webapp/issues/27)
+and then **closed as not planned**: M2-T02 already covers a single account created from the
+environment, so a sign-up endpoint was solving a problem the seed does not have. The part worth
+keeping — a demo account on the `+demo` sub-address — moved into M2-T02, and
+[#18](https://github.com/lbcoutinho/family-budget-webapp/issues/18)'s body was updated to match the
+plan. GitHub issues cannot be deleted, so #27 stays closed as the record of that detour.
