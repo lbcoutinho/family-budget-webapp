@@ -13,9 +13,12 @@ Rewrite this file rather than appending to it.
 
 **M2-T02 done** (issue #18): `HashService` (argon2id) at `src/modules/auth/hash.service.ts`,
 `toDemoEmail` at `src/modules/users/demo-email.ts`, `prisma/seed.ts` with the owner and `+demo`
-accounts, `db:seed` script. Branch `claude/next-task-1hsghf`, PR open to `main` — nothing
-half-finished. This branch also carries the plan-doc commit that folded the demo account into
-M2-T02 and dropped M2-T07 (it never had a PR of its own).
+accounts, `db:seed` script. Branch `claude/next-task-1hsghf`, PR #29 open to `main` — nothing
+half-finished. The plan-doc change it used to carry (demo account folded into M2-T02, M2-T07
+dropped) landed separately as #28 and is now in `main`, merged back into this branch.
+
+**M2-T01 merged** (issue #17, PR #26): `User` model, first migration `20260727120653_init_user`,
+`db:migrate` / `db:reset` / `db:studio` scripts.
 
 ## Open decisions / blocked items
 
