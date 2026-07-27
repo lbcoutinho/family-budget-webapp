@@ -1,5 +1,6 @@
 import { type ArgumentsHost, HttpStatus } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+
+import { Prisma } from '../../generated/prisma/client';
 
 import { PrismaExceptionFilter } from './prisma-exception.filter';
 

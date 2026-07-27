@@ -9,6 +9,7 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: { module: 'CommonJS' } }],
   },
   testEnvironment: 'node',
-  collectCoverageFrom: ['**/*.ts', '!**/*.spec.ts'],
+  // The generated Prisma client (ADR-0017) lives under src/ but is build output: never covered.
+  collectCoverageFrom: ['**/*.ts', '!**/*.spec.ts', '!generated/**'],
   coverageDirectory: '../coverage',
 };

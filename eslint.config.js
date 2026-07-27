@@ -32,6 +32,8 @@ module.exports = tseslint.config(
       '.husky/_/**',
       // Orval output: generated code is never hand-edited, so it is never linted (M1-T07).
       'packages/api-client/**',
+      // Prisma client, generated as TypeScript under src/ by `postinstall` (ADR-0017).
+      'apps/api/src/generated/**',
     ],
   },
 
