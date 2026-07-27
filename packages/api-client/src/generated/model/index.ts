@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './authUserDto';
 export * from './healthStatusDto';
 export * from './healthStatusDtoDb';
 export * from './healthStatusDtoStatus';
+export * from './loginDto';
+export * from './sessionDto';

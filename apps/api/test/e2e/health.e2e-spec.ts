@@ -1,10 +1,11 @@
 import { type Server } from 'node:http';
 
-import { type INestApplication, ValidationPipe } from '@nestjs/common';
+import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 
 import { AppModule } from '../../src/app.module';
+import { configureApp } from '../../src/app.setup';
 
 /**
  * End-to-end coverage for the health endpoint. Requires a reachable database (docker-compose
@@ -17,8 +18,7 @@ describe('Health (e2e)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
     app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    configureApp(app);
     await app.init();
   });
 
