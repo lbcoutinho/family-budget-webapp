@@ -7,6 +7,10 @@ packages:
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  # argon2 (M2-T02) ships prebuilt bindings for every platform this project runs on, so its
+  # install script is normally a no-op that only picks one. Allowed anyway, because on a
+  # platform without a matching prebuild the same script is what compiles the addon from source.
+  argon2: true
   # esbuild ships a platform-specific binary via its install script; tsx (the OpenAPI export)
   # and Vite/Vitest all drive it, so the binding must be built.
   esbuild: true
