@@ -11,9 +11,12 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T01 done** (issue #17): `User` model, first migration `20260727120653_init_user`, `db:migrate`
-/ `db:reset` / `db:studio` scripts, integration spec. On branch `claude/next-task-1hsghf`, PR open
-to `main` — nothing half-finished.
+**M2-T01 merged** (issue #17, PR #26): `User` model, first migration `20260727120653_init_user`,
+`db:migrate` / `db:reset` / `db:studio` scripts, integration spec. Nothing half-finished.
+
+**M2 gained a seventh ticket:** M2-T07 — registration restricted to a single allowed email
+(issue #27), added after the milestone was mirrored. It affects M2-T02: the seed should read the
+new `AUTH_ALLOWED_EMAIL` instead of `SEED_USER_EMAIL` (commented on issue #18).
 
 ## Open decisions / blocked items
 

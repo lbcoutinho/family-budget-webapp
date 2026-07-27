@@ -37,7 +37,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | Milestone | GitHub Milestone | Issues | Status |
 |---|---|---|---|
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1)–[#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | Created 2026-07-25 |
-| M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26 |
+| M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22), [#27](https://github.com/lbcoutinho/family-budget-webapp/issues/27) | Created 2026-07-26; T07 added 2026-07-27 |
 | M3 — Master data | — | — | Not started |
 | M4 — Transactions (API) | — | — | Not started |
 | M5 — Entries (UI) | — | — | Not started |
@@ -75,3 +75,10 @@ Created GitHub Milestone `M2 - Authentication` (#2) and 6 issues from `plans/mil
 | [#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | M2-T06 — Login screen and route protection | frontend |
 
 New label created: `milestone: m2-authentication` (purple `#5319E7`).
+
+**Added 2026-07-27**, after the milestone was mirrored, so it carries the next free number rather than a
+number in sequence with its task id:
+
+| Issue | Task | Labels |
+|---|---|---|
+| [#27](https://github.com/lbcoutinho/family-budget-webapp/issues/27) | M2-T07 — Registration restricted to a single allowed email | backend |

@@ -161,3 +161,36 @@ Closes the end-to-end flow and validates the whole auth infrastructure in practi
 ### Tests
 - Unit: form validation; loading and error states
 - Integration with MSW: successful login; failed login; session restoration on mount; protected-route redirect
+
+---
+
+## M2-T07 — Registration restricted to a single allowed email
+
+### Why this is needed
+The account has to be created somehow, but the application is single-user and must never accept a stranger's sign-up. Restricting registration to one configured address makes a sign-up endpoint safe to expose: the password is chosen by the person registering and stored as an argon2 hash, and every other address is refused. Keeping that address in an environment variable also keeps the owner's real email out of the repository. The `+demo` sub-address of the same mailbox gives a second, disposable account for demonstrating the application without exposing personal data — same inbox, no second mail account to manage.
+
+### Implementation notes
+- Depends on M2-T02 (`HashService`); the two accounts it creates are what M2-T03 logs in
+- `AUTH_ALLOWED_EMAIL` holds the owner's address, validated at boot with the rest of the environment (fail-fast). It is never committed: `.env.example` carries a placeholder such as `you@example.com`
+- Exactly two addresses may register: `AUTH_ALLOWED_EMAIL` and its `+demo` sub-address, derived by appending `+demo` to the local part — `person@example.com` accepts `person@example.com` and `person+demo@example.com`, and nothing else. The suffix is derived, never configured separately, so the two can never drift apart
+- `POST /api/auth/register`, marked `@Public()`, body `{ email, password, name }` validated with class-validator: valid email, password of at least 8 characters, non-empty name
+- Comparison is trimmed and case-insensitive, and the address is stored lowercased, so `Person@…` and `person@…` cannot become two accounts
+- Any other address is rejected with `403 Forbidden` and a fixed message — *"Email not accepted"* — identical for every refused address, so the response never reveals which address would work
+- Re-registering an address that already has an account returns `409 Conflict`
+- The password goes through `HashService`; no response, log or error ever carries `passwordHash` or the plain password
+- Once this lands, M2-T02's seed should read `AUTH_ALLOWED_EMAIL` instead of its own `SEED_USER_EMAIL`, so the seed and the endpoint cannot disagree about which account is legitimate. This supersedes M2-T02's premise that no sign-up would exist: the seed stays as the local/CI convenience, registration is how the real account is created
+- No web sign-up screen in this task — registration happens through the API (Swagger or `curl`). A UI for it, if ever wanted, is a separate ticket
+- No rate limiting: the allow-list holds no secret worth guessing, and a refused address costs a single string comparison
+
+### Acceptance criteria
+- [ ] Registering the address in `AUTH_ALLOWED_EMAIL` creates the account and returns it without `passwordHash`
+- [ ] Registering the `+demo` sub-address of that same address creates a second, independent account
+- [ ] Any other address is refused with 403 and a message that does not reveal the allowed address
+- [ ] Registering an address that already has an account returns 409
+- [ ] The stored password is an argon2 hash; the plain password appears in no log and no response
+- [ ] `AUTH_ALLOWED_EMAIL` is validated at boot, and only a placeholder appears in `.env.example`
+- [ ] Both accounts can log in through `POST /api/auth/login`
+
+### Tests
+- Unit: the allow-list accepts the configured address and its `+demo` variant in any letter case, and refuses everything else — a different domain, `+demoX`, `+demo` twice, and an address that merely contains the allowed one as a substring
+- Integration: register → 201; register the `+demo` address → 201; register a third address → 403; register a duplicate → 409; log in with each of the two accounts
