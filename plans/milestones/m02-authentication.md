@@ -49,13 +49,13 @@ Plaintext passwords are unacceptable even in a personal app. The seed enables lo
 - Comparison always through `verify`, never by hash equality
 
 ### Acceptance criteria
-- [ ] `pnpm --filter api db:seed` creates both the main and the demo account
-- [ ] The demo account's email is the `+demo` sub-address derived from `SEED_USER_EMAIL`, not a separately configured address
-- [ ] The two accounts have different passwords, each hashed independently
-- [ ] Running the seed twice neither duplicates nor fails
-- [ ] The hash differs on each run (random salt)
-- [ ] Neither password appears in logs
-- [ ] No real email address is committed — `.env.example` carries placeholders only
+- [x] `pnpm --filter api db:seed` creates both the main and the demo account
+- [x] The demo account's email is the `+demo` sub-address derived from `SEED_USER_EMAIL`, not a separately configured address
+- [x] The two accounts have different passwords, each hashed independently
+- [x] Running the seed twice neither duplicates nor fails
+- [x] The hash differs on each run (random salt)
+- [x] Neither password appears in logs
+- [x] No real email address is committed — `.env.example` carries placeholders only
 
 ### Tests
 - Unit: `hash` returns a value different from the input; `verify` returns true for the correct password and false otherwise; the demo address is derived correctly from a range of `SEED_USER_EMAIL` values

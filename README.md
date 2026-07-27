@@ -45,12 +45,20 @@ application takes it from the validated environment
 | Script                         | What it does                                                     |
 | ------------------------------ | ---------------------------------------------------------------- |
 | `pnpm --filter api db:migrate` | creates and applies a migration from the current schema          |
+| `pnpm --filter api db:seed`    | creates the two accounts that can log in — see below             |
 | `pnpm --filter api db:studio`  | opens Prisma Studio against the main database                    |
 | `pnpm --filter api db:reset`   | **drops and recreates the database** — run by a human, see below |
 
 Migrations are committed under `apps/api/prisma/migrations/` and never edited once pushed; a
 schema change means a new migration. CI applies them with `prisma migrate deploy` before the
 tests run.
+
+The application is single-user and has no sign-up screen, so the logins come from the seed
+([`apps/api/prisma/seed.ts`](apps/api/prisma/seed.ts)): the owner, at `SEED_USER_EMAIL` /
+`SEED_USER_PASSWORD`, and a demo account with its own `SEED_DEMO_USER_PASSWORD`. The demo address
+is not configured — the seed derives it by adding a `+demo` sub-address to `SEED_USER_EMAIL`, so
+both accounts reach the same mailbox. The seed is idempotent: re-running it refreshes the two rows
+rather than duplicating them.
 
 `db:reset` is destructive and the Prisma 7 CLI knows it: it detects a coding agent and refuses
 to run unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` carries the user's verbatim

@@ -17,6 +17,8 @@ config({ path: ['.env', '../../.env'], quiet: true });
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  migrations: { path: 'prisma/migrations' },
+  // `prisma db seed` runs this command. Prisma 7 dropped the `prisma.seed` key in package.json,
+  // so the seed is declared here; `tsx` executes the TypeScript directly, with no build step.
+  migrations: { path: 'prisma/migrations', seed: 'tsx prisma/seed.ts' },
   datasource: { url: process.env.DATABASE_URL ?? '' },
 });
