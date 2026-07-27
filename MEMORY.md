@@ -11,17 +11,13 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M1 Foundation complete.** All 7 tickets merged to `main` (last: #16, Orval client). CLAUDE.md
-refreshed (no longer "pre-implementation"). Dependency review done at M1 close on branch
-`chore/m1-dependency-review` — **still needs a PR to `main`.**
-
-**M2 mirrored to GitHub:** Milestone #2 + issues #17–#22 created. Ready to start M2-T01.
+**M2-T01 done** (issue #17): `User` model, first migration `20260727120653_init_user`, `db:migrate`
+/ `db:reset` / `db:studio` scripts, integration spec. On branch `claude/next-task-1hsghf`, PR open
+to `main` — nothing half-finished.
 
 ## Open decisions / blocked items
 
-- **Prisma 6 → 7: decided and done** (ADR-0017, upgrade PR from
-  `claude/family-budget-prework-adr-q5lbnl`). Waiting on review/merge; M2-T01 should start from
-  `main` after it lands, not from that branch.
+- **Dependency review from M1 close still has no PR.** Branch `chore/m1-dependency-review`.
 - **Branch protection on `main` still not set** (requiring the `ci` check). The
   `gh api -X PUT .../branches/main/protection` call is blocked by the Claude Code permission
   classifier — user must run it:
@@ -42,10 +38,14 @@ refreshed (no longer "pre-implementation"). Dependency review done at M1 close o
   processes and retry. Does not block typecheck/lint/test.
 - Local dev needs `docker compose up -d postgres postgres_test` and a root `.env`
   (`cp .env.example .env`; git-ignored). Postgres 5432 (main) / 5433 (test).
+- **`prisma migrate dev` does not always regenerate the client** (it did not after adding `User`);
+  run `pnpm --filter api prisma:generate` when the new model is missing from `src/generated/prisma`.
 
-## Next: M2-T01 — User model and Prisma setup
+## Next: M2-T02 — argon2 hashing service and initial user seed
 
-Issue #17. First migration in the project — sets conventions all later migrations inherit. The
-Prisma 7 toolchain is already in place, so what is left is the `User` model, the `db:*` scripts
-and the migration. Read the ticket in `plans/milestones/m02-authentication.md`; the spike that
-validated the migration/seed flow is described in ADR-0017's Evidence section.
+Issue #18. `HashService` (argon2id) plus `prisma/seed.ts`, wired through **`migrations.seed` in
+`apps/api/prisma.config.ts`** — Prisma 7 dropped the `prisma.seed` key in `package.json`
+(ADR-0017). `tsx` is already a devDependency; it runs the seed as CommonJS, so keep the seed body
+in a `main()` function — no top-level `await`. `SEED_USER_EMAIL` / `SEED_USER_PASSWORD` need an
+entry in `.env.example`; they are read by the seed script, not by the API, so decide deliberately
+whether they belong in the boot-time env validation (they probably do not).

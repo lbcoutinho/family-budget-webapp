@@ -23,10 +23,10 @@ The first migration in the project. It establishes the conventions every later m
 
 ### Acceptance criteria
 - [x] Prisma major (6 vs 7) decided; if 7 is adopted, an ADR is recorded and this ticket updated — ADR-0017, upgrade merged separately
-- [ ] `pnpm --filter api db:migrate` applies the migration
-- [ ] Prisma Client is generated and typed
-- [ ] The migration is committed under `prisma/migrations/`
-- [ ] Naming conventions are documented at the top of `schema.prisma`
+- [x] `pnpm --filter api db:migrate` applies the migration
+- [x] Prisma Client is generated and typed
+- [x] The migration is committed under `prisma/migrations/`
+- [x] Naming conventions are documented at the top of `schema.prisma`
 
 ### Tests
 - Integration: create and read a user through `PrismaService`
