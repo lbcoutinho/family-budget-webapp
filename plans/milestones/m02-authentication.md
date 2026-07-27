@@ -36,24 +36,30 @@ The first migration in the project. It establishes the conventions every later m
 ## M2-T02 — argon2 hashing service and initial user seed
 
 ### Why this is needed
-Plaintext passwords are unacceptable even in a personal app. The seed enables login without a sign-up screen, which will not exist since the app is single-user.
+Plaintext passwords are unacceptable even in a personal app. The seed enables login without a sign-up screen, which will not exist since the app is single-user. It also creates a second, demo account, so the application can be shown to someone without exposing the real data.
 
 ### Implementation notes
 - `HashService` wrapping `argon2.hash` and `argon2.verify` (argon2id, default parameters)
 - Injectable service, so it can be mocked in auth tests
 - `prisma/seed.ts` creating the user from `SEED_USER_EMAIL` and `SEED_USER_PASSWORD`
-- Idempotent seed (`upsert` by email)
+- The same seed creates a **demo account** on the `+demo` sub-address of `SEED_USER_EMAIL` (`person@example.com` → `person+demo@example.com`) with its own password, `SEED_DEMO_USER_PASSWORD`. The address is derived by appending `+demo` to the local part, never configured as a second variable that could drift; both land in the same mailbox, so there is no second inbox to manage
+- Only placeholders reach the repository: `.env.example` documents `SEED_USER_EMAIL`, `SEED_USER_PASSWORD` and `SEED_DEMO_USER_PASSWORD` with dummy values, and the real address lives only in the git-ignored `.env`
+- The demo account starts empty — nothing but the `User` row. Filling it with sample transactions is a later ticket, once those entities exist (M4)
+- Idempotent seed (`upsert` by email), for both accounts
 - Comparison always through `verify`, never by hash equality
 
 ### Acceptance criteria
-- [ ] `pnpm --filter api db:seed` creates the user
-- [ ] Running the seed twice neither duplicates nor fails
-- [ ] The hash differs on each run (random salt)
-- [ ] The password never appears in logs
+- [x] `pnpm --filter api db:seed` creates both the main and the demo account
+- [x] The demo account's email is the `+demo` sub-address derived from `SEED_USER_EMAIL`, not a separately configured address
+- [x] The two accounts have different passwords, each hashed independently
+- [x] Running the seed twice neither duplicates nor fails
+- [x] The hash differs on each run (random salt)
+- [x] Neither password appears in logs
+- [x] No real email address is committed — `.env.example` carries placeholders only
 
 ### Tests
-- Unit: `hash` returns a value different from the input; `verify` returns true for the correct password and false otherwise
-- Integration: seed idempotency
+- Unit: `hash` returns a value different from the input; `verify` returns true for the correct password and false otherwise; the demo address is derived correctly from a range of `SEED_USER_EMAIL` values
+- Integration: seed idempotency, for both accounts
 
 ---
 
