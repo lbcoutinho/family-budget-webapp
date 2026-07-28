@@ -16,6 +16,9 @@ allowBuilds:
   esbuild: true
   # Telemetry-only package; nothing needs its install script to run.
   '@scarf/scarf': false
+  # msw's install script only copies the browser service worker into a public folder, which is for
+  # mocking in a real browser. The tests use `setupServer` (Node/jsdom), so nothing needs it.
+  msw: false
   prisma: true
   unrs-resolver: true
 

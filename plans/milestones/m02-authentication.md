@@ -131,11 +131,11 @@ Without it the user is logged out every 15 minutes. The interceptor must exist b
 - Loop protection: an already-replayed request does not trigger another refresh
 
 ### Acceptance criteria
-- [ ] Authenticated requests carry the `Authorization` header
-- [ ] A 401 transparently triggers refresh and replays the original request
-- [ ] Three concurrent 401s trigger exactly one refresh
-- [ ] A failed refresh redirects to login
-- [ ] No infinite refresh loop is possible
+- [x] Authenticated requests carry the `Authorization` header
+- [x] A 401 transparently triggers refresh and replays the original request
+- [x] Three concurrent 401s trigger exactly one refresh
+- [x] A failed refresh redirects to login
+- [x] No infinite refresh loop is possible
 
 ### Tests
 - Unit with MSW: transparent refresh; single-refresh concurrency; failure redirect; absence of loops

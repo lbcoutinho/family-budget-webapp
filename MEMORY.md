@@ -11,35 +11,36 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T04 done** (issue #20): `JwtStrategy`, the global `JwtAuthGuard` (`APP_GUARD` in
-`AuthModule`), `@Public()` and `@CurrentUser()`, plus bearer auth in the OpenAPI document. Branch
-`claude/next-task-1hsghf` (restarted from `main` after #30 merged), PR open — nothing
-half-finished.
+**M2-T05 done** (issue #21): bearer header, in-memory access token, single-flight refresh + replay
+on 401, and the session-expired redirect. Branch `claude/next-task-1hsghf` (restarted from `main`
+after #32 merged), PR open — nothing half-finished.
 
-**M2-T01 (#26), M2-T02 (#29) and M2-T03 (#30) merged.** The backend half of M2 is complete; the
-two remaining tickets are frontend.
+**M2-T01 (#26), M2-T02 (#29), M2-T03 (#30) and M2-T04 (#32) merged.** Only M2-T06 (the login
+screen, #22) is left in M2.
 
 ## Gotchas the next ticket will hit
 
-- **Every new route is protected the moment it is written.** A route needs no decorator to require
-  a token; it needs `@Public()` (`src/modules/auth/decorators/public.decorator.ts`) not to. That
-  decorator also clears the operation's bearer requirement in the OpenAPI document, so the two
-  cannot drift.
-- **`@CurrentUser()` gives `{ id, email }`, not a full `User`** — the access token's claims, with
-  no database read. Anything else about the account is a query.
-- **The web client has no auth wiring yet.** M2-T05 adds it: the access token lives in memory, the
-  refresh cookie is scoped to `Path=/api/auth` (so axios needs `withCredentials: true`), and
-  `POST /api/auth/refresh` answers `{ accessToken, user }` — enough to restore a session on page
-  load without a separate "who am I" call.
-- **The axios instance M2-T05 has to extend already exists**, at
-  `packages/api-client/src/lib/axios.ts`, not at the `apps/web/src/lib/axios.ts` the ticket names.
-  It is the hand-written Orval mutator every generated hook funnels through; `apps/web` depends on
-  the package and never the other way round, so the interceptors belong there.
-- **`@ApiProperty` needs an explicit `type`.** The OpenAPI export runs under `tsx`, whose esbuild
-  transform emits no `design:type` metadata, so a bare `@ApiProperty()` on a `string` field makes
-  `@nestjs/swagger` report a bogus circular dependency and `pnpm gen` fails.
-- **Request pipeline lives in `src/app.setup.ts`** (`configureApp`), shared by `main.ts` and every
-  e2e spec. New global middleware, pipes or filters go there, not into `main.ts`.
+- **The token store is `@family-budget/api-client`, not a React context.** `setAccessToken` (call it
+  with what `login`/`useLogin` returns), `getAccessToken`, `setSessionExpiredHandler`. Renewal needs
+  no wiring: the interceptors are installed when `lib/axios.ts` loads. An `AuthProvider` should wrap
+  this store, not replace it.
+- **The startup silent refresh is not written yet.** M2-T06 owns it: `POST /api/auth/refresh`
+  answers `{ accessToken, user }`, so one call restores the session with no separate "who am I".
+  Nothing calls `refresh()` on mount today — the interceptor only reacts to a 401.
+- **`installSessionExpiredRedirect()` runs in `main.tsx`** and does a full `location.assign`. Once
+  the router owns `/login`, M2-T06 may re-register a router-aware handler via
+  `setSessionExpiredHandler` — but something must stay registered, or a dead session goes nowhere.
+- **`/login` is still not a route.** The redirect currently lands on a 404 in dev.
+- **MSW is set up and strict.** `apps/web/src/test/server.ts` + `test/setup.ts` start it with
+  `onUnhandledRequest: 'error'`, so every request a test triggers needs a `server.use(...)` handler.
+- **`packages/api-client` is only ignored by lint/prettier under `src/generated/`.** Hand-written
+  files in `src/lib/` are linted and formatted like any other source.
+- **Every new route is protected the moment it is written** — `@Public()` is what opts out, and it
+  also clears the operation's bearer requirement in the OpenAPI document.
+- **`@ApiProperty` needs an explicit `type`.** The OpenAPI export runs under `tsx`, which emits no
+  `design:type` metadata, so a bare `@ApiProperty()` breaks `pnpm gen`.
+- **Add a line to `packages/api-client/src/index.ts` per new API tag** — Orval's tags-split mode
+  emits no root barrel, so a generated tag is invisible until it is re-exported there.
 
 ## Open decisions / blocked items
 
@@ -68,9 +69,9 @@ two remaining tickets are frontend.
 - **`prisma migrate dev` does not always regenerate the client** (it did not after adding `User`);
   run `pnpm --filter api prisma:generate` when the new model is missing from `src/generated/prisma`.
 
-## Next: M2-T05 — Axios instance with refresh interceptor
+## Next: M2-T06 — Login screen and route protection
 
-Issue #21, and the first frontend ticket since M1. `apps/web/src/features/auth/` is still an empty
-`.gitkeep`, and the generated client already exposes `login`, `refresh` and `logout` — so the
-ticket is the token store, the interceptors and the single-flight refresh queue around them, not
-new endpoints. See the axios gotcha above for where they go.
+Issue #22, the last ticket in M2: `features/auth/` (`LoginPage`, `AuthProvider`, `useAuth`), React
+Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loading state so the
+login screen never flashes. `useLogin`/`useLogout` are already exported from the generated client;
+the token store and the interceptors above are what it plugs into.
