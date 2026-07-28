@@ -11,8 +11,9 @@ pnpm-lock.yaml
 # Husky's generated shim directory
 .husky/_/
 
-# Generated API client (Orval output, M1-T07) — never hand-edited, never formatted
-packages/api-client/
+# Generated API client (Orval output, M1-T07) — never hand-edited, never formatted. Only the
+# generated tree: `src/lib/` in that package is hand-written and formatted like any other source.
+packages/api-client/src/generated/
 
 # Prisma migrations are generated SQL and must stay byte-identical after being committed
 apps/api/prisma/migrations/
