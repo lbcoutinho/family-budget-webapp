@@ -11,25 +11,35 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T03 done** (issue #19): `AuthModule` with `LocalStrategy`, `AuthService`, `AuthController` —
-`POST /api/auth/login|refresh|logout`, access token in the body, refresh token in an httpOnly
-cookie. Branch `claude/next-task-1hsghf` (restarted from `main` after #29 merged), PR open —
-nothing half-finished.
+**M2-T04 done** (issue #20): `JwtStrategy`, the global `JwtAuthGuard` (`APP_GUARD` in
+`AuthModule`), `@Public()` and `@CurrentUser()`, plus bearer auth in the OpenAPI document. Branch
+`claude/next-task-1hsghf` (restarted from `main` after #30 merged), PR open — nothing
+half-finished.
 
-**M2-T01 (#26) and M2-T02 (#29) merged.** `User` model + first migration; `HashService`, the
-`+demo` address helper and the two-account seed.
+**M2-T01 (#26), M2-T02 (#29) and M2-T03 (#30) merged.** The backend half of M2 is complete; the
+two remaining tickets are frontend.
 
 ## Gotchas the next ticket will hit
 
+- **Every new route is protected the moment it is written.** A route needs no decorator to require
+  a token; it needs `@Public()` (`src/modules/auth/decorators/public.decorator.ts`) not to. That
+  decorator also clears the operation's bearer requirement in the OpenAPI document, so the two
+  cannot drift.
+- **`@CurrentUser()` gives `{ id, email }`, not a full `User`** — the access token's claims, with
+  no database read. Anything else about the account is a query.
+- **The web client has no auth wiring yet.** M2-T05 adds it: the access token lives in memory, the
+  refresh cookie is scoped to `Path=/api/auth` (so axios needs `withCredentials: true`), and
+  `POST /api/auth/refresh` answers `{ accessToken, user }` — enough to restore a session on page
+  load without a separate "who am I" call.
+- **The axios instance M2-T05 has to extend already exists**, at
+  `packages/api-client/src/lib/axios.ts`, not at the `apps/web/src/lib/axios.ts` the ticket names.
+  It is the hand-written Orval mutator every generated hook funnels through; `apps/web` depends on
+  the package and never the other way round, so the interceptors belong there.
 - **`@ApiProperty` needs an explicit `type`.** The OpenAPI export runs under `tsx`, whose esbuild
   transform emits no `design:type` metadata, so a bare `@ApiProperty()` on a `string` field makes
   `@nestjs/swagger` report a bogus circular dependency and `pnpm gen` fails.
 - **Request pipeline lives in `src/app.setup.ts`** (`configureApp`), shared by `main.ts` and every
   e2e spec. New global middleware, pipes or filters go there, not into `main.ts`.
-- **Guards run before pipes**, so `POST /auth/login` answers a malformed body with 401 from
-  `LocalStrategy`, never 400 from the validation pipe.
-- M2-T04 adds the global `JwtAuthGuard`; `@Public()` must then be applied to `/health`,
-  `/auth/login`, `/auth/refresh` **and `/auth/logout`** (logout must work with an expired token).
 
 ## Open decisions / blocked items
 
@@ -58,10 +68,9 @@ nothing half-finished.
 - **`prisma migrate dev` does not always regenerate the client** (it did not after adding `User`);
   run `pnpm --filter api prisma:generate` when the new model is missing from `src/generated/prisma`.
 
-## Next: M2-T03 — Local login with Passport and JWT issuance
+## Next: M2-T05 — Axios instance with refresh interceptor
 
-Issue #19. Two things M2-T02 leaves for it: **`HashService` belongs to no module yet** — the
-`AuthModule` this ticket creates must list it in `providers` (and `exports`, once anything outside
-auth needs it); and the seed's `SEED_*` variables are deliberately **outside** the boot-time env
-validation, since only `prisma/seed.ts` reads them — `JWT_SECRET` and friends are already in
-`EnvironmentVariables`, so this ticket adds nothing there.
+Issue #21, and the first frontend ticket since M1. `apps/web/src/features/auth/` is still an empty
+`.gitkeep`, and the generated client already exposes `login`, `refresh` and `logout` — so the
+ticket is the token store, the interceptors and the single-flight refresh queue around them, not
+new endpoints. See the axios gotcha above for where they go.

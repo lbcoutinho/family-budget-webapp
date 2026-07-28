@@ -100,16 +100,16 @@ Makes the secure path the default: every route is protected unless explicitly ma
 - `JwtStrategy` (`passport-jwt`) extracting the token from the `Authorization: Bearer` header
 - `JwtAuthGuard` registered as a global `APP_GUARD`
 - `@Public()` decorator backed by metadata, checked by the guard
-- Apply `@Public()` to `/health`, `/auth/login` and `/auth/refresh`
+- Apply `@Public()` to `/health`, `/auth/login`, `/auth/refresh` **and `/auth/logout`** — logging out has to work once the access token has expired, which is exactly when a user reaches for it
 - `@CurrentUser()` decorator extracting the authenticated user from the request
 - Swagger configured with bearer auth so endpoints can be tried from the UI
 
 ### Acceptance criteria
-- [ ] A new route without any decorator requires a token by default
-- [ ] A route marked `@Public()` is reachable without a token
-- [ ] An expired token returns 401
-- [ ] A token with an invalid signature returns 401
-- [ ] `@CurrentUser()` supplies the authenticated user in controllers
+- [x] A new route without any decorator requires a token by default
+- [x] A route marked `@Public()` is reachable without a token
+- [x] An expired token returns 401
+- [x] A token with an invalid signature returns 401
+- [x] `@CurrentUser()` supplies the authenticated user in controllers
 
 ### Tests
 - Unit: the guard allows access when `@Public()` metadata is present
