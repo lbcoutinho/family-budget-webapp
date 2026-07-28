@@ -34,4 +34,23 @@ describe('OpenAPI document', () => {
   it('registers the HealthStatusDto schema', () => {
     expect(document.components?.schemas?.HealthStatusDto).toBeDefined();
   });
+
+  describe('security', () => {
+    it('declares the bearer scheme and requires it document-wide, mirroring the global guard', () => {
+      expect(document.components?.securitySchemes?.bearer).toMatchObject({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });
+      expect(document.security).toEqual([{ bearer: [] }]);
+    });
+
+    it('clears that requirement on every @Public() operation', () => {
+      // `[{}]` — an empty requirement — is how OpenAPI says "no credentials needed"; an
+      // operation-level `security` replaces the document-level one outright.
+      expect(document.paths['/health']?.get?.security).toEqual([{}]);
+      expect(document.paths['/auth/login']?.post?.security).toEqual([{}]);
+      expect(document.paths['/auth/logout']?.post?.security).toEqual([{}]);
+    });
+
+    it('lets refresh advertise its cookie alongside the cleared bearer requirement', () => {
+      expect(document.paths['/auth/refresh']?.post?.security).toEqual(expect.arrayContaining([{}, { refresh_token: [] }]));
+    });
+  });
 });

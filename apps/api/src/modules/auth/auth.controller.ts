@@ -5,6 +5,7 @@ import { ApiBody, ApiCookieAuth, ApiNoContentResponse, ApiOkResponse, ApiOperati
 import { type CookieOptions, type Request, type Response } from 'express';
 
 import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorator';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { SessionDto } from './dto/session.dto';
@@ -31,6 +32,10 @@ export class AuthController {
    * Exchange credentials for a session. The guard runs `LocalStrategy` first, so reaching the
    * body of this method already means the password checked out.
    */
+  // Public because there is nothing to authenticate with yet — this endpoint is where a token
+  // comes from. Marked per route rather than on the controller, so a later endpoint added here
+  // (changing a password, say) is protected like everything else unless it says otherwise.
+  @Public()
   @ApiOperation({ operationId: 'login', summary: 'Log in with email and password' })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({ type: SessionDto, description: 'Access token in the body; refresh token set as an httpOnly cookie.' })
@@ -59,6 +64,9 @@ export class AuthController {
    * Mint a new access token from the refresh cookie, which is what keeps a browser session alive
    * past the access token's 15 minutes (M2-T05 calls this on a 401).
    */
+  // Public to the *bearer* guard, not unauthenticated: the refresh cookie is what authorises it,
+  // and the access token is expected to be expired by the time anything calls this.
+  @Public()
   @ApiOperation({ operationId: 'refresh', summary: 'Issue a new access token from the refresh cookie' })
   @ApiCookieAuth(REFRESH_TOKEN_COOKIE)
   @ApiOkResponse({ type: SessionDto, description: 'A fresh access token for the account named by the cookie.' })
@@ -76,9 +84,12 @@ export class AuthController {
   }
 
   /**
-   * End the session by clearing the cookie. Deliberately not guarded: logging out must work even
-   * when the access token has already expired, and it can do nothing worse than delete a cookie.
+   * End the session by clearing the cookie.
    */
+  // Public for the same reason it was unguarded before the global guard existed: logging out has
+  // to work when the access token has already expired, which is exactly when a user reaches for
+  // it. The worst it can do is delete a cookie.
+  @Public()
   @ApiOperation({ operationId: 'logout', summary: 'Clear the refresh cookie' })
   @ApiNoContentResponse({ description: 'The refresh cookie is cleared; the access token is left to expire on its own.' })
   @HttpCode(HttpStatus.NO_CONTENT)
