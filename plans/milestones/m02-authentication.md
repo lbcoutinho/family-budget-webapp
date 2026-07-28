@@ -79,11 +79,11 @@ The entry point of authentication. Isolated into its own task because it concent
 - Generic error message on failed login (never reveal whether the email exists)
 
 ### Acceptance criteria
-- [ ] Valid credentials return an access token and set the refresh cookie
-- [ ] Invalid credentials return 401 with a generic message
-- [ ] Refresh with a valid cookie issues a new access token
-- [ ] Refresh with a missing or invalid cookie returns 401
-- [ ] No response ever contains `passwordHash`
+- [x] Valid credentials return an access token and set the refresh cookie
+- [x] Invalid credentials return 401 with a generic message
+- [x] Refresh with a valid cookie issues a new access token
+- [x] Refresh with a missing or invalid cookie returns 401
+- [x] No response ever contains `passwordHash`
 
 ### Tests
 - Unit: `AuthService.validateUser` with correct password, wrong password and unknown email

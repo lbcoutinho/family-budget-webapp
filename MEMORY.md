@@ -11,14 +11,25 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T02 done** (issue #18): `HashService` (argon2id) at `src/modules/auth/hash.service.ts`,
-`toDemoEmail` at `src/modules/users/demo-email.ts`, `prisma/seed.ts` with the owner and `+demo`
-accounts, `db:seed` script. Branch `claude/next-task-1hsghf`, PR #29 open to `main` — nothing
-half-finished. The plan-doc change it used to carry (demo account folded into M2-T02, M2-T07
-dropped) landed separately as #28 and is now in `main`, merged back into this branch.
+**M2-T03 done** (issue #19): `AuthModule` with `LocalStrategy`, `AuthService`, `AuthController` —
+`POST /api/auth/login|refresh|logout`, access token in the body, refresh token in an httpOnly
+cookie. Branch `claude/next-task-1hsghf` (restarted from `main` after #29 merged), PR open —
+nothing half-finished.
 
-**M2-T01 merged** (issue #17, PR #26): `User` model, first migration `20260727120653_init_user`,
-`db:migrate` / `db:reset` / `db:studio` scripts.
+**M2-T01 (#26) and M2-T02 (#29) merged.** `User` model + first migration; `HashService`, the
+`+demo` address helper and the two-account seed.
+
+## Gotchas the next ticket will hit
+
+- **`@ApiProperty` needs an explicit `type`.** The OpenAPI export runs under `tsx`, whose esbuild
+  transform emits no `design:type` metadata, so a bare `@ApiProperty()` on a `string` field makes
+  `@nestjs/swagger` report a bogus circular dependency and `pnpm gen` fails.
+- **Request pipeline lives in `src/app.setup.ts`** (`configureApp`), shared by `main.ts` and every
+  e2e spec. New global middleware, pipes or filters go there, not into `main.ts`.
+- **Guards run before pipes**, so `POST /auth/login` answers a malformed body with 401 from
+  `LocalStrategy`, never 400 from the validation pipe.
+- M2-T04 adds the global `JwtAuthGuard`; `@Public()` must then be applied to `/health`,
+  `/auth/login`, `/auth/refresh` **and `/auth/logout`** (logout must work with an expired token).
 
 ## Open decisions / blocked items
 
