@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>00 — Sistema de design</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="00 — Sistema de design"></div>
+
+    <div class="proto-note">
+      <strong>Aprove esta tela primeiro.</strong> Cor, tipografia, espaçamento, raio, sombra e
+      animação valem para todas as outras. Use os seletores da barra preta para comparar as opções —
+      a escolha fica salva e acompanha você nas demais telas.
+    </div>
+
+    <div class="content" style="max-width: 1080px">
+      <div class="page-header" style="margin-top: 1.25rem">
+        <h1>Sistema de design</h1>
+        <p>Os tokens abaixo viram variáveis CSS em <code>apps/web/src/styles/index.css</code>.</p>
+      </div>
+
+      <!-- ------------------------------------------------------------ cor -->
+      <h2 style="margin-bottom: 0.75rem">1. Conceitos de cor</h2>
+      <div class="cards" style="margin-bottom: 0.85rem">
+        <div class="card card-body">
+          <h3>A — Sage</h3>
+          <p class="small muted">
+            Verde dessaturado, neutros levemente quentes. Sóbrio, próximo de ferramenta financeira;
+            o verde da marca convive com o verde de "entrada" sem competir.
+          </p>
+          <div class="row" style="margin-top: 0.5rem">
+            <span class="swatch" style="background: oklch(0.44 0.075 165)"></span>
+            <span class="swatch" style="background: oklch(0.95 0.025 165)"></span>
+            <span class="swatch" style="background: oklch(0.993 0.005 95)"></span>
+          </div>
+        </div>
+        <div class="card card-body">
+          <h3>B — Indigo</h3>
+          <p class="small muted">
+            Azul-violeta saturado, neutros frios. Mais "produto", contraste alto em botões; risco de
+            puxar atenção para a navegação em vez dos números.
+          </p>
+          <div class="row" style="margin-top: 0.5rem">
+            <span class="swatch" style="background: oklch(0.51 0.19 275)"></span>
+            <span class="swatch" style="background: oklch(0.955 0.028 275)"></span>
+            <span class="swatch" style="background: oklch(0.995 0.002 100)"></span>
+          </div>
+        </div>
+        <div class="card card-body">
+          <h3>C — Slate</h3>
+          <p class="small muted">
+            Quase monocromático: cor reservada para dinheiro e estado. É o padrão do shadcn — menor
+            esforço, menos personalidade.
+          </p>
+          <div class="row" style="margin-top: 0.5rem">
+            <span class="swatch" style="background: oklch(0.24 0.015 260)"></span>
+            <span class="swatch" style="background: oklch(0.96 0.004 260)"></span>
+            <span class="swatch" style="background: oklch(0.995 0.002 100)"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-body" style="margin-bottom: 1.5rem">
+        <h3 style="margin-bottom: 0.5rem">Cores semânticas (não mudam com o tema)</h3>
+        <p class="small muted">
+          Verde é entrada, vermelho é despesa, azul é transferência, âmbar é caixinha. Se essas
+          cores acompanhassem a cor da marca, trocar de tema mudaria o significado da tabela.
+        </p>
+        <div class="row wrap" style="gap: 0.5rem; margin-top: 0.75rem">
+          <span class="badge income">Receita</span>
+          <span class="badge expense">Despesa</span>
+          <span class="badge transfer">Transferência</span>
+          <span class="badge cashbox">Caixinha</span>
+          <span class="badge draft">Rascunho</span>
+          <span class="badge">Inativo</span>
+        </div>
+        <div class="row wrap num" style="gap: 1.5rem; margin-top: 0.85rem">
+          <span class="income strong">+ 3.200,00 €</span>
+          <span class="expense strong">− 1.234,56 €</span>
+          <span class="strong">1.965,44 €</span>
+        </div>
+      </div>
+
+      <div class="card card-body" style="margin-bottom: 1.5rem">
+        <h3 style="margin-bottom: 0.5rem">Paleta de categorias</h3>
+        <p class="small muted">
+          Oito sugestões no seletor de cor da categoria (M3-T08). A mesma cor identifica a categoria
+          em todos os gráficos e meses (M6-T04); categoria sem cor cai num valor determinístico
+          derivado do id.
+        </p>
+        <div class="row wrap" style="gap: 0.5rem; margin-top: 0.75rem">
+          <span class="badge" style="background: var(--cat-1); color: #fff">Moradia</span>
+          <span class="badge" style="background: var(--cat-2); color: #fff">Transporte</span>
+          <span class="badge" style="background: var(--cat-3); color: #fff">Alimentação</span>
+          <span class="badge" style="background: var(--cat-4); color: #fff">Saúde</span>
+          <span class="badge" style="background: var(--cat-5); color: #fff">Lazer</span>
+          <span class="badge" style="background: var(--cat-6); color: #fff">Educação</span>
+          <span class="badge" style="background: var(--cat-7); color: #fff">Pessoal</span>
+          <span class="badge" style="background: var(--cat-8); color: #fff">Outros</span>
+        </div>
+      </div>
+
+      <!-- ----------------------------------------------------- tipografia -->
+      <h2 style="margin-bottom: 0.75rem">2. Tipografia</h2>
+      <div class="card card-body" style="margin-bottom: 1.5rem">
+        <p class="small muted" style="margin-bottom: 1rem">
+          Três opções no seletor <em>fonte</em> da barra preta: <strong>grotesk</strong> (Inter em
+          tudo), <strong>humanist</strong> (Source Sans, letras mais abertas) e
+          <strong>mixed</strong> (serifada nos títulos, sans no corpo). Os protótipos usam a fonte
+          do sistema como fallback; na versão React a escolhida é carregada de verdade.
+        </p>
+        <h1 style="margin-bottom: 0.25rem">Julho de 2026</h1>
+        <h2 style="margin-bottom: 0.25rem">Despesas por categoria</h2>
+        <h3 style="margin-bottom: 0.5rem">Supermercado</h3>
+        <p>
+          Corpo de texto em 14px, altura de linha 1.5. Descrições de lançamento, mensagens de erro e
+          textos de ajuda ficam neste tamanho.
+        </p>
+        <p class="small muted">Texto auxiliar em 13px — dicas de campo e legendas.</p>
+        <div class="row" style="gap: 1.5rem; margin-top: 1rem">
+          <div>
+            <div class="xs muted">Sem tabular</div>
+            <div style="font-size: 1.1rem">1.111,11<br />8.888,88</div>
+          </div>
+          <div>
+            <div class="xs muted">Com tabular (usado em toda a app)</div>
+            <div class="num" style="font-size: 1.1rem; text-align: left">1.111,11<br />8.888,88</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ------------------------------------------------------ componentes -->
+      <h2 style="margin-bottom: 0.75rem">3. Componentes</h2>
+      <div class="grid-2" style="margin-bottom: 1.5rem; align-items: start">
+        <div class="card card-body stack">
+          <h3>Botões</h3>
+          <div class="row wrap">
+            <button class="btn"><span data-icon="plus"></span> Novo lançamento</button>
+            <button class="btn outline">Cancelar</button>
+            <button class="btn ghost">Ver inativos</button>
+            <button class="btn danger">Excluir</button>
+            <button class="btn" disabled>Salvando…</button>
+          </div>
+          <div class="row wrap">
+            <button class="btn sm outline">Ação pequena</button>
+            <button class="btn icon ghost"><span data-icon="pencil"></span></button>
+            <button class="btn icon ghost"><span data-icon="trash"></span></button>
+          </div>
+          <h3 style="margin-top: 0.5rem">Seletor segmentado</h3>
+          <div class="segmented" data-tabs="ds">
+            <button data-tab="a" aria-selected="true">Mensal</button>
+            <button data-tab="b" aria-selected="false">Anual</button>
+          </div>
+          <h3 style="margin-top: 0.5rem">Interruptor</h3>
+          <label class="row"
+            ><button class="switch" role="switch" aria-checked="false"></button>
+            <span class="small">Mostrar inativos</span></label
+          >
+        </div>
+
+        <div class="card card-body stack">
+          <h3>Campos</h3>
+          <div class="field">
+            <label>Descrição</label>
+            <input class="input" value="Supermercado Continente" />
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Valor</label>
+              <input class="input num" value="1.234,56 €" style="text-align: left" />
+              <span class="hint">Aceita 1.234,56 e 1234.56</span>
+            </div>
+            <div class="field">
+              <label>Conta</label>
+              <select class="select">
+                <option>Millennium</option>
+                <option>Revolut</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Data</label>
+            <input class="input error" value="" placeholder="dd/mm/aaaa" />
+            <span class="field-error">Informe a data do lançamento.</span>
+          </div>
+          <label class="check"
+            ><input type="checkbox" checked />
+            <span class="small">Compra no cartão de crédito<br /><span class="hint">Mostra o mês de referência</span></span
+            ></label
+          >
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem; align-items: start">
+        <div class="card card-body stack">
+          <h3>Estados de carregamento</h3>
+          <div class="stack" style="gap: 0.4rem">
+            <div class="skeleton" style="width: 60%"></div>
+            <div class="skeleton" style="width: 90%"></div>
+            <div class="skeleton" style="width: 75%"></div>
+          </div>
+          <div class="row"><span class="spinner"></span> <span class="small muted">Carregando…</span></div>
+          <h3 style="margin-top: 0.5rem">Avisos</h3>
+          <div class="callout"><span data-icon="alert"></span> Nenhuma conta ativa cadastrada.</div>
+          <div class="callout warn">
+            <span data-icon="alert"></span> Valor acima do saldo da caixinha (disponível: 450,00 €).
+          </div>
+          <div class="callout error">
+            <span data-icon="alert"></span> Não é possível excluir: existem 12 lançamentos nesta conta.
+          </div>
+        </div>
+
+        <div class="card" style="overflow: hidden">
+          <div class="card-head"><h3>Tabela</h3><span class="badge">densidade padrão</span></div>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th class="num">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="num">03/07</td>
+                  <td>Salário</td>
+                  <td><span class="badge income">Receita</span></td>
+                  <td class="num income">+ 3.200,00 €</td>
+                </tr>
+                <tr>
+                  <td class="num">05/07</td>
+                  <td>Supermercado</td>
+                  <td>
+                    <span class="row" style="gap: 0.4rem"
+                      ><span class="dot" style="background: var(--cat-3)"></span> Alimentação</span
+                    >
+                  </td>
+                  <td class="num expense">− 128,40 €</td>
+                </tr>
+                <tr>
+                  <td class="num">07/07</td>
+                  <td>Reserva de férias</td>
+                  <td><span class="badge cashbox">Caixinha</span></td>
+                  <td class="num">− 200,00 €</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3">Saldo</td>
+                  <td class="num">+ 2.871,60 €</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- --------------------------------------------------------- animação -->
+      <h2 style="margin-bottom: 0.75rem">4. Animação</h2>
+      <div class="card card-body" style="margin-bottom: 1.5rem">
+        <p class="small muted">
+          Curva única <code>cubic-bezier(.32,.72,0,1)</code> e três durações: 120 ms (hover, foco),
+          200 ms (troca de estado) e 320 ms (diálogo, toast, barra de progresso). Nada acima de
+          320 ms. <code>prefers-reduced-motion</code> zera tudo — teste no seletor
+          <em>motion</em>.
+        </p>
+        <div class="row wrap" style="margin-top: 0.75rem; gap: 0.5rem">
+          <button class="btn outline" data-open="ds-dialog">Ver diálogo (320 ms)</button>
+          <button class="btn outline" onclick="document.getElementById('ds-toast').style.display='flex'">
+            Ver toast
+          </button>
+          <button
+            class="btn outline"
+            onclick="const b=document.getElementById('ds-bar'); b.style.width = b.style.width === '80%' ? '18%' : '80%'"
+          >
+            Ver barra
+          </button>
+        </div>
+        <div class="progress" style="margin-top: 0.85rem"><span id="ds-bar" style="width: 18%"></span></div>
+        <ul class="small muted" style="margin: 0.85rem 0 0; padding-left: 1.1rem">
+          <li>Linha da tabela: só mudança de fundo, sem deslocamento.</li>
+          <li>Diálogo: opacidade + 8px de subida + escala 0.98 → 1.</li>
+          <li>Toast: entra pela direita, sai por opacidade.</li>
+          <li>Sem animação de número (contador subindo) — atrapalha a conferência de saldo.</li>
+        </ul>
+      </div>
+
+      <!-- ----------------------------------------------------------- espaço -->
+      <h2 style="margin-bottom: 0.75rem">5. Espaçamento, raio e sombra</h2>
+      <div class="card card-body" style="margin-bottom: 3rem">
+        <p class="small muted">
+          Escala de 4px. Raio base 10px (<code>--radius: 0.625rem</code>): cartões 10px, botões e
+          campos 8px, diálogos 14px, badges arredondados. Três sombras apenas — cartão, menu
+          flutuante e diálogo.
+        </p>
+        <div class="row wrap" style="gap: 1rem; margin-top: 0.85rem">
+          <div class="card" style="width: 120px; height: 64px; box-shadow: var(--shadow-sm)"></div>
+          <div class="card" style="width: 120px; height: 64px; box-shadow: var(--shadow-md)"></div>
+          <div class="card" style="width: 120px; height: 64px; box-shadow: var(--shadow-lg)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrim" id="ds-dialog" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Exemplo de diálogo</h2></div>
+        <div class="card-body small muted">Entra com opacidade, leve subida e escala.</div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Fechar</button>
+          <button class="btn" data-close>Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="ds-toast" style="display: none">
+      <div class="toast">
+        <span class="income" data-icon="check"></span>
+        <span class="grow small">Lançamento excluído.</span>
+        <button class="btn sm ghost" onclick="document.getElementById('ds-toast').style.display='none'">Desfazer</button>
+      </div>
+    </div>
+  </body>
+</html>

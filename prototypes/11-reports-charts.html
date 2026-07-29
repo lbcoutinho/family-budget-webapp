@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>11 — Gráficos</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="11 — Gráficos e caixinhas (M6-T04, M6-T05)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> ligar/desligar séries pela legenda, passar o mouse para ver valor e
+      percentual, clicar numa fatia/barra para abrir o mês filtrado. Na app serão componentes
+      Recharts; aqui o SVG é desenhado à mão só para julgar cor, densidade e legenda. A cor de cada
+      categoria vem de <code>Category.color</code>, a mesma dos protótipos 04, 09 e 10.
+    </div>
+
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <div class="segmented">
+              <button aria-selected="false" onclick="location.href='09-reports-monthly.html'">Mensal</button>
+              <button aria-selected="false" onclick="location.href='10-reports-yearly.html'">Anual</button>
+              <button aria-selected="true">Gráficos</button>
+            </div>
+          </div>
+          <strong>2026</strong>
+        </div>
+
+        <div class="content">
+          <div class="grid-2" style="align-items: start; margin-bottom: 1.25rem">
+            <div class="card">
+              <div class="card-head">
+                <div><h2>Distribuição de julho</h2><p class="small muted" style="margin: 0.15rem 0 0">Total de despesas: 2.358,00 €</p></div>
+              </div>
+              <div class="card-body">
+                <div class="row" style="gap: 1.5rem; align-items: center; flex-wrap: wrap">
+                  <svg id="donut" viewBox="0 0 200 200" width="190" height="190" role="img" aria-label="Distribuição por categoria"></svg>
+                  <div id="donut-legend" class="stack" style="gap: 0.45rem; min-width: 180px"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h2>No celular: lista com barras</h2></div>
+              <div class="card-body">
+                <p class="small muted">Abaixo de 640px a rosca vira lista — mais legível e sem tooltip a depender de hover.</p>
+                <div id="mobile-list" class="stack" style="gap: 0.6rem; margin-top: 0.75rem"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom: 1.25rem">
+            <div class="card-head">
+              <h2>Evolução mensal por categoria</h2>
+              <span class="small muted">barras empilhadas · clique na legenda para ocultar</span>
+            </div>
+            <div class="card-body">
+              <svg id="stacked" viewBox="0 0 760 260" width="100%" height="260" role="img" aria-label="Despesas por mês e categoria"></svg>
+              <div id="stacked-legend" class="row wrap" style="gap: 0.85rem; margin-top: 0.5rem"></div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="align-items: start; margin-bottom: 1.25rem">
+            <div class="card">
+              <div class="card-head"><h2>Receitas × despesas</h2></div>
+              <div class="card-body">
+                <svg id="lines" viewBox="0 0 480 220" width="100%" height="220" role="img" aria-label="Receitas contra despesas"></svg>
+                <div class="row" style="gap: 1rem; margin-top: 0.5rem">
+                  <span class="row small"><span class="dot" style="background: var(--income)"></span> Receitas</span>
+                  <span class="row small"><span class="dot" style="background: var(--expense)"></span> Despesas</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h2>Caixinhas ao longo do ano</h2><span class="badge cashbox">M6-T05</span></div>
+              <div class="card-body">
+                <svg id="cashlines" viewBox="0 0 480 200" width="100%" height="200" role="img" aria-label="Saldo das caixinhas"></svg>
+                <div class="table-wrap" style="margin-top: 0.75rem">
+                  <table class="data">
+                    <thead>
+                      <tr><th>Caixinha</th><th class="num">Depósitos</th><th class="num">Resgates</th><th class="num">Saldo final</th><th>Meta</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="row" style="gap: 0.4rem"><span class="dot" style="background: var(--cat-2)"></span> Férias 2027</span></td>
+                        <td class="num income">+ 2.900,00 €</td>
+                        <td class="num">− 500,00 €</td>
+                        <td class="num strong">2.400,00 €</td>
+                        <td style="width: 110px"><div class="progress"><span style="width: 60%"></span></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="row" style="gap: 0.4rem"><span class="dot" style="background: var(--cat-6)"></span> Emergência</span></td>
+                        <td class="num income">+ 2.250,00 €</td>
+                        <td class="num">− 500,00 €</td>
+                        <td class="num strong">1.750,00 €</td>
+                        <td class="xs muted">sem meta</td>
+                      </tr>
+                      <tr style="opacity: 0.65">
+                        <td>
+                          <span class="row" style="gap: 0.4rem"
+                            ><span class="dot" style="background: var(--cat-8)"></span> Mudança 2024 <span class="badge">Inativa</span></span
+                          >
+                        </td>
+                        <td class="num">+ 0,00 €</td>
+                        <td class="num">− 0,00 €</td>
+                        <td class="num strong">0,00 €</td>
+                        <td class="xs muted">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom: 1.25rem">
+            <div class="card-head"><h2>Período sem dados</h2></div>
+            <div class="empty">
+              <div class="icon"><span data-icon="chart"></span></div>
+              <h3>Nenhum lançamento confirmado neste período</h3>
+              <p class="small">O gráfico não é desenhado vazio — a área mostra este estado.</p>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin-bottom: 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Rosca (com o total no centro) em vez de pizza cheia.</li>
+              <li>Gráficos numa terceira aba de Relatórios, e não misturados às tabelas.</li>
+              <li>Categorias abaixo de ~3% agrupadas em "Outras" na rosca? (a tabela continua completa)</li>
+              <li>Legenda clicável para ocultar série, com o estado só na sessão.</li>
+              <li>Linha de caixinhas separada dos gráficos de despesa, porque não são despesa.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* Dados fictícios, mas os mesmos dos protótipos 06, 09 e 10 — dá para conferir
+         os números de uma tela para a outra. `series` é a linha do ano, de janeiro a julho. */
+      const CATS = [
+        { name: 'Moradia', color: 'var(--cat-1)', series: [1150, 1150, 1150, 1180, 1150, 1150, 1150] },
+        { name: 'Alimentação', color: 'var(--cat-3)', series: [602, 548, 631, 590, 712, 604, 613] },
+        { name: 'Transporte', color: 'var(--cat-2)', series: [265, 265, 310, 265, 265, 401, 265] },
+        { name: 'Lazer', color: 'var(--cat-5)', series: [120, 86, 240, 95, 310, 142, 180] },
+        { name: 'Saúde', color: 'var(--cat-4)', series: [88, 92, 110, 84, 96, 120, 96] },
+        { name: 'Outros', color: 'var(--cat-8)', series: [42, 58, 40, 66, 34, 48, 54] },
+      ].map((c) => ({ ...c, value: c.series[c.series.length - 1] }));
+      const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'];
+      const eur = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' €';
+
+      /* rosca */
+      (() => {
+        const total = CATS.reduce((s, c) => s + c.value, 0);
+        const r = 68;
+        const circ = 2 * Math.PI * r;
+        let offset = 0;
+        const rings = CATS.map((c) => {
+          const len = (c.value / total) * circ;
+          const el = `<circle cx="100" cy="100" r="${r}" fill="none" stroke="${c.color}" stroke-width="26"
+            stroke-dasharray="${len - 2} ${circ - len + 2}" stroke-dashoffset="${-offset}"
+            transform="rotate(-90 100 100)"><title>${c.name}: ${eur(c.value)}</title></circle>`;
+          offset += len;
+          return el;
+        }).join('');
+        document.getElementById('donut').innerHTML =
+          rings +
+          `<text x="100" y="96" text-anchor="middle" font-size="11" fill="currentColor" opacity=".6">Total</text>
+           <text x="100" y="115" text-anchor="middle" font-size="15" font-weight="600" fill="currentColor">${eur(total)}</text>`;
+
+        document.getElementById('donut-legend').innerHTML = CATS.map(
+          (c) => `<div class="spread" style="gap:.75rem">
+              <span class="row small"><span class="dot" style="background:${c.color}"></span>${c.name}</span>
+              <span class="num small">${((c.value / total) * 100).toFixed(1)}%</span>
+            </div>`,
+        ).join('');
+
+        document.getElementById('mobile-list').innerHTML = CATS.map(
+          (c) => `<div>
+              <div class="spread small"><span>${c.name}</span><span class="num">${eur(c.value)}</span></div>
+              <div class="bar-track" style="margin-top:.25rem"><span style="width:${(c.value / total) * 100}%;background:${c.color}"></span></div>
+            </div>`,
+        ).join('');
+      })();
+
+      /* barras empilhadas */
+      (() => {
+        const series = CATS;
+        const data = MONTHS.map((m, i) => series.map((c) => c.series[i]));
+        const totals = data.map((d) => d.reduce((a, b) => a + b, 0));
+        const max = Math.max(...totals) * 1.1;
+        const W = 760, H = 260, padL = 46, padB = 26, plotH = H - padB - 12;
+        const bw = (W - padL - 12) / MONTHS.length;
+        let svg = '';
+        for (let g = 0; g <= 4; g++) {
+          const y = 12 + plotH - (plotH * g) / 4;
+          svg += `<line x1="${padL}" y1="${y}" x2="${W - 8}" y2="${y}" stroke="currentColor" opacity=".12"/>
+                  <text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="currentColor" opacity=".55">${Math.round((max * g) / 4)}</text>`;
+        }
+        data.forEach((month, i) => {
+          let acc = 0;
+          month.forEach((v, s) => {
+            const h = (v / max) * plotH;
+            const y = 12 + plotH - acc - h;
+            svg += `<rect x="${padL + i * bw + bw * 0.18}" y="${y}" width="${bw * 0.64}" height="${h}"
+                      fill="${series[s].color}" rx="2"><title>${MONTHS[i]} · ${series[s].name}: ${eur(v)}</title></rect>`;
+            acc += h;
+          });
+          svg += `<text x="${padL + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">${MONTHS[i]}</text>`;
+        });
+        document.getElementById('stacked').innerHTML = svg;
+        document.getElementById('stacked-legend').innerHTML = series
+          .map((c) => `<span class="row small" style="cursor:pointer"><span class="dot" style="background:${c.color}"></span>${c.name}</span>`)
+          .join('');
+      })();
+
+      /* linhas */
+      function lineChart(id, series, width, height) {
+        const max = Math.max(...series.flatMap((s) => s.points)) * 1.15;
+        const padL = 40, padB = 22;
+        const plotW = width - padL - 10, plotH = height - padB - 10;
+        const x = (i, n) => padL + (plotW * i) / (n - 1);
+        const y = (v) => 10 + plotH - (v / max) * plotH;
+        let svg = '';
+        for (let g = 0; g <= 3; g++) {
+          const gy = 10 + plotH - (plotH * g) / 3;
+          svg += `<line x1="${padL}" y1="${gy}" x2="${width - 8}" y2="${gy}" stroke="currentColor" opacity=".12"/>
+                  <text x="${padL - 6}" y="${gy + 4}" text-anchor="end" font-size="9" fill="currentColor" opacity=".55">${Math.round((max * g) / 3)}</text>`;
+        }
+        series.forEach((s) => {
+          const d = s.points.map((v, i) => `${i ? 'L' : 'M'}${x(i, s.points.length)},${y(v)}`).join(' ');
+          svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+          svg += s.points
+            .map((v, i) => `<circle cx="${x(i, s.points.length)}" cy="${y(v)}" r="3" fill="${s.color}"><title>${s.name}: ${eur(v)}</title></circle>`)
+            .join('');
+        });
+        svg += MONTHS.map(
+          (m, i) => `<text x="${x(i, MONTHS.length)}" y="${height - 6}" text-anchor="middle" font-size="9" fill="currentColor" opacity=".65">${m}</text>`,
+        ).join('');
+        document.getElementById(id).innerHTML = svg;
+      }
+
+      lineChart(
+        'lines',
+        [
+          { name: 'Receitas', color: 'var(--income)', points: [3284, 3200, 3200, 3412, 3200, 3200, 3284] },
+          { name: 'Despesas', color: 'var(--expense)', points: [2267, 2199, 2481, 2280, 2567, 2465, 2358] },
+        ],
+        480,
+        220,
+      );
+
+      lineChart(
+        'cashlines',
+        [
+          { name: 'Férias 2027', color: 'var(--cat-2)', points: [400, 800, 1200, 1600, 1900, 2200, 2400] },
+          { name: 'Emergência', color: 'var(--cat-6)', points: [1000, 1150, 1300, 1300, 1450, 1600, 1750] },
+        ],
+        480,
+        200,
+      );
+    </script>
+  </body>
+</html>

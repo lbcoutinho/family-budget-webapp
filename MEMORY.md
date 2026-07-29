@@ -11,16 +11,22 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
+**Screen plan + prototypes done** (branch `claude/screens-prototypes-plan-7kk7l9`): `plans/0002-screens.md`
+(13 screens, actions per screen, open questions) and `prototypes/` (14 throwaway HTML pages,
+`_shared/proto.css` + `proto.js`, `approved/` and `discarded/` folders). Nothing half-finished —
+**waiting on the user's approvals**, starting with `00-design-system.html`.
+
 **M2-T04 done** (issue #20): `JwtStrategy`, the global `JwtAuthGuard` (`APP_GUARD` in
-`AuthModule`), `@Public()` and `@CurrentUser()`, plus bearer auth in the OpenAPI document. Branch
-`claude/next-task-1hsghf` (restarted from `main` after #30 merged), PR open — nothing
-half-finished.
+`AuthModule`), `@Public()` and `@CurrentUser()`, plus bearer auth in the OpenAPI document.
 
 **M2-T01 (#26), M2-T02 (#29) and M2-T03 (#30) merged.** The backend half of M2 is complete; the
 two remaining tickets are frontend.
 
 ## Gotchas the next ticket will hit
 
+- **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
+  `plans/0002-screens.md`). M2-T05 is unaffected — it is pure wiring, no UI. **M2-T06 is blocked
+  until `prototypes/01-login.html` and `00-design-system.html` move to `prototypes/approved/`.**
 - **Every new route is protected the moment it is written.** A route needs no decorator to require
   a token; it needs `@Public()` (`src/modules/auth/decorators/public.decorator.ts`) not to. That
   decorator also clears the operation's bearer requirement in the OpenAPI document, so the two

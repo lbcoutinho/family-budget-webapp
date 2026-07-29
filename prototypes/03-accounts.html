@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>03 — Contas</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="03 — Contas (M3-T07)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> criar, editar, desativar/reativar, excluir (bloqueado com 409 quando há
+      lançamentos), alternar "mostrar inativas". Define o padrão <em>tabela + diálogo</em> que
+      Categorias e Caixinhas reaproveitam.
+    </div>
+
+    <div data-shell="accounts">
+      <div class="main">
+        <div class="topbar">
+          <strong>Contas</strong>
+          <button class="btn sm" data-open="dlg-account"><span data-icon="plus"></span> Nova conta</button>
+        </div>
+        <div class="content">
+          <div class="page-header spread">
+            <div>
+              <h1>Contas</h1>
+              <p>Origem e destino do dinheiro. O saldo é calculado a partir do saldo inicial e dos lançamentos.</p>
+            </div>
+            <label class="row"
+              ><button class="switch" role="switch" aria-checked="false"></button>
+              <span class="small muted">Mostrar inativas</span></label
+            >
+          </div>
+
+          <div class="card" style="overflow: hidden">
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th style="width: 40%">Nome</th>
+                    <th class="num">Saldo inicial</th>
+                    <th class="num">Saldo atual</th>
+                    <th>Situação</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="strong">Millennium</td>
+                    <td class="num">2.000,00 €</td>
+                    <td class="num strong">3.482,15 €</td>
+                    <td><span class="badge income">Ativa</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-account"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar" data-open="dlg-deactivate"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Excluir" data-open="dlg-blocked"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="strong">Revolut</td>
+                    <td class="num">150,00 €</td>
+                    <td class="num strong">412,90 €</td>
+                    <td><span class="badge income">Ativa</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-account"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-deactivate"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-blocked"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="strong">Dinheiro</td>
+                    <td class="num">0,00 €</td>
+                    <td class="num strong negative">− 35,00 €</td>
+                    <td><span class="badge income">Ativa</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-account"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-deactivate"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-blocked"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr style="opacity: 0.6">
+                    <td class="strong">Conta antiga BPI</td>
+                    <td class="num">0,00 €</td>
+                    <td class="num">0,00 €</td>
+                    <td><span class="badge">Inativa</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn sm ghost">Reativar</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="small muted" style="margin-top: 0.75rem">
+            Linha inativa aparece esmaecida e só quando o interruptor está ligado. Ações aparecem no
+            hover da linha; no celular ficam sempre visíveis.
+          </p>
+
+          <div class="card card-body" style="margin: 1.5rem 0 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Saldo atual na listagem (vem de <code>GET /accounts/balances</code>, M5-T06) ou só saldo inicial até lá.</li>
+              <li>Saldo negativo em vermelho, sem ícone extra.</li>
+              <li>Desativar pede confirmação; excluir tenta e mostra o 409 do backend.</li>
+              <li>Sem coluna de ordenação manual nesta tela, apesar de <code>sortOrder</code> existir no modelo.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- diálogo criar/editar -->
+    <div class="scrim" id="dlg-account" style="display: none">
+      <div class="dialog">
+        <div class="card-head">
+          <div><h2>Editar conta</h2><p class="small muted" style="margin: 0.15rem 0 0">Millennium</p></div>
+          <button class="btn icon ghost" data-close><span data-icon="x"></span></button>
+        </div>
+        <div class="card-body stack">
+          <div class="field">
+            <label>Nome</label>
+            <input class="input" value="Millennium" />
+          </div>
+          <div class="field">
+            <label>Saldo inicial</label>
+            <input class="input" value="2.000,00" />
+            <span class="hint">Saldo no dia em que a conta passou a ser acompanhada aqui. Enviado como 200000 centavos.</span>
+          </div>
+          <label class="check"><input type="checkbox" checked /> <span class="small">Conta ativa</span></label>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- confirmação de desativação -->
+    <div class="scrim" id="dlg-deactivate" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Desativar conta?</h2></div>
+        <div class="card-body small">
+          <p>
+            <strong>Millennium</strong> deixa de aparecer em novos lançamentos. Os lançamentos
+            existentes continuam intactos e a conta volta a aparecer ao editá-los.
+          </p>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Desativar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 409 -->
+    <div class="scrim" id="dlg-blocked" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Não é possível excluir</h2></div>
+        <div class="card-body">
+          <div class="callout error">
+            <span data-icon="alert"></span>
+            <span>Esta conta tem 128 lançamentos. Desative-a em vez de excluir.</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Fechar</button>
+          <button class="btn" data-close>Desativar</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

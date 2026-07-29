@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **M1 Foundation scaffolded** — monorepo, tooling, CI, health-check API, web bootstrap, and the OpenAPI→Orval client all exist. **M2 Authentication is next; no feature/domain code yet.** `plans/` and `docs/adr/` remain **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
+- `plans/0002-screens.md` — screen inventory, actions per screen, prototype workflow, open UI questions.
 - `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry), each list of small tasks. First user-visible value at end of M5.
 - `plans/MEMORY.md` — GitHub mirroring convention + progress tracker.
 - `docs/adr/` — 15 accepted ADRs. **Accepted ADRs never edited** — supersede with new one (sequential 4-digit, kebab-case, use `template.md`).
@@ -21,6 +22,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.
 - **When milestone completed, review this `CLAUDE.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh shifted conventions/gotchas).
 - **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm, Docker images, Actions — moves to latest release proven compatible with rest of stack.
+
+## UI prototypes (blocking rule for every screen)
+
+**No screen is written in React without an approved prototype.** Prototypes live in `prototypes/` — throwaway HTML, one shared `_shared/proto.css` + `proto.js`, no build step, no dependencies. Purpose: settle concept, colour, typography, spacing and animation while changing one's mind is still free.
+
+- **Before implementing any screen ticket, check `prototypes/approved/`.** Prototype missing or still under review → **stop and ask**, don't improvise UI.
+- Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record). Moving a file also updates the status table in `prototypes/index.html` and §4 of `plans/0002-screens.md`, same commit.
+- Every prototype ends with a **"Decisões a aprovar"** block — the open choices, stated so they can be decided rather than guessed.
+- `00-design-system.html` is approved first; everything else inherits colour/type/motion from it.
+- **UI strings pt-BR** (the interface is localized); filenames, comments, commits stay en-US. Sample data fictional but consistent across screens (same accounts/categories, July 2026).
+- An approved prototype may be edited when implementation reveals a problem — say so in the PR. What must never happen is a built screen silently diverging from it.
+- Prototypes are not accessibility- or component-complete: shadcn/ui provides the real components; the prototype CSS is deleted as each screen ships.
 
 ## Stack & layout
 

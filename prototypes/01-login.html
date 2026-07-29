@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>01 — Login</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="01 — Login (M2-T06)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> entrar. Não há cadastro nem "esqueci a senha" — a app é de um usuário
+      só, criado pelo seed. Erro de credencial aparece no formulário sem limpar o e-mail digitado;
+      erro de rede aparece como toast.
+    </div>
+
+    <div class="content" style="max-width: 1080px">
+      <div class="grid-2" style="gap: 1.5rem; align-items: start; margin-top: 1rem">
+        <!-- estado normal -->
+        <div class="stack">
+          <h2>Estado inicial</h2>
+          <div class="card" style="padding: 2rem 1.75rem">
+            <div class="row" style="gap: 0.6rem; margin-bottom: 1.5rem">
+              <span class="brand-mark">O</span>
+              <div>
+                <div class="strong" style="font-family: var(--font-display)">Orçamento familiar</div>
+                <div class="xs muted">Entre para continuar</div>
+              </div>
+            </div>
+            <div class="stack" style="gap: 0.85rem">
+              <div class="field">
+                <label for="e1">E-mail</label>
+                <input class="input" id="e1" type="email" placeholder="voce@exemplo.com" />
+              </div>
+              <div class="field">
+                <label for="p1">Senha</label>
+                <input class="input" id="p1" type="password" value="••••••••" />
+              </div>
+              <button class="btn block">Entrar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- erro + carregando -->
+        <div class="stack">
+          <h2>Credencial inválida</h2>
+          <div class="card" style="padding: 2rem 1.75rem">
+            <div class="row" style="gap: 0.6rem; margin-bottom: 1.25rem">
+              <span class="brand-mark">O</span>
+              <div>
+                <div class="strong" style="font-family: var(--font-display)">Orçamento familiar</div>
+                <div class="xs muted">Entre para continuar</div>
+              </div>
+            </div>
+            <div class="callout error" style="margin-bottom: 0.85rem">
+              <span data-icon="alert"></span> E-mail ou senha incorretos.
+            </div>
+            <div class="stack" style="gap: 0.85rem">
+              <div class="field">
+                <label for="e2">E-mail</label>
+                <input class="input" id="e2" type="email" value="lucas@exemplo.com" />
+                <span class="hint">O e-mail digitado é preservado.</span>
+              </div>
+              <div class="field">
+                <label for="p2">Senha</label>
+                <input class="input error" id="p2" type="password" value="" />
+              </div>
+              <button class="btn block" disabled><span class="spinner"></span> Entrando…</button>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 0.75rem">Verificando sessão</h2>
+          <p class="small muted" style="margin: 0">
+            No carregamento da app, o refresh silencioso roda antes de qualquer rota. Enquanto isso a
+            tela é esta — nunca o formulário de login, para não piscar.
+          </p>
+          <div class="card" style="padding: 3rem; display: grid; place-items: center">
+            <div class="stack" style="align-items: center; gap: 0.6rem">
+              <span class="spinner"></span>
+              <span class="small muted">Restaurando sessão…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-body" style="margin: 1.5rem 0 3rem">
+        <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+        <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+          <li>Cartão centralizado e estreito, sem ilustração nem coluna lateral de marketing.</li>
+          <li>Mensagem genérica: nunca revela se o e-mail existe.</li>
+          <li>Sem "lembrar de mim" — a sessão já se restaura sozinha pelo cookie de refresh.</li>
+          <li>Conta demo: entra pelo mesmo formulário, sem botão separado.</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

@@ -263,6 +263,8 @@ Cashbox = CASHBOX_IN − CASHBOX_OUT
 | M7 | Recurrence | Fixed expenses and installments | [m07](milestones/m07-recurrence.md) |
 | M8 | Voice entry | Capture, parsing and approval | [m08](milestones/m08-voice-entry.md) |
 
+Every screen inside those milestones is covered by [plan 0002](0002-screens.md), which lists the screens, the actions each one offers, and the prototype that has to be approved before it is implemented.
+
 The first milestone that delivers real value is the end of **M5**: from that point the application replaces the spreadsheet.
 
 M7 and M8 both depend only on M5, not on each other, and may be built in either order or in parallel.
