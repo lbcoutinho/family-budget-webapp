@@ -5,6 +5,10 @@
 // Orval's tags-split mode emits no root barrel, so each tag is re-exported here by hand. Add a line
 // per new API tag (one folder appears under `generated/` for each). The model index is generated.
 export * from './generated/model';
+export * from './generated/auth/auth';
 export * from './generated/health/health';
 
 export { axiosInstance } from './lib/axios';
+// Session state the app owns: it stores the token `login` returns, and says where an expired
+// session should land. Renewal itself needs no wiring — the interceptors are already installed.
+export { getAccessToken, setAccessToken, setSessionExpiredHandler } from './lib/auth-session';

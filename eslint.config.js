@@ -30,8 +30,10 @@ module.exports = tseslint.config(
       '**/coverage/**',
       '**/*.tsbuildinfo',
       '.husky/_/**',
-      // Orval output: generated code is never hand-edited, so it is never linted (M1-T07).
-      'packages/api-client/**',
+      // Orval output: generated code is never hand-edited, so it is never linted (M1-T07). Scoped
+      // to `generated/` — the package's `src/lib/` is hand-written (the axios instance and the
+      // auth interceptors) and gets the same treatment as any other source file.
+      'packages/api-client/src/generated/**',
       // Prisma client, generated as TypeScript under src/ by `postinstall` (ADR-0017).
       'apps/api/src/generated/**',
       // Throwaway HTML mock-ups: plain browser scripts, outside every tsconfig, deleted as each
