@@ -65,8 +65,19 @@ Publishing only this folder is the whole reason it is a workflow rather than the
 "deploy from a branch" setting: that setting can serve only the repository root or `/docs`, which
 would publish the entire repository as static files.
 
-Requires **Settings → Pages → Source = "GitHub Actions"** (one-off, by hand). Until that is set
-the workflow still runs green but changes nothing.
+Requires **Settings → Pages → Source = "GitHub Actions"** (one-off, by hand). This is not optional
+and not a no-op: with the source left on "Deploy from a branch", that mode owns the `github-pages`
+environment and limits it to its own branch deployment, so this workflow is **rejected before a
+runner is assigned**. The symptom is a two-second failure with no logs, no step output and no
+error annotation — it looks like a broken workflow and is not one.
+
+The Pages settings page offers starter workflows ("Static HTML", "Jekyll") once the source is set
+to GitHub Actions. Those are suggestions GitHub always shows; ignore them, this repository already
+has its workflow. Changing the dropdown is the whole change.
+
+Switching the source does not itself deploy — the push that would have triggered it has already
+happened. Run it from **Actions → Prototypes → Run workflow**, which is what `workflow_dispatch`
+is there for.
 
 `.nojekyll` is precautionary rather than required: this deployment path uploads the folder as an
 artifact and runs no Jekyll, so `_shared/` is served as-is. It is kept because the failure it

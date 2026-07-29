@@ -5,8 +5,11 @@ name: Prototypes
 # instead of the simpler "deploy from a branch" setting, which can only publish the repository
 # root or /docs.
 #
-# Requires Settings → Pages → Source = "GitHub Actions". With the source left on a branch this
-# workflow runs green and changes nothing.
+# Requires Settings → Pages → Source = "GitHub Actions". Leaving the source on "Deploy from a
+# branch" does not make this a no-op — it makes it fail: that mode owns the `github-pages`
+# environment and restricts it to its own branch deployment, so this job is rejected before a
+# runner is even assigned. The run then shows a two-second failure with no logs and no step
+# output, which looks like a broken workflow and is not one.
 
 on:
   push:
