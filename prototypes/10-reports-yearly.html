@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>10 — Relatório anual</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="10 — Relatório anual (M6-T02, M6-T03)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> escolher ano, comparar com o ano anterior, expandir categoria, clicar
+      numa célula para abrir aquele mês filtrado pela categoria, exportar CSV. É a matriz que
+      substitui a planilha: categoria nas linhas, meses nas colunas. A primeira coluna fica
+      congelada na rolagem horizontal.
+    </div>
+
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <div class="segmented">
+              <button aria-selected="false" onclick="location.href='09-reports-monthly.html'">Mensal</button>
+              <button aria-selected="true">Anual</button>
+            </div>
+            <span class="sep"></span>
+            <button class="btn icon ghost"><span data-icon="chevronLeft"></span></button>
+            <strong style="min-width: 60px; text-align: center">2026</strong>
+            <button class="btn icon ghost"><span data-icon="chevronRight"></span></button>
+          </div>
+          <div class="row">
+            <label class="row"
+              ><button class="switch" role="switch" aria-checked="false"></button>
+              <span class="small muted">Comparar com 2025</span></label
+            >
+            <button class="btn sm outline"><span data-icon="download"></span> CSV</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="card" style="overflow: hidden; margin-bottom: 1.25rem">
+            <div class="card-head">
+              <h2>Despesas por categoria e mês</h2>
+              <span class="small muted">valores em €</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data" style="min-width: 1100px">
+                <thead>
+                  <tr>
+                    <th class="sticky-col" style="min-width: 190px">Categoria</th>
+                    <th class="num">Jan</th>
+                    <th class="num">Fev</th>
+                    <th class="num">Mar</th>
+                    <th class="num">Abr</th>
+                    <th class="num">Mai</th>
+                    <th class="num">Jun</th>
+                    <th class="num">Jul</th>
+                    <th class="num">Ago</th>
+                    <th class="num">Set</th>
+                    <th class="num">Out</th>
+                    <th class="num">Nov</th>
+                    <th class="num">Dez</th>
+                    <th class="num" style="background: var(--muted)">Total</th>
+                    <th class="num" style="background: var(--muted)">Média</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="y-mor" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-1)"></span> <span class="strong">Moradia</span>
+                      </div>
+                    </td>
+                    <td class="num">1.150</td><td class="num">1.150</td><td class="num">1.150</td>
+                    <td class="num">1.180</td><td class="num">1.150</td><td class="num">1.150</td>
+                    <td class="num">1.150</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">8.080</td><td class="num muted">1.154</td>
+                  </tr>
+                  <tr data-expandable="y-mor" hidden>
+                    <td class="sticky-col" style="padding-left: 3.4rem">Renda</td>
+                    <td class="num">950</td><td class="num">950</td><td class="num">950</td>
+                    <td class="num">950</td><td class="num">950</td><td class="num">950</td>
+                    <td class="num">950</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">6.650</td><td class="num muted">950</td>
+                  </tr>
+                  <tr data-expandable="y-mor" hidden>
+                    <td class="sticky-col" style="padding-left: 3.4rem">Água, luz e gás</td>
+                    <td class="num">200</td><td class="num">200</td><td class="num">200</td>
+                    <td class="num">230</td><td class="num">200</td><td class="num">200</td>
+                    <td class="num">200</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">1.430</td><td class="num muted">204</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="y-ali" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-3)"></span> <span class="strong">Alimentação</span>
+                      </div>
+                    </td>
+                    <td class="num">602</td><td class="num">548</td><td class="num">631</td>
+                    <td class="num">590</td><td class="num">712</td><td class="num">604</td>
+                    <td class="num">613</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">4.300</td><td class="num muted">614</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="y-tra" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-2)"></span> <span class="strong">Transporte</span>
+                      </div>
+                    </td>
+                    <td class="num">265</td><td class="num">265</td><td class="num">310</td>
+                    <td class="num">265</td><td class="num">265</td><td class="num">401</td>
+                    <td class="num">265</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">2.036</td><td class="num muted">291</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-5)"></span> <span class="strong">Lazer</span>
+                      </div>
+                    </td>
+                    <td class="num">120</td><td class="num">86</td><td class="num">240</td>
+                    <td class="num">95</td><td class="num">310</td><td class="num">142</td>
+                    <td class="num">180</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">1.173</td><td class="num muted">168</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-4)"></span> <span class="strong">Saúde</span>
+                      </div>
+                    </td>
+                    <td class="num">88</td><td class="num">92</td><td class="num">110</td>
+                    <td class="num">84</td><td class="num">96</td><td class="num">120</td>
+                    <td class="num">96</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">686</td><td class="num muted">98</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-8)"></span> <span class="strong">Outros</span>
+                      </div>
+                    </td>
+                    <td class="num">42</td><td class="num">58</td><td class="num">40</td>
+                    <td class="num">66</td><td class="num">34</td><td class="num">48</td>
+                    <td class="num">54</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num strong">342</td><td class="num muted">49</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="sticky-col">Total de despesas</td>
+                    <td class="num">2.267</td><td class="num">2.199</td><td class="num">2.481</td>
+                    <td class="num">2.280</td><td class="num">2.567</td><td class="num">2.465</td>
+                    <td class="num">2.358</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num">16.617</td><td class="num">2.374</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">Receitas</td>
+                    <td class="num income">3.284</td><td class="num income">3.200</td><td class="num income">3.200</td>
+                    <td class="num income">3.412</td><td class="num income">3.200</td><td class="num income">3.200</td>
+                    <td class="num income">3.284</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num income">22.780</td><td class="num income">3.254</td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col">Saldo</td>
+                    <td class="num income">1.017</td><td class="num income">1.001</td><td class="num income">719</td>
+                    <td class="num income">1.132</td><td class="num income">633</td><td class="num income">735</td>
+                    <td class="num income">926</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num income">6.163</td><td class="num income">880</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin-bottom: 1.25rem">
+            <h3 style="margin-bottom: 0.5rem">Comparação com o ano anterior (interruptor ligado)</h3>
+            <p class="small muted" style="margin-bottom: 0.75rem">
+              Proposta: cada célula ganha uma segunda linha menor com o valor de 2025 e a variação.
+              Alternativa mais simples: duas linhas por categoria, uma por ano.
+            </p>
+            <div class="table-wrap">
+              <table class="data" style="max-width: 520px">
+                <thead>
+                  <tr><th class="sticky-col">Categoria</th><th class="num">Jan</th><th class="num">Fev</th><th class="num">Mar</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sticky-col"><span class="row" style="gap: 0.4rem"><span class="dot" style="background: var(--cat-3)"></span> Alimentação</span></td>
+                    <td class="num">602<div class="xs muted">548 · <span class="expense">+9,9%</span></div></td>
+                    <td class="num">548<div class="xs muted">571 · <span class="income">−4,0%</span></div></td>
+                    <td class="num">631<div class="xs muted">602 · <span class="expense">+4,8%</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin-bottom: 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Valores sem centavos na matriz anual (arredondados ao euro) para a tabela caber — centavos só no mensal.</li>
+              <li>Meses futuros aparecem com "—" em vez de 0, e continuam nas colunas.</li>
+              <li>Total e média com fundo destacado, à direita, e não na primeira coluna.</li>
+              <li>Comparação: sublinha dentro da célula (acima) ou linha extra por categoria?</li>
+              <li>No celular: rolagem horizontal com a coluna de categoria congelada, sem virar cartões.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

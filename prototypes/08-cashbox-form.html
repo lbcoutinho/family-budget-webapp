@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>08 — Operações de caixinha</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="08 — Operações de caixinha (M5-T04)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> depositar (conta → caixinha), resgatar (caixinha → conta) e transferir
+      entre caixinhas. O saldo da caixinha escolhida aparece ao vivo; valor acima do saldo mostra
+      aviso mas <em>não bloqueia</em> — quem decide é o backend, que responde 409 informando o
+      disponível.
+    </div>
+
+    <div class="content" style="max-width: 1180px">
+      <div class="page-header" style="margin-top: 1rem">
+        <h1>Operações de caixinha</h1>
+        <p>Um diálogo, três modos. Nenhum deles tem categoria — nada disso é despesa.</p>
+      </div>
+
+      <div class="grid-3" style="align-items: start; gap: 1.25rem">
+        <!-- depósito -->
+        <div class="stack">
+          <h2>Depósito</h2>
+          <div class="card">
+            <div class="card-head"><h2>Caixinha</h2><button class="btn icon ghost"><span data-icon="x"></span></button></div>
+            <div class="card-body stack">
+              <div class="segmented" style="align-self: stretch">
+                <button aria-selected="true" style="flex: 1">Depositar</button>
+                <button aria-selected="false" style="flex: 1">Resgatar</button>
+                <button aria-selected="false" style="flex: 1">Transferir</button>
+              </div>
+              <div class="field">
+                <label>Conta de origem</label>
+                <select class="select"><option>Millennium</option><option>Revolut</option></select>
+              </div>
+              <div class="field">
+                <label>Caixinha de destino</label>
+                <select class="select"><option>Férias 2027</option><option>Emergência</option></select>
+                <span class="hint num" style="text-align: left">Saldo atual: 2.400,00 € · meta 4.000,00 €</span>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>Data</label><input class="input" value="07/07/2026" /></div>
+                <div class="field"><label>Valor</label><input class="input" value="200,00" /></div>
+              </div>
+              <div class="field"><label>Descrição</label><input class="input" value="Reserva de férias" /></div>
+              <div class="callout">
+                <span data-icon="alert"></span>
+                <span>Sai do saldo da conta e entra na caixinha. Não é despesa e não aparece nos relatórios por categoria.</span>
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn outline">Cancelar</button><button class="btn">Depositar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- resgate -->
+        <div class="stack">
+          <h2>Resgate</h2>
+          <div class="card">
+            <div class="card-body stack">
+              <div class="segmented" style="align-self: stretch">
+                <button aria-selected="false" style="flex: 1">Depositar</button>
+                <button aria-selected="true" style="flex: 1">Resgatar</button>
+                <button aria-selected="false" style="flex: 1">Transferir</button>
+              </div>
+              <div class="field">
+                <label>Caixinha de origem</label>
+                <select class="select"><option>Férias 2027</option></select>
+                <div class="spread" style="margin-top: 0.35rem">
+                  <span class="hint">Saldo disponível</span>
+                  <span class="num small strong">2.400,00 €</span>
+                </div>
+                <div class="bar-track" style="margin-top: 0.25rem"><span style="width: 100%; background: var(--cashbox)"></span></div>
+              </div>
+              <div class="field">
+                <label>Conta de destino</label>
+                <select class="select"><option>Millennium</option></select>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>Data</label><input class="input" value="21/07/2026" /></div>
+                <div class="field"><label>Valor</label><input class="input error" value="2.900,00" /></div>
+              </div>
+              <div class="callout warn">
+                <span data-icon="alert"></span>
+                <span>Valor acima do saldo da caixinha (2.400,00 €). Você ainda pode tentar salvar.</span>
+              </div>
+              <div class="callout error">
+                <span data-icon="alert"></span>
+                <span><strong>409 do servidor:</strong> saldo insuficiente. Disponível: 2.400,00 €.</span>
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn outline">Cancelar</button><button class="btn">Resgatar</button>
+            </div>
+          </div>
+          <p class="small muted">
+            O aviso amarelo é do cliente; o vermelho é a resposta do backend. Só o backend decide,
+            porque o saldo pode ter mudado entre abrir o diálogo e salvar.
+          </p>
+        </div>
+
+        <!-- transferência -->
+        <div class="stack">
+          <h2>Transferência entre caixinhas</h2>
+          <div class="card">
+            <div class="card-body stack">
+              <div class="segmented" style="align-self: stretch">
+                <button aria-selected="false" style="flex: 1">Depositar</button>
+                <button aria-selected="false" style="flex: 1">Resgatar</button>
+                <button aria-selected="true" style="flex: 1">Transferir</button>
+              </div>
+              <div class="field">
+                <label>Caixinha de origem</label>
+                <select class="select"><option>Emergência</option></select>
+                <span class="hint num" style="text-align: left">Saldo: 1.750,00 €</span>
+              </div>
+              <div class="field">
+                <label>Caixinha de destino</label>
+                <select class="select"><option>Férias 2027</option></select>
+                <span class="hint num" style="text-align: left">Saldo: 2.400,00 €</span>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>Data</label><input class="input" value="21/07/2026" /></div>
+                <div class="field"><label>Valor</label><input class="input" value="500,00" /></div>
+              </div>
+              <div class="callout">
+                <span data-icon="alert"></span>
+                <span>Nenhuma conta envolvida: este movimento não aparece no extrato do banco.</span>
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn outline">Cancelar</button><button class="btn">Transferir</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-body" style="margin: 1.5rem 0 3rem">
+        <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+        <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+          <li>Um diálogo com três modos, em vez de três itens separados no menu de "novo".</li>
+          <li>Saldo da caixinha sempre visível junto do seletor — é o dado que evita erro.</li>
+          <li>Aviso de saldo insuficiente não bloqueia o botão de salvar.</li>
+          <li>Modo "transferir" esconde qualquer seletor de conta, para deixar claro que o banco não vê isso.</li>
+          <li>Frase explicativa fixa em cada modo, já que a mecânica de caixinha é a parte não óbvia do domínio.</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

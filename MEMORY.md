@@ -11,15 +11,19 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2-T05 done** (issue #21): bearer header, in-memory access token, single-flight refresh + replay
-on 401, and the session-expired redirect. Branch `claude/next-task-1hsghf` (restarted from `main`
-after #32 merged), PR open — nothing half-finished.
+**Screen plan + prototypes done**, on branch `claude/screens-prototypes-plan-7kk7l9`:
+`plans/0002-screens.md` (13 screens, actions per screen, open questions) and `prototypes/` (14
+throwaway HTML pages, `_shared/proto.css` + `proto.js`, `approved/` and `discarded/`). Nothing
+half-finished — **waiting on the user's approvals**, starting with `00-design-system.html`.
 
-**M2-T01 (#26), M2-T02 (#29), M2-T03 (#30) and M2-T04 (#32) merged.** Only M2-T06 (the login
-screen, #22) is left in M2.
+**M2-T01 (#26), M2-T02 (#29), M2-T03 (#30), M2-T04 (#32) and M2-T05 (#33) merged.** Only M2-T06
+(the login screen, #22) is left in M2 — and it is blocked on a prototype approval, see below.
 
 ## Gotchas the next ticket will hit
 
+- **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
+  `plans/0002-screens.md`). **M2-T06 is blocked until `00-design-system.html` and
+  `01-login.html` move to `prototypes/approved/`.**
 - **The token store is `@family-budget/api-client`, not a React context.** `setAccessToken` (call it
   with what `login`/`useLogin` returns), `getAccessToken`, `setSessionExpiredHandler`. Renewal needs
   no wiring: the interceptors are installed when `lib/axios.ts` loads. An `AuthProvider` should wrap
@@ -75,3 +79,6 @@ Issue #22, the last ticket in M2: `features/auth/` (`LoginPage`, `AuthProvider`,
 Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loading state so the
 login screen never flashes. `useLogin`/`useLogout` are already exported from the generated client;
 the token store and the interceptors above are what it plugs into.
+
+**Do not start it until the login prototype is approved** — `prototypes/01-login.html`, which also
+covers the "verificando sessão" state that keeps the form from flashing.

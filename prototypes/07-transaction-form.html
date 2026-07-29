@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>07 — Lançamento de receita e despesa</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="07 — Receita / despesa / transferência (M5-T02, M5-T03)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> escolher tipo, preencher, salvar, "salvar e adicionar outro". O
+      formulário aparece aqui aberto na página (sem sobreposição) só para facilitar a discussão — na
+      app é um diálogo. Três variações abaixo: despesa comum, compra no cartão, e transferência
+      entre contas.
+    </div>
+
+    <div class="content" style="max-width: 1180px">
+      <div class="page-header" style="margin-top: 1rem">
+        <h1>Formulário de lançamento</h1>
+        <p>Um único diálogo cobre receita, despesa e transferência; o tipo governa quais campos aparecem.</p>
+      </div>
+
+      <div class="grid-2" style="align-items: start; gap: 1.25rem">
+        <!-- A: despesa -->
+        <div class="stack">
+          <h2>A — Despesa</h2>
+          <div class="card">
+            <div class="card-head">
+              <h2>Novo lançamento</h2>
+              <button class="btn icon ghost"><span data-icon="x"></span></button>
+            </div>
+            <div class="card-body stack">
+              <div class="segmented" style="align-self: flex-start">
+                <button aria-selected="false">Receita</button>
+                <button aria-selected="true">Despesa</button>
+                <button aria-selected="false">Transferência</button>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Data</label>
+                  <input class="input" value="05/07/2026" />
+                </div>
+                <div class="field">
+                  <label>Valor</label>
+                  <input class="input" value="128,40" />
+                  <span class="hint">Enviado como 12840 centavos.</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Descrição</label>
+                <input class="input" value="Supermercado Continente" />
+              </div>
+
+              <div class="field">
+                <label>Conta</label>
+                <select class="select">
+                  <option>Millennium</option>
+                  <option>Revolut</option>
+                  <option>Dinheiro</option>
+                </select>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Categoria</label>
+                  <select class="select">
+                    <option>Alimentação</option>
+                    <option>Moradia</option>
+                    <option>Transporte</option>
+                  </select>
+                  <span class="hint">Só categorias de despesa.</span>
+                </div>
+                <div class="field">
+                  <label>Subcategoria</label>
+                  <select class="select">
+                    <option>Supermercado</option>
+                    <option>Restaurante</option>
+                    <option>Outros</option>
+                  </select>
+                </div>
+              </div>
+
+              <label class="check">
+                <input type="checkbox" />
+                <span class="small">Compra no cartão de crédito</span>
+              </label>
+
+              <div class="field">
+                <label>Observações <span class="muted">(opcional)</span></label>
+                <textarea class="input" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="card-foot" style="justify-content: space-between">
+              <button class="btn ghost">Salvar e adicionar outro</button>
+              <div class="row">
+                <button class="btn outline">Cancelar</button>
+                <button class="btn">Salvar</button>
+              </div>
+            </div>
+          </div>
+          <p class="small muted">
+            "Salvar e adicionar outro" mantém o diálogo aberto preservando data, conta e categoria —
+            o caso de digitar o extrato inteiro de uma vez.
+          </p>
+        </div>
+
+        <!-- B: cartão + C: transferência + estados -->
+        <div class="stack">
+          <h2>B — Compra no cartão de crédito</h2>
+          <div class="card">
+            <div class="card-body stack">
+              <div class="grid-2">
+                <div class="field">
+                  <label>Data da compra</label>
+                  <input class="input" value="05/06/2026" />
+                  <span class="hint">Quando aconteceu.</span>
+                </div>
+                <div class="field">
+                  <label>Valor</label>
+                  <input class="input" value="128,40" />
+                </div>
+              </div>
+              <label class="check">
+                <input type="checkbox" checked />
+                <span class="small">Compra no cartão de crédito</span>
+              </label>
+              <div
+                class="field"
+                style="border-left: 3px solid var(--primary); padding-left: 0.75rem; background: var(--accent); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding-top: 0.5rem; padding-bottom: 0.5rem"
+              >
+                <label>Mês de referência</label>
+                <select class="select" style="max-width: 220px">
+                  <option>Julho de 2026 (sugerido)</option>
+                  <option>Junho de 2026</option>
+                  <option>Agosto de 2026</option>
+                </select>
+                <span class="hint">
+                  Mês em que a fatura é paga. É por este mês que a despesa entra nos relatórios;
+                  mudar a data da compra não muda mais este campo.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 0.5rem">C — Transferência entre contas</h2>
+          <div class="card">
+            <div class="card-body stack">
+              <div class="grid-2">
+                <div class="field">
+                  <label>Conta de origem</label>
+                  <select class="select">
+                    <option>Millennium</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Conta de destino</label>
+                  <select class="select">
+                    <option>Revolut</option>
+                  </select>
+                </div>
+              </div>
+              <div class="callout">
+                <span data-icon="alert"></span>
+                <span>Transferência não tem categoria e não entra em receitas nem despesas.</span>
+              </div>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 0.5rem">Erros e casos de borda</h2>
+          <div class="card card-body stack">
+            <div class="field">
+              <label>Valor</label>
+              <input class="input error" value="0,00" />
+              <span class="field-error">O valor precisa ser maior que zero.</span>
+            </div>
+            <div class="field">
+              <label>Subcategoria</label>
+              <select class="select" disabled>
+                <option>Escolha a categoria primeiro</option>
+              </select>
+              <span class="hint">Habilita só depois da categoria; trocar a categoria limpa a subcategoria.</span>
+            </div>
+            <div class="field">
+              <label>Categoria <span class="xs muted">(editando lançamento antigo)</span></label>
+              <select class="select">
+                <option>Mudança 2024 (inativa)</option>
+              </select>
+              <span class="hint">
+                Categoria desativada continua visível ao editar, marcada como inativa, para não se
+                perder sem querer. Não aparece na lista de um lançamento novo.
+              </span>
+            </div>
+            <div class="callout error">
+              <span data-icon="alert"></span>
+              <span>Erro do servidor cai no campo correspondente; falha de rede vira toast com "tentar de novo".</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-body" style="margin: 1.5rem 0 3rem">
+        <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+        <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+          <li>Tipo como seletor segmentado no topo do diálogo, e não três itens de menu separados.</li>
+          <li>Caixinha fora deste formulário (protótipo 08) — campos diferentes demais.</li>
+          <li>Mês de referência só aparece marcando "cartão de crédito"; sugere o mês seguinte à compra.</li>
+          <li>Ordem dos campos: data e valor primeiro (o que se lê no extrato), categoria depois.</li>
+          <li>Atualização otimista: a linha aparece na tabela antes da resposta e volta atrás em caso de erro.</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

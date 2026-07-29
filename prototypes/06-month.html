@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06 — Mês</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="06 — Mês (M5-T01, M5-T05, M5-T06)"></div>
+
+    <div class="proto-note">
+      <strong>Tela principal.</strong> Ações: navegar entre meses, filtrar/buscar, ordenar, criar
+      lançamento, editar e excluir na linha, desfazer exclusão, rolar para carregar mais. Os totais
+      do rodapé seguem a regra do domínio: <em>só EXPENSE conta como despesa</em> — transferências e
+      depósitos em caixinha não entram.
+    </div>
+
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost" title="Mês anterior"><span data-icon="chevronLeft"></span></button>
+            <strong style="min-width: 130px; text-align: center">Julho de 2026</strong>
+            <button class="btn icon ghost" title="Próximo mês"><span data-icon="chevronRight"></span></button>
+            <button class="btn sm ghost">Hoje</button>
+          </div>
+          <div class="row">
+            <button class="btn sm outline" data-open="dlg-cashbox-op">Caixinha</button>
+            <button class="btn sm" data-open="dlg-new"><span data-icon="plus"></span> Novo lançamento</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- painel de saldos (M5-T06) -->
+          <div class="cards" style="margin-bottom: 1.25rem">
+            <div class="card stat">
+              <div class="label">Millennium</div>
+              <div class="value num" style="text-align: left">3.482,15 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Revolut</div>
+              <div class="value num" style="text-align: left">412,90 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Dinheiro</div>
+              <div class="value num negative" style="text-align: left">− 35,00 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Caixinhas</div>
+              <div class="value num" style="text-align: left">4.150,00 €</div>
+              <div class="progress" style="margin-top: 0.4rem"><span style="width: 72%"></span></div>
+            </div>
+            <div class="card stat" style="border-color: color-mix(in oklab, var(--primary) 40%, var(--border))">
+              <div class="label">Total consolidado</div>
+              <div class="value num" style="text-align: left">8.010,05 €</div>
+            </div>
+          </div>
+
+          <!-- filtros -->
+          <div class="spread" style="margin-bottom: 0.75rem">
+            <div class="row wrap">
+              <div style="position: relative">
+                <input class="input" placeholder="Buscar descrição…" style="padding-left: 2rem; width: 240px" />
+                <span
+                  class="muted"
+                  data-icon="search"
+                  style="position: absolute; left: 0.55rem; top: 0.5rem; width: 16px; height: 16px"
+                ></span>
+              </div>
+              <button class="btn sm outline"><span data-icon="filter"></span> Tipo: todos</button>
+              <button class="btn sm outline">Categoria: todas</button>
+              <button class="btn sm outline">Conta: todas</button>
+            </div>
+            <span class="small muted">38 lançamentos</span>
+          </div>
+
+          <div class="card" style="overflow: hidden">
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th style="width: 80px">Data ↓</th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Conta</th>
+                    <th>Tipo</th>
+                    <th class="num" style="width: 120px">Valor</th>
+                    <th style="width: 90px"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="num">01/07</td>
+                    <td class="strong">Renda de julho</td>
+                    <td>
+                      <span class="row" style="gap: 0.4rem"
+                        ><span class="dot" style="background: var(--cat-1)"></span> Moradia · Renda</span
+                      >
+                    </td>
+                    <td>Millennium</td>
+                    <td><span class="badge expense">Despesa</span></td>
+                    <td class="num expense">− 950,00 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-new"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num">03/07</td>
+                    <td class="strong">Salário</td>
+                    <td>
+                      <span class="row" style="gap: 0.4rem"
+                        ><span class="dot" style="background: var(--cat-6)"></span> Trabalho · Salário</span
+                      >
+                    </td>
+                    <td>Millennium</td>
+                    <td><span class="badge income">Receita</span></td>
+                    <td class="num income">+ 3.200,00 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-new"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num">05/07</td>
+                    <td>
+                      <div class="row" style="gap: 0.4rem">
+                        <span class="strong">Supermercado Continente</span>
+                        <span class="muted" title="Compra no cartão de crédito" data-icon="card" style="width: 15px; height: 15px"></span>
+                      </div>
+                      <div class="xs muted">Compra em 05/06 · referência julho</div>
+                    </td>
+                    <td>
+                      <span class="row" style="gap: 0.4rem"
+                        ><span class="dot" style="background: var(--cat-3)"></span> Alimentação · Supermercado</span
+                      >
+                    </td>
+                    <td>Millennium</td>
+                    <td><span class="badge expense">Despesa</span></td>
+                    <td class="num expense">− 128,40 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-new"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num">07/07</td>
+                    <td class="strong">Reserva de férias</td>
+                    <td class="muted">— <span class="xs">(caixinha Férias 2027)</span></td>
+                    <td>Millennium</td>
+                    <td><span class="badge cashbox">Depósito</span></td>
+                    <td class="num">− 200,00 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-cashbox-op"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num">08/07</td>
+                    <td class="strong">Millennium → Revolut</td>
+                    <td class="muted">—</td>
+                    <td>Millennium → Revolut</td>
+                    <td><span class="badge transfer">Transferência</span></td>
+                    <td class="num">300,00 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-new"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="num">10/07</td>
+                    <td>
+                      <div class="row" style="gap: 0.4rem">
+                        <span class="strong">Seguro do carro (4/12)</span>
+                        <span class="muted" title="Gerado por recorrência" data-icon="repeat" style="width: 15px; height: 15px"></span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="row" style="gap: 0.4rem"
+                        ><span class="dot" style="background: var(--cat-2)"></span> Transporte · Seguro</span
+                      >
+                    </td>
+                    <td>Millennium</td>
+                    <td><span class="badge expense">Despesa</span></td>
+                    <td class="num expense">− 62,50 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn icon ghost" data-open="dlg-new"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" data-open="dlg-delete"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr style="background: color-mix(in oklab, var(--muted) 45%, transparent)">
+                    <td class="num">12/07</td>
+                    <td>
+                      <div class="row" style="gap: 0.4rem">
+                        <span class="strong">Farmácia</span> <span class="badge draft">Rascunho</span>
+                      </div>
+                      <div class="xs muted">Criado por voz — não entra em saldos nem relatórios</div>
+                    </td>
+                    <td class="muted">Saúde · <em>a definir</em></td>
+                    <td class="muted">—</td>
+                    <td><span class="badge expense">Despesa</span></td>
+                    <td class="num muted">− 24,90 €</td>
+                    <td>
+                      <div class="row-actions">
+                        <a class="btn sm ghost" href="13-voice.html">Revisar</a>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="5">Receitas</td>
+                    <td class="num income">+ 3.284,00 €</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colspan="5">Despesas <span class="xs muted">(sem transferências e caixinhas)</span></td>
+                    <td class="num expense">− 2.358,00 €</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colspan="5">Saldo do mês</td>
+                    <td class="num income">+ 926,00 €</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div class="card-body center">
+              <div class="row" style="justify-content: center"><span class="spinner"></span> <span class="small muted">Carregando mais…</span></div>
+            </div>
+          </div>
+
+          <h2 style="margin: 1.5rem 0 0.6rem">Mês sem lançamentos</h2>
+          <div class="card">
+            <div class="empty">
+              <div class="icon"><span data-icon="calendar"></span></div>
+              <h3>Nada lançado em agosto de 2026</h3>
+              <p class="small">Registre o primeiro movimento do mês ou volte para julho.</p>
+              <div class="row" style="justify-content: center">
+                <button class="btn" data-open="dlg-new"><span data-icon="plus"></span> Novo lançamento</button>
+                <a class="btn outline" href="13-voice.html"><span data-icon="mic"></span> Lançar por voz</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin: 1.5rem 0 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Painel de saldos no topo desta tela, e não numa "home" separada — não existe dashboard.</li>
+              <li>Três linhas de rodapé (receitas, despesas, saldo) em vez de uma faixa de cards.</li>
+              <li>Sinal explícito (+ / −) além da cor, para quem não distingue verde de vermelho.</li>
+              <li>Ícone de cartão com a data original em texto auxiliar, já que a data da linha é a de referência.</li>
+              <li>Rascunho de voz aparece na lista, esmaecido, mas não soma — ou fica escondido até aprovar?</li>
+              <li>Rolagem infinita (cursor) em vez de paginação numerada.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrim" id="dlg-new" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Formulário de lançamento</h2></div>
+        <div class="card-body small muted">
+          Está no protótipo <a href="07-transaction-form.html">07</a> (receita e despesa) e
+          <a href="08-cashbox-form.html">08</a> (caixinhas).
+        </div>
+        <div class="card-foot"><button class="btn outline" data-close>Fechar</button></div>
+      </div>
+    </div>
+
+    <div class="scrim" id="dlg-cashbox-op" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Operação de caixinha</h2></div>
+        <div class="card-body small muted">Protótipo <a href="08-cashbox-form.html">08</a>.</div>
+        <div class="card-foot"><button class="btn outline" data-close>Fechar</button></div>
+      </div>
+    </div>
+
+    <div class="scrim" id="dlg-delete" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Excluir lançamento?</h2></div>
+        <div class="card-body">
+          <div class="card card-body" style="box-shadow: none; background: var(--muted)">
+            <div class="spread">
+              <div>
+                <div class="strong">Supermercado Continente</div>
+                <div class="xs muted">05/07/2026 · Alimentação · Supermercado</div>
+              </div>
+              <div class="num expense strong">− 128,40 €</div>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 0.75rem">Saldos e totais do mês são recalculados.</p>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn danger" data-close onclick="document.getElementById('t-undo').style.display='flex'">Excluir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="t-undo" style="display: none">
+      <div class="toast">
+        <span class="muted" data-icon="check"></span>
+        <span class="grow small">Lançamento excluído.</span>
+        <button class="btn sm ghost" onclick="document.getElementById('t-undo').style.display='none'">Desfazer</button>
+      </div>
+    </div>
+  </body>
+</html>

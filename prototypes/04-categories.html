@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>04 — Categorias</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="04 — Categorias (M3-T08)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> criar categoria raiz, criar subcategoria a partir do pai, editar, trocar
+      cor, desativar (cascateia para os filhos), excluir. Abas separam despesa de receita — o
+      <code>kind</code> é do modelo, não um filtro visual. Toda categoria raiz nasce com uma
+      subcategoria "Outros".
+    </div>
+
+    <div data-shell="categories">
+      <div class="main">
+        <div class="topbar">
+          <strong>Categorias</strong>
+          <button class="btn sm" data-open="dlg-category"><span data-icon="plus"></span> Nova categoria</button>
+        </div>
+        <div class="content">
+          <div class="page-header spread">
+            <div>
+              <h1>Categorias</h1>
+              <p>Dois níveis: categoria e subcategoria. Todo lançamento de receita ou despesa usa os dois.</p>
+            </div>
+            <label class="row"
+              ><button class="switch" role="switch" aria-checked="false"></button>
+              <span class="small muted">Mostrar inativas</span></label
+            >
+          </div>
+
+          <div class="spread" style="margin-bottom: 0.85rem">
+            <div class="segmented" data-tabs="kind">
+              <button data-tab="expense" aria-selected="true">Despesa</button>
+              <button data-tab="income" aria-selected="false">Receita</button>
+            </div>
+            <div class="row">
+              <div style="position: relative">
+                <input class="input" placeholder="Buscar categoria…" style="padding-left: 2rem; width: 220px" />
+                <span
+                  class="muted"
+                  data-icon="search"
+                  style="position: absolute; left: 0.55rem; top: 0.5rem; width: 16px; height: 16px"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <div data-panel="expense" data-scope="kind">
+            <div class="card" style="overflow: hidden">
+              <div class="table-wrap">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th style="width: 45%">Categoria</th>
+                      <th>Subcategorias</th>
+                      <th class="num">Gasto em julho</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- pai expandido -->
+                    <tr>
+                      <td>
+                        <div class="row">
+                          <button class="btn icon ghost" data-expand="alim" aria-expanded="true">
+                            <span data-icon="chevronRight" style="display: inline-flex; transform: rotate(90deg)"></span>
+                          </button>
+                          <span class="dot" style="background: var(--cat-3)"></span>
+                          <span class="strong">Alimentação</span>
+                        </div>
+                      </td>
+                      <td class="muted small">3</td>
+                      <td class="num expense">− 613,00 €</td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="btn sm ghost" data-open="dlg-subcategory">+ Subcategoria</button>
+                          <button class="btn icon ghost" data-open="dlg-category"><span data-icon="pencil"></span></button>
+                          <button class="btn icon ghost" data-open="dlg-cascade"><span data-icon="x"></span></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr data-expandable="alim">
+                      <td style="padding-left: 3.4rem">Supermercado</td>
+                      <td></td>
+                      <td class="num expense">− 428,40 €</td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="btn icon ghost" data-open="dlg-subcategory"><span data-icon="pencil"></span></button>
+                          <button class="btn icon ghost"><span data-icon="x"></span></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr data-expandable="alim">
+                      <td style="padding-left: 3.4rem">Restaurante</td>
+                      <td></td>
+                      <td class="num expense">− 184,60 €</td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="btn icon ghost" data-open="dlg-subcategory"><span data-icon="pencil"></span></button>
+                          <button class="btn icon ghost"><span data-icon="x"></span></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr data-expandable="alim">
+                      <td style="padding-left: 3.4rem">
+                        Outros <span class="badge" style="margin-left: 0.35rem">automática</span>
+                      </td>
+                      <td></td>
+                      <td class="num muted">— </td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="btn icon ghost" data-open="dlg-last-sub"><span data-icon="x"></span></button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <!-- pais recolhidos -->
+                    <tr>
+                      <td>
+                        <div class="row">
+                          <button class="btn icon ghost" data-expand="mor" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                          <span class="dot" style="background: var(--cat-1)"></span>
+                          <span class="strong">Moradia</span>
+                        </div>
+                      </td>
+                      <td class="muted small">4</td>
+                      <td class="num expense">− 1.150,00 €</td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="btn sm ghost" data-open="dlg-subcategory">+ Subcategoria</button>
+                          <button class="btn icon ghost" data-open="dlg-category"><span data-icon="pencil"></span></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr data-expandable="mor" hidden>
+                      <td style="padding-left: 3.4rem">Renda</td>
+                      <td></td>
+                      <td class="num expense">− 950,00 €</td>
+                      <td></td>
+                    </tr>
+                    <tr data-expandable="mor" hidden>
+                      <td style="padding-left: 3.4rem">Água, luz e gás</td>
+                      <td></td>
+                      <td class="num expense">− 200,00 €</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="row">
+                          <button class="btn icon ghost" data-expand="tra" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                          <span class="dot" style="background: var(--cat-2)"></span>
+                          <span class="strong">Transporte</span>
+                        </div>
+                      </td>
+                      <td class="muted small">2</td>
+                      <td class="num expense">− 265,00 €</td>
+                      <td></td>
+                    </tr>
+                    <tr style="opacity: 0.6">
+                      <td>
+                        <div class="row">
+                          <span style="width: 32px"></span>
+                          <span class="dot" style="background: var(--cat-8)"></span>
+                          <span class="strong">Mudança 2024</span>
+                          <span class="badge">Inativa</span>
+                        </div>
+                      </td>
+                      <td class="muted small">2</td>
+                      <td class="num muted">—</td>
+                      <td>
+                        <div class="row-actions"><button class="btn sm ghost">Reativar</button></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div data-panel="income" data-scope="kind" hidden>
+            <div class="card" style="overflow: hidden">
+              <div class="table-wrap">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th style="width: 45%">Categoria</th>
+                      <th>Subcategorias</th>
+                      <th class="num">Recebido em julho</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="row">
+                          <span style="width: 32px"></span>
+                          <span class="dot" style="background: var(--cat-6)"></span>
+                          <span class="strong">Trabalho</span>
+                        </div>
+                      </td>
+                      <td class="muted small">2</td>
+                      <td class="num income">+ 3.200,00 €</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="row">
+                          <span style="width: 32px"></span>
+                          <span class="dot" style="background: var(--cat-5)"></span>
+                          <span class="strong">Reembolsos</span>
+                        </div>
+                      </td>
+                      <td class="muted small">1</td>
+                      <td class="num income">+ 84,00 €</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin: 1.5rem 0 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Árvore como tabela expansível, não como lista aninhada com recuo livre.</li>
+              <li>Coluna "gasto no mês" — ajuda a decidir o que desativar, mas exige dado de relatório nesta tela (só existe a partir de M6). Alternativa: entrar só depois.</li>
+              <li>Cor pertence à categoria raiz; subcategoria herda a cor do pai nos gráficos.</li>
+              <li>"Outros" criada automaticamente aparece marcada, e não pode ser a última desativada.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- criar/editar categoria raiz -->
+    <div class="scrim" id="dlg-category" style="display: none">
+      <div class="dialog">
+        <div class="card-head">
+          <h2>Nova categoria</h2>
+          <button class="btn icon ghost" data-close><span data-icon="x"></span></button>
+        </div>
+        <div class="card-body stack">
+          <div class="grid-2">
+            <div class="field">
+              <label>Nome</label>
+              <input class="input" placeholder="Ex.: Alimentação" />
+            </div>
+            <div class="field">
+              <label>Tipo</label>
+              <select class="select">
+                <option>Despesa</option>
+                <option>Receita</option>
+              </select>
+              <span class="hint">Não pode mudar depois que houver lançamentos.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Cor</label>
+            <div class="row wrap" style="gap: 0.4rem">
+              <button class="btn icon" style="background: var(--cat-1); border: 2px solid var(--foreground)"></button>
+              <button class="btn icon" style="background: var(--cat-2)"></button>
+              <button class="btn icon" style="background: var(--cat-3)"></button>
+              <button class="btn icon" style="background: var(--cat-4)"></button>
+              <button class="btn icon" style="background: var(--cat-5)"></button>
+              <button class="btn icon" style="background: var(--cat-6)"></button>
+              <button class="btn icon" style="background: var(--cat-7)"></button>
+              <button class="btn icon" style="background: var(--cat-8)"></button>
+              <input class="input" value="#2F855A" style="width: 110px; margin-left: 0.35rem" />
+            </div>
+            <span class="hint">A mesma cor identifica a categoria em todos os gráficos e meses.</span>
+          </div>
+          <div class="callout">
+            <span data-icon="alert"></span>
+            <span>Uma subcategoria <strong>Outros</strong> será criada junto, para que a categoria já possa ser usada.</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Criar categoria</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- subcategoria -->
+    <div class="scrim" id="dlg-subcategory" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head">
+          <h2>Nova subcategoria</h2>
+          <button class="btn icon ghost" data-close><span data-icon="x"></span></button>
+        </div>
+        <div class="card-body stack">
+          <div class="field">
+            <label>Categoria</label>
+            <select class="select" disabled>
+              <option>Alimentação</option>
+            </select>
+            <span class="hint">Preenchida a partir da linha de onde você clicou.</span>
+          </div>
+          <div class="field">
+            <label>Nome</label>
+            <input class="input" placeholder="Ex.: Padaria" />
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Criar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- desativação em cascata -->
+    <div class="scrim" id="dlg-cascade" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Desativar "Alimentação"?</h2></div>
+        <div class="card-body small">
+          <p>As 3 subcategorias também serão desativadas: Supermercado, Restaurante e Outros.</p>
+          <p class="muted">Lançamentos existentes não mudam.</p>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Desativar tudo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 409 última subcategoria -->
+    <div class="scrim" id="dlg-last-sub" style="display: none">
+      <div class="dialog narrow">
+        <div class="card-head"><h2>Não é possível desativar</h2></div>
+        <div class="card-body">
+          <div class="callout error">
+            <span data-icon="alert"></span>
+            <span>"Outros" é a última subcategoria ativa de "Alimentação". Desative a categoria inteira ou crie outra subcategoria antes.</span>
+          </div>
+        </div>
+        <div class="card-foot"><button class="btn outline" data-close>Entendi</button></div>
+      </div>
+    </div>
+  </body>
+</html>

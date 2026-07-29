@@ -36,6 +36,9 @@ module.exports = tseslint.config(
       'packages/api-client/src/generated/**',
       // Prisma client, generated as TypeScript under src/ by `postinstall` (ADR-0017).
       'apps/api/src/generated/**',
+      // Throwaway HTML mock-ups: plain browser scripts, outside every tsconfig, deleted as each
+      // screen ships. They must never gate CI on the rules that govern application code.
+      'prototypes/**',
     ],
   },
 

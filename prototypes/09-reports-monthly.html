@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>09 — Relatório mensal</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="09 — Relatório mensal (M6-T03)"></div>
+
+    <div class="proto-note">
+      <strong>Ações:</strong> alternar mensal/anual, navegar entre meses, expandir categoria para ver
+      subcategorias, clicar numa linha para abrir o mês filtrado por ela, exportar CSV. Só
+      <code>INCOME</code> e <code>EXPENSE</code> confirmados entram: transferências e movimentos de
+      caixinha ficam num bloco informativo separado.
+    </div>
+
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <div class="segmented">
+              <button aria-selected="true">Mensal</button>
+              <button aria-selected="false" onclick="location.href='10-reports-yearly.html'">Anual</button>
+            </div>
+            <span class="sep"></span>
+            <button class="btn icon ghost"><span data-icon="chevronLeft"></span></button>
+            <strong style="min-width: 130px; text-align: center">Julho de 2026</strong>
+            <button class="btn icon ghost"><span data-icon="chevronRight"></span></button>
+          </div>
+          <button class="btn sm outline"><span data-icon="download"></span> Exportar CSV</button>
+        </div>
+
+        <div class="content">
+          <div class="cards" style="margin-bottom: 1.25rem">
+            <div class="card stat">
+              <div class="label">Receitas</div>
+              <div class="value income num" style="text-align: left">+ 3.284,00 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Despesas</div>
+              <div class="value expense num" style="text-align: left">− 2.358,00 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Saldo</div>
+              <div class="value num" style="text-align: left">+ 926,00 €</div>
+            </div>
+            <div class="card stat">
+              <div class="label">Reservado em caixinhas</div>
+              <div class="value num muted" style="text-align: left">+ 400,00 €</div>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; margin-bottom: 1.25rem">
+            <div class="card-head">
+              <h2>Despesas por categoria</h2>
+              <span class="small muted">clique numa linha para ver os lançamentos</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th style="width: 40%">Categoria</th>
+                    <th class="num">Valor</th>
+                    <th style="width: 28%">% do total</th>
+                    <th class="num">Lançamentos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="r-mor" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-1)"></span>
+                        <span class="strong">Moradia</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 1.150,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 48.8%; background: var(--cat-1)"></span></div>
+                        <span class="num small" style="width: 46px">48,8%</span>
+                      </div>
+                    </td>
+                    <td class="num">4</td>
+                  </tr>
+                  <tr data-expandable="r-mor" hidden>
+                    <td style="padding-left: 3.4rem">Renda</td>
+                    <td class="num expense">− 950,00 €</td>
+                    <td class="small muted">40,3%</td>
+                    <td class="num">1</td>
+                  </tr>
+                  <tr data-expandable="r-mor" hidden>
+                    <td style="padding-left: 3.4rem">Água, luz e gás</td>
+                    <td class="num expense">− 200,00 €</td>
+                    <td class="small muted">8,5%</td>
+                    <td class="num">3</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="r-ali" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-3)"></span>
+                        <span class="strong">Alimentação</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 613,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 26%; background: var(--cat-3)"></span></div>
+                        <span class="num small" style="width: 46px">26,0%</span>
+                      </div>
+                    </td>
+                    <td class="num">9</td>
+                  </tr>
+                  <tr data-expandable="r-ali" hidden>
+                    <td style="padding-left: 3.4rem">Supermercado</td>
+                    <td class="num expense">− 428,40 €</td>
+                    <td class="small muted">18,2%</td>
+                    <td class="num">5</td>
+                  </tr>
+                  <tr data-expandable="r-ali" hidden>
+                    <td style="padding-left: 3.4rem">Restaurante</td>
+                    <td class="num expense">− 184,60 €</td>
+                    <td class="small muted">7,8%</td>
+                    <td class="num">4</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <button class="btn icon ghost" data-expand="r-tra" aria-expanded="false"><span data-icon="chevronRight"></span></button>
+                        <span class="dot" style="background: var(--cat-2)"></span>
+                        <span class="strong">Transporte</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 265,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 11.2%; background: var(--cat-2)"></span></div>
+                        <span class="num small" style="width: 46px">11,2%</span>
+                      </div>
+                    </td>
+                    <td class="num">3</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-5)"></span>
+                        <span class="strong">Lazer</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 180,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 7.6%; background: var(--cat-5)"></span></div>
+                        <span class="num small" style="width: 46px">7,6%</span>
+                      </div>
+                    </td>
+                    <td class="num">4</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-4)"></span>
+                        <span class="strong">Saúde</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 96,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 4.1%; background: var(--cat-4)"></span></div>
+                        <span class="num small" style="width: 46px">4,1%</span>
+                      </div>
+                    </td>
+                    <td class="num">2</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="row">
+                        <span style="width: 32px"></span>
+                        <span class="dot" style="background: var(--cat-8)"></span>
+                        <span class="strong">Outros</span>
+                      </div>
+                    </td>
+                    <td class="num expense">− 54,00 €</td>
+                    <td>
+                      <div class="row">
+                        <div class="bar-track grow"><span style="width: 2.3%; background: var(--cat-8)"></span></div>
+                        <span class="num small" style="width: 46px">2,3%</span>
+                      </div>
+                    </td>
+                    <td class="num">2</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>Total de despesas</td>
+                    <td class="num expense">− 2.358,00 €</td>
+                    <td>100,0%</td>
+                    <td class="num">24</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid-2" style="align-items: start">
+            <div class="card" style="overflow: hidden">
+              <div class="card-head"><h2>Receitas por categoria</h2></div>
+              <div class="table-wrap">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th>Categoria</th>
+                      <th class="num">Valor</th>
+                      <th class="num">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="row" style="gap: 0.4rem"><span class="dot" style="background: var(--cat-6)"></span> Trabalho</span></td>
+                      <td class="num income">+ 3.200,00 €</td>
+                      <td class="num">97,4%</td>
+                    </tr>
+                    <tr>
+                      <td><span class="row" style="gap: 0.4rem"><span class="dot" style="background: var(--cat-5)"></span> Reembolsos</span></td>
+                      <td class="num income">+ 84,00 €</td>
+                      <td class="num">2,6%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card" style="overflow: hidden">
+              <div class="card-head">
+                <h2>Caixinhas no mês</h2>
+                <span class="badge">informativo</span>
+              </div>
+              <div class="card-body">
+                <p class="small muted" style="margin-bottom: 0.75rem">
+                  Movimentos de caixinha não são despesa e por isso não entram nas tabelas acima. Ficam
+                  aqui para o mês fechar com o extrato do banco.
+                </p>
+                <table class="data">
+                  <tbody>
+                    <tr><td>Depósitos</td><td class="num">− 600,00 €</td></tr>
+                    <tr><td>Resgates</td><td class="num">+ 200,00 €</td></tr>
+                    <tr><td>Transferências entre caixinhas</td><td class="num">500,00 €</td></tr>
+                    <tr><td class="strong">Variação do reservado</td><td class="num strong">+ 400,00 €</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-body" style="margin: 1.5rem 0 3rem">
+            <h3 style="margin-bottom: 0.5rem">Decisões a aprovar</h3>
+            <ul class="small muted" style="margin: 0; padding-left: 1.1rem">
+              <li>Barra de proporção dentro da célula de porcentagem, em vez de coluna gráfica separada.</li>
+              <li>Despesas e receitas em tabelas separadas — misturar as duas confunde a coluna de %.</li>
+              <li>Percentual sobre o total de despesas do mês, com o arredondamento fechando em 100%.</li>
+              <li>Bloco de caixinhas visível por padrão ou recolhido?</li>
+              <li>Categoria sem movimento no mês é omitida (não aparece com zero).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
