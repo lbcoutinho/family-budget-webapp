@@ -28,19 +28,19 @@ the approved prototype is linked from the ticket's GitHub Issue.
 ### 2.1 Folder
 
 ```
-index.html              list of every prototype and its status (repository root)
-.nojekyll               stops GitHub Pages hiding _shared/
 prototypes/
+├── index.html          list of every prototype and its status
 ├── _shared/            proto.css (tokens) + proto.js (concept switcher, app shell)
 ├── NN-name.html        under review
 ├── approved/           approved — reference for implementation
 └── discarded/          rejected — kept as a record
 ```
 
-The index lives at the repository root so that GitHub Pages serves it as the site's home page: the
-prototypes are published as a static site, so a screen can be reviewed from a phone or a link
-rather than only from a checkout. `.nojekyll` is load-bearing — Jekyll drops underscore-prefixed
-paths, which would take `_shared/` with it. See `prototypes/README.md`.
+The folder is also published as a static site: `.github/workflows/pages.yml` deploys **only this
+folder** to GitHub Pages on every push to `main` that touches it, so a screen can be reviewed from
+a phone or sent as a link. Publishing one folder is why it is a workflow and not the "deploy from
+a branch" setting, which can only serve the repository root or `/docs`. See
+`prototypes/README.md`.
 
 ### 2.2 Lifecycle
 
@@ -50,7 +50,7 @@ paths, which would take `_shared/` with it. See `prototypes/README.md`.
 | Approved     | `approved/`         | Locked; the implementation ticket may start               |
 | Discarded    | `discarded/`        | Rejected direction, kept so it is not proposed again      |
 
-Moving a file also updates the status table in the root `index.html` and §4 of this plan, in the
+Moving a file also updates the status table in `prototypes/index.html` and §4 of this plan, in the
 same commit.
 
 ### 2.3 Rules

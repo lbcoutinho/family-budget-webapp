@@ -10,34 +10,24 @@ animation **before** any React code exists.
 ## Layout
 
 ```
-index.html                entry point — list of every prototype and its status
-.nojekyll                 stops GitHub Pages hiding _shared/
 prototypes/
+├── index.html            entry point — list of every prototype and its status
 ├── _shared/
 │   ├── proto.css         design tokens + minimal component styles
 │   └── proto.js          concept switcher (colour/mode/font/motion) + app shell
 ├── NN-name.html          prototypes under review
 ├── approved/             approved — the reference the React implementation follows
-└── discarded/            rejected — kept as a record of what was already tried
+├── discarded/            rejected — kept as a record of what was already tried
+└── .nojekyll             belt and braces, see "Published site" below
 ```
-
-The index sits at the repository root, not in this folder, because GitHub Pages serves the root as
-the site's home page. Two things follow from that, and both are already handled:
-
-- **`.nojekyll` at the root is required, not decorative.** Pages runs Jekyll by default, and Jekyll
-  omits any path beginning with an underscore — without that file, `_shared/proto.css` is a 404 on
-  the deployed site and every screen renders unstyled. Deleting it silently breaks the deploy.
-- **The "← Índice" link is computed per page** (`indexHref()` in `proto.js`): `index.html` from the
-  root, `../index.html` from inside `prototypes/`.
-
-Publishing is configured in the repository's Settings → Pages ("Deploy from a branch", `main`,
-folder `/`). Note that this publishes the whole repository as static files, not only the
-prototypes — fine for a public repo, worth knowing before it is pointed at anything private.
 
 ## How to look at them
 
-Open `index.html` (repository root) in a browser. No build, no server, no dependencies — plain files
+Open `prototypes/index.html` in a browser. No build, no server, no dependencies — plain files
 on disk, everything inline, no network access required.
+
+They are also published as a static site — see below — so a screen can be reviewed from a phone,
+or sent as a link, without a checkout.
 
 The black bar at the top of every page switches four axes, and the choice is stored in
 `localStorage`, so it follows you from screen to screen:
@@ -57,13 +47,31 @@ the design system means re-approving it later.
 1. Read the screen, and the **"Decisões a aprovar"** block at the bottom of each page — the open
    questions are listed there deliberately.
 2. Approve, or say what changes. Approving moves the file into `approved/`; the status table in
-   the root `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
+   `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
 3. Only then does the screen become an implementation ticket.
 4. A rejected direction moves to `discarded/` rather than being deleted.
 
 Files inside `approved/` are read-only references. When an approved prototype needs to change,
 edit it in place and note the change in the pull request — the prototype and the built screen must
 not drift.
+
+## Published site
+
+`.github/workflows/pages.yml` deploys **this folder and nothing else** to GitHub Pages on every
+push to `main` that touches it. `prototypes/index.html` becomes the site root, so the paths are
+the same as on disk and no link has to change to be deployable.
+
+Publishing only this folder is the whole reason it is a workflow rather than the one-click
+"deploy from a branch" setting: that setting can serve only the repository root or `/docs`, which
+would publish the entire repository as static files.
+
+Requires **Settings → Pages → Source = "GitHub Actions"** (one-off, by hand). Until that is set
+the workflow still runs green but changes nothing.
+
+`.nojekyll` is precautionary rather than required: this deployment path uploads the folder as an
+artifact and runs no Jekyll, so `_shared/` is served as-is. It is kept because the failure it
+guards against — Jekyll dropping underscore-prefixed paths, leaving every screen unstyled — is
+silent, only reproduces on the deployed site, and costs an empty file to prevent.
 
 ## What these are not
 

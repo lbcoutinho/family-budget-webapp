@@ -1,0 +1,58 @@
+name: Prototypes
+
+# Publishes prototypes/ to GitHub Pages, and nothing else. The artifact carries only that folder,
+# so the rest of the repository is never served — which is the reason this exists as a workflow
+# instead of the simpler "deploy from a branch" setting, which can only publish the repository
+# root or /docs.
+#
+# Requires Settings → Pages → Source = "GitHub Actions". With the source left on a branch this
+# workflow runs green and changes nothing.
+
+on:
+  push:
+    branches: [main]
+    # Only the prototypes affect the site, so nothing else should spend a deploy. The workflow
+    # lists itself: a change to the deploy is a change worth deploying.
+    paths:
+      - 'prototypes/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# GitHub does not queue Pages deployments — a second one starting mid-flight fails outright. So
+# serialize, and do not cancel in progress: an interrupted deploy leaves the site on the old
+# commit with no indication why.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+# Scoped to this workflow rather than the repository default: `pages: write` publishes, and
+# `id-token: write` lets deploy-pages prove to Pages that the artifact came from this run.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/configure-pages@v6
+
+      # `path` is what makes this a prototypes-only site: the artifact is the contents of that
+      # folder, so prototypes/index.html becomes the site root. No build step — the mock-ups are
+      # already static files with no dependencies.
+      - name: Package prototypes/ as the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: prototypes
+
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v5
