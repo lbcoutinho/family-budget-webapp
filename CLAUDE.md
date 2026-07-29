@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **No screen is written in React without an approved prototype.** Prototypes live in `prototypes/` — throwaway HTML, one shared `_shared/proto.css` + `proto.js`, no build step, no dependencies. Purpose: settle concept, colour, typography, spacing and animation while changing one's mind is still free.
 
 - **Before implementing any screen ticket, check `prototypes/approved/`.** Prototype missing or still under review → **stop and ask**, don't improvise UI.
-- Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record). Moving a file also updates the status table in `prototypes/index.html` and §4 of `plans/0002-screens.md`, same commit.
+- Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record). Moving a file also updates the status table in the root `index.html` and §4 of `plans/0002-screens.md`, same commit.
 - Every prototype ends with a **"Decisões a aprovar"** block — the open choices, stated so they can be decided rather than guessed.
 - `00-design-system.html` is approved first; everything else inherits colour/type/motion from it.
 - **UI strings pt-BR** (the interface is localized); filenames, comments, commits stay en-US. Sample data fictional but consistent across screens (same accounts/categories, July 2026).

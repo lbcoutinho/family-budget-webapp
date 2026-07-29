@@ -10,8 +10,9 @@ animation **before** any React code exists.
 ## Layout
 
 ```
+index.html                entry point — list of every prototype and its status
+.nojekyll                 stops GitHub Pages hiding _shared/
 prototypes/
-├── index.html            entry point — list of every prototype and its status
 ├── _shared/
 │   ├── proto.css         design tokens + minimal component styles
 │   └── proto.js          concept switcher (colour/mode/font/motion) + app shell
@@ -20,9 +21,22 @@ prototypes/
 └── discarded/            rejected — kept as a record of what was already tried
 ```
 
+The index sits at the repository root, not in this folder, because GitHub Pages serves the root as
+the site's home page. Two things follow from that, and both are already handled:
+
+- **`.nojekyll` at the root is required, not decorative.** Pages runs Jekyll by default, and Jekyll
+  omits any path beginning with an underscore — without that file, `_shared/proto.css` is a 404 on
+  the deployed site and every screen renders unstyled. Deleting it silently breaks the deploy.
+- **The "← Índice" link is computed per page** (`indexHref()` in `proto.js`): `index.html` from the
+  root, `../index.html` from inside `prototypes/`.
+
+Publishing is configured in the repository's Settings → Pages ("Deploy from a branch", `main`,
+folder `/`). Note that this publishes the whole repository as static files, not only the
+prototypes — fine for a public repo, worth knowing before it is pointed at anything private.
+
 ## How to look at them
 
-Open `prototypes/index.html` in a browser. No build, no server, no dependencies — plain files
+Open `index.html` (repository root) in a browser. No build, no server, no dependencies — plain files
 on disk, everything inline, no network access required.
 
 The black bar at the top of every page switches four axes, and the choice is stored in
@@ -43,7 +57,7 @@ the design system means re-approving it later.
 1. Read the screen, and the **"Decisões a aprovar"** block at the bottom of each page — the open
    questions are listed there deliberately.
 2. Approve, or say what changes. Approving moves the file into `approved/`; the status table in
-   `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
+   the root `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
 3. Only then does the screen become an implementation ticket.
 4. A rejected direction moves to `discarded/` rather than being deleted.
 

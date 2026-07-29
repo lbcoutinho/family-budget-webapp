@@ -92,14 +92,24 @@ function axisSelect(attr, label) {
   return `<label>${label} <select data-axis="${attr}">${options.join('')}</select></label>`;
 }
 
+/* The index lives at the repository root so GitHub Pages serves it as the site's home page,
+   while every screen stays under prototypes/. So the way back up depends on where we are — and
+   on the index itself there is nowhere to go back to. */
+function isScreen() {
+  return /\/prototypes\/[^/]*$/.test(location.pathname);
+}
+
+function backLink() {
+  return isScreen() ? '<a href="../index.html">← Índice</a><span class="sep"></span>' : '';
+}
+
 function renderProtoBar() {
   const host = document.querySelector('[data-proto-bar]');
   if (!host) return;
   const title = host.getAttribute('data-proto-bar') || document.title;
   host.className = 'proto-bar';
   host.innerHTML = `
-    <a href="index.html">← Índice</a>
-    <span class="sep"></span>
+    ${backLink()}
     <strong>${title}</strong>
     <span style="flex:1"></span>
     ${axisSelect('data-theme', 'cor')}
