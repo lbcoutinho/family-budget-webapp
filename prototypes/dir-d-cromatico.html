@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Direção D — Cromático</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+         Direção D — Cromático
+         A cor da categoria já foi decidida como identidade permanente.
+         Esta direção leva isso ao limite: o mês inteiro é lido primeiro
+         como um padrão de cor, e só depois como uma lista.
+         ============================================================ */
+      :root {
+        --bg: #fcfcfd;
+        --surface: #ffffff;
+        --ink: #14161a;
+        --ink-soft: #666d78;
+        --line: #e6e8ec;
+        --income: #1a7a52;
+        --expense: #bc2f3e;
+        --transfer: #3a6ea5;
+        --cashbox: #a0700f;
+
+        --c1: #1f6f54;
+        --c2: #2e6da4;
+        --c3: #b4641e;
+        --c4: #a32c3d;
+        --c5: #6b4ca8;
+        --c6: #0f7c82;
+        --c7: #b5407e;
+        --c8: #4a5568;
+        --c9: #7a8b1f;
+        --c10: #c2571a;
+        --c11: #2b4c9b;
+        --c12: #8a2f5f;
+        --c13: #157f6e;
+        --c14: #94701c;
+        --c15: #5d5fa6;
+        --c16: #8c4a2f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      .display {
+        font-family: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .num {
+        font-family: 'DM Mono', ui-monospace, monospace;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .wrap {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 36px 22px 76px;
+      }
+
+      .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .head h1 {
+        font-weight: 700;
+        font-size: clamp(1.7rem, 4vw, 2.3rem);
+      }
+      .head .sub {
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+
+      /* ---------- ASSINATURA: a faixa do mês ----------
+         Um segmento por dia. Altura = quanto saiu. Cor = a categoria que
+         mais pesou naquele dia. O mês vira um padrão que se reconhece de
+         longe: onde estão os picos, que cor domina, quais dias ficaram
+         em branco. Clicar num dia filtra a lista abaixo. */
+      .monthstrip {
+        margin: 22px 0 8px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 16px 10px;
+      }
+      .strip {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 104px;
+      }
+      .day {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        height: 100%;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+        border-radius: 3px 3px 0 0;
+      }
+      .day i {
+        display: block;
+        width: 100%;
+        border-radius: 3px 3px 0 0;
+        transform-origin: bottom;
+        transform: scaleY(0);
+        animation: grow 420ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+      }
+      .day.empty i {
+        height: 2px !important;
+        background: var(--line) !important;
+      }
+      .day:hover i,
+      .day:focus-visible i {
+        filter: brightness(1.18);
+      }
+      .day[aria-pressed='true'] {
+        outline: 2px solid var(--ink);
+        outline-offset: 1px;
+      }
+      @keyframes grow {
+        to {
+          transform: scaleY(1);
+        }
+      }
+      .scale {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: var(--ink-soft);
+        margin-top: 6px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid var(--line);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+      }
+
+      /* ---------- números ---------- */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin: 18px 0;
+      }
+      .stat {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .stat .k {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .stat .v {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.35rem;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+        margin-top: 1px;
+      }
+      .v.pos {
+        color: var(--income);
+      }
+      .v.neg {
+        color: var(--expense);
+      }
+
+      /* ---------- lista ---------- */
+      .list {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .list > header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .list > header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .clear {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 7px;
+        font: inherit;
+        font-size: 12px;
+        padding: 3px 10px;
+        cursor: pointer;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 46px 1fr auto;
+        gap: 13px;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--line);
+        border-left: 3px solid transparent;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .row .d {
+        font-family: 'DM Mono', monospace;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .row b {
+        font-weight: 600;
+      }
+      .row p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .row .amt {
+        font-family: 'DM Mono', monospace;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      .amt.in {
+        color: var(--income);
+      }
+      .amt.out {
+        color: var(--expense);
+      }
+      .row.draft {
+        opacity: 0.55;
+      }
+      .badge {
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: 5px;
+        letter-spacing: 0.03em;
+      }
+      .badge.tr {
+        background: #e8eff7;
+        color: var(--transfer);
+      }
+      .badge.cx {
+        background: #f8f0dc;
+        color: var(--cashbox);
+      }
+      .badge.dr {
+        border: 1px dashed var(--line);
+        color: var(--ink-soft);
+      }
+      .foot {
+        padding: 13px 16px;
+        display: grid;
+        gap: 3px;
+        background: #f7f8fa;
+      }
+      .foot div {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13.5px;
+      }
+      .foot .big {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        border-top: 1px solid var(--line);
+        margin-top: 4px;
+        padding-top: 6px;
+      }
+      .foot small {
+        color: var(--ink-soft);
+      }
+
+      /* ---------- paleta de 16 ---------- */
+      .system {
+        margin-top: 40px;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+      }
+      .system h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 13px;
+      }
+      .sysgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+      }
+      .system .k {
+        font-size: 10.5px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 7px;
+      }
+      .system p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin: 0 0 8px;
+      }
+      .p16 {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        margin-bottom: 9px;
+      }
+      .p16 i {
+        aspect-ratio: 1;
+        border-radius: 5px;
+      }
+      .back {
+        display: inline-block;
+        margin-top: 24px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .day i {
+          animation-duration: 1ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="head">
+        <h1>Julho de 2026</h1>
+        <div class="sub">Clique num dia da faixa para filtrar a lista</div>
+      </div>
+
+      <div class="monthstrip">
+        <div class="strip" id="strip" role="group" aria-label="Despesas por dia"></div>
+        <div class="scale"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Entrou</div><div class="v pos">+ 3.284,00 €</div></div>
+        <div class="stat"><div class="k">Saiu</div><div class="v neg" id="saiu">− 2.358,00 €</div></div>
+        <div class="stat"><div class="k">Sobrou</div><div class="v">+ 926,00 €</div></div>
+        <div class="stat"><div class="k">Guardado</div><div class="v">4.150,00 €</div></div>
+        <div class="stat"><div class="k">Consolidado</div><div class="v">8.010,05 €</div></div>
+      </div>
+
+      <div class="list">
+        <header>
+          <h2 id="listTitle">Lançamentos do mês</h2>
+          <button class="clear" id="clear" hidden>Ver o mês inteiro</button>
+        </header>
+        <div id="rows"></div>
+        <div class="foot">
+          <div><span>Receitas</span><span class="num" style="color: var(--income)">+ 3.284,00 €</span></div>
+          <div>
+            <span>Despesas <small>sem transferências e caixinhas</small></span
+            ><span class="num" style="color: var(--expense)" id="footOut">− 2.358,00 €</span>
+          </div>
+          <div class="big"><span>Saldo do mês</span><span class="num">+ 926,00 €</span></div>
+        </div>
+      </div>
+
+      <section class="system">
+        <h2>O sistema por trás</h2>
+        <div class="sysgrid">
+          <div>
+            <span class="k" style="color: var(--c1)">As 16 cores de categoria</span>
+            <div class="p16">
+              <i style="background: var(--c1)"></i><i style="background: var(--c2)"></i
+              ><i style="background: var(--c3)"></i><i style="background: var(--c4)"></i
+              ><i style="background: var(--c5)"></i><i style="background: var(--c6)"></i
+              ><i style="background: var(--c7)"></i><i style="background: var(--c8)"></i
+              ><i style="background: var(--c9)"></i><i style="background: var(--c10)"></i
+              ><i style="background: var(--c11)"></i><i style="background: var(--c12)"></i
+              ><i style="background: var(--c13)"></i><i style="background: var(--c14)"></i
+              ><i style="background: var(--c15)"></i><i style="background: var(--c16)"></i>
+            </div>
+            <p>
+              Todas na mesma faixa de luminosidade, para nenhuma dominar por acidente. Esta direção
+              é a que mais depende delas: se as 16 não funcionarem, ela cai.
+            </p>
+          </div>
+          <div>
+            <span class="k">Tipografia</span>
+            <p>
+              <strong>Familjen Grotesk</strong> nos títulos e valores grandes — geométrica com
+              detalhes secos.<br /><strong>Public Sans</strong> no corpo, neutra de propósito para
+              não competir com a cor.<br /><strong>DM Mono</strong> nas datas e valores da lista.
+            </p>
+          </div>
+          <div>
+            <span class="k">Assinatura — a faixa do mês</span>
+            <p>
+              Um segmento por dia: a altura é quanto saiu, a cor é a categoria que mais pesou
+              naquele dia. Antes de ler um número você já vê a forma do mês — onde estão os picos,
+              que cor domina, quais dias ficaram em branco. Clicar num dia filtra a lista, e o total
+              de despesas se recalcula à vista.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <a class="back" href="index.html">← Comparar as quatro direções</a>
+    </div>
+
+    <script>
+      const CATS = {
+        moradia: { nome: 'Moradia', cor: 'var(--c1)' },
+        transporte: { nome: 'Transporte', cor: 'var(--c2)' },
+        alimentacao: { nome: 'Alimentação', cor: 'var(--c3)' },
+        saude: { nome: 'Saúde', cor: 'var(--c4)' },
+        lazer: { nome: 'Lazer', cor: 'var(--c5)' },
+        outros: { nome: 'Outros', cor: 'var(--c8)' },
+      };
+
+      /* Julho de 2026 — os mesmos números das outras direções: 2.358,00 de despesa. */
+      const DIAS = [
+        { d: 1, v: 950, c: 'moradia' }, { d: 2, v: 0 }, { d: 3, v: 0 },
+        { d: 4, v: 42.3, c: 'alimentacao' }, { d: 5, v: 128.4, c: 'alimentacao' }, { d: 6, v: 18.9, c: 'transporte' },
+        { d: 7, v: 0 }, { d: 8, v: 0 }, { d: 9, v: 61.2, c: 'alimentacao' },
+        { d: 10, v: 62.5, c: 'transporte' }, { d: 11, v: 96, c: 'saude' }, { d: 12, v: 0 },
+        { d: 13, v: 34.8, c: 'alimentacao' }, { d: 14, v: 200, c: 'moradia' }, { d: 15, v: 88, c: 'lazer' },
+        { d: 16, v: 27.4, c: 'alimentacao' }, { d: 17, v: 0 }, { d: 18, v: 143.6, c: 'lazer' },
+        { d: 19, v: 0 }, { d: 20, v: 71.9, c: 'alimentacao' }, { d: 21, v: 54, c: 'outros' },
+        { d: 22, v: 112.5, c: 'transporte' }, { d: 23, v: 39.7, c: 'alimentacao' }, { d: 24, v: 0 },
+        { d: 25, v: 66.4, c: 'alimentacao' }, { d: 26, v: 0 }, { d: 27, v: 71.1, c: 'transporte' },
+        { d: 28, v: 45.3, c: 'alimentacao' }, { d: 29, v: 0 }, { d: 30, v: 103.5, c: 'lazer' },
+        { d: 31, v: 0 },
+      ];
+
+      const LANC = [
+        { d: 1, t: 'Renda de julho', s: 'Moradia · Renda — Millennium', v: -950, c: 'moradia' },
+        { d: 3, t: 'Salário', s: 'Trabalho · Salário — Millennium', v: 3200, in: true },
+        { d: 5, t: 'Supermercado Continente', s: 'Alimentação · Supermercado — cartão, compra em 05/06', v: -128.4, c: 'alimentacao' },
+        { d: 7, t: 'Reserva de férias', s: 'Millennium → Férias 2027', v: -200, badge: 'cx', badgeText: 'caixinha' },
+        { d: 8, t: 'Millennium → Revolut', s: 'Não conta como despesa', v: 300, badge: 'tr', badgeText: 'transferência' },
+        { d: 10, t: 'Seguro do carro', s: 'Transporte · Seguro — parcela 4 de 12', v: -62.5, c: 'transporte' },
+        { d: 12, t: 'Farmácia', s: 'Falta a categoria — não entra nos totais', v: -24.9, badge: 'dr', badgeText: 'rascunho', draft: true },
+      ];
+
+      const eur = (n) =>
+        (n < 0 ? '− ' : '+ ') + Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' €';
+
+      /* Escala de raiz quadrada, não linear. A renda fixa é sempre uma ordem de
+         grandeza acima do resto, e numa escala linear ela achata o mês inteiro
+         num traço — a faixa perde exatamente o padrão que existe para mostrar. */
+      const max = Math.max(...DIAS.map((x) => x.v));
+      const strip = document.getElementById('strip');
+      strip.innerHTML = DIAS.map((x, i) => {
+        if (!x.v) return `<button class="day empty" data-day="${x.d}" aria-pressed="false" title="Dia ${x.d}: sem despesa"><i></i></button>`;
+        const h = Math.max(10, Math.sqrt(x.v / max) * 100);
+        return `<button class="day" data-day="${x.d}" aria-pressed="false"
+          title="Dia ${x.d}: ${eur(-x.v)} · ${CATS[x.c].nome}">
+          <i style="height:${h}%;background:${CATS[x.c].cor};animation-delay:${i * 18}ms"></i></button>`;
+      }).join('');
+
+      document.getElementById('legend').innerHTML = Object.values(CATS)
+        .map((c) => `<span><i style="background:${c.cor}"></i>${c.nome}</span>`)
+        .join('');
+
+      const rowsEl = document.getElementById('rows');
+      function renderRows(day) {
+        const items = day ? LANC.filter((l) => l.d === day) : LANC;
+        rowsEl.innerHTML = items.length
+          ? items
+              .map(
+                (l) => `<div class="row ${l.draft ? 'draft' : ''}" style="border-left-color:${l.c ? CATS[l.c].cor : 'transparent'}">
+              <div class="d">${String(l.d).padStart(2, '0')}/07</div>
+              <div><b>${l.t}</b> ${l.badge ? `<span class="badge ${l.badge}">${l.badgeText}</span>` : ''}<p>${l.s}</p></div>
+              <div class="amt ${l.in ? 'in' : l.v < 0 && !l.badge ? 'out' : ''}">${eur(l.v)}</div></div>`,
+              )
+              .join('')
+          : `<div class="row"><div class="d">—</div><div><b>Nada lançado neste dia</b><p>A faixa mostra o dia em cinza quando não há despesa.</p></div><div></div></div>`;
+      }
+
+      /* Contador animado no total. A regra anterior proibia animar número;
+         aqui ele serve para marcar que o filtro mudou, não para conferir saldo. */
+      function countTo(el, from, to) {
+        const t0 = performance.now();
+        const dur = 420;
+        const step = (t) => {
+          const k = Math.min(1, (t - t0) / dur);
+          const e = 1 - Math.pow(1 - k, 3);
+          el.textContent = eur(-(from + (to - from) * e));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+
+      let current = 0;
+      let selected = null;
+      const footOut = document.getElementById('footOut');
+      const saiu = document.getElementById('saiu');
+      const title = document.getElementById('listTitle');
+      const clearBtn = document.getElementById('clear');
+      const TOTAL = 2358;
+      current = TOTAL;
+
+      function select(day) {
+        selected = day;
+        document.querySelectorAll('.day').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.day === day)));
+        const target = day ? (DIAS.find((x) => x.d === day) || {}).v || 0 : TOTAL;
+        countTo(footOut, current, target);
+        countTo(saiu, current, target);
+        current = target;
+        title.textContent = day ? `Dia ${String(day).padStart(2, '0')} de julho` : 'Lançamentos do mês';
+        clearBtn.hidden = !day;
+        renderRows(day);
+      }
+
+      strip.addEventListener('click', (e) => {
+        const b = e.target.closest('.day');
+        if (b) select(+b.dataset.day === selected ? null : +b.dataset.day);
+      });
+      clearBtn.addEventListener('click', () => select(null));
+      renderRows(null);
+    </script>
+  </body>
+</html>

@@ -11,14 +11,57 @@ decisions.
 
 ## Standing instruction
 
-**The first set is discarded in full**, archived as `discarded/v1-default/`. Nothing is under
-review; `prototypes/` holds no live prototype, only a placeholder index pointing at the archive.
+**v1 is discarded in full** (`discarded/v1-default/`) — rejected for looking templated, having been
+drawn without any design skill in play.
 
-**A full regeneration is planned, but not yet requested.** The user intends to install additional
-skills first and will then ask for it. Do not regenerate before being asked.
+**Four design directions are now under review**, built with the `frontend-design` skill:
+`dir-a-livro-caixa`, `dir-b-envelope`, `dir-c-comando`, `dir-d-cromatico`. Each is a self-contained
+page showing the same month — same entries, same totals — so the difference is only design. Each
+carries its own palette, type pairing and signature element, and ends with "O sistema por trás"
+explaining the choices.
+
+**Waiting on one choice.** The chosen direction then expands to all thirteen screens; the other
+three go to `discarded/`. Do not expand before the choice is made.
 
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
-and is the input to v2 — that is the whole reason this file exists separately from the mock-ups.
+and the four directions already respect it — that is the whole reason this file exists separately
+from the mock-ups.
+
+### Settled for v2 and everything after
+
+- **No dark mode.** Not "later" — not needed at all. Every direction commits to one appearance,
+  and the token files stop carrying a second set of values. This is what makes the light palette
+  worth tuning properly: it is the only one.
+- **Responsive, both ends first class.** The app is used on desktop *and* on the phone. A wide
+  table is not a desktop feature with a mobile fallback; both layouts are the design.
+- **When colour cannot identify, the value identifies.** The answer to the sixteen-colour problem:
+  charts label the slice with its amount instead of asking the reader to match a colour against a
+  legend. Colour groups, the number names.
+- **v2 covers three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge a
+  direction — the token set, the densest screen, and the one with a chart and the new average
+  column. The remaining ten follow the direction that wins.
+
+### Versions are per design skill
+
+v2 is what the `frontend-design` skill produces. Later versions come from other skills, one
+version each, so the comparison is between skills rather than between briefs. Keep them as
+separate `vN` sets and do not merge them.
+
+### Rules deliberately broken in v2, and why
+
+v1's own rules were written before there was any design intent. These four break four of them, on
+the user's explicit instruction not to treat them as fixed:
+
+- **External requests.** v1 forbade any network call and used system fonts. These load real
+  typefaces from Google Fonts — without that there is no typography to judge.
+- **Nothing over 320 ms.** Direction A rules its balance rail over 620 ms; direction D grows the
+  month strip day by day over roughly 700 ms. In both the duration *is* the content: it is the
+  month being traversed.
+- **One easing curve.** Direction B's envelope fills with a spring and settles. Filling a container
+  does not decelerate linearly.
+- **No animated numbers.** v1 banned counters, correctly: a balance that rolls cannot be checked.
+  Direction D counts the expense total when a day is filtered — there it marks that the filter
+  changed, and is not a balance anyone is reconciling.
 
 ## What "approved" means below
 
@@ -92,19 +135,18 @@ design gate.
   what a table means. What is left about them is the exact tone, to be picked together with the
   brand colour.
 - **The category palette offers sixteen swatches, not eight.**
+- **No dark mode**, so each swatch is one value rather than a light/dark pair.
 
-Two consequences of sixteen, both for whoever regenerates this:
+Two consequences of sixteen:
 
 - It halves the collision risk flagged on screen 11. Categories with no colour fall back to a value
   derived from their id, and since the charts now draw every category, two of them landing on the
   same colour was a real possibility with eight.
-- It does not make sixteen categories legible in a donut. Sixteen categorical hues cannot all be
-  told apart, and for a colour-blind reader far fewer can. Sixteen is the ceiling on how many
-  categories get a *distinct* colour, not a promise that a sixteen-slice chart reads well — so the
-  charts must identify a slice by more than its colour.
-
-`proto.css` currently defines `--cat-1` … `--cat-8` twice, once for light and once for dark. Both
-sets double.
+- It still does not make sixteen categories legible in a donut — that many hues cannot all be told
+  apart, fewer still for a colour-blind reader. **Resolved: the value does the identifying.** A
+  slice carries its own amount as a label; colour groups things, the number names them. So the
+  chart never depends on the reader matching a swatch to a legend, which is the part that fails
+  first.
 
 ### 01 — Login
 

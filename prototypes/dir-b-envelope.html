@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Direção B — Envelope</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+         Direção B — Envelope
+         Ancorada no orçamento de envelope, que é literalmente o que
+         "caixinha" quer dizer. Dinheiro é um volume que se move de um
+         recipiente para outro, e a interface mostra o nível.
+         ============================================================ */
+      :root {
+        --bg: #f0eff5;
+        --card: #ffffff;
+        --ink: #201d2b;
+        --ink-soft: #6d6880;
+        --line: #dbd8e4;
+        --plum: #57366c;
+        --income: #2c6a4f;
+        --expense: #a03551;
+        --transfer: #35618f;
+        --cashbox: #8a5a2b;
+        --r: 14px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+        font-size: 14.5px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .wrap {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 44px 24px 80px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+        font-optical-sizing: auto;
+        margin: 0;
+        letter-spacing: -0.025em;
+      }
+
+      /* ---------- topo ---------- */
+      .top {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 26px;
+      }
+      .top h1 {
+        font-weight: 800;
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+      }
+      .top .eyebrow {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--plum);
+        margin-bottom: 4px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 8px 8px 18px;
+        font-weight: 600;
+      }
+      .pill b {
+        font-variant-numeric: tabular-nums;
+        color: var(--income);
+      }
+      .pill button {
+        border: 0;
+        background: var(--plum);
+        color: #fff;
+        font: inherit;
+        font-size: 13px;
+        border-radius: 999px;
+        padding: 6px 14px;
+        cursor: pointer;
+      }
+
+      /* ---------- contas ---------- */
+      .accounts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+      .acct {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 13px 15px;
+      }
+      .acct .k {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .acct .v {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 700;
+        font-size: 1.2rem;
+        font-variant-numeric: tabular-nums;
+        margin-top: 1px;
+      }
+      .acct .v.neg {
+        color: var(--expense);
+      }
+      .acct.sum {
+        background: var(--plum);
+        border-color: var(--plum);
+        color: #fff;
+      }
+      .acct.sum .k {
+        color: #d6c9e0;
+      }
+
+      /* ---------- lançamentos ---------- */
+      .sheet {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+      .sheet header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .sheet header h2 {
+        font-size: 1.02rem;
+        font-weight: 700;
+      }
+      .sheet header span {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .entry {
+        display: grid;
+        grid-template-columns: 52px 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .entry:last-child {
+        border-bottom: 0;
+      }
+      .entry .day {
+        text-align: center;
+        border-radius: 9px;
+        background: var(--bg);
+        padding: 5px 0;
+        line-height: 1.15;
+      }
+      .entry .day b {
+        display: block;
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+      }
+      .entry .day span {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-soft);
+      }
+      .entry .what {
+        min-width: 0;
+      }
+      .entry .what b {
+        font-weight: 600;
+      }
+      .entry .what p {
+        margin: 1px 0 0;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .entry .money {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .money.in {
+        color: var(--income);
+      }
+      .money.out {
+        color: var(--expense);
+      }
+      .chip {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 1px 7px;
+        vertical-align: 1px;
+      }
+      .chip.t {
+        background: #e4edf6;
+        color: var(--transfer);
+      }
+      .chip.c {
+        background: #f5eadd;
+        color: var(--cashbox);
+      }
+      .chip.d {
+        background: transparent;
+        border: 1px dashed var(--line);
+        color: var(--ink-soft);
+      }
+      .entry.draft {
+        opacity: 0.55;
+      }
+      .totals {
+        background: var(--bg);
+        padding: 14px 18px;
+        display: grid;
+        gap: 4px;
+      }
+      .totals div {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13.5px;
+      }
+      .totals div.big {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        padding-top: 6px;
+        border-top: 1px solid var(--line);
+        margin-top: 4px;
+      }
+      .totals small {
+        color: var(--ink-soft);
+        font-weight: 400;
+      }
+
+      /* ---------- ASSINATURA: envelopes que enchem ----------
+         A caixinha não tem barra de progresso: ela é um recipiente com
+         nível. O dinheiro guardado ocupa volume, e a meta é a borda. */
+      .boxes {
+        margin-top: 40px;
+      }
+      .boxes h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 14px;
+      }
+      .box-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 14px;
+      }
+      .env {
+        position: relative;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        /* topo reservado para a borda da meta, que nunca disputa espaço com o nome */
+        padding: 42px 16px 18px;
+        overflow: hidden;
+        min-height: 172px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .env .fill {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--lvl, 0%);
+        background: linear-gradient(180deg, #efe3f2 0%, #e3d3ea 100%);
+        transform-origin: bottom;
+        animation: pour 900ms cubic-bezier(0.34, 1.42, 0.5, 1) both;
+      }
+      .env .fill::before {
+        /* menisco: o líquido encosta na parede e curva */
+        content: '';
+        position: absolute;
+        left: -4%;
+        right: -4%;
+        top: -7px;
+        height: 14px;
+        border-radius: 50%;
+        background: #efe3f2;
+      }
+      .env.full .fill {
+        background: linear-gradient(180deg, #d9ecdf 0%, #c7e3d1 100%);
+      }
+      .env.full .fill::before {
+        background: #d9ecdf;
+      }
+      /* Sem meta não existe "cheio" nem "faltando": o recipiente contém o que
+         contém. Nível total, tom neutro, e nenhuma borda para comparar. */
+      .env.nogoal .fill {
+        height: 100%;
+        background: linear-gradient(180deg, #eeecf4 0%, #e5e2ee 100%);
+      }
+      .env.nogoal .fill::before {
+        display: none;
+      }
+      @keyframes pour {
+        from {
+          transform: scaleY(0);
+        }
+        to {
+          transform: scaleY(1);
+        }
+      }
+      .env > * {
+        position: relative;
+      }
+      .env .n {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .env .bal {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+      }
+      .env .goal {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 2px;
+      }
+      .env .goal b {
+        color: var(--income);
+      }
+      .env .acts {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .env .acts button {
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 8px;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+      /* linha da meta: a borda do envelope */
+      .env .brim {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 14px;
+        border-top: 1px dashed rgba(87, 54, 108, 0.5);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--plum);
+        padding: 3px 16px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* ---------- sistema ---------- */
+      .system {
+        margin-top: 50px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 22px;
+      }
+      .system h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 14px;
+      }
+      .sysgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 24px;
+      }
+      .system .k {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--plum);
+        display: block;
+        margin-bottom: 7px;
+      }
+      .system p {
+        font-size: 13px;
+        color: var(--ink-soft);
+        margin: 0 0 8px;
+      }
+      .swatches {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 9px;
+      }
+      .swatches i {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+      }
+      .back {
+        display: inline-block;
+        margin-top: 26px;
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .env .fill {
+          animation-duration: 1ms;
+        }
+      }
+      @media (max-width: 640px) {
+        .entry {
+          grid-template-columns: 46px 1fr;
+        }
+        .entry .money {
+          grid-column: 2;
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <div class="eyebrow">Orçamento familiar</div>
+          <h1>Julho de 2026</h1>
+        </div>
+        <div class="pill">Sobrou este mês <b>+ 926,00 €</b><button>Novo lançamento</button></div>
+      </div>
+
+      <div class="accounts">
+        <div class="acct"><div class="k">Millennium</div><div class="v">3.482,15 €</div></div>
+        <div class="acct"><div class="k">Revolut</div><div class="v">412,90 €</div></div>
+        <div class="acct"><div class="k">Dinheiro</div><div class="v neg">− 35,00 €</div></div>
+        <div class="acct"><div class="k">Guardado</div><div class="v">4.150,00 €</div></div>
+        <div class="acct sum"><div class="k">Tudo somado</div><div class="v">8.010,05 €</div></div>
+      </div>
+
+      <div class="sheet">
+        <header><h2>Lançamentos</h2><span>38 no mês</span></header>
+
+        <div class="entry">
+          <div class="day"><b>01</b><span>qua</span></div>
+          <div class="what"><b>Renda de julho</b><p>Moradia · Renda — Millennium</p></div>
+          <div class="money out">− 950,00 €</div>
+        </div>
+        <div class="entry">
+          <div class="day"><b>03</b><span>sex</span></div>
+          <div class="what"><b>Salário</b><p>Trabalho · Salário — Millennium</p></div>
+          <div class="money in">+ 3.200,00 €</div>
+        </div>
+        <div class="entry">
+          <div class="day"><b>05</b><span>dom</span></div>
+          <div class="what">
+            <b>Supermercado Continente</b>
+            <p>Alimentação · Supermercado — cartão, compra em 05/06</p>
+          </div>
+          <div class="money out">− 128,40 €</div>
+        </div>
+        <div class="entry">
+          <div class="day"><b>07</b><span>ter</span></div>
+          <div class="what">
+            <b>Reserva de férias</b> <span class="chip c">para a caixinha</span>
+            <p>Millennium → Férias 2027</p>
+          </div>
+          <div class="money">− 200,00 €</div>
+        </div>
+        <div class="entry">
+          <div class="day"><b>08</b><span>qua</span></div>
+          <div class="what">
+            <b>Millennium → Revolut</b> <span class="chip t">entre contas</span>
+            <p>Não conta como despesa</p>
+          </div>
+          <div class="money">300,00 €</div>
+        </div>
+        <div class="entry">
+          <div class="day"><b>10</b><span>sex</span></div>
+          <div class="what"><b>Seguro do carro</b><p>Transporte · Seguro — parcela 4 de 12</p></div>
+          <div class="money out">− 62,50 €</div>
+        </div>
+        <div class="entry draft">
+          <div class="day"><b>12</b><span>dom</span></div>
+          <div class="what">
+            <b>Farmácia</b> <span class="chip d">rascunho</span>
+            <p>Falta a categoria — não entra nos totais</p>
+          </div>
+          <div class="money">− 24,90 €</div>
+        </div>
+
+        <div class="totals">
+          <div><span>Entrou</span><span class="num" style="color: var(--income)">+ 3.284,00 €</span></div>
+          <div>
+            <span>Saiu <small>sem transferências nem caixinhas</small></span
+            ><span class="num" style="color: var(--expense)">− 2.358,00 €</span>
+          </div>
+          <div class="big"><span>Sobrou</span><span class="num">+ 926,00 €</span></div>
+        </div>
+      </div>
+
+      <section class="boxes">
+        <h2>Caixinhas</h2>
+        <div class="box-grid">
+          <div class="env" style="--lvl: 60%">
+            <div class="fill"></div>
+            <div class="brim"><span>meta</span><span>4.000,00 €</span></div>
+            <div class="n">Férias 2027</div>
+            <div class="bal">2.400,00 €</div>
+            <div class="goal">falta 1.600,00 € para encher</div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+          <div class="env nogoal">
+            <div class="fill"></div>
+            <div class="n">Emergência</div>
+            <div class="bal">1.750,00 €</div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+          <div class="env full" style="--lvl: 100%">
+            <div class="fill"></div>
+            <div class="brim" style="border-top-color: rgba(44, 106, 79, 0.5); color: var(--income)">
+              <span>meta</span><span>1.000,00 €</span>
+            </div>
+            <div class="n">IRS 2026</div>
+            <div class="bal">1.000,00 €</div>
+            <div class="goal"><b>Cheia.</b> Meta de 1.000,00 € atingida.</div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="system">
+        <h2>O sistema por trás</h2>
+        <div class="sysgrid">
+          <div>
+            <span class="k">Cor</span>
+            <div class="swatches">
+              <i style="background: #f0eff5"></i><i style="background: #ffffff"></i><i style="background: #dbd8e4"></i
+              ><i style="background: #57366c"></i><i style="background: #2c6a4f"></i><i style="background: #a03551"></i>
+            </div>
+            <p>
+              Base lilás-acinzentada com tinta ameixa. Fugi do kraft e do terracota justamente
+              porque envelope puxa para lá — e é aí que toda interface de finanças acaba parecendo
+              a mesma.
+            </p>
+          </div>
+          <div>
+            <span class="k">Tipografia</span>
+            <p>
+              <strong>Bricolage Grotesque</strong> nos títulos e em todo valor em destaque: tem
+              largura e um desenho levemente irregular que impede o número de virar planilha.<br />
+              <strong>Inter Tight</strong> no corpo, estreita o suficiente para caber descrição
+              longa numa linha só.
+            </p>
+          </div>
+          <div>
+            <span class="k">Assinatura — o envelope enche</span>
+            <p>
+              Caixinha não tem barra de progresso: tem <em>nível</em>. O dinheiro guardado ocupa
+              volume dentro do cartão, com menisco encostando na parede, e a meta é a borda
+              tracejada onde o conteúdo vai chegar. Cheia, o líquido fica verde. Sem meta, não há
+              borda — só o nível, sem nada a dizer sobre falta.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <a class="back" href="index.html">← Comparar as quatro direções</a>
+    </div>
+  </body>
+</html>

@@ -3,73 +3,255 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Protótipos — Orçamento familiar</title>
-    <!-- Standalone on purpose: the shared stylesheet belongs to v1 and moved with it. -->
+    <title>Protótipos — quatro direções</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        color-scheme: light dark;
+        --bg: #f7f7f8;
+        --surface: #fff;
+        --ink: #16181d;
+        --soft: #666c78;
+        --line: #e3e5e9;
+      }
+      * {
+        box-sizing: border-box;
       }
       body {
         margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 2rem;
-        font: 15px/1.6 ui-sans-serif, system-ui, sans-serif;
-        background: #fbfbf9;
-        color: #22262b;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
       }
-      main {
-        max-width: 34rem;
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 48px 22px 80px;
       }
       h1 {
-        font-size: 1.35rem;
-        margin: 0 0 0.75rem;
+        font-size: 1.9rem;
+        letter-spacing: -0.03em;
+        margin: 0 0 0.5rem;
+      }
+      .lede {
+        color: var(--soft);
+        margin: 0 0 2rem;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 2.4rem 0 0.8rem;
+        letter-spacing: -0.01em;
+      }
+      .cards {
+        display: grid;
+        gap: 14px;
+      }
+      a.card {
+        display: block;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 140ms ease, transform 140ms ease;
+      }
+      a.card:hover {
+        border-color: #b9bec8;
+        transform: translateY(-1px);
+      }
+      a.card h3 {
+        margin: 0 0 4px;
+        font-size: 1.1rem;
         letter-spacing: -0.02em;
       }
-      p {
-        margin: 0 0 0.85rem;
+      a.card .tag {
+        font-size: 11px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--soft);
+        font-weight: 600;
       }
-      .muted {
-        color: #6b7280;
-        font-size: 0.9rem;
+      a.card p {
+        margin: 6px 0 0;
+        font-size: 13.5px;
+        color: var(--soft);
       }
-      a {
-        color: inherit;
+      a.card .sig {
+        margin-top: 10px;
+        font-size: 13px;
+        border-left: 3px solid currentColor;
+        padding-left: 10px;
+      }
+      .sw {
+        display: flex;
+        gap: 4px;
+        margin-top: 12px;
+      }
+      .sw i {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .note {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--ink);
+        border-radius: 0 10px 10px 0;
+        padding: 14px 18px;
+        font-size: 13.5px;
+        margin: 0 0 2rem;
+      }
+      .note b {
+        display: block;
+        margin-bottom: 3px;
+      }
+      ul {
+        margin: 0.4rem 0 0;
+        padding-left: 1.15rem;
+        font-size: 13.5px;
+        color: var(--soft);
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--soft);
       }
       code {
-        background: #eceae5;
+        background: #edeef1;
         border-radius: 4px;
         padding: 0.1em 0.35em;
-        font-size: 0.88em;
-      }
-      @media (prefers-color-scheme: dark) {
-        body {
-          background: #17191c;
-          color: #f3f4f6;
-        }
-        code {
-          background: #2a2d31;
-        }
-        .muted {
-          color: #9ca3af;
-        }
+        font-size: 0.9em;
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Nenhum protótipo em revisão</h1>
-      <p>
-        A primeira leva foi descartada por inteiro depois da revisão e está guardada em
-        <a href="discarded/v1-default/index.html"><code>discarded/v1-default/</code></a> — inclusive
-        o índice, que continua funcionando por lá.
+    <div class="wrap">
+      <h1>Quatro direções de design</h1>
+      <p class="lede">
+        A primeira leva foi descartada por ser genérica. Estas quatro são tentativas de encontrar
+        uma identidade — cada uma com sua própria paleta, tipografia e um elemento assinatura.
+        Escolha uma e ela se expande para as treze telas.
       </p>
-      <p>
-        As decisões tomadas naquela revisão <strong>não</strong> foram descartadas: elas estão em
-        <code>prototypes/MEMORY.md</code> e são a entrada da próxima geração.
-      </p>
-      <p class="muted">Esta página volta a listar as telas quando a nova leva for gerada.</p>
-    </main>
+
+      <div class="note">
+        <b>Como comparar</b>
+        Todas mostram exatamente o mesmo conteúdo — julho de 2026, os mesmos lançamentos, os mesmos
+        totais — para que a diferença seja só de desenho. Cada página termina com "O sistema por
+        trás", explicando as escolhas.
+      </div>
+
+      <div class="cards">
+        <a class="card" href="dir-a-livro-caixa.html" style="color: #1b241e">
+          <span class="tag">Direção A</span>
+          <h3>Livro-caixa</h3>
+          <p>
+            O papel pautado de contabilidade. Bandas alternadas em vez de linhas de grade, serifa
+            de carimbo nos títulos, mono de verdade em todo dinheiro.
+          </p>
+          <div class="sig"><b>Assinatura:</b> régua de saldo na margem — cada linha marca onde a conta ficou, e o mês desenha sua forma ao lado dos números.</div>
+          <div class="sw">
+            <i style="background: #f1f3ef"></i><i style="background: #e4ebe2"></i><i style="background: #b7c5b8"></i
+            ><i style="background: #1b241e"></i><i style="background: #2f6b43"></i><i style="background: #9c3a2c"></i>
+          </div>
+        </a>
+
+        <a class="card" href="dir-b-envelope.html" style="color: #57366c">
+          <span class="tag">Direção B</span>
+          <h3>Envelope</h3>
+          <p>
+            Orçamento de envelope, que é literalmente o que "caixinha" quer dizer. Lilás-acinzentado
+            e tinta ameixa, cantos generosos, tipografia larga.
+          </p>
+          <div class="sig"><b>Assinatura:</b> o envelope enche — a caixinha é um recipiente com nível e menisco, não uma barra de progresso.</div>
+          <div class="sw">
+            <i style="background: #f0eff5"></i><i style="background: #fff"></i><i style="background: #dbd8e4"></i
+            ><i style="background: #57366c"></i><i style="background: #2c6a4f"></i><i style="background: #a03551"></i>
+          </div>
+        </a>
+
+        <a class="card" href="dir-c-comando.html" style="color: #1f4fe0">
+          <span class="tag">Direção C</span>
+          <h3>Comando</h3>
+          <p>
+            Para quem senta uma vez por mês e digita o extrato inteiro. Densidade alta, um azul só
+            reservado para estado, largura variável carregando a hierarquia.
+          </p>
+          <div class="sig"><b>Assinatura:</b> a linha de comando — o lançamento é uma frase, e os campos aparecem reconhecidos enquanto você digita. <em>Funciona: edite o campo.</em></div>
+          <div class="sw">
+            <i style="background: #fafafb"></i><i style="background: #e2e5ea"></i><i style="background: #1f4fe0"></i
+            ><i style="background: #0e1116"></i><i style="background: #0f7a4a"></i><i style="background: #c02b3f"></i>
+          </div>
+        </a>
+
+        <a class="card" href="dir-d-cromatico.html" style="color: #b4641e">
+          <span class="tag">Direção D</span>
+          <h3>Cromático</h3>
+          <p>
+            A cor da categoria já é identidade permanente; esta direção leva isso ao limite. Também
+            é a única que propõe as 16 cores de verdade, lado a lado.
+          </p>
+          <div class="sig"><b>Assinatura:</b> a faixa do mês — um segmento por dia, altura pelo que saiu, cor pela categoria que mais pesou. <em>Funciona: clique num dia.</em></div>
+          <div class="sw">
+            <i style="background: #1f6f54"></i><i style="background: #2e6da4"></i><i style="background: #b4641e"></i
+            ><i style="background: #a32c3d"></i><i style="background: #6b4ca8"></i><i style="background: #0f7c82"></i>
+          </div>
+        </a>
+      </div>
+
+      <h2>O que mudei do que estava "proibido"</h2>
+      <ul>
+        <li>
+          <b>Fontes externas.</b> A v1 proibia qualquer requisição de rede e usava a fonte do
+          sistema. Estas carregam tipografia de verdade do Google Fonts — sem isso não há como
+          julgar tipografia.
+        </li>
+        <li>
+          <b>Animação acima de 320 ms.</b> A régua da direção A leva 620 ms a ser traçada e a faixa
+          da D entra dia a dia ao longo de ~700 ms. Nos dois casos a duração é o conteúdo: é o mês
+          sendo percorrido.
+        </li>
+        <li>
+          <b>Uma curva de easing só.</b> O envelope da direção B enche com mola e assenta — encher
+          um recipiente não desacelera de forma linear.
+        </li>
+        <li>
+          <b>Número animado.</b> A v1 proibia contador, e com razão: saldo que rola não se confere.
+          Na direção D o total de despesas conta ao filtrar um dia — ali ele marca que o filtro
+          mudou, não é um saldo a conferir.
+        </li>
+      </ul>
+
+      <h2>Decidido depois destas quatro</h2>
+      <ul>
+        <li><b>Sem modo escuro.</b> Não é "fica para depois": não é necessário. Uma aparência só, afinada de verdade.</li>
+        <li><b>Responsivo nos dois extremos.</b> Desktop e celular são os dois o desenho, não um o plano B do outro.</li>
+        <li><b>Quando a cor não identifica, o valor identifica.</b> A fatia leva o próprio número como rótulo — ninguém precisa casar cor com legenda.</li>
+        <li><b>A v2 cobre três telas:</b> 00 sistema de design, 06 mês, 09 relatório mensal.</li>
+      </ul>
+
+      <h2>Falta escolher</h2>
+      <ul>
+        <li>Qual das quatro direções vira a v2 — e depois se expande para as treze telas.</li>
+      </ul>
+
+      <footer>
+        A leva anterior está inteira em <code>discarded/v1-default/</code>. As decisões de conteúdo
+        já tomadas continuam valendo e estão em <code>prototypes/MEMORY.md</code> — estas quatro
+        páginas já as respeitam.
+      </footer>
+    </div>
   </body>
 </html>
