@@ -129,7 +129,28 @@ Every data screen specifies four states: **loading** (skeleton, never a blank pa
 (explains the concept and offers the create action), **error** (message plus retry) and
 **populated**. Deactivated records are dimmed and hidden behind a "show inactive" toggle.
 
-### 3.6 Localization and formatting
+### 3.6 Monthly averages
+
+Wherever the application shows an average per month — the monthly report's against-the-average
+column, the yearly matrix's average column, anything added later — it means the same thing:
+
+> the **twelve months ending with the month on screen**, divided by **only those months that had
+> movement**.
+
+Never a flat twelve. A genuinely quarterly category — insurance, say — would otherwise read as
+above average in every month it appears, which is noise rather than information.
+
+This is provisional: it is the definition to try first, and it may not survive contact with real
+data. Two consequences it is worth knowing about before then:
+
+- The window crosses the year boundary. March 2027 averages April 2026 onward.
+- **On the yearly matrix it stops reconciling with the row.** For a complete past year the window
+  is exactly the twelve columns displayed, so the average checks out. For the current year it
+  reaches back into the previous one, and the number at the end of the row can no longer be derived
+  from the cells beside it. Either the column states what it measures, or that screen keeps a plain
+  average of what it displays and becomes the documented exception.
+
+### 3.7 Localization and formatting
 
 Interface in pt-BR, single currency euro, `1.234,56 €` via `lib/money.ts`. Dates `dd/MM/yyyy`,
 months written out ("Julho de 2026") in navigation. Money input accepts both `1.234,56` and
@@ -186,9 +207,11 @@ verifying state, never behind the login form, so the form never flashes.
 | Open menu (mobile) | Drawer; closes on selection |
 | Logout | Clears the session, redirects to `/login` |
 
-Navigation is split into everyday work (Mês, Relatórios, Lançar por voz) and setup (Contas,
-Categorias, Caixinhas, Recorrências). The user and the logout action sit at the foot of the
-sidebar; the top bar belongs to the current task.
+Navigation is split into everyday work (Mês, Relatórios, Lançar por voz, Recorrências) and a
+**Configurações** menu holding the three registries: Contas, Categorias, Caixinhas. Recorrências
+stays at the top level: it is something the user visits while running the month, not something
+they set up once. The user and the logout action sit at the foot of the sidebar; the top bar
+belongs to the current task.
 
 ### 03 — Accounts (`/accounts`)
 
@@ -293,9 +316,9 @@ Cashbox movement appears in its own informational block, shown expanded, because
 from the percentages by construction. Categories with no activity in the period are omitted. There
 is no CSV export.
 
-A column compares the month against **the category's average over the rolling twelve months ending
-with the month on screen**. Its colour reads as good or bad rather than as in or out: an expense
-above its average is red, income above its average is green. That is the one place in the
+A column compares the month against the category's rolling monthly average, defined in §3.6. Its
+colour reads as good or bad rather than as in or out: an expense above its average is red, income
+above its average is green. That is the one place in the
 application where green and red do not mean money in and money out, and it sits beside an amount
 already coloured by the other rule — so the two have to be told apart visually.
 
@@ -308,8 +331,9 @@ already coloured by the other rule — so the two have to be told apart visually
 | Expand a category | Reveals subcategory rows |
 | Click a cell | Opens that month filtered by that category |
 
-Category rows, twelve month columns, totals and monthly average on the right. Values are rounded
-to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
+Category rows, twelve month columns, totals and monthly average on the right — the average being
+the rolling one of §3.6, which for the current year draws on months the matrix does not show.
+Values are rounded to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
 zero. On mobile the table scrolls horizontally with the category column frozen. The prior-year
 comparison renders inside the cell — percentage beside the current year's value — so a category
 never occupies two rows.

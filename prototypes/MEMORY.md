@@ -32,7 +32,7 @@ first has been passed. Consequences:
 | --- | --- | --- |
 | 00 design system | partly | semantic colours kept; palette grows to 16 swatches; tones and type still open |
 | 01 login | approved, in full | — |
-| 02 shell | one change requested | group the setup screens under a "Configurações" menu |
+| 02 shell | approved | "Configurações" menu holds the three registries; Recorrências stays top-level |
 | 03 accounts | approved | drop the initial-balance column; sort by name |
 | 04 categories | approved | drop the month-spend column; make subcategory creation visible |
 | 05 cashboxes | partly | drop the empty-goal wording and the "new cashbox" card |
@@ -57,6 +57,18 @@ yearly one, not anywhere else. Do not reintroduce it as a convenience while buil
 The two report prototypes still show the button, because they are waiting to be regenerated. The
 ticket has already been corrected — M6-T03 no longer lists CSV in its implementation notes,
 acceptance criteria or tests.
+
+**Every monthly average in the application means the same thing:** the twelve months ending with
+the month on screen, divided by only those months that had movement — never by a flat twelve. That
+covers the monthly report's new column, the yearly matrix's average column, and anything added
+later. Recorded as provisional: it is what to try first.
+
+One consequence to design around rather than discover: on the yearly matrix the average stops
+being derivable from the row. For a complete past year the window is exactly the twelve columns
+shown, so it reconciles; for the current year it reaches back into the previous one, and the
+number at the end of the row no longer follows from the cells beside it. Either that column says
+what it measures, or the yearly screen keeps a plain average of what it displays and becomes the
+documented exception. Full note in §3.6 of `plans/0002-screens.md`.
 
 ### 00 — Design system
 
@@ -90,12 +102,11 @@ the same form with no separate button.
 
 ### 02 — Shell
 
-**The setup screens become sub-items of a "Configurações" menu**, instead of a flat group under a
-"Cadastros" label. That covers the four currently in that group: Contas, Categorias, Caixinhas,
-Recorrências. Everyday work (Mês, Relatórios, Lançar por voz) stays at the top level.
+**The three registries become sub-items of a "Configurações" menu**, instead of a flat group under
+a "Cadastros" label: Contas, Categorias, Caixinhas.
 
-Worth a second look while regenerating: Recorrências sits in that group today, so it moves with
-the others, but it is arguably day-to-day rather than setup.
+**Recorrências stays at the top level**, alongside Mês, Relatórios and Lançar por voz — it is
+visited while running the month, not set up once and forgotten.
 
 Nothing else about the shell was approved — and note that this page never had a "Decisões a
 aprovar" block to approve, unlike every other one. Write one when regenerating.
@@ -176,11 +187,8 @@ selector; a fixed explanatory line per mode.
     month on screen.** Not the calendar year.
   - _Which direction is good._ **An expense above its average is red; income above its average is
     green.** Explicitly confirmed, and to be honoured when the screen is built.
-  - _Divisor._ Recorded as the mean over the months with activity inside that window, matching how
-    M6-T02 already defines a monthly average. Worth a second's thought rather than a question:
-    dividing by a flat twelve instead would make a genuinely quarterly category — insurance, say —
-    read as above average in every month it appears, which is noise, not information. Say so if the
-    flat divisor was what you meant.
+  - _Divisor._ **Only the months with movement**, confirmed — not a flat twelve. Now a project-wide
+    rule rather than a detail of this screen; see "Applies everywhere".
   - _Design tension to resolve when drawing it._ This is the only place in the application where
     green and red mean good and bad instead of money in and money out, and it lands next to an
     amount already coloured by the other rule: a below-average expense would be a green marker
@@ -244,12 +252,12 @@ still open. Apply them once that settles.
   and its tests, and the notes now state the rule is system-wide. Safe to edit directly because M6
   has not been mirrored to GitHub yet (`plans/MEMORY.md` shows only M1 and M2 created), so no Issue
   fell out of sync.
-- **M6-T01** returns the month's figures only, and the new "against the average" column needs a per
-  category average. Calling M6-T02 to get it does not work: the average is now defined over the
-  **rolling** twelve months ending with the month on screen, while M6-T02 averages within a
-  calendar year. Opening March 2027 needs April 2026 onward — two calendar years, neither of them
-  complete. So M6-T01 grows the field and computes it over its own window; there is nothing to
-  reuse.
+- **M6-T01 — applied.** It now returns a rolling monthly average per category, with acceptance
+  criteria for the divisor, for a window that crosses the year boundary, and for a category with a
+  single month of movement.
+- **M6-T02 — applied.** Its average now uses the same project-wide definition, with a criterion
+  pinning the case where they must agree: a complete past year averages to the same number either
+  way.
 
 ## Open
 
@@ -260,6 +268,12 @@ Every screen has now been reviewed. What is left:
    something else — plus the exact tones of the semantic four and the sixteen category swatches.
    Blocks visual approval of everything.
 2. **Type concept** — grotesk, humanist or mixed. Same.
-3. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
-   an inactive cashbox with history vanishes from that screen while staying in the report.
-4. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
+3. **Cashboxes, two items.** Both were in that prototype's "Decisões a aprovar" block and neither
+   was mentioned in the review:
+   - _Deposit and withdraw buttons on each card_, in addition to the single button in the top bar.
+     Two ways to reach the same dialog: from the card the cashbox is already chosen, from the top
+     bar it is not. Keep both, or only the top bar?
+   - _An inactive cashbox that still has history._ It disappears from this screen, since the screen
+     lists what can be used, but stays in the report (M6-T05), since its past movements are real.
+     The prototype does not show it at all — confirm that vanishing entirely from here is right,
+     rather than appearing dimmed behind the "show inactive" toggle like accounts and categories.

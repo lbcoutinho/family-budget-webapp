@@ -22,6 +22,10 @@ The aggregation behind both the table and the charts. Computing it on the fronte
 - Aggregation performed in SQL
 - Categories with no activity in the period are omitted
 - A separate informational block with the month's cashbox activity (deposits, withdrawals, balance)
+- **Each category also carries its rolling monthly average**, so the screen can show whether the
+  month is above or below it. Project-wide definition: the twelve months ending with the requested
+  one, divided by the number of those months that had movement — never by a flat twelve. It cannot
+  be read off M6-T02, whose window is a calendar year, so this endpoint computes its own
 
 ### Acceptance criteria
 - [ ] Totals match the sum of the month's entries
@@ -31,9 +35,12 @@ The aggregation behind both the table and the charts. Computing it on the fronte
 - [ ] `DRAFT` entries are not counted
 - [ ] Percentages sum to 100% (rounding handled)
 - [ ] A month with no activity returns a valid empty structure
+- [ ] The rolling average divides by months with movement, so a category active in 3 of the 12 months is averaged over 3
+- [ ] The rolling window crosses the year boundary — the average for March 2027 spans April 2026 onward
+- [ ] A category with movement in only the requested month averages to that month's own amount
 
 ### Tests
-- Unit: percentage calculation and rounding
+- Unit: percentage calculation and rounding; the rolling average, including a window that crosses years and a category with a single month of movement
 - Integration: a scenario covering all six types asserting the exclusions; the credit card case spanning months; `DRAFT` exclusion
 
 ---
@@ -47,14 +54,19 @@ Shows trends across the year, which the monthly table cannot.
 - `GET /reports/yearly?year=`
 - A category-by-month matrix, with row and column totals
 - Same exclusions as M6-T01
-- Monthly average per category included in the response
+- Monthly average per category included in the response, using the **same project-wide definition
+  as M6-T01**: the twelve months ending with the last month of the requested year, divided by those
+  with movement. For a past, complete year that is exactly the year on screen; for the current year
+  it reaches back into the previous one, so the average will not reconcile with the twelve cells the
+  matrix displays and the column has to say what it measures
 - A single query aggregating by month, not a loop of twelve calls
 - Optional prior-year comparison via `?compare=true`
 
 ### Acceptance criteria
 - [ ] The matrix has twelve columns, including months with no activity
 - [ ] Row and column totals are consistent with the monthly summary
-- [ ] The monthly average is computed over months with activity
+- [ ] The monthly average is computed over months with activity, across the rolling twelve months ending the requested year
+- [ ] Requesting a complete past year gives the same average as averaging that year's own twelve columns
 - [ ] A single query, no N+1
 - [ ] `?compare=true` includes the prior year's data
 
