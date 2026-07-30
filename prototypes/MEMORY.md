@@ -27,6 +27,26 @@ Discarding v1 discarded the files, not the decisions. Everything under "Settled"
 and the four directions already respect it — that is the whole reason this file exists separately
 from the mock-ups.
 
+### Settled for v2 and everything after
+
+- **No dark mode.** Not "later" — not needed at all. Every direction commits to one appearance,
+  and the token files stop carrying a second set of values. This is what makes the light palette
+  worth tuning properly: it is the only one.
+- **Responsive, both ends first class.** The app is used on desktop *and* on the phone. A wide
+  table is not a desktop feature with a mobile fallback; both layouts are the design.
+- **When colour cannot identify, the value identifies.** The answer to the sixteen-colour problem:
+  charts label the slice with its amount instead of asking the reader to match a colour against a
+  legend. Colour groups, the number names.
+- **v2 covers three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge a
+  direction — the token set, the densest screen, and the one with a chart and the new average
+  column. The remaining ten follow the direction that wins.
+
+### Versions are per design skill
+
+v2 is what the `frontend-design` skill produces. Later versions come from other skills, one
+version each, so the comparison is between skills rather than between briefs. Keep them as
+separate `vN` sets and do not merge them.
+
 ### Rules deliberately broken in v2, and why
 
 v1's own rules were written before there was any design intent. These four break four of them, on
@@ -115,19 +135,18 @@ design gate.
   what a table means. What is left about them is the exact tone, to be picked together with the
   brand colour.
 - **The category palette offers sixteen swatches, not eight.**
+- **No dark mode**, so each swatch is one value rather than a light/dark pair.
 
-Two consequences of sixteen, both for whoever regenerates this:
+Two consequences of sixteen:
 
 - It halves the collision risk flagged on screen 11. Categories with no colour fall back to a value
   derived from their id, and since the charts now draw every category, two of them landing on the
   same colour was a real possibility with eight.
-- It does not make sixteen categories legible in a donut. Sixteen categorical hues cannot all be
-  told apart, and for a colour-blind reader far fewer can. Sixteen is the ceiling on how many
-  categories get a *distinct* colour, not a promise that a sixteen-slice chart reads well — so the
-  charts must identify a slice by more than its colour.
-
-`proto.css` currently defines `--cat-1` … `--cat-8` twice, once for light and once for dark. Both
-sets double.
+- It still does not make sixteen categories legible in a donut — that many hues cannot all be told
+  apart, fewer still for a colour-blind reader. **Resolved: the value does the identifying.** A
+  slice carries its own amount as a label; colour groups things, the number names them. So the
+  chart never depends on the reader matching a swatch to a legend, which is the part that fails
+  first.
 
 ### 01 — Login
 

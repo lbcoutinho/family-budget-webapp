@@ -94,15 +94,13 @@ These hold for every screen and are demonstrated in `00-design-system.html`.
 
 ### 3.1 Colour
 
-Three concepts are on the table — **Sage** (muted green primary, warm neutrals), **Indigo**
-(saturated blue-violet, cool neutrals) and **Slate** (near-monochrome, shadcn's own default). One
-gets approved; the other two move to `discarded/`.
+The palette comes with the chosen design direction rather than from a menu of themes — v1's three
+interchangeable schemes were part of why it had no point of view.
 
-Independent of that choice, the **money colours never change**: green is income, red is expense,
-blue is transfer, amber is cashbox. Tying them to the brand colour would mean that switching theme
-changes the meaning of a table. Colour is never the only signal — amounts also carry an explicit
-`+`/`−`. **This assignment is approved**; only its exact tones are still to be picked, alongside
-the brand colour.
+Whatever direction wins, the **money colours never change**: green is income, red is expense, blue
+is transfer, amber is cashbox. Tying them to the brand colour would mean the brand could change
+what a table means. Colour is never the only signal either — amounts also carry an explicit
+`+`/`−`. **This assignment is approved**; only its exact tones travel with the direction.
 
 The one exception is the against-the-average column on the monthly report, where green and red mean
 good and bad rather than in and out — see §5, screen 09.
@@ -112,24 +110,39 @@ are reused verbatim by every chart, so a category looks the same in every month 
 category with no colour falls back to a deterministic value derived from its id. Sixteen is a
 ceiling, not a guarantee of legibility: the charts draw every category with no "Outras" grouping,
 and sixteen categorical hues cannot all stay distinguishable from one another — least of all for a
-colour-blind reader. Charts therefore must not lean on colour alone to identify a slice.
+colour-blind reader. **So identification falls to the value**: a slice, bar or segment carries its
+own amount as a label, and colour is left to group rather than to name. Nothing in the interface
+requires matching a swatch against a legend to know what it is.
+
+**There is no dark mode.** One appearance, tuned properly, rather than two carried at half
+attention — which also means every token is a single value instead of a light/dark pair.
 
 ### 3.2 Typography
 
-Three stacks to choose from: **grotesk** (Inter everywhere), **humanist** (Source Sans) and
-**mixed** (serif headings, sans body). Whatever wins, every amount is rendered with tabular
-figures — columns of money that do not align are unreadable.
+The typefaces come with the direction too: a display face used with restraint, a body face, and a
+face for figures. Two constraints hold whichever wins — **every amount is set in tabular figures**,
+because columns of money that do not align cannot be scanned, and the display face is never the
+delivery vehicle for data.
 
 ### 3.3 Motion
 
-One easing curve, three durations (120 ms for hover and focus, 200 ms for state changes, 320 ms for
-dialogs, toasts and progress bars), nothing longer. `prefers-reduced-motion` disables all of it.
-No animated number counters: a balance that scrolls up cannot be checked against a bank statement.
+Motion is chosen per direction rather than capped in advance. v1 fixed one easing curve and a
+320 ms ceiling before there was anything to animate, and that turned out to forbid the two cases
+where duration carries meaning: a rail being drawn across a month, a container filling. What
+survives as a rule is narrower and about honesty, not budget:
+
+- `prefers-reduced-motion` is respected everywhere.
+- **A balance is never animated.** A number someone is reconciling against a bank statement must
+  be readable the instant it appears. A total that recomputes because a filter changed is a
+  different thing and may move.
 
 ### 3.4 Layout and responsiveness
 
-Sidebar of 244 px on desktop, collapsing to a drawer below 900 px; sticky, translucent top bar
-holding the route title and its primary action; content capped at 1180 px. On mobile the primary
+The application is used on desktop **and** on the phone, and both are the design rather than one
+being a fallback for the other. A screen is not finished until it has been drawn twice.
+
+Sidebar of 244 px on desktop, collapsing to a drawer on narrow viewports; sticky top bar holding
+the route title and its primary action; content capped for readability. On mobile the primary
 action becomes a floating button. Wide tables scroll horizontally with the first column frozen
 rather than collapsing into cards — the yearly matrix has no card equivalent.
 
