@@ -282,8 +282,15 @@ the domain.
 | Click a row | Opens the monthly tab filtered by that category |
 
 Expenses and income are separate tables, so the percentage column has one unambiguous base.
-Cashbox movement appears in its own informational block, because it is excluded from the
-percentages by construction. Categories with no activity in the period are omitted.
+Cashbox movement appears in its own informational block, shown expanded, because it is excluded
+from the percentages by construction. Categories with no activity in the period are omitted. There
+is no CSV export.
+
+A column compares the month against **the category's average over the rolling twelve months ending
+with the month on screen**. Its colour reads as good or bad rather than as in or out: an expense
+above its average is red, income above its average is green. That is the one place in the
+application where green and red do not mean money in and money out, and it sits beside an amount
+already coloured by the other rule — so the two have to be told apart visually.
 
 ### 10 — Yearly report (`/reports?view=yearly`)
 

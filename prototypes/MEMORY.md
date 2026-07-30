@@ -138,16 +138,22 @@ selector; a fixed explanatory line per mode.
 - **No CSV export.** Drop the button from this screen. This is a scope change against M6-T03, whose
   implementation notes and acceptance criteria still call for CSV — see "Plan impact" below.
 - **The cashbox block is visible by default**, not collapsed. That was the open question here.
-- **New column: is this month above or below the average?** The one thing on these screens that was
-  asked for rather than approved, so it has no prototype yet. Three things to settle while drawing
-  it, none of them decided:
-  - _Average of what._ The natural reading is each category's own monthly average, which M6-T02
-    already computes and defines as the mean over months with activity. Reuse that definition
-    rather than inventing a second one.
-  - _Over which window._ Calendar year to date, or a rolling twelve months. They disagree in
-    January.
-  - _Which direction is good._ Above average is bad for an expense and good for income, so this
-    column cannot colour itself from the sign the way every other amount does.
+- **New column: is this month above or below the average?** Asked for rather than approved, so no
+  prototype has drawn it yet. Now fully specified:
+  - _Which average._ **The category's own average over the rolling twelve months ending with the
+    month on screen.** Not the calendar year.
+  - _Which direction is good._ **An expense above its average is red; income above its average is
+    green.** Explicitly confirmed, and to be honoured when the screen is built.
+  - _Divisor._ Recorded as the mean over the months with activity inside that window, matching how
+    M6-T02 already defines a monthly average. Worth a second's thought rather than a question:
+    dividing by a flat twelve instead would make a genuinely quarterly category — insurance, say —
+    read as above average in every month it appears, which is noise, not information. Say so if the
+    flat divisor was what you meant.
+  - _Design tension to resolve when drawing it._ This is the only place in the application where
+    green and red mean good and bad instead of money in and money out, and it lands next to an
+    amount already coloured by the other rule: a below-average expense would be a green marker
+    beside a red figure on the same row. The two meanings need to be visually distinct — an arrow,
+    a lighter treatment, something — or the row contradicts itself.
 - Remaining approved as prototyped: the proportion bar inside the percentage cell; expenses and
   income in separate tables; percentages over the month's expense total, rounded to close at 100%;
   a category with no movement omitted rather than shown as zero.
@@ -203,9 +209,12 @@ still open. Apply them once that settles.
 
 - **M6-T03** lists CSV export in its implementation notes and carries an acceptance criterion for
   the exported file. The monthly report no longer has it.
-- **M6-T01** returns the month's figures only. The new "against the average" column needs a per
-  category average, which today exists solely in M6-T02's yearly response — so either M6-T01 grows
-  the field, or the screen calls both endpoints.
+- **M6-T01** returns the month's figures only, and the new "against the average" column needs a per
+  category average. Calling M6-T02 to get it does not work: the average is now defined over the
+  **rolling** twelve months ending with the month on screen, while M6-T02 averages within a
+  calendar year. Opening March 2027 needs April 2026 onward — two calendar years, neither of them
+  complete. So M6-T01 grows the field and computes it over its own window; there is nothing to
+  reuse.
 
 ## Open
 
@@ -216,7 +225,6 @@ Every screen has now been reviewed. What is left:
 3. **CSV on the yearly report.** It was dropped from the monthly report explicitly; the yearly one
    was not mentioned and still has the button. The yearly matrix is the view that most resembles
    the spreadsheet being replaced, so do not assume the same answer — ask.
-4. The three details of the new "against the average" column, listed under 09.
-5. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
+4. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
    an inactive cashbox with history vanishes from that screen while staying in the report.
-6. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
+5. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
