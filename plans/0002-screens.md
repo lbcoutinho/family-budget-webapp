@@ -192,8 +192,9 @@ sidebar; the top bar belongs to the current task.
 | Delete | Real delete, or a 409 with a clear message when entries exist |
 | Toggle "show inactive" | Adds dimmed rows |
 
-Open question: whether the list shows the computed current balance from the start (it needs
-`GET /accounts/balances`, which arrives with M5-T06) or only the initial balance until then.
+The list shows the current balance and not the initial one, which moved into the edit dialog.
+The current balance needs `GET /accounts/balances`, which arrives with M5-T06, so M3-T07 either
+ships without the column or waits. Rows are sorted alphabetically by name.
 
 ### 04 — Categories (`/categories`)
 
@@ -208,9 +209,8 @@ Open question: whether the list shows the computed current balance from the star
 | Deactivate last active subcategory | Blocked, 409 explained inline |
 | Search | Filters the tree |
 
-Colour belongs to the root category; subcategories inherit it in charts. Open question: the
-"gasto no mês" column is useful for deciding what to deactivate but depends on report data that
-only exists from M6 — it may have to arrive later than the screen.
+Colour belongs to the root category; subcategories inherit it in charts. There is no "gasto no
+mês" column: it was dropped at review, which leaves this screen with no dependency on M6 data.
 
 ### 05 — Cashboxes (`/cashboxes`)
 
@@ -240,8 +240,8 @@ Balances sit at the top (one card per account, one aggregate for cashboxes, one 
 total), because the point of the screen is trusting the numbers. Footer totals follow the domain
 rule: **only `EXPENSE` counts as expense** — transfers and cashbox deposits are excluded, and the
 footer says so. Credit card rows carry an icon plus the original purchase date in a sub-line, since
-the date column shows the reference month. Open question: whether voice `DRAFT` entries appear
-here dimmed (as prototyped) or stay hidden until approved.
+the date column shows the reference month. Voice `DRAFT` entries appear here dimmed and excluded
+from the totals, as prototyped.
 
 ### 07 — Entry form (dialog)
 
@@ -280,7 +280,6 @@ the domain.
 | Navigate months | Same control as the monthly tab |
 | Expand a category | Shows its subcategories |
 | Click a row | Opens the monthly tab filtered by that category |
-| Export CSV | Downloads what is on screen |
 
 Expenses and income are separate tables, so the percentage column has one unambiguous base.
 Cashbox movement appears in its own informational block, because it is excluded from the
@@ -298,8 +297,9 @@ percentages by construction. Categories with no activity in the period are omitt
 
 Category rows, twelve month columns, totals and monthly average on the right. Values are rounded
 to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
-zero. On mobile the table scrolls horizontally with the category column frozen. Open question:
-whether the comparison renders as a sub-line inside each cell or as an extra row per category.
+zero. On mobile the table scrolls horizontally with the category column frozen. The prior-year
+comparison renders inside the cell — percentage beside the current year's value — so a category
+never occupies two rows.
 
 ### 11 — Charts (`/reports?view=charts`)
 
@@ -312,8 +312,8 @@ whether the comparison renders as a sub-line inside each cell or as an extra row
 Donut for the month's distribution (total in the centre), stacked bars for the year by category,
 lines for income against expenses, and a separate line chart plus table for cashboxes — kept apart
 precisely because cashboxes are not expenses. Below 640 px the donut becomes a list with bars. A
-period with no data shows an empty state, never an empty chart frame. Open question: whether
-categories under ~3 % collapse into "Outras" in the donut.
+period with no data shows an empty state, never an empty chart frame. Every category is drawn;
+nothing collapses into "Outras".
 
 ### 12 — Recurrences (`/recurrences`)
 
@@ -329,8 +329,8 @@ categories under ~3 % collapse into "Outras" in the donut.
 Rules and installment plans share one table, told apart by the progress column ("sem fim" versus
 "4/12"). Editing a rule never touches entries already generated — the amount is copied at
 generation time — and the screen says so. Entries produced by a rule are marked with an icon on
-the monthly tab. Open question: whether `autoConfirm` is exposed at all, or whether generated
-entries are always confirmed.
+the monthly tab. `autoConfirm` is exposed as a checkbox — generated entries are not always
+confirmed, the rule decides.
 
 ### 13 — Voice entry (`/voice`)
 
@@ -375,9 +375,7 @@ Still open:
 
 1. Which colour concept — Sage, Indigo or Slate.
 2. Which type stack — grotesk, humanist or mixed.
-3. Yearly comparison: sub-line inside the cell, or an extra row per category?
-4. Does the donut collapse slices under ~3 % into "Outras"?
-5. Is `autoConfirm` exposed on recurrence rules, or are generated entries always confirmed?
+3. Whether the yearly report keeps CSV export, now that the monthly one has dropped it.
 
 Settled:
 
@@ -387,3 +385,9 @@ Settled:
 - **Voice drafts appear on the monthly tab, dimmed, excluded from the totals.**
 - **The categories screen carries no month-spend column**, which removes its only dependency on M6
   data.
+- **The yearly comparison lives inside the cell**, percentage beside the current year's value, one
+  row per category.
+- **The charts never group categories into "Outras"** — every category is drawn.
+- **`autoConfirm` stays exposed** on recurrence rules.
+- **The monthly report drops CSV export** and gains a column comparing the month against the
+  category's average. Both change M6 tickets — see "Plan impact" in `prototypes/MEMORY.md`.

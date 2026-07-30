@@ -39,7 +39,11 @@ first has been passed. Consequences:
 | 06 month | approved, in full | — |
 | 07 income / expense | approved, in full | — |
 | 08 cashbox operations | approved, in full | — |
-| 09–13 reports, recurrences, voice | **not reviewed** | — |
+| 09 monthly report | approved | drop CSV export; add an "against the average" column |
+| 10 yearly report | approved | percentage beside the current-year value, one row per category |
+| 11 charts | approved | show every category, never group into "Outras" |
+| 12 recurrences | approved, in full | keep the `autoConfirm` checkbox |
+| 13 voice | approved, in full | — |
 
 ---
 
@@ -129,14 +133,90 @@ All five approved as prototyped: one dialog with three modes; the selected cashb
 visible; the insufficient-balance warning never blocking submit; transfer mode hiding every account
 selector; a fixed explanatory line per mode.
 
+### 09 — Monthly report
+
+- **No CSV export.** Drop the button from this screen. This is a scope change against M6-T03, whose
+  implementation notes and acceptance criteria still call for CSV — see "Plan impact" below.
+- **The cashbox block is visible by default**, not collapsed. That was the open question here.
+- **New column: is this month above or below the average?** The one thing on these screens that was
+  asked for rather than approved, so it has no prototype yet. Three things to settle while drawing
+  it, none of them decided:
+  - _Average of what._ The natural reading is each category's own monthly average, which M6-T02
+    already computes and defines as the mean over months with activity. Reuse that definition
+    rather than inventing a second one.
+  - _Over which window._ Calendar year to date, or a rolling twelve months. They disagree in
+    January.
+  - _Which direction is good._ Above average is bad for an expense and good for income, so this
+    column cannot colour itself from the sign the way every other amount does.
+- Remaining approved as prototyped: the proportion bar inside the percentage cell; expenses and
+  income in separate tables; percentages over the month's expense total, rounded to close at 100%;
+  a category with no movement omitted rather than shown as zero.
+
+### 10 — Yearly report
+
+- **Comparison with the previous year: the percentage sits beside the current year's value, and
+  both years stay on the same row.** This answers the open question — the comparison lives inside
+  the cell, and a category never occupies two rows.
+- Remaining approved as prototyped: whole euros in the matrix with cents kept for the monthly view;
+  future months as "—" and still present as columns; total and average on the right with a
+  highlighted background; horizontal scroll with a frozen category column on mobile.
+
+### 11 — Charts
+
+- **Every category is shown. Nothing is ever grouped into "Outras".** This answers the open
+  question, in the opposite direction to what the prototype proposed.
+- Consequence to handle when regenerating: the suggested palette has eight colours and categories
+  without one fall back to a value derived from their id, so with every category on the donut two
+  of them can end up the same colour. The palette needs to cope, or the fallback does.
+- Remaining approved as prototyped: donut with the total in the centre rather than a full pie;
+  charts on their own third tab of Relatórios; legend clickable to hide a series, with the state
+  lasting only for the session; the cashbox line chart kept apart from the expense charts.
+
+### 12 — Recurrences
+
+All five approved, including the one that was still a question: **the `autoConfirm` checkbox
+stays** — generated entries are not always confirmed, the rule decides.
+
+Also approved: fixed rules and installment plans in one table told apart by the progress column;
+two separate creation buttons rather than one form with a type switch; a mandatory preview before
+saving; cancelling an installment plan removing only future unconfirmed installments.
+
+### 13 — Voice entry
+
+All six approved, including the one flagged for confirmation: **drafts do appear on the month
+screen, dimmed**. That now agrees with what was already settled on prototype 06, so the two screens
+no longer contradict each other.
+
+Also approved: recording and review stacked on one route; inline editing in the table row rather
+than a dialog per candidate; incomplete rows highlighted amber with approve disabled; a likely
+duplicate warned about but never blocked; leaving with pending drafts asking for confirmation while
+the drafts persist either way.
+
 ---
+
+## Plan impact
+
+Two of the decisions above change tickets that are already written down, and neither has been
+applied to `plans/milestones/m06-reports.md` or to the mirrored GitHub Issues yet — deliberately,
+because the prototypes have not been regenerated or design-approved, and the details above are
+still open. Apply them once that settles.
+
+- **M6-T03** lists CSV export in its implementation notes and carries an acceptance criterion for
+  the exported file. The monthly report no longer has it.
+- **M6-T01** returns the month's figures only. The new "against the average" column needs a per
+  category average, which today exists solely in M6-T02's yearly response — so either M6-T01 grows
+  the field, or the screen calls both endpoints.
 
 ## Open
 
+Every screen has now been reviewed. What is left:
+
 1. **Colour concept** — sage, indigo or slate. Blocks visual approval of everything.
 2. **Type concept** — grotesk, humanist or mixed. Same.
-3. **09 monthly report, 10 yearly report, 11 charts, 12 recurrences, 13 voice** — not reviewed yet.
-   Their own "Decisões a aprovar" blocks still hold the questions, including the yearly
-   comparison layout, whether the donut collapses slices under ~3%, and whether `autoConfirm` is
-   exposed on recurrence rules.
-4. The two cashbox items and the Recorrências placement noted above.
+3. **CSV on the yearly report.** It was dropped from the monthly report explicitly; the yearly one
+   was not mentioned and still has the button. The yearly matrix is the view that most resembles
+   the spreadsheet being replaced, so do not assume the same answer — ask.
+4. The three details of the new "against the average" column, listed under 09.
+5. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
+   an inactive cashbox with history vanishes from that screen while staying in the report.
+6. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
