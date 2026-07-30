@@ -74,19 +74,18 @@ The reading format the user already knows from the spreadsheet. It has to come b
 - Category rows expand to reveal subcategories
 - Yearly view: a category-by-month matrix with totals on the edges
 - Clicking a cell navigates to the monthly tab filtered by that category
-- CSV export
 - Horizontal scrolling with a frozen first column in the yearly view on mobile
+- **No CSV export**, here or anywhere else in the application (decided at prototype review)
 
 ### Acceptance criteria
 - [ ] Toggling between monthly and yearly works
 - [ ] Expanding a category shows its subcategories
 - [ ] Clicking a cell navigates to the monthly tab with the filter applied
-- [ ] The exported CSV opens correctly with the right separator and encoding
 - [ ] The category column stays frozen during horizontal scroll
 - [ ] Percentages and totals match the API
 
 ### Tests
-- Integration with MSW: rendering both views; expansion; filtered navigation; CSV contents
+- Integration with MSW: rendering both views; expansion; filtered navigation
 
 ---
 

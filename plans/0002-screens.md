@@ -307,7 +307,6 @@ already coloured by the other rule — so the two have to be told apart visually
 | Compare with the previous year | Adds the prior value and variation |
 | Expand a category | Reveals subcategory rows |
 | Click a cell | Opens that month filtered by that category |
-| Export CSV | Full matrix |
 
 Category rows, twelve month columns, totals and monthly average on the right. Values are rounded
 to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
@@ -389,7 +388,6 @@ Still open:
 
 1. Which colour concept — Sage, Indigo or Slate.
 2. Which type stack — grotesk, humanist or mixed.
-3. Whether the yearly report keeps CSV export, now that the monthly one has dropped it.
 
 Settled:
 
@@ -403,5 +401,7 @@ Settled:
   row per category.
 - **The charts never group categories into "Outras"** — every category is drawn.
 - **`autoConfirm` stays exposed** on recurrence rules.
-- **The monthly report drops CSV export** and gains a column comparing the month against the
-  category's average. Both change M6 tickets — see "Plan impact" in `prototypes/MEMORY.md`.
+- **There is no CSV export anywhere in the application** — not on the monthly report, not on the
+  yearly one, nowhere. Applied to M6-T03 in `plans/milestones/m06-reports.md`.
+- **The monthly report gains a column comparing the month against the category's average**, which
+  M6-T01 has to feed — see "Plan impact" in `prototypes/MEMORY.md`.

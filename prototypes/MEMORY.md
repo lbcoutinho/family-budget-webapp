@@ -40,7 +40,7 @@ first has been passed. Consequences:
 | 07 income / expense | approved, in full | — |
 | 08 cashbox operations | approved, in full | — |
 | 09 monthly report | approved | drop CSV export; add an "against the average" column |
-| 10 yearly report | approved | percentage beside the current-year value, one row per category |
+| 10 yearly report | approved | drop CSV export; percentage beside the current-year value, one row per category |
 | 11 charts | approved | show every category, never group into "Outras" |
 | 12 recurrences | approved, in full | keep the `autoConfirm` checkbox |
 | 13 voice | approved, in full | — |
@@ -48,6 +48,15 @@ first has been passed. Consequences:
 ---
 
 ## Settled
+
+### Applies everywhere
+
+**There is no CSV export anywhere in the application.** Not on the monthly report, not on the
+yearly one, not anywhere else. Do not reintroduce it as a convenience while building a screen.
+
+The two report prototypes still show the button, because they are waiting to be regenerated. The
+ticket has already been corrected — M6-T03 no longer lists CSV in its implementation notes,
+acceptance criteria or tests.
 
 ### 00 — Design system
 
@@ -159,8 +168,7 @@ selector; a fixed explanatory line per mode.
 
 ### 09 — Monthly report
 
-- **No CSV export.** Drop the button from this screen. This is a scope change against M6-T03, whose
-  implementation notes and acceptance criteria still call for CSV — see "Plan impact" below.
+- **No CSV export** — see the system-wide rule below; it started here.
 - **The cashbox block is visible by default**, not collapsed. That was the open question here.
 - **New column: is this month above or below the average?** Asked for rather than approved, so no
   prototype has drawn it yet. Now fully specified:
@@ -187,6 +195,7 @@ selector; a fixed explanatory line per mode.
 - **Comparison with the previous year: the percentage sits beside the current year's value, and
   both years stay on the same row.** This answers the open question — the comparison lives inside
   the cell, and a category never occupies two rows.
+- **No CSV export here either** — the rule is system-wide, see "Applies everywhere".
 - Remaining approved as prototyped: whole euros in the matrix with cents kept for the monthly view;
   future months as "—" and still present as columns; total and average on the right with a
   highlighted background; horizontal scroll with a frozen category column on mobile.
@@ -231,8 +240,10 @@ applied to `plans/milestones/m06-reports.md` or to the mirrored GitHub Issues ye
 because the prototypes have not been regenerated or design-approved, and the details above are
 still open. Apply them once that settles.
 
-- **M6-T03** lists CSV export in its implementation notes and carries an acceptance criterion for
-  the exported file. The monthly report no longer has it.
+- **M6-T03 — applied.** CSV export is gone from its implementation notes, its acceptance criteria
+  and its tests, and the notes now state the rule is system-wide. Safe to edit directly because M6
+  has not been mirrored to GitHub yet (`plans/MEMORY.md` shows only M1 and M2 created), so no Issue
+  fell out of sync.
 - **M6-T01** returns the month's figures only, and the new "against the average" column needs a per
   category average. Calling M6-T02 to get it does not work: the average is now defined over the
   **rolling** twelve months ending with the month on screen, while M6-T02 averages within a
@@ -249,9 +260,6 @@ Every screen has now been reviewed. What is left:
    something else — plus the exact tones of the semantic four and the sixteen category swatches.
    Blocks visual approval of everything.
 2. **Type concept** — grotesk, humanist or mixed. Same.
-3. **CSV on the yearly report.** It was dropped from the monthly report explicitly; the yearly one
-   was not mentioned and still has the button. The yearly matrix is the view that most resembles
-   the spreadsheet being replaced, so do not assume the same answer — ask.
-4. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
+3. On cashboxes: whether deposit/withdraw stay on each card as well as in the top bar, and whether
    an inactive cashbox with history vanishes from that screen while staying in the report.
-5. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
+4. Whether Recorrências belongs under the new "Configurações" menu, as the shell change implies.
