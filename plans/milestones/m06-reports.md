@@ -84,7 +84,9 @@ The reading format the user already knows from the spreadsheet. It has to come b
 - `/reports` route toggling between monthly and yearly
 - Monthly view: categories as rows, showing amount and percentage
 - Category rows expand to reveal subcategories
-- Yearly view: a category-by-month matrix with totals on the edges
+- Yearly view: a category-by-month matrix with totals on the edges, plus a rolling average column
+  headed **"Média 12 meses"** — never just "Média", since it is not the mean of the twelve cells on
+  the row — with a tooltip stating the window and that only months with movement count
 - Clicking a cell navigates to the monthly tab filtered by that category
 - Horizontal scrolling with a frozen first column in the yearly view on mobile
 - **No CSV export**, here or anywhere else in the application (decided at prototype review)
@@ -94,6 +96,7 @@ The reading format the user already knows from the spreadsheet. It has to come b
 - [ ] Expanding a category shows its subcategories
 - [ ] Clicking a cell navigates to the monthly tab with the filter applied
 - [ ] The category column stays frozen during horizontal scroll
+- [ ] The rolling average column is headed "Média 12 meses" and explains itself on hover
 - [ ] Percentages and totals match the API
 
 ### Tests

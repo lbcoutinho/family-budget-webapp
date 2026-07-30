@@ -40,7 +40,7 @@ first has been passed. Consequences:
 | 07 income / expense | approved, in full | — |
 | 08 cashbox operations | approved, in full | — |
 | 09 monthly report | approved | drop CSV export; add an "against the average" column |
-| 10 yearly report | approved | drop CSV export; percentage beside the current-year value, one row per category |
+| 10 yearly report | approved | drop CSV; percentage beside the current-year value, one row per category; average column headed "Média 12 meses" with a tooltip |
 | 11 charts | approved | show every category, never group into "Outras" |
 | 12 recurrences | approved, in full | keep the `autoConfirm` checkbox |
 | 13 voice | approved, in full | — |
@@ -63,12 +63,15 @@ the month on screen, divided by only those months that had movement — never by
 covers the monthly report's new column, the yearly matrix's average column, and anything added
 later. Recorded as provisional: it is what to try first.
 
-One consequence to design around rather than discover: on the yearly matrix the average stops
-being derivable from the row. For a complete past year the window is exactly the twelve columns
-shown, so it reconciles; for the current year it reaches back into the previous one, and the
-number at the end of the row no longer follows from the cells beside it. Either that column says
-what it measures, or the yearly screen keeps a plain average of what it displays and becomes the
-documented exception. Full note in §3.6 of `plans/0002-screens.md`.
+On the yearly matrix that average is not derivable from the row it sits in — for the current year
+the window reaches into the previous one. **Settled by naming it, not by excepting it:** the column
+is headed **"Média 12 meses"** and carries a tooltip explaining the window and the divisor. The
+definition stays identical everywhere. A column headed just "Média" was the trap: it invites the
+reader to add up the twelve cells beside it and conclude the number is wrong.
+
+The tooltip is treated as part of the decision rather than as the "talvez" it was offered as — the
+heading alone can say twelve months, but not that only months with movement count, and that is the
+half a reader would never guess.
 
 ### 00 — Design system
 

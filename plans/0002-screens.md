@@ -147,8 +147,9 @@ data. Two consequences it is worth knowing about before then:
 - **On the yearly matrix it stops reconciling with the row.** For a complete past year the window
   is exactly the twelve columns displayed, so the average checks out. For the current year it
   reaches back into the previous one, and the number at the end of the row can no longer be derived
-  from the cells beside it. Either the column states what it measures, or that screen keeps a plain
-  average of what it displays and becomes the documented exception.
+  from the cells beside it. Resolved by naming it rather than by making an exception: that column
+  is headed **"Média 12 meses"** and carries a tooltip explaining the window and the divisor. The
+  definition stays the same everywhere.
 
 ### 3.7 Localization and formatting
 
@@ -345,8 +346,11 @@ meanings. Provisional, like §3.6.
 | Expand a category | Reveals subcategory rows |
 | Click a cell | Opens that month filtered by that category |
 
-Category rows, twelve month columns, totals and monthly average on the right — the average being
-the rolling one of §3.6, which for the current year draws on months the matrix does not show.
+Category rows, twelve month columns, and totals plus a **"Média 12 meses"** column on the right.
+That heading is deliberate: the average is the rolling one of §3.6, so for the current year it
+draws on months the matrix does not show, and a column merely headed "Média" would invite the
+reader to check it against the twelve cells beside it and find it wrong. A tooltip spells out the
+window and the divisor.
 Values are rounded to whole euros so the matrix fits; cents remain in the monthly view. Future
 months show "—", not zero. On mobile the table scrolls horizontally with the category column
 frozen. The prior-year comparison renders inside the cell — percentage beside the current year's
