@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Protótipos — Orçamento familiar</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+  </head>
+  <body>
+    <div data-proto-bar="Índice dos protótipos"></div>
+
+    <div class="content" style="max-width: 980px">
+      <div class="page-header" style="margin-top: 1.5rem">
+        <h1>Protótipos de tela</h1>
+        <p>
+          HTML descartável, feito para discutir conceito, cor, tipografia e animação antes de existir
+          código React. <strong>Nenhuma tela é implementada sem protótipo aprovado.</strong>
+        </p>
+      </div>
+
+      <div class="callout" style="margin-bottom: 1.5rem">
+        <span data-icon="alert"></span>
+        <span>
+          Comece pelo <a href="00-design-system.html">00 — Sistema de design</a>. Os seletores da
+          barra preta (cor, modo, fonte, motion) valem para todas as telas e ficam salvos no
+          navegador — troque ali e navegue para comparar o conjunto.
+        </span>
+      </div>
+
+      <h2 style="margin-bottom: 0.6rem">Base</h2>
+      <div class="card" style="overflow: hidden; margin-bottom: 1.25rem">
+        <table class="data">
+          <thead>
+            <tr><th style="width: 46%">Protótipo</th><th>Ticket</th><th>O que se decide aqui</th><th>Situação</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a class="strong" href="00-design-system.html">00 — Sistema de design</a></td>
+              <td class="small muted">—</td>
+              <td class="small">Cor, tipografia, componentes, animação, espaçamento</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="02-app-shell.html">02 — Shell e navegação</a></td>
+              <td class="small muted">M3-T06</td>
+              <td class="small">Barra lateral, topo, estados vazio/carregando/erro, celular</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="margin-bottom: 0.6rem">Telas</h2>
+      <div class="card" style="overflow: hidden; margin-bottom: 1.25rem">
+        <table class="data">
+          <thead>
+            <tr><th style="width: 46%">Protótipo</th><th>Ticket</th><th>Ações principais</th><th>Situação</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a class="strong" href="01-login.html">01 — Login</a></td>
+              <td class="small muted">M2-T06</td>
+              <td class="small">Entrar</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="03-accounts.html">03 — Contas</a></td>
+              <td class="small muted">M3-T07</td>
+              <td class="small">CRUD, desativar, excluir bloqueado</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="04-categories.html">04 — Categorias</a></td>
+              <td class="small muted">M3-T08</td>
+              <td class="small">Árvore de 2 níveis, cor, desativação em cascata</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="05-cashboxes.html">05 — Caixinhas</a></td>
+              <td class="small muted">M3-T09, M5-T06</td>
+              <td class="small">CRUD, meta, saldo, depositar/resgatar</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="06-month.html">06 — Mês</a></td>
+              <td class="small muted">M5-T01, T05, T06</td>
+              <td class="small">Tela principal: tabela, totais, saldos, editar/excluir</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="07-transaction-form.html">07 — Receita / despesa</a></td>
+              <td class="small muted">M5-T02, T03</td>
+              <td class="small">Formulário, cartão de crédito, transferência</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="08-cashbox-form.html">08 — Operações de caixinha</a></td>
+              <td class="small muted">M5-T04</td>
+              <td class="small">Depositar, resgatar, transferir</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="09-reports-monthly.html">09 — Relatório mensal</a></td>
+              <td class="small muted">M6-T03</td>
+              <td class="small">Tabela por categoria, expansão, CSV</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="10-reports-yearly.html">10 — Relatório anual</a></td>
+              <td class="small muted">M6-T02, T03</td>
+              <td class="small">Matriz categoria × mês, comparação com ano anterior</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="11-reports-charts.html">11 — Gráficos</a></td>
+              <td class="small muted">M6-T04, T05</td>
+              <td class="small">Rosca, barras empilhadas, linhas, caixinhas</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="12-recurrences.html">12 — Recorrências</a></td>
+              <td class="small muted">M7-T06</td>
+              <td class="small">Regra fixa, parcelamento, prévia</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+            <tr>
+              <td><a class="strong" href="13-voice.html">13 — Lançar por voz</a></td>
+              <td class="small muted">M8-T01, T04</td>
+              <td class="small">Gravar, transcrever, revisar e aprovar rascunhos</td>
+              <td><span class="badge draft">em revisão</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card card-body" style="margin-bottom: 3rem">
+        <h3 style="margin-bottom: 0.5rem">Como aprovar</h3>
+        <ol class="small muted" style="margin: 0; padding-left: 1.1rem">
+          <li>Abra o protótipo e leia o bloco "Decisões a aprovar" no fim da página.</li>
+          <li>Diga "aprovado" (ou o que mudar). O arquivo é movido para <code>approved/</code>.</li>
+          <li>Só então a tela vira ticket de implementação em React.</li>
+          <li>Ideia recusada vai para <code>discarded/</code> — fica como registro do que já se tentou.</li>
+        </ol>
+        <p class="small muted" style="margin: 0.75rem 0 0">
+          Plano completo das telas e ações: <code>plans/0002-screens.md</code>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

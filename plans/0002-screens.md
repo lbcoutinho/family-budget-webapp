@@ -30,11 +30,17 @@ the approved prototype is linked from the ticket's GitHub Issue.
 ```
 prototypes/
 ├── index.html          list of every prototype and its status
+├── MEMORY.md           every UI decision the user has made
 ├── _shared/            proto.css (tokens) + proto.js (concept switcher, app shell)
 ├── NN-name.html        under review
 ├── approved/           approved — reference for implementation
-└── discarded/          rejected — kept as a record
+└── discarded/
+    └── v1-default/     a rejected set, complete and still openable
 ```
+
+A discarded set is archived whole, in its own `vN-<name>` folder, `_shared/` and index included, so
+it still opens and renders years later. Rejecting one prototype moves one file; rejecting a whole
+generation moves the generation.
 
 The folder is also published as a static site: `.github/workflows/pages.yml` deploys **only this
 folder** to GitHub Pages on every push to `main` that touches it, so a screen can be reviewed from
@@ -48,7 +54,11 @@ a branch" setting, which can only serve the repository root or `/docs`. See
 | ------------ | ------------------- | -------------------------------------------------------- |
 | Under review | `prototypes/*.html` | Written, waiting for the user's decision                  |
 | Approved     | `approved/`         | Locked; the implementation ticket may start               |
-| Discarded    | `discarded/`        | Rejected direction, kept so it is not proposed again      |
+| Discarded    | `discarded/vN-…/`   | Rejected, kept so it is not proposed again                |
+
+**v1-default is discarded in full.** It did its job — it turned a plan into thirteen concrete
+screens and pulled the decisions out of the user — and is kept for exactly that reason: a record of
+what was already tried.
 
 Moving a file also updates the status table in `prototypes/index.html` and §4 of this plan, in the
 same commit.
@@ -91,11 +101,18 @@ gets approved; the other two move to `discarded/`.
 Independent of that choice, the **money colours never change**: green is income, red is expense,
 blue is transfer, amber is cashbox. Tying them to the brand colour would mean that switching theme
 changes the meaning of a table. Colour is never the only signal — amounts also carry an explicit
-`+`/`−`.
+`+`/`−`. **This assignment is approved**; only its exact tones are still to be picked, alongside
+the brand colour.
 
-Category colours come from `Category.color` (an eight-swatch suggested palette) and are reused
-verbatim by every chart, so a category looks the same in every month and every view. A category
-with no colour falls back to a deterministic value derived from its id.
+The one exception is the against-the-average column on the monthly report, where green and red mean
+good and bad rather than in and out — see §5, screen 09.
+
+Category colours come from `Category.color`, offered as a **sixteen-swatch suggested palette**, and
+are reused verbatim by every chart, so a category looks the same in every month and every view. A
+category with no colour falls back to a deterministic value derived from its id. Sixteen is a
+ceiling, not a guarantee of legibility: the charts draw every category with no "Outras" grouping,
+and sixteen categorical hues cannot all stay distinguishable from one another — least of all for a
+colour-blind reader. Charts therefore must not lean on colour alone to identify a slice.
 
 ### 3.2 Typography
 
@@ -122,7 +139,29 @@ Every data screen specifies four states: **loading** (skeleton, never a blank pa
 (explains the concept and offers the create action), **error** (message plus retry) and
 **populated**. Deactivated records are dimmed and hidden behind a "show inactive" toggle.
 
-### 3.6 Localization and formatting
+### 3.6 Monthly averages
+
+Wherever the application shows an average per month — the monthly report's against-the-average
+column, the yearly matrix's average column, anything added later — it means the same thing:
+
+> the **twelve months ending with the month on screen**, divided by **only those months that had
+> movement**.
+
+Never a flat twelve. A genuinely quarterly category — insurance, say — would otherwise read as
+above average in every month it appears, which is noise rather than information.
+
+This is provisional: it is the definition to try first, and it may not survive contact with real
+data. Two consequences it is worth knowing about before then:
+
+- The window crosses the year boundary. March 2027 averages April 2026 onward.
+- **On the yearly matrix it stops reconciling with the row.** For a complete past year the window
+  is exactly the twelve columns displayed, so the average checks out. For the current year it
+  reaches back into the previous one, and the number at the end of the row can no longer be derived
+  from the cells beside it. Resolved by naming it rather than by making an exception: that column
+  is headed **"Média 12 meses"** and carries a tooltip explaining the window and the divisor. The
+  definition stays the same everywhere.
+
+### 3.7 Localization and formatting
 
 Interface in pt-BR, single currency euro, `1.234,56 €` via `lib/money.ts`. Dates `dd/MM/yyyy`,
 months written out ("Julho de 2026") in navigation. Money input accepts both `1.234,56` and
@@ -132,25 +171,27 @@ months written out ("Julho de 2026") in navigation. Money input accepts both `1.
 
 ## 4. Screen inventory
 
-Thirteen screens plus the design system. "Prototype" links the file; "Ticket" the milestone task
-that implements it.
+Thirteen screens plus the design system. "Prototype" names the file; "Ticket" the milestone task
+that implements it. **The whole first set was discarded after review** and lives in
+`prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` and are
+the input to the next set. Nothing is under review right now.
 
 | #   | Screen             | Route                  | Ticket             | Prototype                    | Status      |
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
-| 00  | Design system      | —                      | —                  | `00-design-system.html`      | Under review |
-| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Under review |
-| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Under review |
-| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Under review |
-| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Under review |
-| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Under review |
-| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | Under review |
-| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Under review |
-| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Under review |
-| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | Under review |
-| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Under review |
-| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Under review |
-| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Under review |
-| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Under review |
+| 00  | Design system      | —                      | —                  | `00-design-system.html`      | Discarded (v1) |
+| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Discarded (v1) |
+| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Discarded (v1) |
+| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Discarded (v1) |
+| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Discarded (v1) |
+| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Discarded (v1) |
+| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | Discarded (v1) |
+| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Discarded (v1) |
+| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Discarded (v1) |
+| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | Discarded (v1) |
+| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Discarded (v1) |
+| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Discarded (v1) |
+| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Discarded (v1) |
+| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Discarded (v1) |
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance
@@ -179,9 +220,11 @@ verifying state, never behind the login form, so the form never flashes.
 | Open menu (mobile) | Drawer; closes on selection |
 | Logout | Clears the session, redirects to `/login` |
 
-Navigation is split into everyday work (Mês, Relatórios, Lançar por voz) and setup (Contas,
-Categorias, Caixinhas, Recorrências). The user and the logout action sit at the foot of the
-sidebar; the top bar belongs to the current task.
+Navigation is split into everyday work (Mês, Relatórios, Lançar por voz, Recorrências) and a
+**Configurações** menu holding the three registries: Contas, Categorias, Caixinhas. Recorrências
+stays at the top level: it is something the user visits while running the month, not something
+they set up once. The user and the logout action sit at the foot of the sidebar; the top bar
+belongs to the current task.
 
 ### 03 — Accounts (`/accounts`)
 
@@ -192,8 +235,9 @@ sidebar; the top bar belongs to the current task.
 | Delete | Real delete, or a 409 with a clear message when entries exist |
 | Toggle "show inactive" | Adds dimmed rows |
 
-Open question: whether the list shows the computed current balance from the start (it needs
-`GET /accounts/balances`, which arrives with M5-T06) or only the initial balance until then.
+The list shows the current balance and not the initial one, which moved into the edit dialog.
+The current balance needs `GET /accounts/balances`, which arrives with M5-T06, so M3-T07 either
+ships without the column or waits. Rows are sorted alphabetically by name.
 
 ### 04 — Categories (`/categories`)
 
@@ -208,21 +252,31 @@ Open question: whether the list shows the computed current balance from the star
 | Deactivate last active subcategory | Blocked, 409 explained inline |
 | Search | Filters the tree |
 
-Colour belongs to the root category; subcategories inherit it in charts. Open question: the
-"gasto no mês" column is useful for deciding what to deactivate but depends on report data that
-only exists from M6 — it may have to arrive later than the screen.
+Colour belongs to the root category; subcategories inherit it in charts. There is no "gasto no
+mês" column: it was dropped at review, which leaves this screen with no dependency on M6 data.
 
 ### 05 — Cashboxes (`/cashboxes`)
 
 | Action | Result |
 | --- | --- |
 | Create / edit | Name, description, optional target |
-| Deposit / withdraw from a card | Opens the operations dialog (08) pre-filled |
+| Deposit / withdraw from a card | Opens the operations dialog (08) with the cashbox pre-filled |
+| Deposit / withdraw from the top bar | Same dialog, cashbox chosen inside it |
 | Deactivate, delete | Same pattern as accounts, 409 when entries exist |
+| Toggle "show inactive" | Adds the dimmed cards |
 
 Cards rather than a table: there are few of them and the target progress bar needs the room. The
 balance is always computed, never stored. Reaching the target turns the bar green and blocks
-nothing. An inactive cashbox with history disappears from this screen but stays in the report (11).
+nothing.
+
+Deposit and withdraw are reachable both from each card and from the top bar — from the card the
+cashbox is already chosen, from the top bar it is picked in the dialog.
+
+Inactive cashboxes follow the same rule as every other registry (§3.5): hidden by default, shown
+dimmed behind the "show inactive" toggle, never gone. They keep showing their balance, because the
+history behind it is real. What they must not keep is a working deposit or withdraw button — an
+inactive entity cannot be used in a new entry, so on those cards the actions are disabled rather
+than merely ineffective.
 
 ### 06 — Monthly tab (`/month/:year/:month`) — the main screen
 
@@ -240,8 +294,8 @@ Balances sit at the top (one card per account, one aggregate for cashboxes, one 
 total), because the point of the screen is trusting the numbers. Footer totals follow the domain
 rule: **only `EXPENSE` counts as expense** — transfers and cashbox deposits are excluded, and the
 footer says so. Credit card rows carry an icon plus the original purchase date in a sub-line, since
-the date column shows the reference month. Open question: whether voice `DRAFT` entries appear
-here dimmed (as prototyped) or stay hidden until approved.
+the date column shows the reference month. Voice `DRAFT` entries appear here dimmed and excluded
+from the totals, as prototyped.
 
 ### 07 — Entry form (dialog)
 
@@ -280,11 +334,20 @@ the domain.
 | Navigate months | Same control as the monthly tab |
 | Expand a category | Shows its subcategories |
 | Click a row | Opens the monthly tab filtered by that category |
-| Export CSV | Downloads what is on screen |
 
 Expenses and income are separate tables, so the percentage column has one unambiguous base.
-Cashbox movement appears in its own informational block, because it is excluded from the
-percentages by construction. Categories with no activity in the period are omitted.
+Cashbox movement appears in its own informational block, shown expanded, because it is excluded
+from the percentages by construction. Categories with no activity in the period are omitted. There
+is no CSV export.
+
+A column compares the month against the category's rolling monthly average, defined in §3.6. Its
+colour reads as good or bad rather than as in or out: an expense above its average is red, income
+above its average is green. That is the one place in the application where green and red do not
+mean money in and money out, and it sits beside an amount already coloured by the other rule — a
+below-average expense shows a green marker next to a red figure, on the same row.
+
+Decided: **draw it plainly and see how it reads**, without an extra device to separate the two
+meanings. Provisional, like §3.6.
 
 ### 10 — Yearly report (`/reports?view=yearly`)
 
@@ -294,12 +357,16 @@ percentages by construction. Categories with no activity in the period are omitt
 | Compare with the previous year | Adds the prior value and variation |
 | Expand a category | Reveals subcategory rows |
 | Click a cell | Opens that month filtered by that category |
-| Export CSV | Full matrix |
 
-Category rows, twelve month columns, totals and monthly average on the right. Values are rounded
-to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
-zero. On mobile the table scrolls horizontally with the category column frozen. Open question:
-whether the comparison renders as a sub-line inside each cell or as an extra row per category.
+Category rows, twelve month columns, and totals plus a **"Média 12 meses"** column on the right.
+That heading is deliberate: the average is the rolling one of §3.6, so for the current year it
+draws on months the matrix does not show, and a column merely headed "Média" would invite the
+reader to check it against the twelve cells beside it and find it wrong. A tooltip spells out the
+window and the divisor.
+Values are rounded to whole euros so the matrix fits; cents remain in the monthly view. Future
+months show "—", not zero. On mobile the table scrolls horizontally with the category column
+frozen. The prior-year comparison renders inside the cell — percentage beside the current year's
+value — so a category never occupies two rows.
 
 ### 11 — Charts (`/reports?view=charts`)
 
@@ -312,8 +379,8 @@ whether the comparison renders as a sub-line inside each cell or as an extra row
 Donut for the month's distribution (total in the centre), stacked bars for the year by category,
 lines for income against expenses, and a separate line chart plus table for cashboxes — kept apart
 precisely because cashboxes are not expenses. Below 640 px the donut becomes a list with bars. A
-period with no data shows an empty state, never an empty chart frame. Open question: whether
-categories under ~3 % collapse into "Outras" in the donut.
+period with no data shows an empty state, never an empty chart frame. Every category is drawn;
+nothing collapses into "Outras".
 
 ### 12 — Recurrences (`/recurrences`)
 
@@ -329,8 +396,8 @@ categories under ~3 % collapse into "Outras" in the donut.
 Rules and installment plans share one table, told apart by the progress column ("sem fim" versus
 "4/12"). Editing a rule never touches entries already generated — the amount is copied at
 generation time — and the screen says so. Entries produced by a rule are marked with an icon on
-the monthly tab. Open question: whether `autoConfirm` is exposed at all, or whether generated
-entries are always confirmed.
+the monthly tab. `autoConfirm` is exposed as a checkbox — generated entries are not always
+confirmed, the rule decides.
 
 ### 13 — Voice entry (`/voice`)
 
@@ -368,11 +435,27 @@ restore it.
 
 ## 7. Open questions to settle at approval
 
+Answers as they are given, plus every other decision the user has made about the prototypes, are
+recorded in `prototypes/MEMORY.md`. That file is the record; this list only tracks what is left.
+
+Still open:
+
 1. Which colour concept — Sage, Indigo or Slate.
 2. Which type stack — grotesk, humanist or mixed.
-3. Does the account list show the computed balance from M3, or only from M5-T06?
-4. Do voice drafts appear on the monthly tab dimmed, or stay hidden until approved?
-5. Yearly comparison: sub-line inside the cell, or an extra row per category?
-6. Does the donut collapse slices under ~3 % into "Outras"?
-7. Is `autoConfirm` exposed on recurrence rules, or are generated entries always confirmed?
-8. Does the categories screen carry a "spent this month" column, given it needs M6 data?
+
+Settled:
+
+- **The account list shows the current balance, not the initial one** — the initial balance moved
+  into the edit dialog. The current balance still only exists from M5-T06, so M3-T07 either ships
+  without that column or waits.
+- **Voice drafts appear on the monthly tab, dimmed, excluded from the totals.**
+- **The categories screen carries no month-spend column**, which removes its only dependency on M6
+  data.
+- **The yearly comparison lives inside the cell**, percentage beside the current year's value, one
+  row per category.
+- **The charts never group categories into "Outras"** — every category is drawn.
+- **`autoConfirm` stays exposed** on recurrence rules.
+- **There is no CSV export anywhere in the application** — not on the monthly report, not on the
+  yearly one, nowhere. Applied to M6-T03 in `plans/milestones/m06-reports.md`.
+- **The monthly report gains a column comparing the month against the category's average**, which
+  M6-T01 has to feed — see "Plan impact" in `prototypes/MEMORY.md`.
