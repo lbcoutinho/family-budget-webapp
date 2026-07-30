@@ -91,11 +91,18 @@ gets approved; the other two move to `discarded/`.
 Independent of that choice, the **money colours never change**: green is income, red is expense,
 blue is transfer, amber is cashbox. Tying them to the brand colour would mean that switching theme
 changes the meaning of a table. Colour is never the only signal — amounts also carry an explicit
-`+`/`−`.
+`+`/`−`. **This assignment is approved**; only its exact tones are still to be picked, alongside
+the brand colour.
 
-Category colours come from `Category.color` (an eight-swatch suggested palette) and are reused
-verbatim by every chart, so a category looks the same in every month and every view. A category
-with no colour falls back to a deterministic value derived from its id.
+The one exception is the against-the-average column on the monthly report, where green and red mean
+good and bad rather than in and out — see §5, screen 09.
+
+Category colours come from `Category.color`, offered as a **sixteen-swatch suggested palette**, and
+are reused verbatim by every chart, so a category looks the same in every month and every view. A
+category with no colour falls back to a deterministic value derived from its id. Sixteen is a
+ceiling, not a guarantee of legibility: the charts draw every category with no "Outras" grouping,
+and sixteen categorical hues cannot all stay distinguishable from one another — least of all for a
+colour-blind reader. Charts therefore must not lean on colour alone to identify a slice.
 
 ### 3.2 Typography
 

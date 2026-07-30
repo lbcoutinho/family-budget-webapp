@@ -30,7 +30,7 @@ first has been passed. Consequences:
 
 | Prototype | Concept | Changes to apply when regenerating |
 | --- | --- | --- |
-| 00 design system | **not decided** | colour and type still to be chosen |
+| 00 design system | partly | semantic colours kept; palette grows to 16 swatches; tones and type still open |
 | 01 login | approved, in full | — |
 | 02 shell | one change requested | group the setup screens under a "Configurações" menu |
 | 03 accounts | approved | drop the initial-balance column; sort by name |
@@ -48,6 +48,30 @@ first has been passed. Consequences:
 ---
 
 ## Settled
+
+### 00 — Design system
+
+Partly settled. The colour discussion is deliberately postponed, so nothing here unblocks the
+design gate.
+
+- **The semantic colours are kept as they are**: green for income, red for expense, blue for
+  transfer, amber for cashbox — independent of the brand colour, so switching theme never changes
+  what a table means. What is left about them is the exact tone, to be picked together with the
+  brand colour.
+- **The category palette offers sixteen swatches, not eight.**
+
+Two consequences of sixteen, both for whoever regenerates this:
+
+- It halves the collision risk flagged on screen 11. Categories with no colour fall back to a value
+  derived from their id, and since the charts now draw every category, two of them landing on the
+  same colour was a real possibility with eight.
+- It does not make sixteen categories legible in a donut. Sixteen categorical hues cannot all be
+  told apart, and for a colour-blind reader far fewer can. Sixteen is the ceiling on how many
+  categories get a *distinct* colour, not a promise that a sixteen-slice chart reads well — so the
+  charts must identify a slice by more than its colour.
+
+`proto.css` currently defines `--cat-1` … `--cat-8` twice, once for light and once for dark. Both
+sets double.
 
 ### 01 — Login
 
@@ -220,7 +244,10 @@ still open. Apply them once that settles.
 
 Every screen has now been reviewed. What is left:
 
-1. **Colour concept** — sage, indigo or slate. Blocks visual approval of everything.
+1. **Colour: the tones.** Postponed by the user, to be discussed as its own thing. The semantic
+   roles are already settled (above); what is open is the brand colour — sage, indigo or slate, or
+   something else — plus the exact tones of the semantic four and the sixteen category swatches.
+   Blocks visual approval of everything.
 2. **Type concept** — grotesk, humanist or mixed. Same.
 3. **CSV on the yearly report.** It was dropped from the monthly report explicitly; the yearly one
    was not mentioned and still has the button. The yearly matrix is the view that most resembles
