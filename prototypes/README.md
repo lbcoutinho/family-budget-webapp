@@ -11,7 +11,8 @@ animation **before** any React code exists.
 
 ```
 prototypes/
-├── index.html            entry point — list of every prototype and its status
+├── index.html            entry point — compares the directions under review
+├── dir-*.html            one self-contained page per design direction
 ├── MEMORY.md             every UI decision the user has made
 ├── approved/             approved — the reference the React implementation follows
 ├── discarded/
@@ -19,35 +20,30 @@ prototypes/
 └── .nojekyll             belt and braces, see "Published site" below
 ```
 
-**Nothing is under review right now.** The first set was rejected wholesale after review and
-archived as `discarded/v1-default/`, `_shared/` and index included, so it still opens and renders.
-The decisions it produced were not rejected with it — they are in `MEMORY.md` and are the input to
-the next set.
+**Four design directions are under review.** Each `dir-*.html` is standalone — its own palette,
+type pairing, CSS and signature element, sharing nothing with the others, because a shared
+stylesheet would quietly make four directions into one. They all render the same month, with the
+same entries and totals, so only the design differs.
 
-A live set adds `_shared/proto.css` (design tokens plus minimal component styles) and
-`_shared/proto.js` (concept switcher and app shell) next to the `NN-name.html` files.
+The chosen one expands into the thirteen screens; the rest join `discarded/`. Once there is a
+single direction, the shared `_shared/proto.css` and `_shared/proto.js` come back — a set of
+thirteen screens has no business repeating its tokens thirteen times.
 
 ## How to look at them
 
-Open `prototypes/index.html` in a browser. No build, no server, no dependencies — plain files
-on disk, everything inline, no network access required. Right now that page only points at the
-archive; the archived set opens at `discarded/v1-default/index.html`.
+Open `prototypes/index.html` in a browser and follow the four cards. No build and no server —
+plain files on disk. Unlike v1 these do fetch webfonts, so the first load wants a connection;
+without one they fall back to system faces and the typography no longer reads as intended.
 
-They are also published as a static site — see below — so a screen can be reviewed from a phone,
+They are also published as a static site — see below — so a direction can be reviewed from a phone,
 or sent as a link, without a checkout.
 
-The black bar at the top of every page switches four axes, and the choice is stored in
-`localStorage`, so it follows you from screen to screen:
+Two of the four are worth touching rather than looking at: direction C parses the command line as
+you type it, and direction D filters the month when you click a day in the strip.
 
-| Selector  | Values                        | What it is                                            |
-| --------- | ----------------------------- | ----------------------------------------------------- |
-| `cor`     | sage · indigo · slate         | Colour concept                                        |
-| `modo`    | light · dark                  | Light / dark mode                                     |
-| `fonte`   | grotesk · humanist · mixed    | Type concept                                          |
-| `motion`  | full · reduced                | Animation, and what `prefers-reduced-motion` produces |
-
-Start at `00-design-system.html`. Everything else inherits from it, so approving a screen before
-the design system means re-approving it later.
+v1 offered a black bar that switched colour, type and motion across every screen. That is gone on
+purpose — it let one set of screens pretend to be three, which is how v1 ended up with no point of
+view at all. A direction now commits to its choices, and the comparison happens between files.
 
 ## Approval flow
 

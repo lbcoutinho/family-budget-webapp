@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Direção C — Comando</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400;75..125,500;75..125,600;75..125,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+         Direção C — Comando
+         Para quem senta uma vez por mês e digita o extrato inteiro.
+         Densidade alta, teclado antes do mouse, e uma linha de comando
+         que entende o lançamento enquanto você escreve.
+         ============================================================ */
+      :root {
+        --bg: #fafafb;
+        --surface: #ffffff;
+        --ink: #0e1116;
+        --ink-soft: #5b6472;
+        --line: #e2e5ea;
+        --line-hard: #c8ccd4;
+        --blue: #1f4fe0;
+        --blue-soft: #eaeffd;
+        --income: #0f7a4a;
+        --expense: #c02b3f;
+        --transfer: #4a5568;
+        --cashbox: #9a6510;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+      }
+      .mono,
+      .num {
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      .num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .wrap {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 20px 70px;
+      }
+      h1,
+      h2 {
+        font-family: 'Archivo', sans-serif;
+        font-variation-settings: 'wdth' 112;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+
+      /* ---------- barra superior ---------- */
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 0 12px;
+        border-bottom: 1px solid var(--line-hard);
+        flex-wrap: wrap;
+      }
+      .bar h1 {
+        font-size: 1.15rem;
+      }
+      .bar .nav {
+        display: flex;
+        gap: 2px;
+        margin-left: auto;
+      }
+      .bar .nav a {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-soft);
+        text-decoration: none;
+        padding: 4px 9px;
+        border-radius: 5px;
+      }
+      .bar .nav a.on {
+        background: var(--ink);
+        color: #fff;
+      }
+      kbd {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        border: 1px solid var(--line-hard);
+        border-bottom-width: 2px;
+        border-radius: 4px;
+        padding: 1px 5px;
+        background: var(--surface);
+        color: var(--ink-soft);
+      }
+
+      /* ---------- ASSINATURA: a linha de comando ----------
+         Um lançamento é uma frase. Digite-a e os campos aparecem
+         reconhecidos abaixo, um por um, antes de salvar. */
+      .cmd {
+        margin: 18px 0 6px;
+        border: 1.5px solid var(--blue);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: 0 0 0 4px var(--blue-soft);
+      }
+      .cmd-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+      }
+      .cmd-row .caret {
+        color: var(--blue);
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 600;
+      }
+      .cmd input {
+        flex: 1;
+        border: 0;
+        outline: 0;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 14px;
+        color: var(--ink);
+        background: transparent;
+      }
+      .cmd input::placeholder {
+        color: #9aa2b0;
+      }
+      .parsed {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0 14px 11px;
+      }
+      .parsed:empty {
+        display: none;
+      }
+      .tok {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 11.5px;
+        border-radius: 5px;
+        padding: 3px 8px;
+        background: #f1f3f6;
+        border: 1px solid var(--line);
+      }
+      .tok b {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 600;
+      }
+      .tok .lbl {
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .tok.ok {
+        background: var(--blue-soft);
+        border-color: #bfd0fb;
+      }
+      .tok.missing {
+        background: #fff3f4;
+        border-color: #f3c4ca;
+        color: var(--expense);
+      }
+      .cmd-help {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        padding: 0 14px 10px;
+      }
+
+      /* ---------- números do mês ---------- */
+      .strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        margin: 16px 0 14px;
+        overflow: hidden;
+      }
+      .strip div {
+        padding: 9px 12px;
+        border-right: 1px solid var(--line);
+      }
+      .strip div:last-child {
+        border-right: 0;
+      }
+      .strip .k {
+        font-size: 10.5px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .strip .v {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 1.02rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .v.neg {
+        color: var(--expense);
+      }
+      .v.pos {
+        color: var(--income);
+      }
+
+      /* ---------- tabela densa ---------- */
+      .grid {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        font-size: 10.5px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 600;
+        text-align: left;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--line-hard);
+        white-space: nowrap;
+      }
+      th.r {
+        text-align: right;
+      }
+      td {
+        padding: 5px 10px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:hover {
+        background: var(--blue-soft);
+      }
+      tbody tr:focus-within {
+        outline: 2px solid var(--blue);
+        outline-offset: -2px;
+      }
+      td.desc {
+        font-weight: 500;
+        max-width: 1px;
+        width: 34%;
+      }
+      .k-hint {
+        color: var(--ink-soft);
+        font-size: 11px;
+      }
+      .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: 0;
+      }
+      .t-in {
+        color: var(--income);
+      }
+      .t-out {
+        color: var(--expense);
+      }
+      .flag {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      .flag.tr {
+        background: #eef0f3;
+        color: var(--transfer);
+      }
+      .flag.cx {
+        background: #f8efdf;
+        color: var(--cashbox);
+      }
+      .flag.dr {
+        border: 1px dashed var(--line-hard);
+        color: var(--ink-soft);
+      }
+      tr.draft td {
+        color: var(--ink-soft);
+      }
+      tfoot td {
+        padding: 7px 10px;
+        border-top: 1px solid var(--line-hard);
+        font-weight: 600;
+        background: #f7f8fa;
+      }
+
+      /* ---------- caixinhas em linha ---------- */
+      .boxes {
+        margin-top: 26px;
+      }
+      .boxes h2 {
+        font-size: 1rem;
+        margin-bottom: 9px;
+      }
+      .box-rows {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .brow {
+        display: grid;
+        grid-template-columns: 1fr 120px 150px 120px;
+        gap: 12px;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .brow:last-child {
+        border-bottom: 0;
+      }
+      .brow .track {
+        height: 6px;
+        background: #eceef2;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .brow .track i {
+        display: block;
+        height: 100%;
+        background: var(--blue);
+      }
+      .brow .track i.done {
+        background: var(--income);
+      }
+      .brow .acts {
+        display: flex;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+      .brow .acts button {
+        font: inherit;
+        font-size: 11.5px;
+        border: 1px solid var(--line-hard);
+        background: var(--surface);
+        border-radius: 4px;
+        padding: 2px 8px;
+        cursor: pointer;
+      }
+
+      /* ---------- sistema ---------- */
+      .system {
+        margin-top: 34px;
+        border-top: 1px solid var(--line-hard);
+        padding-top: 18px;
+      }
+      .system h2 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+      }
+      .sysgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 22px;
+      }
+      .system .k {
+        font-size: 10.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--blue);
+        display: block;
+        margin-bottom: 6px;
+      }
+      .system p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin: 0 0 7px;
+      }
+      .swatches {
+        display: flex;
+        gap: 0;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .swatches i {
+        flex: 1;
+        height: 30px;
+      }
+      .back {
+        display: inline-block;
+        margin-top: 24px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      @media (max-width: 780px) {
+        .brow {
+          grid-template-columns: 1fr 100px;
+        }
+        .brow .track,
+        .brow .acts {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="bar">
+        <h1>Julho 2026</h1>
+        <span class="k-hint">← → muda o mês</span>
+        <nav class="nav">
+          <a href="#" class="on">Mês</a><a href="#">Relatórios</a><a href="#">Voz</a><a href="#">Configurações</a>
+        </nav>
+      </div>
+
+      <div class="cmd">
+        <div class="cmd-row">
+          <span class="caret">›</span>
+          <input
+            id="cmd"
+            value="5 supermercado continente 128,40 alim/super mill cartao"
+            aria-label="Linha de lançamento"
+            spellcheck="false"
+          />
+          <kbd>Enter</kbd>
+        </div>
+        <div class="parsed" id="parsed"></div>
+        <div class="cmd-help">
+          dia · descrição · valor · categoria/subcategoria · conta — <b>cartao</b> marca crédito,
+          <b>+</b> antes do valor marca receita. A ordem não importa.
+        </div>
+      </div>
+
+      <div class="strip">
+        <div><div class="k">Millennium</div><div class="v">3.482,15</div></div>
+        <div><div class="k">Revolut</div><div class="v">412,90</div></div>
+        <div><div class="k">Dinheiro</div><div class="v neg">−35,00</div></div>
+        <div><div class="k">Caixinhas</div><div class="v">4.150,00</div></div>
+        <div><div class="k">Total</div><div class="v">8.010,05</div></div>
+        <div><div class="k">Saldo do mês</div><div class="v pos">+926,00</div></div>
+      </div>
+
+      <div class="grid">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 54px">Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th style="width: 78px">Tipo</th>
+              <th class="r" style="width: 108px">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tabindex="0">
+              <td class="mono">01/07</td>
+              <td class="desc">Renda de julho</td>
+              <td><span class="dot" style="background: #2f6b43"></span>Moradia · Renda</td>
+              <td>Millennium</td>
+              <td>despesa</td>
+              <td class="num t-out">−950,00</td>
+            </tr>
+            <tr tabindex="0">
+              <td class="mono">03/07</td>
+              <td class="desc">Salário</td>
+              <td><span class="dot" style="background: #2f5f86"></span>Trabalho · Salário</td>
+              <td>Millennium</td>
+              <td>receita</td>
+              <td class="num t-in">+3.200,00</td>
+            </tr>
+            <tr tabindex="0">
+              <td class="mono">05/07</td>
+              <td class="desc">Supermercado Continente <span class="k-hint">· cartão, compra 05/06</span></td>
+              <td><span class="dot" style="background: #9a6510"></span>Alimentação · Supermercado</td>
+              <td>Millennium</td>
+              <td>despesa</td>
+              <td class="num t-out">−128,40</td>
+            </tr>
+            <tr tabindex="0">
+              <td class="mono">07/07</td>
+              <td class="desc">Reserva de férias</td>
+              <td><span class="flag cx">caixinha</span> Férias 2027</td>
+              <td>Millennium</td>
+              <td>depósito</td>
+              <td class="num">−200,00</td>
+            </tr>
+            <tr tabindex="0">
+              <td class="mono">08/07</td>
+              <td class="desc">Millennium → Revolut</td>
+              <td><span class="flag tr">transferência</span></td>
+              <td>Mill → Rev</td>
+              <td>transf.</td>
+              <td class="num">300,00</td>
+            </tr>
+            <tr tabindex="0">
+              <td class="mono">10/07</td>
+              <td class="desc">Seguro do carro <span class="k-hint">· 4/12</span></td>
+              <td><span class="dot" style="background: #c02b3f"></span>Transporte · Seguro</td>
+              <td>Millennium</td>
+              <td>despesa</td>
+              <td class="num t-out">−62,50</td>
+            </tr>
+            <tr class="draft" tabindex="0">
+              <td class="mono">12/07</td>
+              <td class="desc">Farmácia <span class="flag dr">rascunho</span></td>
+              <td>Saúde · <em>a definir</em></td>
+              <td>—</td>
+              <td>despesa</td>
+              <td class="num">−24,90</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5">Receitas</td>
+              <td class="num t-in">+3.284,00</td>
+            </tr>
+            <tr>
+              <td colspan="5">Despesas <span class="k-hint">sem transferências e caixinhas</span></td>
+              <td class="num t-out">−2.358,00</td>
+            </tr>
+            <tr>
+              <td colspan="5">Saldo do mês</td>
+              <td class="num">+926,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <section class="boxes">
+        <h2>Caixinhas</h2>
+        <div class="box-rows">
+          <div class="brow">
+            <div><b>Férias 2027</b> <span class="k-hint">· viagem em agosto</span></div>
+            <div class="num mono">2.400,00</div>
+            <div class="track"><i style="width: 60%"></i></div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+          <div class="brow">
+            <div><b>Emergência</b></div>
+            <div class="num mono">1.750,00</div>
+            <div></div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+          <div class="brow">
+            <div><b>IRS 2026</b> <span class="k-hint">· meta atingida</span></div>
+            <div class="num mono">1.000,00</div>
+            <div class="track"><i class="done" style="width: 100%"></i></div>
+            <div class="acts"><button>Guardar</button><button>Resgatar</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="system">
+        <h2>O sistema por trás</h2>
+        <div class="sysgrid">
+          <div>
+            <span class="k">Cor</span>
+            <div class="swatches">
+              <i style="background: #fafafb"></i><i style="background: #e2e5ea"></i><i style="background: #1f4fe0"></i
+              ><i style="background: #0e1116"></i><i style="background: #0f7a4a"></i><i style="background: #c02b3f"></i>
+            </div>
+            <p>
+              Cinza frio e um azul só, saturado, reservado para o que responde ao teclado: a linha
+              de comando, a linha em foco, o preenchimento de meta. Cor aqui é estado, nunca
+              enfeite.
+            </p>
+          </div>
+          <div>
+            <span class="k">Tipografia</span>
+            <p>
+              <strong>Archivo</strong>, variável em largura — títulos em 112 de largura, tabela em
+              100, então a hierarquia vem da largura da letra e não só do tamanho.<br />
+              <strong>IBM Plex Mono</strong> em datas e dinheiro: numa tela desta densidade, largura
+              fixa é o que deixa a coluna legível.
+            </p>
+          </div>
+          <div>
+            <span class="k">Assinatura — a linha de comando</span>
+            <p>
+              Um lançamento é uma frase, e a frase é a interface. Digite
+              <span class="mono">5 farmacia 24,90 saude/farm mill</span> e os campos vão sendo
+              reconhecidos abaixo enquanto você escreve — em qualquer ordem, com o que faltar em
+              vermelho. É a resposta ao caso real: sentar uma vez e lançar o extrato inteiro sem
+              tirar a mão do teclado. <em>Edite o campo acima para ver.</em>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <a class="back" href="index.html">← Comparar as quatro direções</a>
+    </div>
+
+    <script>
+      /* Reconhecimento ao vivo. Proposital que seja tolerante: quem digita
+         extrato não quer aprender sintaxe, quer ser entendido. */
+      const CONTAS = { mill: 'Millennium', rev: 'Revolut', din: 'Dinheiro' };
+      const CATS = {
+        alim: 'Alimentação',
+        mor: 'Moradia',
+        trans: 'Transporte',
+        saude: 'Saúde',
+        lazer: 'Lazer',
+      };
+      const SUBS = { super: 'Supermercado', rest: 'Restaurante', farm: 'Farmácia', renda: 'Renda', seguro: 'Seguro' };
+
+      function parse(line) {
+        const words = line.trim().split(/\s+/).filter(Boolean);
+        const out = { dia: null, valor: null, receita: false, cartao: false, cat: null, sub: null, conta: null };
+        const rest = [];
+
+        for (const w of words) {
+          const low = w.toLowerCase();
+          if (/^\+?\d{1,3}(\.\d{3})*,\d{2}$/.test(low) || /^\+?\d+,\d{2}$/.test(low)) {
+            out.valor = low.replace('+', '');
+            if (low.startsWith('+')) out.receita = true;
+            continue;
+          }
+          if (out.dia === null && /^\d{1,2}$/.test(low) && +low >= 1 && +low <= 31) {
+            out.dia = low.padStart(2, '0');
+            continue;
+          }
+          if (low === 'cartao' || low === 'cartão') {
+            out.cartao = true;
+            continue;
+          }
+          if (low.includes('/')) {
+            const [c, s] = low.split('/');
+            const catKey = Object.keys(CATS).find((k) => c.startsWith(k));
+            if (catKey) out.cat = CATS[catKey];
+            const subKey = Object.keys(SUBS).find((k) => s && s.startsWith(k));
+            if (subKey) out.sub = SUBS[subKey];
+            continue;
+          }
+          const acc = Object.keys(CONTAS).find((k) => low.startsWith(k));
+          if (acc && !out.conta) {
+            out.conta = CONTAS[acc];
+            continue;
+          }
+          rest.push(w);
+        }
+        out.desc = rest.join(' ');
+        return out;
+      }
+
+      function tok(label, value, state) {
+        return `<span class="tok ${state}"><span class="lbl">${label}</span><b>${value}</b></span>`;
+      }
+
+      function render() {
+        const p = parse(document.getElementById('cmd').value);
+        const bits = [];
+        bits.push(p.dia ? tok('data', p.dia + '/07/2026', 'ok') : tok('data', 'faltando', 'missing'));
+        bits.push(p.desc ? tok('descrição', p.desc, 'ok') : tok('descrição', 'faltando', 'missing'));
+        bits.push(p.valor ? tok('valor', (p.receita ? '+ ' : '− ') + p.valor + ' €', 'ok') : tok('valor', 'faltando', 'missing'));
+        bits.push(p.cat ? tok('categoria', p.cat + (p.sub ? ' · ' + p.sub : ''), 'ok') : tok('categoria', 'faltando', 'missing'));
+        bits.push(p.conta ? tok('conta', p.conta, 'ok') : tok('conta', 'faltando', 'missing'));
+        if (p.cartao) bits.push(tok('cartão', 'referência agosto', 'ok'));
+        document.getElementById('parsed').innerHTML = bits.join('');
+      }
+
+      document.getElementById('cmd').addEventListener('input', render);
+      render();
+    </script>
+  </body>
+</html>

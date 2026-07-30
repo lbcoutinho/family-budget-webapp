@@ -11,14 +11,37 @@ decisions.
 
 ## Standing instruction
 
-**The first set is discarded in full**, archived as `discarded/v1-default/`. Nothing is under
-review; `prototypes/` holds no live prototype, only a placeholder index pointing at the archive.
+**v1 is discarded in full** (`discarded/v1-default/`) — rejected for looking templated, having been
+drawn without any design skill in play.
 
-**A full regeneration is planned, but not yet requested.** The user intends to install additional
-skills first and will then ask for it. Do not regenerate before being asked.
+**Four design directions are now under review**, built with the `frontend-design` skill:
+`dir-a-livro-caixa`, `dir-b-envelope`, `dir-c-comando`, `dir-d-cromatico`. Each is a self-contained
+page showing the same month — same entries, same totals — so the difference is only design. Each
+carries its own palette, type pairing and signature element, and ends with "O sistema por trás"
+explaining the choices.
+
+**Waiting on one choice.** The chosen direction then expands to all thirteen screens; the other
+three go to `discarded/`. Do not expand before the choice is made.
 
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
-and is the input to v2 — that is the whole reason this file exists separately from the mock-ups.
+and the four directions already respect it — that is the whole reason this file exists separately
+from the mock-ups.
+
+### Rules deliberately broken in v2, and why
+
+v1's own rules were written before there was any design intent. These four break four of them, on
+the user's explicit instruction not to treat them as fixed:
+
+- **External requests.** v1 forbade any network call and used system fonts. These load real
+  typefaces from Google Fonts — without that there is no typography to judge.
+- **Nothing over 320 ms.** Direction A rules its balance rail over 620 ms; direction D grows the
+  month strip day by day over roughly 700 ms. In both the duration *is* the content: it is the
+  month being traversed.
+- **One easing curve.** Direction B's envelope fills with a spring and settles. Filling a container
+  does not decelerate linearly.
+- **No animated numbers.** v1 banned counters, correctly: a balance that rolls cannot be checked.
+  Direction D counts the expense total when a day is filtered — there it marks that the filter
+  changed, and is not a balance anyone is reconciling.
 
 ## What "approved" means below
 
