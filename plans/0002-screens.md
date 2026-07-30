@@ -329,9 +329,12 @@ is no CSV export.
 
 A column compares the month against the category's rolling monthly average, defined in §3.6. Its
 colour reads as good or bad rather than as in or out: an expense above its average is red, income
-above its average is green. That is the one place in the
-application where green and red do not mean money in and money out, and it sits beside an amount
-already coloured by the other rule — so the two have to be told apart visually.
+above its average is green. That is the one place in the application where green and red do not
+mean money in and money out, and it sits beside an amount already coloured by the other rule — a
+below-average expense shows a green marker next to a red figure, on the same row.
+
+Decided: **draw it plainly and see how it reads**, without an extra device to separate the two
+meanings. Provisional, like §3.6.
 
 ### 10 — Yearly report (`/reports?view=yearly`)
 

@@ -200,11 +200,11 @@ selector; a fixed explanatory line per mode.
     green.** Explicitly confirmed, and to be honoured when the screen is built.
   - _Divisor._ **Only the months with movement**, confirmed — not a flat twelve. Now a project-wide
     rule rather than a detail of this screen; see "Applies everywhere".
-  - _Design tension to resolve when drawing it._ This is the only place in the application where
-    green and red mean good and bad instead of money in and money out, and it lands next to an
-    amount already coloured by the other rule: a below-average expense would be a green marker
-    beside a red figure on the same row. The two meanings need to be visually distinct — an arrow,
-    a lighter treatment, something — or the row contradicts itself.
+  - _Two colour meanings on one row._ This is the only place in the application where green and
+    red mean good and bad instead of money in and money out, so a below-average expense shows a
+    green marker beside a red figure. **Decided: draw it plainly and see how it reads** — no arrow,
+    no muted treatment, nothing added to keep the two apart. Provisional; if the row turns out to
+    contradict itself in practice, that is when to separate them.
 - Remaining approved as prototyped: the proportion bar inside the percentage cell; expenses and
   income in separate tables; percentages over the month's expense total, rounded to close at 100%;
   a category with no movement omitted rather than shown as zero.
