@@ -29,7 +29,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Before implementing any screen ticket, check `prototypes/approved/`.** Prototype missing or still under review → **stop and ask**, don't improvise UI.
 - **`prototypes/MEMORY.md` records every UI decision the user has already made** — read it before touching or regenerating a prototype, and treat what's settled there as input, not as a question to ask again. Note that **concept approval and design approval are separate gates**: a concept can be settled while the file is still under review, so it stays out of `approved/` and the screen stays blocked.
-- Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record). Moving a file also updates the status table in `prototypes/index.html` and §4 of `plans/0002-screens.md`, same commit.
+- Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record). A whole rejected generation goes to `discarded/vN-<name>/`, carrying `_shared/` and the index so the archive still renders — `v1-default` is the first. Moving a file also updates the status table in `prototypes/index.html` and §4 of `plans/0002-screens.md`, same commit.
+- **State right now: nothing under review.** v1 was discarded in full; `prototypes/` holds only a placeholder index, the record and the two lifecycle folders. Regeneration is planned but must be asked for.
 - Every prototype ends with a **"Decisões a aprovar"** block — the open choices, stated so they can be decided rather than guessed.
 - `00-design-system.html` is approved first; everything else inherits colour/type/motion from it.
 - **UI strings pt-BR** (the interface is localized); filenames, comments, commits stay en-US. Sample data fictional but consistent across screens (same accounts/categories, July 2026).

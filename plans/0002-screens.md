@@ -30,11 +30,17 @@ the approved prototype is linked from the ticket's GitHub Issue.
 ```
 prototypes/
 ├── index.html          list of every prototype and its status
+├── MEMORY.md           every UI decision the user has made
 ├── _shared/            proto.css (tokens) + proto.js (concept switcher, app shell)
 ├── NN-name.html        under review
 ├── approved/           approved — reference for implementation
-└── discarded/          rejected — kept as a record
+└── discarded/
+    └── v1-default/     a rejected set, complete and still openable
 ```
+
+A discarded set is archived whole, in its own `vN-<name>` folder, `_shared/` and index included, so
+it still opens and renders years later. Rejecting one prototype moves one file; rejecting a whole
+generation moves the generation.
 
 The folder is also published as a static site: `.github/workflows/pages.yml` deploys **only this
 folder** to GitHub Pages on every push to `main` that touches it, so a screen can be reviewed from
@@ -48,7 +54,11 @@ a branch" setting, which can only serve the repository root or `/docs`. See
 | ------------ | ------------------- | -------------------------------------------------------- |
 | Under review | `prototypes/*.html` | Written, waiting for the user's decision                  |
 | Approved     | `approved/`         | Locked; the implementation ticket may start               |
-| Discarded    | `discarded/`        | Rejected direction, kept so it is not proposed again      |
+| Discarded    | `discarded/vN-…/`   | Rejected, kept so it is not proposed again                |
+
+**v1-default is discarded in full.** It did its job — it turned a plan into thirteen concrete
+screens and pulled the decisions out of the user — and is kept for exactly that reason: a record of
+what was already tried.
 
 Moving a file also updates the status table in `prototypes/index.html` and §4 of this plan, in the
 same commit.
@@ -161,25 +171,27 @@ months written out ("Julho de 2026") in navigation. Money input accepts both `1.
 
 ## 4. Screen inventory
 
-Thirteen screens plus the design system. "Prototype" links the file; "Ticket" the milestone task
-that implements it.
+Thirteen screens plus the design system. "Prototype" names the file; "Ticket" the milestone task
+that implements it. **The whole first set was discarded after review** and lives in
+`prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` and are
+the input to the next set. Nothing is under review right now.
 
 | #   | Screen             | Route                  | Ticket             | Prototype                    | Status      |
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
-| 00  | Design system      | —                      | —                  | `00-design-system.html`      | Under review |
-| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Under review |
-| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Under review |
-| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Under review |
-| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Under review |
-| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Under review |
-| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | Under review |
-| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Under review |
-| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Under review |
-| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | Under review |
-| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Under review |
-| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Under review |
-| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Under review |
-| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Under review |
+| 00  | Design system      | —                      | —                  | `00-design-system.html`      | Discarded (v1) |
+| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Discarded (v1) |
+| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Discarded (v1) |
+| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Discarded (v1) |
+| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Discarded (v1) |
+| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Discarded (v1) |
+| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | Discarded (v1) |
+| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Discarded (v1) |
+| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Discarded (v1) |
+| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | Discarded (v1) |
+| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Discarded (v1) |
+| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Discarded (v1) |
+| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Discarded (v1) |
+| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Discarded (v1) |
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance

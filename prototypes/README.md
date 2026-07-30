@@ -12,19 +12,26 @@ animation **before** any React code exists.
 ```
 prototypes/
 ├── index.html            entry point — list of every prototype and its status
-├── _shared/
-│   ├── proto.css         design tokens + minimal component styles
-│   └── proto.js          concept switcher (colour/mode/font/motion) + app shell
-├── NN-name.html          prototypes under review
+├── MEMORY.md             every UI decision the user has made
 ├── approved/             approved — the reference the React implementation follows
-├── discarded/            rejected — kept as a record of what was already tried
+├── discarded/
+│   └── v1-default/       the first set, discarded in full — complete and still openable
 └── .nojekyll             belt and braces, see "Published site" below
 ```
+
+**Nothing is under review right now.** The first set was rejected wholesale after review and
+archived as `discarded/v1-default/`, `_shared/` and index included, so it still opens and renders.
+The decisions it produced were not rejected with it — they are in `MEMORY.md` and are the input to
+the next set.
+
+A live set adds `_shared/proto.css` (design tokens plus minimal component styles) and
+`_shared/proto.js` (concept switcher and app shell) next to the `NN-name.html` files.
 
 ## How to look at them
 
 Open `prototypes/index.html` in a browser. No build, no server, no dependencies — plain files
-on disk, everything inline, no network access required.
+on disk, everything inline, no network access required. Right now that page only points at the
+archive; the archived set opens at `discarded/v1-default/index.html`.
 
 They are also published as a static site — see below — so a screen can be reviewed from a phone,
 or sent as a link, without a checkout.
@@ -49,7 +56,9 @@ the design system means re-approving it later.
 2. Approve, or say what changes. Approving moves the file into `approved/`; the status table in
    `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
 3. Only then does the screen become an implementation ticket.
-4. A rejected direction moves to `discarded/` rather than being deleted.
+4. A rejected direction moves to `discarded/` rather than being deleted. One prototype rejected
+   moves one file; a whole generation rejected moves into its own `discarded/vN-<name>/` folder,
+   carrying `_shared/` and the index so the archive still renders.
 
 Files inside `approved/` are read-only references. When an approved prototype needs to change,
 edit it in place and note the change in the pull request — the prototype and the built screen must

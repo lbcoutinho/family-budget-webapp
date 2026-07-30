@@ -11,8 +11,14 @@ decisions.
 
 ## Standing instruction
 
-**A full regeneration of every prototype is planned, but not yet requested.** The user intends to
-install additional skills first and will then ask for it. Do not regenerate before being asked.
+**The first set is discarded in full**, archived as `discarded/v1-default/`. Nothing is under
+review; `prototypes/` holds no live prototype, only a placeholder index pointing at the archive.
+
+**A full regeneration is planned, but not yet requested.** The user intends to install additional
+skills first and will then ask for it. Do not regenerate before being asked.
+
+Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
+and is the input to v2 — that is the whole reason this file exists separately from the mock-ups.
 
 ## What "approved" means below
 
@@ -27,6 +33,9 @@ first has been passed. Consequences:
   what is shown and what is not.
 
 ## Status per screen
+
+Every row's v1 file is in `discarded/v1-default/`. "Concept" is what survived review and carries
+into v2.
 
 | Prototype | Concept | Changes to apply when regenerating |
 | --- | --- | --- |
