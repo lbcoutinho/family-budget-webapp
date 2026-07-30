@@ -368,11 +368,22 @@ restore it.
 
 ## 7. Open questions to settle at approval
 
+Answers as they are given, plus every other decision the user has made about the prototypes, are
+recorded in `prototypes/MEMORY.md`. That file is the record; this list only tracks what is left.
+
+Still open:
+
 1. Which colour concept — Sage, Indigo or Slate.
 2. Which type stack — grotesk, humanist or mixed.
-3. Does the account list show the computed balance from M3, or only from M5-T06?
-4. Do voice drafts appear on the monthly tab dimmed, or stay hidden until approved?
-5. Yearly comparison: sub-line inside the cell, or an extra row per category?
-6. Does the donut collapse slices under ~3 % into "Outras"?
-7. Is `autoConfirm` exposed on recurrence rules, or are generated entries always confirmed?
-8. Does the categories screen carry a "spent this month" column, given it needs M6 data?
+3. Yearly comparison: sub-line inside the cell, or an extra row per category?
+4. Does the donut collapse slices under ~3 % into "Outras"?
+5. Is `autoConfirm` exposed on recurrence rules, or are generated entries always confirmed?
+
+Settled:
+
+- **The account list shows the current balance, not the initial one** — the initial balance moved
+  into the edit dialog. The current balance still only exists from M5-T06, so M3-T07 either ships
+  without that column or waits.
+- **Voice drafts appear on the monthly tab, dimmed, excluded from the totals.**
+- **The categories screen carries no month-spend column**, which removes its only dependency on M6
+  data.
