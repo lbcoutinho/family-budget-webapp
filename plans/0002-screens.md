@@ -2,7 +2,7 @@
 
 **Status:** Awaiting approval
 **Depends on:** [`0001-overview.md`](0001-overview.md)
-**Last updated:** 2026-07-29
+**Last updated:** 2026-07-30
 
 ---
 
@@ -31,16 +31,22 @@ the approved prototype is linked from the ticket's GitHub Issue.
 prototypes/
 ├── index.html          list of every prototype and its status
 ├── MEMORY.md           every UI decision the user has made
-├── _shared/            proto.css (tokens) + proto.js (concept switcher, app shell)
+├── _shared/            proto.css (tokens) + proto.js (icons, app shell, dialogs)
 ├── NN-name.html        under review
 ├── approved/           approved — reference for implementation
+├── archives/
+│   └── v2-directions/  the four candidate directions, kept as the record of the choice
 └── discarded/
     └── v1-default/     a rejected set, complete and still openable
 ```
 
-A discarded set is archived whole, in its own `vN-<name>` folder, `_shared/` and index included, so
-it still opens and renders years later. Rejecting one prototype moves one file; rejecting a whole
-generation moves the generation.
+A set that leaves circulation is kept whole, in its own `vN-<name>` folder, `_shared/` and index
+included, so it still opens and renders years later. Rejecting one prototype moves one file;
+rejecting a whole generation moves the generation.
+
+`discarded/` and `archives/` are different claims. Discarded means rejected. Archived means the
+work was exploration that was never going to ship as-is — the four design directions, three of
+which lost a comparison they existed to lose.
 
 The folder is also published as a static site: `.github/workflows/pages.yml` deploys **only this
 folder** to GitHub Pages on every push to `main` that touches it, so a screen can be reviewed from
@@ -55,10 +61,14 @@ a branch" setting, which can only serve the repository root or `/docs`. See
 | Under review | `prototypes/*.html` | Written, waiting for the user's decision                  |
 | Approved     | `approved/`         | Locked; the implementation ticket may start               |
 | Discarded    | `discarded/vN-…/`   | Rejected, kept so it is not proposed again                |
+| Archived     | `archives/vN-…/`    | Exploration that did its job, kept as the record of a choice |
 
 **v1-default is discarded in full.** It did its job — it turned a plan into thirteen concrete
 screens and pulled the decisions out of the user — and is kept for exactly that reason: a record of
 what was already tried.
+
+**The four v2 design directions are archived**, not discarded. `dir-d-cromatico` was chosen and
+became v2; the other three are the evidence for why.
 
 Moving a file also updates the status table in `prototypes/index.html` and §4 of this plan, in the
 same commit.
@@ -95,7 +105,11 @@ These hold for every screen and are demonstrated in `00-design-system.html`.
 ### 3.1 Colour
 
 The palette comes with the chosen design direction rather than from a menu of themes — v1's three
-interchangeable schemes were part of why it had no point of view.
+interchangeable schemes were part of why it had no point of view. The direction is **D —
+Cromático**, and its thesis decides the whole question: **colour belongs to the data, never to the
+chrome.** There is therefore **no brand colour at all** — the primary button, the active navigation
+item, the focus ring and the table header are ink. Any brand accent would compete with the only
+colours that carry meaning.
 
 Whatever direction wins, the **money colours never change**: green is income, red is expense, blue
 is transfer, amber is cashbox. Tying them to the brand colour would mean the brand could change
@@ -120,9 +134,11 @@ attention — which also means every token is a single value instead of a light/
 ### 3.2 Typography
 
 The typefaces come with the direction too: a display face used with restraint, a body face, and a
-face for figures. Two constraints hold whichever wins — **every amount is set in tabular figures**,
-because columns of money that do not align cannot be scanned, and the display face is never the
-delivery vehicle for data.
+face for figures. Direction D pairs **Familjen Grotesk** (headings and large values),
+**Public Sans** (body, deliberately neutral so it does not compete with the colour) and
+**DM Mono** (every amount, date, percentage and count). Two constraints hold regardless — **every
+amount is set in tabular figures**, because columns of money that do not align cannot be scanned,
+and the display face is never the delivery vehicle for data.
 
 ### 3.3 Motion
 
@@ -187,24 +203,31 @@ months written out ("Julho de 2026") in navigation. Money input accepts both `1.
 Thirteen screens plus the design system. "Prototype" names the file; "Ticket" the milestone task
 that implements it. **The whole first set was discarded after review** and lives in
 `prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` and are
-the input to the next set. Nothing is under review right now.
+the input to v2.
+
+**v2 is direction D — Cromático**, and covers three screens: the design system, the month and the
+monthly report. Those three settle the token set, the densest layout and the new
+against-the-average column; the other ten follow their approval rather than being drawn twice.
 
 | #   | Screen             | Route                  | Ticket             | Prototype                    | Status      |
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
-| 00  | Design system      | —                      | —                  | `00-design-system.html`      | Discarded (v1) |
-| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Discarded (v1) |
-| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Discarded (v1) |
-| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Discarded (v1) |
-| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Discarded (v1) |
-| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Discarded (v1) |
-| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | Discarded (v1) |
-| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Discarded (v1) |
-| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Discarded (v1) |
-| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | Discarded (v1) |
-| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Discarded (v1) |
-| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Discarded (v1) |
-| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Discarded (v1) |
-| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Discarded (v1) |
+| 00  | Design system      | —                      | —                  | `00-design-system.html`      | **v2 — under review** |
+| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Awaiting v2 |
+| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Awaiting v2 |
+| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Awaiting v2 |
+| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Awaiting v2 |
+| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | Awaiting v2 |
+| 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `06-month.html`              | **v2 — under review** |
+| 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Awaiting v2 |
+| 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Awaiting v2 |
+| 09  | Monthly report     | `/reports`             | M6-T03             | `09-reports-monthly.html`    | **v2 — under review** |
+| 10  | Yearly report      | `/reports?view=yearly` | M6-T02, M6-T03     | `10-reports-yearly.html`     | Awaiting v2 |
+| 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Awaiting v2 |
+| 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Awaiting v2 |
+| 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Awaiting v2 |
+
+"Awaiting v2" means the screen's concept survived the v1 review and only its drawing is missing —
+and that drawing comes out of the three above.
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance
@@ -260,7 +283,7 @@ ships without the column or waits. Rows are sorted alphabetically by name.
 | Expand a category | Reveals its subcategories |
 | Create root category | Automatically ships with an "Outros" subcategory |
 | Create subcategory from its parent | `parentId` pre-filled, parent locked |
-| Pick colour | Eight suggested swatches plus a hex field |
+| Pick colour | Sixteen suggested swatches plus a hex field |
 | Deactivate parent | Confirmation stating that the children go with it |
 | Deactivate last active subcategory | Blocked, 409 explained inline |
 | Search | Filters the tree |
@@ -297,7 +320,7 @@ than merely ineffective.
 | --- | --- |
 | Previous / next month, "hoje", month picker | Updates the URL; a shared URL opens the same month |
 | Search description, filter by type / category / account | Narrows the table |
-| Sort by column | Client-side within the loaded page |
+| Sort | Client-side within the loaded page, chosen in a select above the list |
 | New entry | Opens 07; the cashbox button opens 08 |
 | Edit row | Opens the form matching the entry type, pre-filled |
 | Delete row | Confirmation identifying the entry, then a toast with undo |
@@ -309,6 +332,16 @@ rule: **only `EXPENSE` counts as expense** — transfers and cashbox deposits ar
 footer says so. Credit card rows carry an icon plus the original purchase date in a sub-line, since
 the date column shows the reference month. Voice `DRAFT` entries appear here dimmed and excluded
 from the totals, as prototyped.
+
+Entries are rows rather than table cells — date, description with its classification underneath,
+amount — with the category's colour as a bar down the left edge. One layout serves the phone and
+the desktop, and no wide table has to scroll sideways. The cost is that there is no column header
+to click, so **sorting moved into a select** above the list. Row actions stay visible at reduced
+opacity rather than appearing on hover, which is the same correction the categories screen needed.
+
+Above the list sits the screen's signature: **a strip with one segment per day**, its height the
+day's expense and its colour the category that weighed most. Clicking a day filters the list and
+recomputes the footer. That recomputed total may animate; the balance panel never does.
 
 ### 07 — Entry form (dialog)
 
@@ -451,10 +484,23 @@ restore it.
 Answers as they are given, plus every other decision the user has made about the prototypes, are
 recorded in `prototypes/MEMORY.md`. That file is the record; this list only tracks what is left.
 
-Still open:
+Still open — both now have a concrete proposal in `00-design-system.html`, which is what approving
+that screen accepts or rejects:
 
-1. Which colour concept — Sage, Indigo or Slate.
-2. Which type stack — grotesk, humanist or mixed.
+1. **Which colour concept.** Was Sage, Indigo or Slate. v2 proposes **none of them**: no brand
+   colour, the sixteen category swatches as direction D drew them, and the money four with the
+   cashbox amber darkened from `#a0700f` to `#8a6008` so its text clears 4.5:1 on white.
+2. **Which type stack.** Was grotesk, humanist or mixed. v2 proposes **three roles instead of one
+   family**: Familjen Grotesk, Public Sans, DM Mono.
+
+Raised by v2 and deliberately left to the eye:
+
+3. **Does the against-the-average column read?** On screen 09 an expense below its average shows a
+   green marker beside a red figure, drawn plainly with nothing added to separate the two meanings
+   of green. That was the decision — draw it and see — so this is answered by looking, not by
+   argument.
+4. **Sorting the month by a select rather than by column headers.** The month list is rows rather
+   than a table, so there is no header to click. See §5, screen 06.
 
 Settled:
 

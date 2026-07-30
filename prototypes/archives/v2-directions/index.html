@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arquivo — as quatro direções da v2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f7f7f8;
+        --surface: #fff;
+        --ink: #16181d;
+        --soft: #666c78;
+        --line: #e3e5e9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 48px 22px 80px;
+      }
+      h1 {
+        font-size: 1.9rem;
+        letter-spacing: -0.03em;
+        margin: 0 0 0.5rem;
+      }
+      .lede {
+        color: var(--soft);
+        margin: 0 0 2rem;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 2.4rem 0 0.8rem;
+        letter-spacing: -0.01em;
+      }
+      .cards {
+        display: grid;
+        gap: 14px;
+      }
+      a.card {
+        display: block;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px 20px;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          border-color 140ms ease,
+          transform 140ms ease;
+      }
+      a.card:hover {
+        border-color: #b9bec8;
+        transform: translateY(-1px);
+      }
+      a.card.chosen {
+        border-color: currentColor;
+        box-shadow: 0 0 0 1px currentColor;
+      }
+      a.card h3 {
+        margin: 0 0 4px;
+        font-size: 1.1rem;
+        letter-spacing: -0.02em;
+      }
+      a.card .tag {
+        font-size: 11px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--soft);
+        font-weight: 600;
+      }
+      a.card p {
+        margin: 6px 0 0;
+        font-size: 13.5px;
+        color: var(--soft);
+      }
+      a.card .sig {
+        margin-top: 10px;
+        font-size: 13px;
+        border-left: 3px solid currentColor;
+        padding-left: 10px;
+      }
+      .sw {
+        display: flex;
+        gap: 4px;
+        margin-top: 12px;
+      }
+      .sw i {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .note {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--ink);
+        border-radius: 0 10px 10px 0;
+        padding: 14px 18px;
+        font-size: 13.5px;
+        margin: 0 0 2rem;
+      }
+      .note b {
+        display: block;
+        margin-bottom: 3px;
+      }
+      ul {
+        margin: 0.4rem 0 0;
+        padding-left: 1.15rem;
+        font-size: 13.5px;
+        color: var(--soft);
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--soft);
+      }
+      code {
+        background: #edeef1;
+        border-radius: 4px;
+        padding: 0.1em 0.35em;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Quatro direções de design</h1>
+      <p class="lede">
+        Arquivo. A primeira leva foi descartada por ser genérica; estas quatro foram a busca por uma identidade, cada uma com sua própria paleta, tipografia e
+        elemento assinatura.
+        <strong>A direção D — Cromático foi a escolhida</strong> e virou a v2. As outras três ficam aqui como registro do que já foi tentado — não são descarte
+        por rejeição, são o caminho até a escolha.
+      </p>
+
+      <div class="note">
+        <b>A escolhida: direção D — Cromático</b>
+        A v2 completa está em <code>../../index.html</code>: sistema de design, tela do mês e relatório mensal, todos na linguagem da D. Todas as quatro páginas
+        abaixo mostram o mesmo conteúdo — julho de 2026, os mesmos lançamentos, os mesmos totais — para que a diferença fosse só de desenho.
+      </div>
+
+      <div class="cards">
+        <a class="card" href="dir-a-livro-caixa.html" style="color: #1b241e">
+          <span class="tag">Direção A</span>
+          <h3>Livro-caixa</h3>
+          <p>O papel pautado de contabilidade. Bandas alternadas em vez de linhas de grade, serifa de carimbo nos títulos, mono de verdade em todo dinheiro.</p>
+          <div class="sig">
+            <b>Assinatura:</b> régua de saldo na margem — cada linha marca onde a conta ficou, e o mês desenha sua forma ao lado dos números.
+          </div>
+          <div class="sw">
+            <i style="background: #f1f3ef"></i><i style="background: #e4ebe2"></i><i style="background: #b7c5b8"></i><i style="background: #1b241e"></i
+            ><i style="background: #2f6b43"></i><i style="background: #9c3a2c"></i>
+          </div>
+        </a>
+
+        <a class="card" href="dir-b-envelope.html" style="color: #57366c">
+          <span class="tag">Direção B</span>
+          <h3>Envelope</h3>
+          <p>Orçamento de envelope, que é literalmente o que "caixinha" quer dizer. Lilás-acinzentado e tinta ameixa, cantos generosos, tipografia larga.</p>
+          <div class="sig"><b>Assinatura:</b> o envelope enche — a caixinha é um recipiente com nível e menisco, não uma barra de progresso.</div>
+          <div class="sw">
+            <i style="background: #f0eff5"></i><i style="background: #fff"></i><i style="background: #dbd8e4"></i><i style="background: #57366c"></i
+            ><i style="background: #2c6a4f"></i><i style="background: #a03551"></i>
+          </div>
+        </a>
+
+        <a class="card" href="dir-c-comando.html" style="color: #1f4fe0">
+          <span class="tag">Direção C</span>
+          <h3>Comando</h3>
+          <p>
+            Para quem senta uma vez por mês e digita o extrato inteiro. Densidade alta, um azul só reservado para estado, largura variável carregando a
+            hierarquia.
+          </p>
+          <div class="sig">
+            <b>Assinatura:</b> a linha de comando — o lançamento é uma frase, e os campos aparecem reconhecidos enquanto você digita.
+            <em>Funciona: edite o campo.</em>
+          </div>
+          <div class="sw">
+            <i style="background: #fafafb"></i><i style="background: #e2e5ea"></i><i style="background: #1f4fe0"></i><i style="background: #0e1116"></i
+            ><i style="background: #0f7a4a"></i><i style="background: #c02b3f"></i>
+          </div>
+        </a>
+
+        <a class="card chosen" href="dir-d-cromatico.html" style="color: #b4641e">
+          <span class="tag">Direção D · escolhida</span>
+          <h3>Cromático</h3>
+          <p>
+            A cor da categoria já é identidade permanente; esta direção leva isso ao limite. Também é a única que propõe as 16 cores de verdade, lado a lado.
+          </p>
+          <div class="sig">
+            <b>Assinatura:</b> a faixa do mês — um segmento por dia, altura pelo que saiu, cor pela categoria que mais pesou. <em>Funciona: clique num dia.</em>
+          </div>
+          <div class="sw">
+            <i style="background: #1f6f54"></i><i style="background: #2e6da4"></i><i style="background: #b4641e"></i><i style="background: #a32c3d"></i
+            ><i style="background: #6b4ca8"></i><i style="background: #0f7c82"></i>
+          </div>
+        </a>
+      </div>
+
+      <h2>O que mudei do que estava "proibido"</h2>
+      <ul>
+        <li>
+          <b>Fontes externas.</b> A v1 proibia qualquer requisição de rede e usava a fonte do sistema. Estas carregam tipografia de verdade do Google Fonts —
+          sem isso não há como julgar tipografia.
+        </li>
+        <li>
+          <b>Animação acima de 320 ms.</b> A régua da direção A leva 620 ms a ser traçada e a faixa da D entra dia a dia ao longo de ~700 ms. Nos dois casos a
+          duração é o conteúdo: é o mês sendo percorrido.
+        </li>
+        <li><b>Uma curva de easing só.</b> O envelope da direção B enche com mola e assenta — encher um recipiente não desacelera de forma linear.</li>
+        <li>
+          <b>Número animado.</b> A v1 proibia contador, e com razão: saldo que rola não se confere. Na direção D o total de despesas conta ao filtrar um dia —
+          ali ele marca que o filtro mudou, não é um saldo a conferir.
+        </li>
+      </ul>
+
+      <h2>Decidido depois destas quatro</h2>
+      <ul>
+        <li><b>Sem modo escuro.</b> Não é "fica para depois": não é necessário. Uma aparência só, afinada de verdade.</li>
+        <li><b>Responsivo nos dois extremos.</b> Desktop e celular são os dois o desenho, não um o plano B do outro.</li>
+        <li><b>Quando a cor não identifica, o valor identifica.</b> A fatia leva o próprio número como rótulo — ninguém precisa casar cor com legenda.</li>
+        <li><b>A v2 cobre três telas:</b> 00 sistema de design, 06 mês, 09 relatório mensal.</li>
+      </ul>
+
+      <h2>O que aconteceu depois</h2>
+      <ul>
+        <li><b>A direção D venceu</b> e virou a v2 — sistema de design, tela do mês e relatório mensal.</li>
+        <li>
+          <b>A D não tem cor de marca</b>, e a v2 assumiu isso como decisão: a moldura é preta e cinza, e as únicas cores da aplicação são as dezesseis das
+          categorias e as quatro do dinheiro. Foi assim que a pergunta "sage, indigo ou slate?" acabou respondida.
+        </li>
+        <li>
+          <b>O âmbar de caixinha escureceu</b> de <code>#a0700f</code> para <code>#8a6008</code> na v2: no tom original o texto ficava abaixo de 4,5:1 sobre
+          branco.
+        </li>
+      </ul>
+
+      <footer>
+        <a href="../../index.html">← Voltar para os protótipos da v2</a><br /><br />
+        A leva anterior está inteira em <code>discarded/v1-default/</code>. As decisões de conteúdo já tomadas continuam valendo e estão em
+        <code>prototypes/MEMORY.md</code> — estas quatro páginas já as respeitam.
+      </footer>
+    </div>
+  </body>
+</html>

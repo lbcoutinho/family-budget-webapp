@@ -14,25 +14,27 @@ decisions.
 **v1 is discarded in full** (`discarded/v1-default/`) — rejected for looking templated, having been
 drawn without any design skill in play.
 
-**Four design directions are now under review**, built with the `frontend-design` skill:
-`dir-a-livro-caixa`, `dir-b-envelope`, `dir-c-comando`, `dir-d-cromatico`. Each is a self-contained
-page showing the same month — same entries, same totals — so the difference is only design. Each
-carries its own palette, type pairing and signature element, and ends with "O sistema por trás"
-explaining the choices.
+**Direction D — Cromático won.** The four candidates are archived whole in
+`archives/v2-directions/`, index included, so the comparison still renders. They are archived
+rather than discarded: three of them lost a comparison they existed to lose, which is not the same
+as being rejected.
 
-**Waiting on one choice.** The chosen direction then expands to all thirteen screens; the other
-three go to `discarded/`. Do not expand before the choice is made.
+**v2 is built and under review: three screens** — `00-design-system.html`, `06-month.html`,
+`09-reports-monthly.html` — sharing `_shared/proto.css` and `_shared/proto.js` again, now that
+there is a single direction to share.
+
+**The remaining ten screens are not drawn yet, on purpose.** They follow once these three are
+design-approved. Do not draw them before that.
 
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
-and the four directions already respect it — that is the whole reason this file exists separately
-from the mock-ups.
+and v2 respects it — that is the whole reason this file exists separately from the mock-ups.
 
 ### Settled for v2 and everything after
 
 - **No dark mode.** Not "later" — not needed at all. Every direction commits to one appearance,
   and the token files stop carrying a second set of values. This is what makes the light palette
   worth tuning properly: it is the only one.
-- **Responsive, both ends first class.** The app is used on desktop *and* on the phone. A wide
+- **Responsive, both ends first class.** The app is used on desktop _and_ on the phone. A wide
   table is not a desktop feature with a mobile fallback; both layouts are the design.
 - **When colour cannot identify, the value identifies.** The answer to the sixteen-colour problem:
   charts label the slice with its amount instead of asking the reader to match a colour against a
@@ -47,6 +49,21 @@ v2 is what the `frontend-design` skill produces. Later versions come from other 
 version each, so the comparison is between skills rather than between briefs. Keep them as
 separate `vN` sets and do not merge them.
 
+### What v2 decided on its own, and needs confirming
+
+Three things the direction forced, all listed in the "Decisões a aprovar" block of the screen that
+introduced them. None is settled until the user says so:
+
+- **There is no brand colour.** Direction D's thesis is that colour belongs to the data, so the
+  chrome — primary button, active nav item, focus ring, table header — is ink (`#14161a`). This is
+  what answers open question 1 below; it answers it by removing the question rather than picking
+  one of the three.
+- **The cashbox amber darkened** from `#a0700f` to `#8a6008`, because the original sat at 4.4:1 on
+  white, under the 4.5:1 floor. It is now 5.6:1. The other three money colours already passed.
+- **The month list is rows, not a table**, which cost the plan's "sort by clicking a column
+  header" — there is no header. Sorting moved to a select above the list. The gain is one layout
+  that works at both ends without a table that scrolls sideways.
+
 ### Rules deliberately broken in v2, and why
 
 v1's own rules were written before there was any design intent. These four break four of them, on
@@ -55,7 +72,7 @@ the user's explicit instruction not to treat them as fixed:
 - **External requests.** v1 forbade any network call and used system fonts. These load real
   typefaces from Google Fonts — without that there is no typography to judge.
 - **Nothing over 320 ms.** Direction A rules its balance rail over 620 ms; direction D grows the
-  month strip day by day over roughly 700 ms. In both the duration *is* the content: it is the
+  month strip day by day over roughly 700 ms. In both the duration _is_ the content: it is the
   month being traversed.
 - **One easing curve.** Direction B's envelope fills with a spring and settles. Filling a container
   does not decelerate linearly.
@@ -78,24 +95,25 @@ first has been passed. Consequences:
 ## Status per screen
 
 Every row's v1 file is in `discarded/v1-default/`. "Concept" is what survived review and carries
-into v2.
+into v2. **Drawn in v2** marks the three that exist now; every other row is waiting on their
+approval.
 
-| Prototype | Concept | Changes to apply when regenerating |
-| --- | --- | --- |
-| 00 design system | partly | semantic colours kept; palette grows to 16 swatches; tones and type still open |
-| 01 login | approved, in full | — |
-| 02 shell | approved | "Configurações" menu holds the three registries; Recorrências stays top-level |
-| 03 accounts | approved | drop the initial-balance column; sort by name |
-| 04 categories | approved | drop the month-spend column; make subcategory creation visible |
-| 05 cashboxes | approved | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle |
-| 06 month | approved, in full | — |
-| 07 income / expense | approved, in full | — |
-| 08 cashbox operations | approved, in full | — |
-| 09 monthly report | approved | drop CSV export; add an "against the average" column |
-| 10 yearly report | approved | drop CSV; percentage beside the current-year value, one row per category; average column headed "Média 12 meses" with a tooltip |
-| 11 charts | approved | show every category, never group into "Outras" |
-| 12 recurrences | approved, in full | keep the `autoConfirm` checkbox |
-| 13 voice | approved, in full | — |
+| Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
+| --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 00 design system      | partly            | **drawn in v2** — 16 swatches, no brand colour, Grotesk/Sans/Mono                                                               |
+| 01 login              | approved, in full | —                                                                                                                               |
+| 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
+| 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
+| 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
+| 05 cashboxes          | approved          | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle                                            |
+| 06 month              | approved, in full | **drawn in v2** — month strip, rows instead of a table, sort moved to a select                                                  |
+| 07 income / expense   | approved, in full | —                                                                                                                               |
+| 08 cashbox operations | approved, in full | —                                                                                                                               |
+| 09 monthly report     | approved          | **drawn in v2** — CSV gone, against-the-average column drawn, composition band added                                            |
+| 10 yearly report      | approved          | drop CSV; percentage beside the current-year value, one row per category; average column headed "Média 12 meses" with a tooltip |
+| 11 charts             | approved          | show every category, never group into "Outras"                                                                                  |
+| 12 recurrences        | approved, in full | keep the `autoConfirm` checkbox                                                                                                 |
+| 13 voice              | approved, in full | —                                                                                                                               |
 
 ---
 
@@ -326,13 +344,19 @@ still open. Apply them once that settles.
 
 ## Open
 
-Every screen has now been reviewed. What is left:
+Every screen has been reviewed at concept level. What is left is the visual gate, and v2 now puts
+a concrete proposal against each of the two questions — they are answered on paper, not settled.
 
-1. **Colour: the tones.** Postponed by the user, to be discussed as its own thing. The semantic
-   roles are already settled (above); what is open is the brand colour — sage, indigo or slate, or
-   something else — plus the exact tones of the semantic four and the sixteen category swatches.
-   Blocks visual approval of everything.
-2. **Type concept** — grotesk, humanist or mixed. Same.
+1. **Colour: the tones.** Was "sage, indigo or slate, plus the exact tones". **v2 proposes: no
+   brand colour at all**, the sixteen category swatches exactly as direction D drew them, and the
+   money four with the amber darkened for contrast. See `00-design-system.html`, sections 1–3.
+2. **Type concept** — was "grotesk, humanist or mixed". **v2 proposes Familjen Grotesk (display) +
+   Public Sans (body) + DM Mono (every number)**: three roles rather than one family. Section 4.
 
-Nothing else. Every screen-level question has been answered; what remains is the design system, and
-it gates all thirteen screens.
+Both still block visual approval of all thirteen screens. Approving `00-design-system.html` closes
+them, and only then can `01-login.html` be drawn and M2-T06 start.
+
+There is also one open question v2 raised rather than answered, on screen 09: whether the
+against-the-average column reads correctly when green and red mean good and bad next to an amount
+already coloured by the other rule. It was deliberately drawn plain, with nothing added to keep
+the two meanings apart, so that the answer comes from looking at it.

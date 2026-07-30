@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06 — Mês (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ================================================================
+         A ASSINATURA — a faixa do mês
+         Um segmento por dia. Altura = quanto saiu, cor = a categoria que
+         mais pesou naquele dia. Antes de ler um número já se vê a forma
+         do mês: onde estão os picos, que cor domina, que dias ficaram em
+         branco. Clicar num dia filtra a lista.
+         ================================================================ */
+      .strip-card {
+        margin-bottom: 14px;
+      }
+      .strip-card > .card-body {
+        padding: 14px 16px 10px;
+      }
+      .strip {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 108px;
+      }
+      .day {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        height: 100%;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+        border-radius: 3px;
+        min-width: 0;
+      }
+      .day i {
+        display: block;
+        width: 100%;
+        border-radius: 3px 3px 0 0;
+        transform-origin: bottom;
+        transform: scaleY(0);
+        animation: grow 420ms var(--ease) forwards;
+      }
+      @keyframes grow {
+        to {
+          transform: scaleY(1);
+        }
+      }
+      .day.empty i {
+        height: 2px;
+        background: var(--line);
+      }
+      .day:hover i {
+        filter: brightness(1.15);
+      }
+      .day[aria-pressed='true'] {
+        outline: 2px solid var(--ink);
+        outline-offset: 1px;
+      }
+      .axis {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: var(--ink-faint);
+        margin-top: 6px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin-top: 11px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      /* Colour groups, the number names — so the legend carries its own total
+         and nobody has to match a swatch against a slice. */
+      .legend b {
+        font-family: 'DM Mono', monospace;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      /* --- a linha de lançamento ---------------------------------------- */
+      .entries {
+        overflow: hidden;
+      }
+      .entry {
+        display: grid;
+        grid-template-columns: 48px 1fr auto auto;
+        gap: 12px;
+        align-items: center;
+        padding: 9px 16px 9px 13px;
+        border-bottom: 1px solid var(--line);
+        border-left: 3px solid transparent;
+      }
+      .entry:hover {
+        background: var(--wash);
+      }
+      .entry:last-of-type {
+        border-bottom: 0;
+      }
+      .entry .d {
+        font-family: 'DM Mono', monospace;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .entry .t {
+        min-width: 0;
+      }
+      .entry .t b {
+        font-weight: 600;
+      }
+      .entry .t p {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 1px;
+      }
+      /* Ícone de cartão e de recorrência, na mesma linha do título */
+      .entry .t svg {
+        width: 14px;
+        height: 14px;
+        color: var(--ink-faint);
+        vertical-align: -2px;
+      }
+      .entry .amt {
+        font-family: 'DM Mono', monospace;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        text-align: right;
+      }
+      .entry.draft {
+        background: var(--wash);
+      }
+      .entry.draft .t b,
+      .entry.draft .amt {
+        color: var(--ink-soft);
+      }
+      /* Sempre visíveis, nunca só no hover: no protótipo anterior as ações
+         sumiam em toque e em captura de tela. */
+      .acts {
+        display: flex;
+        gap: 2px;
+        opacity: 0.45;
+        transition: opacity var(--fast) var(--ease);
+      }
+      .entry:hover .acts,
+      .acts:focus-within {
+        opacity: 1;
+      }
+
+      .entries > footer {
+        background: var(--wash);
+        border-top: 1px solid var(--line-strong);
+        padding: 12px 16px;
+        display: grid;
+        gap: 3px;
+      }
+      .entries > footer div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+      }
+      .entries > footer .total {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.02rem;
+        border-top: 1px solid var(--line-strong);
+        margin-top: 5px;
+        padding-top: 7px;
+      }
+
+      .more {
+        padding: 13px;
+        display: flex;
+        justify-content: center;
+        gap: 9px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+
+      @media (max-width: 620px) {
+        .entry {
+          grid-template-columns: 40px 1fr auto;
+          row-gap: 4px;
+        }
+        .entry .acts {
+          grid-column: 2 / -1;
+          justify-content: flex-end;
+          opacity: 1;
+        }
+        .strip {
+          height: 84px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="06 — Mês" data-ticket="M5-T01 · M5-T05 · M5-T06"></div>
+
+    <div class="proto-note">
+      <strong>A tela principal.</strong> Não existe dashboard: <code>/</code> redireciona para cá. Os totais do rodapé seguem a regra do domínio —
+      <em>só EXPENSE conta como despesa</em>, então transferências e depósitos em caixinha ficam de fora e o rodapé diz isso.
+      <strong>Clique num dia da faixa</strong> para filtrar o mês.
+    </div>
+
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <button class="btn icon ghost" title="Mês anterior"><span data-icon="chevronLeft"></span></button>
+            <span class="month">Julho de 2026</span>
+            <button class="btn icon ghost" title="Próximo mês"><span data-icon="chevronRight"></span></button>
+            <button class="btn sm ghost">Hoje</button>
+          </div>
+          <div class="row">
+            <button class="btn sm outline">Caixinha</button>
+            <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- ===== assinatura ===== -->
+          <div class="card strip-card">
+            <div class="card-body">
+              <div class="spread" style="margin-bottom: 10px">
+                <h2>O que saiu, dia a dia</h2>
+                <span class="xs muted">altura = quanto saiu · cor = a categoria que mais pesou</span>
+              </div>
+              <div class="strip" id="strip" role="group" aria-label="Despesas por dia de julho de 2026"></div>
+              <div class="axis"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+              <div class="legend" id="legend"></div>
+            </div>
+          </div>
+
+          <!-- ===== saldos (M5-T06) ===== -->
+          <div class="stats" style="margin-bottom: 16px">
+            <div class="stat">
+              <div class="k">Millennium</div>
+              <div class="v num">3.482,15 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Revolut</div>
+              <div class="v num">412,90 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Dinheiro</div>
+              <div class="v num out">− 35,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Caixinhas</div>
+              <div class="v num">4.150,00 €</div>
+            </div>
+            <div class="stat total">
+              <div class="k">Total consolidado</div>
+              <div class="v num">8.010,05 €</div>
+            </div>
+          </div>
+
+          <!-- ===== filtros ===== -->
+          <div class="spread" style="margin-bottom: 10px">
+            <div class="row wrap">
+              <div class="search" style="width: 232px">
+                <span data-icon="search"></span>
+                <input class="input" placeholder="Buscar descrição…" />
+              </div>
+              <button class="btn sm outline"><span data-icon="filter"></span> Tipo: todos</button>
+              <button class="btn sm outline">Categoria: todas</button>
+              <button class="btn sm outline">Conta: todas</button>
+            </div>
+            <div class="row">
+              <label class="xs muted" for="sort">Ordenar</label>
+              <select class="select" id="sort" style="width: auto; font-size: 12.5px; padding: 4px 8px">
+                <option>Data — mais recente</option>
+                <option>Data — mais antiga</option>
+                <option>Valor — maior</option>
+                <option>Valor — menor</option>
+                <option>Descrição — A a Z</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ===== lista ===== -->
+          <div class="card entries">
+            <div class="card-head">
+              <h2 id="listTitle">Lançamentos do mês</h2>
+              <div class="row">
+                <span class="xs muted" id="count">31 lançamentos · 1 rascunho</span>
+                <button class="btn sm outline" id="clear" hidden>Ver o mês inteiro</button>
+              </div>
+            </div>
+            <div id="rows"></div>
+            <div class="more" id="more"><span class="spinner"></span> Carregando mais…</div>
+            <footer>
+              <div><span>Receitas</span><span class="num in" id="fIn">+ 3.284,00 €</span></div>
+              <div>
+                <span>Despesas <span class="xs muted">sem transferências e caixinhas</span></span>
+                <span class="num out" id="fOut">− 2.358,00 €</span>
+              </div>
+              <div class="total"><span id="fLabel">Saldo do mês</span><span class="num" id="fNet">+ 926,00 €</span></div>
+            </footer>
+          </div>
+
+          <!-- ===== mês vazio ===== -->
+          <h2 style="margin: 26px 0 9px">Um mês sem lançamentos</h2>
+          <div class="card">
+            <div class="empty">
+              <span data-icon="calendar"></span>
+              <h3>Nada lançado em agosto de 2026</h3>
+              <p class="small muted">Registre o primeiro movimento do mês ou volte para julho.</p>
+              <div class="row" style="justify-content: center; margin-top: 4px">
+                <button class="btn"><span data-icon="plus"></span> Novo lançamento</button>
+                <button class="btn outline"><span data-icon="mic"></span> Lançar por voz</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito desta tela já estava aprovado em cheio na revisão da v1. O que muda aqui é o desenho — e três coisas que o desenho obrigou a decidir.
+            </p>
+            <ol>
+              <li>
+                <b>A faixa do mês é o topo da tela, acima dos saldos.</b>
+                <span>
+                  A tese da direção D: primeiro a forma do mês, depois os números. Se você preferir abrir a tela nos saldos, os dois blocos trocam de lugar e a
+                  faixa continua funcionando igual.
+                </span>
+              </li>
+              <li>
+                <b>A escala da faixa é raiz quadrada, não linear.</b>
+                <span>
+                  A renda é uma ordem de grandeza acima de tudo — numa escala linear ela achata o resto do mês num traço, e a faixa perde exatamente o padrão
+                  que existe para mostrar. O custo é que a altura deixa de ser comparável valor a valor; ela mostra peso relativo, e o número exato vem no
+                  clique.
+                </span>
+              </li>
+              <li>
+                <b>A lista virou linha, não tabela — então a ordenação virou um seletor.</b>
+                <span>
+                  O plano previa ordenar clicando no cabeçalho da coluna. Sem colunas, não há cabeçalho: a ordem se escolhe no seletor acima da lista. Ganha-se
+                  o mesmo desenho no celular e no desktop, sem tabela que rola de lado.
+                </span>
+              </li>
+              <li>
+                <b>As ações da linha ficam sempre visíveis</b>, a 45% de opacidade,
+                <span>
+                  em vez de aparecerem no hover. Na v1 elas eram invisíveis em toque e em captura de tela — o mesmo problema apontado na tela de categorias.
+                </span>
+              </li>
+              <li>
+                <b>Filtrar um dia anima o total de despesas, e só ele.</b>
+                <span>
+                  Os cartões de saldo não se movem: saldo é o que se confere contra o extrato, e número que rola não se confere. O total do mês é uma resposta a
+                  um filtro, e o movimento marca que a pergunta mudou.
+                </span>
+              </li>
+              <li>
+                <b>Rascunho de voz aparece na lista, esmaecido, e não soma.</b>
+                <span>Já aprovado — desenhado aqui para conferir se "não soma" fica claro o bastante.</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        /* ---- categorias: cor é identidade permanente ---- */
+        const CAT = {
+          moradia: { n: 'Moradia', c: 'var(--c1)' },
+          transporte: { n: 'Transporte', c: 'var(--c2)' },
+          alimentacao: { n: 'Alimentação', c: 'var(--c3)' },
+          saude: { n: 'Saúde', c: 'var(--c4)' },
+          lazer: { n: 'Lazer', c: 'var(--c5)' },
+          outros: { n: 'Outros', c: 'var(--c8)' },
+          trabalho: { n: 'Trabalho', c: 'var(--c16)' },
+          reembolsos: { n: 'Reembolsos', c: 'var(--c6)' },
+        };
+
+        /* ---- julho de 2026 ----
+           Os mesmos lançamentos da tela 09: 24 despesas somando 2.358,00, duas
+           receitas somando 3.284,00, uma transferência, quatro movimentos de
+           caixinha e um rascunho de voz. A faixa é calculada a partir daqui, e
+           não digitada em separado — é o que garante que as duas telas fechem. */
+        const E = [
+          { d: 1, t: 'Renda de julho', cat: 'moradia', sub: 'Renda', acc: 'Millennium', v: -950, k: 'out' },
+          { d: 3, t: 'Salário', cat: 'trabalho', sub: 'Salário', acc: 'Millennium', v: 3200, k: 'in' },
+          { d: 4, t: 'Tasca do Zé', cat: 'alimentacao', sub: 'Restaurante', acc: 'Millennium', v: -62.8, k: 'out' },
+          { d: 5, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -128.4, k: 'out', card: '05/06' },
+          { d: 6, t: 'Cinema São Jorge', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -18.5, k: 'out' },
+          { d: 7, t: 'Reserva de férias', acc: 'Millennium → Férias 2027', v: -200, k: 'cxin' },
+          { d: 8, t: 'Millennium → Revolut', acc: 'Millennium → Revolut', v: 300, k: 'tr' },
+          { d: 9, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -78.4, k: 'out' },
+          { d: 10, t: 'Seguro do carro', cat: 'transporte', sub: 'Seguro', acc: 'Millennium', v: -62.5, k: 'out', rec: 'parcela 4 de 12' },
+          { d: 11, t: 'Almoço fora', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -48.6, k: 'out' },
+          { d: 11, t: 'Consulta no dentista', cat: 'saude', sub: 'Consultas', acc: 'Millennium', v: -66, k: 'out' },
+          { d: 12, t: 'Supermercado Pingo Doce', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -96.2, k: 'out' },
+          { d: 12, t: 'Farmácia', acc: null, v: -24.9, k: 'out', draft: true },
+          { d: 14, t: 'Combustível', cat: 'transporte', sub: 'Combustível', acc: 'Millennium', v: -145, k: 'out' },
+          { d: 15, t: 'Concerto no Coliseu', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -88, k: 'out' },
+          { d: 16, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -62.1, k: 'out' },
+          { d: 17, t: 'Reserva de obras', acc: 'Millennium → Obras', v: -400, k: 'cxin' },
+          { d: 18, t: 'Jantar de aniversário', cat: 'alimentacao', sub: 'Restaurante', acc: 'Millennium', v: -41.2, k: 'out' },
+          { d: 19, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -84.5, k: 'out' },
+          { d: 20, t: 'Piscina municipal', cat: 'lazer', acc: 'Dinheiro', v: -43.5, k: 'out' },
+          { d: 21, t: 'Presente de casamento', cat: 'outros', acc: 'Revolut', v: -34, k: 'out' },
+          { d: 22, t: 'Estacionamento e portagens', cat: 'transporte', sub: 'Estacionamento', acc: 'Millennium', v: -57.5, k: 'out' },
+          { d: 23, t: 'Padaria e café', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -32, k: 'out' },
+          { d: 24, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -59.5, k: 'out' },
+          { d: 25, t: 'Resgate para o IRS', acc: 'Obras → Millennium', v: 200, k: 'cxout' },
+          { d: 26, t: 'Supermercado Lidl', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -71.3, k: 'out' },
+          { d: 27, t: 'Livraria Bertrand', cat: 'lazer', acc: 'Revolut', v: -30, k: 'out' },
+          { d: 28, t: 'Farmácia', cat: 'saude', acc: 'Millennium', v: -30, k: 'out' },
+          { d: 28, t: 'Reembolso da seguradora', cat: 'reembolsos', acc: 'Millennium', v: 84, k: 'in' },
+          { d: 29, t: 'Correios', cat: 'outros', acc: 'Dinheiro', v: -20, k: 'out' },
+          { d: 30, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -48, k: 'out' },
+          { d: 30, t: 'Férias 2027 → Obras', acc: 'Férias 2027 → Obras', v: 500, k: 'cxtr' },
+        ];
+
+        const DAYS = 31;
+        const PAGE = 12; /* rolagem infinita: a primeira página do cursor */
+
+        /* Só EXPENSE confirmado conta como despesa. Rascunho não entra em nada. */
+        const isExpense = (e) => e.k === 'out' && !e.draft;
+        const isIncome = (e) => e.k === 'in' && !e.draft;
+
+        /* ---- a faixa, derivada dos lançamentos ---- */
+        const byDay = [];
+        for (let d = 1; d <= DAYS; d++) {
+          const items = E.filter((e) => e.d === d && isExpense(e));
+          const total = items.reduce((s, e) => s + Math.abs(e.v), 0);
+          const top = items.slice().sort((a, b) => Math.abs(b.v) - Math.abs(a.v))[0];
+          byDay.push({ d, total, cat: top ? top.cat : null });
+        }
+        const peak = Math.max(...byDay.map((x) => x.total));
+
+        document.getElementById('strip').innerHTML = byDay
+          .map((x, i) => {
+            if (!x.total) {
+              return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
+                title="${x.d} de julho — nada saiu"><i></i></button>`;
+            }
+            /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
+            const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
+            return `<button class="day" data-day="${x.d}" aria-pressed="false"
+              title="${x.d} de julho — ${eur(-x.total)} · ${CAT[x.cat].n}">
+              <i style="height:${h}%;background:${CAT[x.cat].c};animation-delay:${i * 20}ms"></i></button>`;
+          })
+          .join('');
+
+        /* A legenda carrega o total de cada categoria: a cor agrupa, o número
+           nomeia. Ninguém precisa casar swatch com segmento. */
+        const totals = {};
+        E.filter(isExpense).forEach((e) => {
+          totals[e.cat] = (totals[e.cat] || 0) + Math.abs(e.v);
+        });
+        document.getElementById('legend').innerHTML = Object.entries(totals)
+          .sort((a, b) => b[1] - a[1])
+          .map(
+            ([k, v]) =>
+              `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, {
+                sign: false,
+              })}</b></span>`,
+          )
+          .join('');
+
+        /* ---- lista ---- */
+        const KIND = {
+          in: { cls: 'in', badge: null },
+          out: { cls: 'out', badge: null },
+          tr: { cls: 'tr', badge: ['transfer', 'transferência'] },
+          cxin: { cls: 'cx', badge: ['cashbox', 'depósito'] },
+          cxout: { cls: 'cx', badge: ['cashbox', 'resgate'] },
+          cxtr: { cls: 'cx', badge: ['cashbox', 'entre caixinhas'] },
+        };
+
+        function sub(e) {
+          if (e.draft) return 'Falta a categoria — não entra em saldos nem relatórios';
+          const parts = [];
+          if (e.cat) parts.push(CAT[e.cat].n + (e.sub ? ` · ${e.sub}` : ''));
+          if (e.acc) parts.push(e.acc);
+          if (e.card) parts.push(`cartão de crédito, compra em ${e.card}`);
+          if (e.rec) parts.push(e.rec);
+          return parts.join(' — ');
+        }
+
+        function render(e) {
+          const k = KIND[e.k];
+          /* transferência e movimento entre caixinhas não têm sinal: não é
+             nem entrada nem saída, é dinheiro mudando de lugar */
+          const neutral = e.k === 'tr' || e.k === 'cxtr';
+          const amount = neutral ? eur(e.v, { sign: false }) : eur(e.v);
+          return `<div class="entry ${e.draft ? 'draft' : ''}"
+              style="border-left-color:${e.cat ? CAT[e.cat].c : 'transparent'}">
+            <div class="d">${String(e.d).padStart(2, '0')}/07</div>
+            <div class="t">
+              <b>${e.t}</b>
+              ${e.card ? icon('card') : ''}
+              ${e.rec ? icon('repeat') : ''}
+              ${e.draft ? '<span class="badge draft">rascunho</span>' : ''}
+              ${k.badge ? `<span class="badge ${k.badge[0]}">${k.badge[1]}</span>` : ''}
+              <p>${sub(e)}</p>
+            </div>
+            <div class="amt ${e.draft ? '' : k.cls}">${amount}</div>
+            <div class="acts">
+              <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
+              <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
+            </div>
+          </div>`;
+        }
+
+        const rowsEl = document.getElementById('rows');
+        const moreEl = document.getElementById('more');
+        const titleEl = document.getElementById('listTitle');
+        const countEl = document.getElementById('count');
+        const clearEl = document.getElementById('clear');
+        const fIn = document.getElementById('fIn');
+        const fOut = document.getElementById('fOut');
+        const fNet = document.getElementById('fNet');
+        const fLabel = document.getElementById('fLabel');
+
+        let shown = 0; /* último total de despesas exibido, para o contador */
+
+        /* Contador só aqui: o total responde a um filtro, não é saldo a
+           conferir. Os cartões de saldo acima nunca se mexem. */
+        function countTo(el, from, to, negative) {
+          const t0 = performance.now();
+          const dur = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 420;
+          const step = (t) => {
+            const k = Math.min(1, (t - t0) / dur);
+            const v = from + (to - from) * (1 - Math.pow(1 - k, 3));
+            el.textContent = eur(negative ? -v : v);
+            if (k < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+
+        function select(day) {
+          const items = day ? E.filter((e) => e.d === day) : E;
+
+          document.querySelectorAll('.day').forEach((b) => {
+            b.setAttribute('aria-pressed', String(Number(b.dataset.day) === day));
+          });
+
+          rowsEl.innerHTML = items.length
+            ? (day ? items : items.slice(0, PAGE)).map(render).join('')
+            : `<div class="empty" style="padding:30px 20px">
+                 <h3>Nada lançado em ${day} de julho</h3>
+                 <p class="small muted">A faixa mostra o dia em cinza quando não saiu nada.</p>
+               </div>`;
+
+          moreEl.hidden = Boolean(day) || items.length <= PAGE;
+
+          const income = items.filter(isIncome).reduce((s, e) => s + e.v, 0);
+          const expense = items.filter(isExpense).reduce((s, e) => s + Math.abs(e.v), 0);
+          const drafts = items.filter((e) => e.draft).length;
+
+          fIn.textContent = eur(income);
+          countTo(fOut, shown, expense, true);
+          shown = expense;
+          fNet.textContent = eur(income - expense);
+          fNet.className = 'num ' + (income - expense >= 0 ? 'in' : 'out');
+
+          titleEl.textContent = day ? `${String(day).padStart(2, '0')} de julho` : 'Lançamentos do mês';
+          fLabel.textContent = day ? 'Saldo do dia' : 'Saldo do mês';
+          countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
+          clearEl.hidden = !day;
+        }
+
+        document.getElementById('strip').addEventListener('click', (ev) => {
+          const b = ev.target.closest('.day');
+          if (!b) return;
+          const day = Number(b.dataset.day);
+          select(b.getAttribute('aria-pressed') === 'true' ? null : day);
+        });
+        clearEl.addEventListener('click', () => select(null));
+
+        select(null);
+      });
+    </script>
+  </body>
+</html>
