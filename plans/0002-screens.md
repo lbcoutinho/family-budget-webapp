@@ -247,12 +247,23 @@ mês" column: it was dropped at review, which leaves this screen with no depende
 | Action | Result |
 | --- | --- |
 | Create / edit | Name, description, optional target |
-| Deposit / withdraw from a card | Opens the operations dialog (08) pre-filled |
+| Deposit / withdraw from a card | Opens the operations dialog (08) with the cashbox pre-filled |
+| Deposit / withdraw from the top bar | Same dialog, cashbox chosen inside it |
 | Deactivate, delete | Same pattern as accounts, 409 when entries exist |
+| Toggle "show inactive" | Adds the dimmed cards |
 
 Cards rather than a table: there are few of them and the target progress bar needs the room. The
 balance is always computed, never stored. Reaching the target turns the bar green and blocks
-nothing. An inactive cashbox with history disappears from this screen but stays in the report (11).
+nothing.
+
+Deposit and withdraw are reachable both from each card and from the top bar — from the card the
+cashbox is already chosen, from the top bar it is picked in the dialog.
+
+Inactive cashboxes follow the same rule as every other registry (§3.5): hidden by default, shown
+dimmed behind the "show inactive" toggle, never gone. They keep showing their balance, because the
+history behind it is real. What they must not keep is a working deposit or withdraw button — an
+inactive entity cannot be used in a new entry, so on those cards the actions are disabled rather
+than merely ineffective.
 
 ### 06 — Monthly tab (`/month/:year/:month`) — the main screen
 
@@ -333,10 +344,10 @@ already coloured by the other rule — so the two have to be told apart visually
 
 Category rows, twelve month columns, totals and monthly average on the right — the average being
 the rolling one of §3.6, which for the current year draws on months the matrix does not show.
-Values are rounded to whole euros so the matrix fits; cents remain in the monthly view. Future months show "—", not
-zero. On mobile the table scrolls horizontally with the category column frozen. The prior-year
-comparison renders inside the cell — percentage beside the current year's value — so a category
-never occupies two rows.
+Values are rounded to whole euros so the matrix fits; cents remain in the monthly view. Future
+months show "—", not zero. On mobile the table scrolls horizontally with the category column
+frozen. The prior-year comparison renders inside the cell — percentage beside the current year's
+value — so a category never occupies two rows.
 
 ### 11 — Charts (`/reports?view=charts`)
 

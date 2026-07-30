@@ -35,7 +35,7 @@ first has been passed. Consequences:
 | 02 shell | approved | "Configurações" menu holds the three registries; Recorrências stays top-level |
 | 03 accounts | approved | drop the initial-balance column; sort by name |
 | 04 categories | approved | drop the month-spend column; make subcategory creation visible |
-| 05 cashboxes | partly | drop the empty-goal wording and the "new cashbox" card |
+| 05 cashboxes | approved | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle |
 | 06 month | approved, in full | — |
 | 07 income / expense | approved, in full | — |
 | 08 cashbox operations | approved, in full | — |
@@ -147,9 +147,20 @@ Liked, and kept: **the summary cards at the top** and **the goal progress bars**
   nenhuma barra de progresso" note: absence needs no caption, the card simply has no bar.
 - **Drop the dashed "+ Nova caixinha" card.** The action already exists in the top bar.
 
-Not addressed, so still open on this screen: whether deposit/withdraw stay on each card in addition
-to the top button, and whether an inactive cashbox with history disappears from here while staying
-in the report (M6-T05).
+- **Deposit and withdraw stay in both places**: on each card and in the top bar. From the card the
+  cashbox comes pre-filled, from the top bar it is chosen inside the dialog.
+- **Inactive cashboxes are visible behind a "show inactive" toggle**, dimmed, exactly like
+  categories and accounts. They do not vanish from the screen.
+
+Two things follow, and both are work rather than wording:
+
+- **That toggle does not exist on this prototype.** Accounts and categories have one; cashboxes
+  never did, because the earlier draft had inactive ones disappearing. It has to be added, and on a
+  card grid rather than a table.
+- **An inactive card must not offer a working deposit or withdraw button.** The two answers meet
+  here: buttons live on every card, and inactive entities cannot be used in new entries
+  (`CLAUDE.md`, domain rules). So those cards keep their balance — the history behind it is real —
+  but their actions are disabled, not merely inert.
 
 ### 06 — Month
 
@@ -268,12 +279,6 @@ Every screen has now been reviewed. What is left:
    something else — plus the exact tones of the semantic four and the sixteen category swatches.
    Blocks visual approval of everything.
 2. **Type concept** — grotesk, humanist or mixed. Same.
-3. **Cashboxes, two items.** Both were in that prototype's "Decisões a aprovar" block and neither
-   was mentioned in the review:
-   - _Deposit and withdraw buttons on each card_, in addition to the single button in the top bar.
-     Two ways to reach the same dialog: from the card the cashbox is already chosen, from the top
-     bar it is not. Keep both, or only the top bar?
-   - _An inactive cashbox that still has history._ It disappears from this screen, since the screen
-     lists what can be used, but stays in the report (M6-T05), since its past movements are real.
-     The prototype does not show it at all — confirm that vanishing entirely from here is right,
-     rather than appearing dimmed behind the "show inactive" toggle like accounts and categories.
+
+Nothing else. Every screen-level question has been answered; what remains is the design system, and
+it gates all thirteen screens.
