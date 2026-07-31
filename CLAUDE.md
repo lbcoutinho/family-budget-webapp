@@ -37,6 +37,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - An approved prototype may be edited when implementation reveals a problem — say so in the PR. What must never happen is a built screen silently diverging from it.
 - Prototypes are not accessibility- or component-complete: shadcn/ui provides the real components; the prototype CSS is deleted as each screen ships.
 
+## Impeccable (design tooling)
+
+[Impeccable](https://github.com/pbakaus/impeccable) v3.5.0 is vendored into `.claude/` — the `impeccable` skill (`/impeccable audit`, `critique`, `polish`, `animate`, … as sub-commands), four `impeccable-*` agents, and a design hook wired into `.claude/settings.json` that runs its 59-rule detector after `Edit`/`Write`/`MultiEdit` on UI files and does a deeper pass on `Stop`. Apache 2.0; `npx impeccable detect <path>` runs the same detector standalone.
+
+- **It advises, it does not decide.** The prototype gate above still wins: a detector finding never authorizes a screen without an approved prototype, and never overrides a decision already settled in `prototypes/MEMORY.md` or `00-design-system.html`.
+- **Never hand-edit `.claude/skills/impeccable/`** — it is replaced wholesale by `npx impeccable update`, and is excluded from lint (`eslint.config.js`) and format (`.prettierignore` skips all of `.claude/`).
+- **`/impeccable init` has not been run.** It generates `PRODUCT.md` + `DESIGN.md` design-context files, which would overlap the plans and `prototypes/MEMORY.md`; run it only after deciding how it reconciles with those.
+- Needs Node 22+ on `PATH` (project is on 24) or the hook no-ops with a warning. `.impeccable/` runtime output is git-ignored except `config.json`, `design.json` and `critique/*.md`.
+
 ## Stack & layout
 
 pnpm monorepo, TypeScript strict (`noUncheckedIndexedAccess`), Node 24 LTS (ADR-0016).

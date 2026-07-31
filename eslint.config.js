@@ -39,6 +39,10 @@ module.exports = tseslint.config(
       // Throwaway HTML mock-ups: plain browser scripts, outside every tsconfig, deleted as each
       // screen ships. They must never gate CI on the rules that govern application code.
       'prototypes/**',
+      // Vendored agent tooling (the Impeccable skill ships ~100 `.mjs` detector scripts). Third-party
+      // code that is replaced wholesale by `npx impeccable update`, so it is never hand-edited.
+      // Prettier already skips all of `.claude/` — see `.prettierignore`.
+      '.claude/skills/impeccable/**',
     ],
   },
 

@@ -25,7 +25,15 @@ approved — drawing them first would mean drawing them twice.
 **M2-T01 (#26), M2-T02 (#29), M2-T03 (#30), M2-T04 (#32) and M2-T05 (#33) merged.** Only M2-T06
 (the login screen, #22) is left in M2 — and it is blocked on a prototype approval, see below.
 
+**Impeccable v3.5.0 installed** into `.claude/` (skill + 4 agents + design hook), on its own branch.
+Unrelated to M2-T06; see the "Impeccable" section of `CLAUDE.md`.
+
 ## Gotchas the next ticket will hit
+
+- **The Impeccable design hook now runs on every UI edit** (`PostToolUse` on `Edit`/`Write`/
+  `MultiEdit`, plus a deeper pass on `Stop`, wired in `.claude/settings.json`). Its findings are
+  advice — **the approved-prototype gate below still decides what ships.** `/impeccable init` has
+  deliberately not been run.
 
 - **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
   `plans/0002-screens.md`). **M2-T06 is blocked twice over:** `01-login.html` has not been drawn in
