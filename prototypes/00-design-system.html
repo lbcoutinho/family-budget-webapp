@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>00 — Sistema de design (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .ds {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 34px 22px 60px;
+      }
+      .ds section {
+        margin-top: 46px;
+      }
+      .ds .sec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+        margin-bottom: 16px;
+      }
+      .ds .sec-head h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+      .ds .sec-head p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-left: auto;
+        text-align: right;
+      }
+      .ds .lede {
+        font-size: 15px;
+        color: var(--ink-soft);
+        max-width: 62ch;
+        margin-top: 8px;
+      }
+
+      /* --- the hero: sixteen swatches, which are the identity ------------- */
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+        gap: 8px;
+        margin-top: 22px;
+      }
+      .sw {
+        border-radius: var(--r);
+        padding: 12px 12px 10px;
+        color: #fff;
+        min-height: 92px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transform: translateY(10px);
+        opacity: 0;
+        animation: rise 480ms var(--ease) forwards;
+      }
+      @keyframes rise {
+        to {
+          transform: none;
+          opacity: 1;
+        }
+      }
+      .sw b {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 13px;
+        letter-spacing: -0.01em;
+      }
+      .sw code {
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        font-size: 10.5px;
+        align-self: flex-start;
+      }
+      .sw .n {
+        font-family: 'DM Mono', monospace;
+        font-size: 10.5px;
+        opacity: 0.75;
+      }
+
+      .pairs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
+      }
+      .money-demo {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .money-demo:last-child {
+        border-bottom: 0;
+      }
+
+      .scale-row {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .scale-row .meta {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: var(--ink-faint);
+        width: 168px;
+        flex: none;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+        align-items: start;
+      }
+      .shadow-demo {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .shadow-demo div {
+        width: 118px;
+        height: 62px;
+        border-radius: var(--r);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        color: var(--ink-soft);
+      }
+      .rail {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 46px;
+      }
+      .rail i {
+        flex: 1;
+        border-radius: 3px 3px 0 0;
+        transform-origin: bottom;
+        animation: grow 420ms var(--ease) forwards;
+        transform: scaleY(0);
+      }
+      @keyframes grow {
+        to {
+          transform: scaleY(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="00 — Sistema de design" data-ticket="v2 · direção D — Cromático"></div>
+
+    <div class="proto-note">
+      <strong>Aprove esta tela primeiro.</strong> Cor, tipografia, espaçamento, raio, sombra e animação valem para as outras doze. Esta é a v2, desenhada a
+      partir da direção D — a que você escolheu. As quatro direções ficaram em <code>archives/v2-directions/</code>.
+    </div>
+
+    <div class="ds">
+      <h1>Sistema de design</h1>
+      <p class="lede">
+        Uma tese só: <strong>a cor pertence aos dados, nunca à moldura</strong>. A cor de uma categoria já é identidade permanente — aparece igual em todo mês,
+        em todo gráfico, em todo relatório. Para isso funcionar, tudo à volta fica sem cor: botão, menu, foco e cabeçalho são tinta preta e cinza. As dezesseis
+        cores abaixo são as únicas da aplicação, fora as quatro do dinheiro.
+      </p>
+
+      <!-- ============================================================ cor -->
+      <section>
+        <div class="sec-head">
+          <h2>1. As dezesseis cores de categoria</h2>
+          <p>viram <code>--cat-1</code> … <code>--cat-16</code></p>
+        </div>
+        <div class="palette" id="palette"></div>
+        <p class="small muted" style="margin-top: 12px; max-width: 68ch">
+          Todas na mesma faixa de luminosidade, para nenhuma dominar por acidente. Dezesseis resolvem a colisão de cor — os gráficos desenham todas as
+          categorias, sem agrupar em "Outras", e com oito duas cairiam na mesma cor. O que dezesseis
+          <em>não</em> resolvem é legibilidade: ninguém distingue dezesseis matizes numa rosca, e quem não enxerga verde e vermelho distingue menos ainda.
+          <strong>Por isso quem identifica é o valor</strong> — cada fatia, barra ou segmento leva o próprio número como rótulo, e a cor fica só para agrupar.
+          Nada na aplicação exige casar uma cor com uma legenda.
+        </p>
+      </section>
+
+      <!-- ==================================================== sem marca -->
+      <section>
+        <div class="sec-head">
+          <h2>2. Não existe cor de marca</h2>
+          <p>é a decisão, não um esquecimento</p>
+        </div>
+        <div class="grid2">
+          <div class="card card-body stack">
+            <h3>A moldura é acromática</h3>
+            <p class="small muted">
+              Botão primário, item de menu ativo, anel de foco e cabeçalho de tabela usam
+              <code>--ink</code> (#14161a). Sem azul de produto, sem verde de marca. A pergunta "sage, indigo ou slate?" ficava aberta desde a v1; a direção D
+              responde eliminando a pergunta — qualquer cor de marca competiria com as dezesseis que carregam significado.
+            </p>
+            <div class="row wrap">
+              <button class="btn">Novo lançamento</button>
+              <button class="btn outline">Cancelar</button>
+              <button class="btn ghost">Ver inativos</button>
+            </div>
+          </div>
+          <div class="card card-body stack">
+            <h3>Os neutros</h3>
+            <div class="row wrap" style="gap: 6px">
+              <span class="dot" style="width: 34px; height: 34px; background: #fcfcfd; border: 1px solid var(--line)"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #ffffff; border: 1px solid var(--line)"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #f5f6f8"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #e6e8ec"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #d5d9df"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #99a0aa"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #666d78"></span>
+              <span class="dot" style="width: 34px; height: 34px; background: #14161a"></span>
+            </div>
+            <p class="xs muted">fundo · superfície · lavado · linha · linha forte · tinta fraca · tinta suave · tinta</p>
+            <p class="small muted">
+              Cada token é um valor só. <strong>Não há modo escuro</strong> — não é "fica para depois", não é necessário. É o que torna esta paleta clara digna
+              de ser afinada de verdade: ela é a única.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================== semânticas -->
+      <section>
+        <div class="sec-head">
+          <h2>3. As quatro cores do dinheiro</h2>
+          <p>nunca mudam</p>
+        </div>
+        <div class="card card-body">
+          <p class="small muted" style="max-width: 66ch">
+            Verde é receita, vermelho é despesa, azul é transferência, âmbar é caixinha. São independentes de qualquer cor de marca de propósito: se
+            acompanhassem a marca, trocar o tema mudaria o significado de uma tabela. E a cor nunca é o único sinal — todo valor carrega <code>+</code> ou
+            <code>−</code> explícito.
+          </p>
+          <div class="row wrap" style="gap: 8px; margin: 14px 0">
+            <span class="badge income">Receita</span>
+            <span class="badge expense">Despesa</span>
+            <span class="badge transfer">Transferência</span>
+            <span class="badge cashbox">Caixinha</span>
+            <span class="badge draft">Rascunho</span>
+            <span class="badge">Inativo</span>
+          </div>
+          <div class="pairs">
+            <div>
+              <div class="money-demo"><span class="small">Salário</span><span class="num in strong">+ 3.200,00 €</span></div>
+              <div class="money-demo"><span class="small">Supermercado</span><span class="num out strong">− 128,40 €</span></div>
+              <div class="money-demo"><span class="small">Millennium → Revolut</span><span class="num tr strong">300,00 €</span></div>
+              <div class="money-demo"><span class="small">Reserva de férias</span><span class="num cx strong">− 200,00 €</span></div>
+            </div>
+            <div class="callout">
+              <span data-icon="info"></span>
+              <span>
+                O âmbar escureceu de <code>#a0700f</code> para <code>#8a6008</code> em relação à direção D. No tom original o texto ficava em 4,4:1 sobre
+                branco, abaixo do mínimo de 4,5:1; agora está em 5,6:1. Os outros três já passavam.
+              </span>
+            </div>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top: 12px; max-width: 68ch">
+          Há <strong>uma exceção em toda a aplicação</strong>: a coluna "contra a média" do relatório mensal, onde verde e vermelho querem dizer bom e ruim em
+          vez de entrou e saiu. Está desenhada na tela <a href="09-reports-monthly.html">09</a>.
+        </p>
+      </section>
+
+      <!-- ================================================= tipografia -->
+      <section>
+        <div class="sec-head">
+          <h2>4. Tipografia</h2>
+          <p>três papéis, três fontes</p>
+        </div>
+        <div class="grid2" style="margin-bottom: 14px">
+          <div class="card card-body">
+            <h3 style="margin-bottom: 6px">Familjen Grotesk — títulos e valores grandes</h3>
+            <p class="xs muted" style="margin-bottom: 10px">geométrica, com detalhes secos; usada com parcimônia</p>
+            <div class="display" style="font-size: 2rem; font-weight: 700">Julho de 2026</div>
+            <div class="display" style="font-size: 1.3rem; font-weight: 700; letter-spacing: -0.03em">8.010,05 €</div>
+          </div>
+          <div class="card card-body">
+            <h3 style="margin-bottom: 6px">Public Sans — corpo</h3>
+            <p class="xs muted" style="margin-bottom: 10px">neutra de propósito, para não competir com a cor</p>
+            <p>Descrições de lançamento, mensagens de erro e texto de ajuda ficam em 14px com altura de linha 1,5.</p>
+            <p class="small muted" style="margin-top: 6px">Texto auxiliar em 12,5px — dicas de campo e legendas.</p>
+          </div>
+        </div>
+
+        <div class="card card-body">
+          <h3 style="margin-bottom: 10px">DM Mono — todo número</h3>
+          <div class="grid2">
+            <div>
+              <div class="xs muted" style="margin-bottom: 4px">Sem figuras tabulares</div>
+              <div style="font-size: 1.15rem; line-height: 1.35">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
+            </div>
+            <div>
+              <div class="xs muted" style="margin-bottom: 4px">Com figuras tabulares — usado em toda a aplicação</div>
+              <div class="num" style="font-size: 1.15rem; line-height: 1.35">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 12px">
+            Coluna de dinheiro que não alinha não se confere, e conferir é o trabalho da tela do mês. Data, valor, porcentagem e contagem usam a mesma fonte
+            pela mesma razão.
+          </p>
+        </div>
+
+        <div class="card card-body" style="margin-top: 14px">
+          <h3 style="margin-bottom: 6px">Escala</h3>
+          <div class="scale-row"><span class="meta">Grotesk 700 / 31px</span><span class="display" style="font-size: 1.95rem">Julho de 2026</span></div>
+          <div class="scale-row"><span class="meta">Grotesk 700 / 21px</span><span class="display" style="font-size: 1.3rem">8.010,05 €</span></div>
+          <div class="scale-row">
+            <span class="meta">Grotesk 600 / 17px</span>
+            <h2>Despesas por categoria</h2>
+          </div>
+          <div class="scale-row">
+            <span class="meta">Grotesk 600 / 14px</span>
+            <h3>Supermercado</h3>
+          </div>
+          <div class="scale-row"><span class="meta">Sans 400 / 14px</span><span>Corpo — descrição do lançamento</span></div>
+          <div class="scale-row"><span class="meta">Sans 400 / 12,5px</span><span class="small muted">Auxiliar — dica de campo</span></div>
+          <div class="scale-row" style="border-bottom: 0">
+            <span class="meta">Sans 600 / 11,5px caps</span
+            ><span class="xs" style="text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; color: var(--ink-soft)">Cabeçalho de tabela</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================ componentes -->
+      <section>
+        <div class="sec-head">
+          <h2>5. Componentes</h2>
+          <p>o shadcn/ui entrega os de verdade; aqui é só a aparência</p>
+        </div>
+        <div class="grid2">
+          <div class="card card-body stack">
+            <h3>Botões e controles</h3>
+            <div class="row wrap">
+              <button class="btn"><span data-icon="plus"></span> Novo lançamento</button>
+              <button class="btn outline">Cancelar</button>
+              <button class="btn danger">Excluir</button>
+              <button class="btn" disabled>Salvando…</button>
+            </div>
+            <div class="row wrap">
+              <button class="btn sm outline">Ação pequena</button>
+              <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+              <button class="btn icon ghost" title="Excluir"><span data-icon="trash"></span></button>
+            </div>
+            <div class="segmented">
+              <button aria-selected="true">Mensal</button>
+              <button aria-selected="false">Anual</button>
+              <button aria-selected="false">Gráficos</button>
+            </div>
+            <label class="row" style="cursor: pointer">
+              <button class="switch" role="switch" aria-checked="false"></button>
+              <span class="small">Mostrar inativos</span>
+            </label>
+          </div>
+
+          <div class="card card-body stack">
+            <h3>Campos</h3>
+            <div class="field">
+              <label for="f-desc">Descrição</label>
+              <input class="input" id="f-desc" value="Supermercado Continente" />
+            </div>
+            <div class="grid2" style="gap: 10px">
+              <div class="field">
+                <label for="f-val">Valor</label>
+                <input class="input num" id="f-val" value="128,40" />
+                <span class="hint">Aceita 1.234,56 e 1234.56</span>
+              </div>
+              <div class="field">
+                <label for="f-acc">Conta</label>
+                <select class="select" id="f-acc">
+                  <option>Millennium</option>
+                  <option>Revolut</option>
+                  <option>Dinheiro</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-date">Data</label>
+              <input class="input error" id="f-date" placeholder="dd/mm/aaaa" />
+              <span class="field-error">Informe a data do lançamento.</span>
+            </div>
+            <label class="check">
+              <input type="checkbox" checked />
+              <span class="small">Compra no cartão de crédito<br /><span class="hint">Revela o mês de referência</span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top: 14px">
+          <div class="card card-body stack">
+            <h3>Carregando, vazio, erro</h3>
+            <div class="stack" style="gap: 6px">
+              <div class="skeleton" style="width: 62%"></div>
+              <div class="skeleton" style="width: 92%"></div>
+              <div class="skeleton" style="width: 74%"></div>
+            </div>
+            <div class="row"><span class="spinner"></span><span class="small muted">Carregando mais…</span></div>
+            <div class="callout"><span data-icon="alert"></span><span>Nenhuma conta ativa cadastrada.</span></div>
+            <div class="callout warn"><span data-icon="alert"></span><span>Valor acima do saldo da caixinha — disponível 450,00 €.</span></div>
+            <div class="callout error"><span data-icon="alert"></span><span>Não dá para excluir: existem 12 lançamentos nesta conta.</span></div>
+          </div>
+
+          <div class="card" style="overflow: hidden">
+            <div class="card-head">
+              <h3>Tabela</h3>
+              <span class="badge">densidade padrão</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th class="n">Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="num">03/07</td>
+                    <td>Salário</td>
+                    <td><span class="badge income">Receita</span></td>
+                    <td class="num n in">+ 3.200,00 €</td>
+                  </tr>
+                  <tr>
+                    <td class="num">05/07</td>
+                    <td>Supermercado</td>
+                    <td>
+                      <span class="row" style="gap: 6px"><span class="dot" style="background: var(--c3)"></span>Alimentação</span>
+                    </td>
+                    <td class="num n out">− 128,40 €</td>
+                  </tr>
+                  <tr>
+                    <td class="num">07/07</td>
+                    <td>Reserva de férias</td>
+                    <td><span class="badge cashbox">Caixinha</span></td>
+                    <td class="num n cx">− 200,00 €</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Saldo</td>
+                    <td class="num n">+ 2.871,60 €</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-body" style="margin-top: 14px">
+          <h3 style="margin-bottom: 10px">Vazio</h3>
+          <div class="empty" style="padding: 30px 20px">
+            <span data-icon="calendar"></span>
+            <h3>Nada lançado em agosto de 2026</h3>
+            <p class="small muted">Registre o primeiro movimento do mês ou volte para julho.</p>
+            <div class="row" style="justify-content: center; margin-top: 4px">
+              <button class="btn"><span data-icon="plus"></span> Novo lançamento</button>
+              <button class="btn outline"><span data-icon="mic"></span> Lançar por voz</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== animação -->
+      <section>
+        <div class="sec-head">
+          <h2>6. Animação</h2>
+          <p>duração é conteúdo, ou não existe</p>
+        </div>
+        <div class="card card-body">
+          <p class="small muted" style="max-width: 68ch">
+            Curva única <code>cubic-bezier(.2,.9,.3,1)</code>, duas durações de interface: 120 ms (hover, foco, alternância) e 200 ms (diálogo, gaveta, toast).
+            <code>prefers-reduced-motion</code> zera tudo.
+          </p>
+          <p class="small muted" style="max-width: 68ch; margin-top: 10px">
+            A v1 tinha um teto de 320 ms e proibia número animado. As duas regras caem aqui, cada uma por um motivo:
+          </p>
+          <ul class="small muted" style="margin: 8px 0 0; padding-left: 18px; max-width: 68ch">
+            <li>
+              <strong>A faixa do mês leva ~700 ms</strong> para entrar, dia a dia. A duração <em>é</em> o conteúdo: é o mês sendo percorrido, e ela só acontece
+              uma vez, ao abrir a tela.
+            </li>
+            <li style="margin-top: 5px">
+              <strong>Um saldo nunca é animado.</strong> Número que rola não se confere contra o extrato do banco. O que pode contar é um total que se recalcula
+              porque o filtro mudou — ali o movimento marca que a pergunta mudou, e não há nada a conferir.
+            </li>
+          </ul>
+          <div style="margin-top: 16px">
+            <div class="xs muted" style="margin-bottom: 6px">A entrada da faixa, em miniatura</div>
+            <div class="rail" id="rail"></div>
+            <button class="btn sm outline" style="margin-top: 10px" id="replay">Repetir</button>
+          </div>
+          <div class="row wrap" style="margin-top: 16px">
+            <button class="btn outline" data-open="ds-dialog">Ver diálogo</button>
+            <button class="btn outline" id="toast-btn">Ver toast</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================== espaço -->
+      <section>
+        <div class="sec-head">
+          <h2>7. Espaço, raio e sombra</h2>
+          <p>escala de 4px</p>
+        </div>
+        <div class="card card-body">
+          <p class="small muted">
+            Raio 6px em botões, campos e badges; 10px em cartões; 14px em diálogos. Três sombras apenas, e a de cartão é quase invisível de propósito — a
+            separação vem da borda, não da profundidade.
+          </p>
+          <div class="shadow-demo" style="margin-top: 14px">
+            <div style="box-shadow: var(--shadow-sm)">cartão</div>
+            <div style="box-shadow: var(--shadow-md)">menu</div>
+            <div style="box-shadow: var(--shadow-lg)">diálogo</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================== decisões -->
+      <div class="decisions">
+        <h2>Decisões a aprovar</h2>
+        <p>As duas perguntas que ficaram abertas desde a v1 estão respondidas aqui — nos itens 1 e 2.</p>
+        <ol>
+          <li>
+            <b>Não existe cor de marca.</b>
+            <span>
+              A pergunta era "sage, indigo ou slate?". A resposta da direção D é nenhuma: a moldura é preta e cinza, e as únicas cores da tela são as dezesseis
+              das categorias mais as quatro do dinheiro. É a aposta central desta direção — se ela não convencer, é aqui que se diz.
+            </span>
+          </li>
+          <li>
+            <b>Familjen Grotesk + Public Sans + DM Mono.</b>
+            <span>
+              A pergunta era "grotesk, humanist ou mixed?". Grotesk nos títulos, sans neutra no corpo, mono em todo número — três papéis em vez de uma família
+              só.
+            </span>
+          </li>
+          <li>
+            <b>O âmbar de caixinha escureceu</b> de <code>#a0700f</code> para <code>#8a6008</code>,
+            <span>para o texto passar de 4,4:1 para 5,6:1 sobre branco. Muda um pouco o tom da direção D.</span>
+          </li>
+          <li>
+            <b>As dezesseis cores exatamente como estão na direção D.</b>
+            <span>
+              É a única direção que as propôs de verdade, lado a lado. Vale olhar se alguma incomoda: elas ficam permanentes e aparecem em todo gráfico e todo
+              mês.
+            </span>
+          </li>
+          <li>
+            <b>Animação acima de 320 ms só na faixa do mês</b>,
+            <span>e número animado só em total recalculado por filtro — nunca em saldo.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="scrim" id="ds-dialog" style="display: none">
+      <div class="dialog">
+        <div class="card-head">
+          <h2>Exemplo de diálogo</h2>
+          <button class="btn icon ghost" data-close><span data-icon="x"></span></button>
+        </div>
+        <div class="card-body small muted">Entra com opacidade, 8px de subida e escala 0,98 → 1, em 200 ms.</div>
+        <div class="card-foot">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn" data-close>Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="ds-toast" style="display: none">
+      <div class="toast">
+        <span class="grow">Lançamento excluído.</span>
+        <button class="btn sm" onclick="document.getElementById('ds-toast').style.display = 'none'">Desfazer</button>
+      </div>
+    </div>
+
+    <script>
+      /* The palette is the hero, so it is data rather than markup: the sixteen
+         are named after the categories most likely to claim them first. */
+      const SWATCHES = [
+        ['Moradia', '#1f6f54'],
+        ['Transporte', '#2e6da4'],
+        ['Alimentação', '#b4641e'],
+        ['Saúde', '#a32c3d'],
+        ['Lazer', '#6b4ca8'],
+        ['Educação', '#0f7c82'],
+        ['Pessoal', '#b5407e'],
+        ['Outros', '#4a5568'],
+        ['Casa', '#7a8b1f'],
+        ['Filhos', '#c2571a'],
+        ['Impostos', '#2b4c9b'],
+        ['Presentes', '#8a2f5f'],
+        ['Assinaturas', '#157f6e'],
+        ['Animais', '#94701c'],
+        ['Viagem', '#5d5fa6'],
+        ['Trabalho', '#8c4a2f'],
+      ];
+
+      document.getElementById('palette').innerHTML = SWATCHES.map(
+        ([name, hex], i) =>
+          `<div class="sw" style="background:${hex};animation-delay:${i * 26}ms">
+             <span class="n">${String(i + 1).padStart(2, '0')}</span>
+             <span><b>${name}</b><br /><code>${hex}</code></span>
+           </div>`,
+      ).join('');
+
+      /* Miniature of the month strip's entrance — the one animation over 320 ms. */
+      const RAIL = [30, 0, 0, 62, 100, 18, 0, 0, 44, 55, 72, 0, 34, 88, 60, 27, 0, 76, 0, 48];
+      const railEl = document.getElementById('rail');
+      const COLS = ['var(--c1)', 'var(--c3)', 'var(--c2)', 'var(--c5)', 'var(--c4)'];
+      function drawRail() {
+        railEl.innerHTML = RAIL.map(
+          (h, i) => `<i style="height:${h || 3}%;background:${h ? COLS[i % COLS.length] : 'var(--line)'};animation-delay:${i * 26}ms"></i>`,
+        ).join('');
+      }
+      drawRail();
+      document.getElementById('replay').addEventListener('click', drawRail);
+      document.getElementById('toast-btn').addEventListener('click', () => {
+        document.getElementById('ds-toast').style.display = 'flex';
+      });
+    </script>
+  </body>
+</html>

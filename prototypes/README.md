@@ -11,39 +11,55 @@ animation **before** any React code exists.
 
 ```
 prototypes/
-├── index.html            entry point — compares the directions under review
-├── dir-*.html            one self-contained page per design direction
+├── index.html            entry point — the three screens under review, and every screen's status
+├── _shared/              proto.css (tokens) + proto.js (icons, app shell, dialogs)
+├── NN-name.html          under review
 ├── MEMORY.md             every UI decision the user has made
 ├── approved/             approved — the reference the React implementation follows
+├── archives/
+│   └── v2-directions/    the four candidate directions; D won, the others are the record
 ├── discarded/
 │   └── v1-default/       the first set, discarded in full — complete and still openable
 └── .nojekyll             belt and braces, see "Published site" below
 ```
 
-**Four design directions are under review.** Each `dir-*.html` is standalone — its own palette,
-type pairing, CSS and signature element, sharing nothing with the others, because a shared
-stylesheet would quietly make four directions into one. They all render the same month, with the
-same entries and totals, so only the design differs.
+**v2 is direction D — Cromático**, chosen out of the four and expanded into a system. Its thesis:
+**colour belongs to the data, never to the chrome.** A category's colour is permanent identity, so
+the interface around it is achromatic — no brand colour at all, which is how the long-open "sage,
+indigo or slate?" question ended up answered.
 
-The chosen one expands into the thirteen screens; the rest join `discarded/`. Once there is a
-single direction, the shared `_shared/proto.css` and `_shared/proto.js` come back — a set of
-thirteen screens has no business repeating its tokens thirteen times.
+**Three screens are under review**, not thirteen: `00-design-system`, `06-month` and
+`09-reports-monthly`. They are the three that decide everything — the token set, the densest
+screen, and the one carrying the new against-the-average column. The remaining ten follow once
+these are approved; drawing them first would only mean drawing them twice.
+
+`archives/` and `discarded/` are not the same thing. A discarded set was rejected; the archived
+directions were the path to a decision, and three of them lost a comparison they existed to lose.
+
+Now that there is one direction, the shared `_shared/proto.css` and `_shared/proto.js` are back —
+a set of thirteen screens has no business repeating its tokens thirteen times. During the
+comparison each direction carried its own CSS on purpose, because a shared stylesheet would have
+quietly made four directions into one.
 
 ## How to look at them
 
-Open `prototypes/index.html` in a browser and follow the four cards. No build and no server —
-plain files on disk. Unlike v1 these do fetch webfonts, so the first load wants a connection;
-without one they fall back to system faces and the typography no longer reads as intended.
+Open `prototypes/index.html` in a browser. No build and no server — plain files on disk. Unlike v1
+these fetch webfonts (Familjen Grotesk, Public Sans, DM Mono), so the first load wants a
+connection; without one they fall back to system faces and the typography no longer reads as
+intended.
 
-They are also published as a static site — see below — so a direction can be reviewed from a phone,
+They are also published as a static site — see below — so a screen can be reviewed from a phone,
 or sent as a link, without a checkout.
 
-Two of the four are worth touching rather than looking at: direction C parses the command line as
-you type it, and direction D filters the month when you click a day in the strip.
+Two things are worth touching rather than looking at: **click a day in the month strip** on screen
+06, which filters the list and recomputes the totals, and **hover the "contra a média" column** on
+screen 09, whose tooltips carry the half of the average rule that a heading cannot say.
+
+Worth opening on a phone too. Both ends are the design; neither is the other's fallback.
 
 v1 offered a black bar that switched colour, type and motion across every screen. That is gone on
 purpose — it let one set of screens pretend to be three, which is how v1 ended up with no point of
-view at all. A direction now commits to its choices, and the comparison happens between files.
+view at all.
 
 ## Approval flow
 
@@ -52,9 +68,11 @@ view at all. A direction now commits to its choices, and the comparison happens 
 2. Approve, or say what changes. Approving moves the file into `approved/`; the status table in
    `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
 3. Only then does the screen become an implementation ticket.
-4. A rejected direction moves to `discarded/` rather than being deleted. One prototype rejected
+4. A rejected prototype moves to `discarded/` rather than being deleted. One prototype rejected
    moves one file; a whole generation rejected moves into its own `discarded/vN-<name>/` folder,
-   carrying `_shared/` and the index so the archive still renders.
+   carrying `_shared/` and the index so the archive still renders. Exploration that was never
+   meant to ship — the four design directions — goes to `archives/vN-<name>/` instead, on the same
+   terms: complete, with its own index, still openable.
 
 Files inside `approved/` are read-only references. When an approved prototype needs to change,
 edit it in place and note the change in the pull request — the prototype and the built screen must

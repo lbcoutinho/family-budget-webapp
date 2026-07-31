@@ -11,10 +11,16 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**Screen plan + prototypes done**, on branch `claude/screens-prototypes-plan-7kk7l9`:
-`plans/0002-screens.md` (13 screens, actions per screen, open questions) and `prototypes/` (14
-throwaway HTML pages, `_shared/proto.css` + `proto.js`, `approved/` and `discarded/`). Nothing
-half-finished — **waiting on the user's approvals**, starting with `00-design-system.html`.
+**v2 prototypes done and pushed**, branch `claude/screens-prototypes-plan-7kk7l9` (restarted from
+`main` after #36 merged). Direction **D — Cromático** won; the four candidates moved to
+`prototypes/archives/v2-directions/`. v2 covers **three screens** — `00-design-system.html`,
+`06-month.html`, `09-reports-monthly.html` — on a shared `_shared/proto.css` + `proto.js`.
+
+Nothing half-finished. **Waiting on the user's design approval**, and `00-design-system.html` is
+the one that unblocks everything.
+
+**The remaining ten screens are deliberately not drawn.** They follow once these three are
+approved — drawing them first would mean drawing them twice.
 
 **M2-T01 (#26), M2-T02 (#29), M2-T03 (#30), M2-T04 (#32) and M2-T05 (#33) merged.** Only M2-T06
 (the login screen, #22) is left in M2 — and it is blocked on a prototype approval, see below.
@@ -22,8 +28,13 @@ half-finished — **waiting on the user's approvals**, starting with `00-design-
 ## Gotchas the next ticket will hit
 
 - **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
-  `plans/0002-screens.md`). **M2-T06 is blocked until `00-design-system.html` and
-  `01-login.html` move to `prototypes/approved/`.**
+  `plans/0002-screens.md`). **M2-T06 is blocked twice over:** `01-login.html` has not been drawn in
+  v2 yet, and nothing has moved to `prototypes/approved/`. Drawing it needs
+  `00-design-system.html` approved first.
+- **v2's design tokens are settled enough to build against once approved:** no brand colour (chrome
+  is `#14161a`), 16 category swatches, money four with cashbox amber at `#8a6008`, Familjen Grotesk
+  - Public Sans + DM Mono. They live in `prototypes/_shared/proto.css` and become
+    `apps/web/src/styles/index.css`.
 - **The token store is `@family-budget/api-client`, not a React context.** `setAccessToken` (call it
   with what `login`/`useLogin` returns), `getAccessToken`, `setSessionExpiredHandler`. Renewal needs
   no wiring: the interceptors are installed when `lib/axios.ts` loads. An `AuthProvider` should wrap
@@ -80,5 +91,8 @@ Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loadin
 login screen never flashes. `useLogin`/`useLogout` are already exported from the generated client;
 the token store and the interceptors above are what it plugs into.
 
-**Do not start it until the login prototype is approved** — `prototypes/01-login.html`, which also
-covers the "verificando sessão" state that keeps the form from flashing.
+**Do not start it until the login prototype exists and is approved.** `01-login.html` was discarded
+with v1 and has not been redrawn — it comes with the remaining ten screens, after
+`00-design-system.html` is approved. Its v1 concept was approved in full (narrow centred card, no
+illustration, generic error, no "remember me", demo account through the same form), and it also
+has to cover the "verificando sessão" state that keeps the form from flashing.
