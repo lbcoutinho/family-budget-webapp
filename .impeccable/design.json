@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-31T00:00:00.000Z",
+  "title": "Design System: Family Budget",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#14161a",
+        "tonalRamp": ["#0b0c0e", "#14161a", "#2a2e36", "#3f444e", "#666d78", "#99a0aa", "#d5d9df", "#f5f6f8"]
+      },
+      "income": {
+        "role": "secondary",
+        "displayName": "Income Green",
+        "canonical": "#1a7a52",
+        "tonalRamp": ["#0c3a27", "#125437", "#1a7a52", "#2a9668", "#57b389", "#8fceb0", "#c3e5d5", "#e7f2ec"]
+      },
+      "expense": {
+        "role": "secondary",
+        "displayName": "Expense Red",
+        "canonical": "#bc2f3e",
+        "tonalRamp": ["#5b141b", "#8f2430", "#bc2f3e", "#d24956", "#e07982", "#eca9ae", "#f6d3d7", "#fbeaec"]
+      },
+      "transfer": {
+        "role": "secondary",
+        "displayName": "Transfer Blue",
+        "canonical": "#3a6ea5",
+        "tonalRamp": ["#12283d", "#26496e", "#3a6ea5", "#5688bc", "#7ea6cf", "#a9c4e0", "#d0dcef", "#e8eff7"]
+      },
+      "cashbox": {
+        "role": "secondary",
+        "displayName": "Cashbox Amber",
+        "canonical": "#8a6008",
+        "tonalRamp": ["#4a340a", "#6a4a07", "#8a6008", "#a87a1a", "#c69a3f", "#dcbb78", "#eddcb0", "#f7f0dd"]
+      },
+      "surface": { "role": "neutral", "displayName": "Surface", "canonical": "#ffffff" },
+      "bg": { "role": "neutral", "displayName": "Background", "canonical": "#fcfcfd" },
+      "wash": { "role": "neutral", "displayName": "Wash", "canonical": "#f5f6f8" },
+      "ink-soft": { "role": "neutral", "displayName": "Ink Soft", "canonical": "#666d78" },
+      "ink-faint": { "role": "neutral", "displayName": "Ink Faint", "canonical": "#99a0aa" },
+      "line": { "role": "neutral", "displayName": "Line", "canonical": "#e6e8ec" },
+      "line-strong": { "role": "neutral", "displayName": "Line Strong", "canonical": "#d5d9df" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles and stat-tile values; the only large type. Familjen Grotesk 700, tight tracking." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers, top-bar month label, sidebar brand." },
+      "title": { "displayName": "Title", "purpose": "Card and subsection headers (h3)." },
+      "body": { "displayName": "Body", "purpose": "All running text, form values, table cells. Public Sans." },
+      "label": { "displayName": "Label", "purpose": "Uppercase table column headers and eyebrow labels." },
+      "mono": { "displayName": "Mono", "purpose": "Every amount, date, and count. DM Mono, tabular-nums." }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px rgba(20,22,26,0.05)",
+        "purpose": "Barely-there settle under cards at rest and the segmented control's active thumb."
+      },
+      { "name": "raised", "value": "0 4px 14px rgba(20,22,26,0.08)", "purpose": "Tooltips overlapping page content." },
+      {
+        "name": "floating",
+        "value": "0 18px 48px rgba(20,22,26,0.16)",
+        "purpose": "Dialogs, toasts, and the mobile sidebar drawer — the only truly overlaid surfaces."
+      }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Default easing for every transition and entrance." },
+      { "name": "fast", "value": "120ms", "purpose": "Micro-transitions: hover fills, caret rotation, switch thumb." },
+      { "name": "base", "value": "200ms", "purpose": "Dialog/toast entrances, drawer slide, progress fills." }
+    ],
+    "breakpoints": [{ "name": "mobile", "value": "900px" }]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default action; ink fill, used for the one primary action per view.",
+      "html": "<button class=\"ds-btn-primary\">Salvar</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background: #14161a; color: #fff; border: 1px solid #14161a; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-primary:hover { background: #2a2e36; } .ds-btn-primary:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action; surface fill with a hairline-strong border.",
+      "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #14161a; border: 1px solid #d5d9df; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-outline:hover { background: #f5f6f8; } .ds-btn-outline:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action; the one place a money colour enters the chrome.",
+      "html": "<button class=\"ds-btn-danger\">Excluir</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #bc2f3e; color: #fff; border: 1px solid #bc2f3e; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-danger:hover { background: #a52836; } .ds-btn-danger:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard field; quiet at rest, ink ring on focus, red border on error.",
+      "html": "<input class=\"ds-input\" placeholder=\"0,00\" />",
+      "css": ".ds-input { font-family: 'Public Sans', sans-serif; font-size: 13.5px; padding: 7px 10px; border: 1px solid #d5d9df; border-radius: 6px; background: #fff; color: #14161a; width: 220px; } .ds-input::placeholder { color: #99a0aa; } .ds-input:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; } .ds-input.error { border-color: #bc2f3e; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented",
+      "description": "Type/mode switcher; a wash track with a pressed-forward active thumb.",
+      "html": "<div class=\"ds-segmented\"><button aria-selected=\"true\">Despesa</button><button>Receita</button><button>Transf.</button></div>",
+      "css": ".ds-segmented { display: inline-flex; background: #f5f6f8; border: 1px solid #e6e8ec; border-radius: 6px; padding: 2px; gap: 2px; } .ds-segmented button { border: 0; background: transparent; font-family: 'Public Sans', sans-serif; font-size: 12.5px; color: #666d78; padding: 4px 12px; border-radius: 4px; cursor: pointer; } .ds-segmented button[aria-selected=\"true\"] { background: #fff; color: #14161a; font-weight: 600; box-shadow: 0 1px 2px rgba(20,22,26,0.05); }"
+    },
+    {
+      "name": "Active Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Sidebar item; the active state is a solid ink fill — where a branded app would tint.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18\"/></svg>Mês</a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 19V5m6 14V9m6 10V13\"/></svg>Relatórios</a></nav>",
+      "css": ".ds-nav { display: grid; gap: 2px; width: 200px; font-family: 'Public Sans', sans-serif; } .ds-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; color: #666d78; font-size: 13.5px; text-decoration: none; } .ds-nav a:hover { background: #f5f6f8; color: #14161a; } .ds-nav a[aria-current=\"page\"] { background: #14161a; color: #fff; font-weight: 500; }"
+    },
+    {
+      "name": "Draft Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Marks an unconfirmed voice entry; a dashed outline reads as provisional.",
+      "html": "<span class=\"ds-badge-draft\">Rascunho</span>",
+      "css": ".ds-badge-draft { display: inline-flex; align-items: center; gap: 4px; font-family: 'Public Sans', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 7px; border-radius: 5px; background: transparent; border: 1px dashed #d5d9df; color: #666d78; }"
+    },
+    {
+      "name": "Stat Tile",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A dense card carrying one headline figure; the number borrows the display face.",
+      "html": "<div class=\"ds-stat\"><div class=\"k\">Saldo do mês</div><div class=\"v\">€ 2.480,15</div></div>",
+      "css": ".ds-stat { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 11px 14px; box-shadow: 0 1px 2px rgba(20,22,26,0.05); width: 180px; } .ds-stat .k { font-family: 'Public Sans', sans-serif; font-size: 11.5px; color: #666d78; } .ds-stat .v { font-family: 'Familjen Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; margin-top: 1px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Instrument Panel",
+    "overview": "This is a reading instrument for a household's money, not a brand experience. Its governing decision is that colour belongs to the data and never to the chrome. There is no brand accent — the frame is built entirely from ink (#14161a) and hairline greys, so the only saturated colour on any screen comes from what the data means: the four money colours and the sixteen category swatches. The result reads as precise and restrained: high density, monospaced tabular numbers, structure drawn with 1px lines and pale washes rather than boxes and shadows. The system commits to one appearance — light only — and treats desktop and phone as equals.",
+    "keyCharacteristics": [
+      "No brand colour — chrome is ink and hairline grey; hue means data.",
+      "Four fixed money colours + sixteen category swatches, each a single value.",
+      "Monospaced tabular numbers everywhere a figure appears.",
+      "Near-flat: depth from lines and washes, shadows reserved for what truly lifts.",
+      "Light-only, tuned to a 4.5:1 contrast floor.",
+      "Familjen Grotesk / Public Sans / DM Mono — three roles, three families."
+    ],
+    "rules": [
+      {
+        "name": "The No-Brand Rule",
+        "body": "No colour is decorative and no colour is the brand. If a hue is on screen it is because the data underneath it has that meaning. The chrome is ink and grey, always.",
+        "section": "colors"
+      },
+      {
+        "name": "The Value Names Rule",
+        "body": "Colour groups; the number names. Sixteen hues cannot be told apart in a donut, least of all by a colour-blind reader, so a chart always labels the slice with its own amount. Never require the reader to match a swatch to a legend.",
+        "section": "colors"
+      },
+      {
+        "name": "The Money-Is-Fixed Rule",
+        "body": "The four money colours are semantic constants. They do not shift with any future theme decision, because a green that stops meaning 'in' breaks every table.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Number Rule",
+        "body": "Every figure is DM Mono with font-variant-numeric: tabular-nums. Money that does not align down the column cannot be scanned, and scanning is the whole job.",
+        "section": "typography"
+      },
+      {
+        "name": "The Number-As-Display Rule",
+        "body": "The largest numbers on screen borrow Familjen Grotesk at 700 with tight tracking — a headline figure, not body text scaled up.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline-First Rule",
+        "body": "Reach for a 1px line or a wash before a shadow. A shadow is a claim that the element is above the page; if it is not, it gets a line.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep all chrome ink-and-grey. Buttons, active nav, focus rings, headers, avatars, tooltips, toasts are ink (#14161a).",
+      "Do set every amount, date, and count in DM Mono with tabular-nums (.num).",
+      "Do build structure from 1px lines and washes first; use a shadow only for a card at rest or something that truly floats.",
+      "Do label chart slices with their own amount, so meaning never depends on matching a swatch to a legend.",
+      "Do keep the four money colours exactly as defined — they are semantic constants, not theme choices.",
+      "Do design the phone layout as an equal: drawer sidebar, and frozen-column horizontal scroll for matrices that can't reflow."
+    ],
+    "donts": [
+      "Don't introduce a brand accent colour anywhere in the chrome. The absence is the identity.",
+      "Don't add dark mode or a second value for any token. The system is light-only by decision.",
+      "Don't set an amount in the body face, or let a number column go non-tabular.",
+      "Don't wrap surfaces in shadows to create hierarchy where a hairline or wash would do.",
+      "Don't repurpose a money colour for decoration, or let green/red mean 'good/bad' anywhere except the one confirmed against-the-average column.",
+      "Don't collapse the report matrices to cards on mobile — freeze the first column and scroll."
+    ]
+  }
+}
