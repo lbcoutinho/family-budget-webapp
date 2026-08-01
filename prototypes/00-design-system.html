@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="_shared/proto.css" />
@@ -46,7 +46,83 @@
         margin-top: 8px;
       }
 
-      /* --- the hero: sixteen swatches, which are the identity ------------- */
+      /* --- the number-font comparison, section 4 -------------------------- */
+      /* Each option renders the same rows, so only the typeface varies. The
+         classes live here rather than in proto.css: two of the three will be
+         deleted as soon as the choice is made. */
+      .fontlab {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .fontlab .opt {
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: 132px 1fr auto;
+        gap: 16px;
+        align-items: center;
+      }
+      .fontlab .opt.current {
+        background: var(--wash);
+        border-style: dashed;
+      }
+      .fontlab .who b {
+        display: block;
+        font-family: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
+        font-size: 14px;
+      }
+      .fontlab .who span {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .fontlab table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .fontlab td {
+        padding: 3px 10px 3px 0;
+        font-size: 13.5px;
+        white-space: nowrap;
+      }
+      .fontlab td.v {
+        text-align: right;
+        padding-right: 0;
+      }
+      /* The zero at reading size is the whole complaint, so it gets its own
+         column instead of being hunted for inside a row. */
+      .fontlab .zero {
+        font-size: 2.4rem;
+        line-height: 1;
+        color: var(--ink);
+      }
+      .num-a {
+        font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+      .num-b {
+        font-family: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+      .num-c {
+        font-family: 'Roboto Mono', ui-monospace, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      .num-d {
+        font-family: 'DM Mono', ui-monospace, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      @media (max-width: 640px) {
+        .fontlab .opt {
+          grid-template-columns: 1fr auto;
+        }
+        .fontlab .who {
+          grid-column: 1 / -1;
+        }
+      }
+
+      /* --- the hero: ten swatches, which are the identity ----------------- */
       .palette {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
@@ -171,45 +247,59 @@
     <div class="ds">
       <h1>Sistema de design</h1>
       <p class="lede">
-        Uma tese só: <strong>a cor pertence aos dados, nunca à moldura</strong>. A cor de uma categoria já é identidade permanente — aparece igual em todo mês,
-        em todo gráfico, em todo relatório. Para isso funcionar, tudo à volta fica sem cor: botão, menu, foco e cabeçalho são tinta preta e cinza. As dezesseis
-        cores abaixo são as únicas da aplicação, fora as quatro do dinheiro.
+        Uma tese só, emendada uma vez na revisão: <strong>a cor pertence aos dados — e à ação</strong>. A cor de uma categoria já é identidade permanente —
+        aparece igual em todo mês, em todo gráfico, em todo relatório. Para isso funcionar, quase tudo à volta fica sem cor. A exceção é o que você deve fazer
+        em seguida: o botão primário preto não chamava atenção, então a ação passa a usar o verde da receita, e nenhum dado pode usá-lo. Continua sem cor de
+        marca.
       </p>
 
       <!-- ============================================================ cor -->
       <section>
         <div class="sec-head">
-          <h2>1. As dezesseis cores de categoria</h2>
-          <p>viram <code>--cat-1</code> … <code>--cat-16</code></p>
+          <h2>1. As dez cores de categoria</h2>
+          <p>viram <code>--cat-1</code> … <code>--cat-10</code></p>
         </div>
         <div class="palette" id="palette"></div>
         <p class="small muted" style="margin-top: 12px; max-width: 68ch">
-          Todas na mesma faixa de luminosidade, para nenhuma dominar por acidente. Dezesseis resolvem a colisão de cor — os gráficos desenham todas as
-          categorias, sem agrupar em "Outras", e com oito duas cairiam na mesma cor. O que dezesseis
-          <em>não</em> resolvem é legibilidade: ninguém distingue dezesseis matizes numa rosca, e quem não enxerga verde e vermelho distingue menos ainda.
-          <strong>Por isso quem identifica é o valor</strong> — cada fatia, barra ou segmento leva o próprio número como rótulo, e a cor fica só para agrupar.
-          Nada na aplicação exige casar uma cor com uma legenda.
+          Eram dezesseis. Seis eram quase repetição de outra — dois azuis, dois laranjas, dois teais, dois magentas, dois roxos, dois olivas — e o teto real é
+          umas onze ou doze categorias. <strong>Dez, com repetição aceita:</strong> passando de dez, a décima primeira categoria repete uma cor, e isso não
+          quebra nada. O corte também deu espaço para afinar as que ficaram: nenhuma abaixo de 4,8:1 sobre a página (dá para usar como texto, não só como
+          bolinha) e nenhum par mais perto que ΔE2000 12,9 na visão normal.
+        </p>
+        <p class="small muted" style="margin-top: 8px; max-width: 68ch">
+          O que dez ainda <em>não</em> resolvem é legibilidade: ninguém distingue dez matizes numa rosca, e quem não enxerga verde e vermelho distingue menos
+          ainda — laranja e oliva, azul e roxo continuam encostando. <strong>Por isso quem identifica é o valor</strong> — cada fatia, barra ou segmento leva o
+          próprio número como rótulo, e a cor fica só para agrupar. Nada na aplicação exige casar uma cor com uma legenda.
         </p>
       </section>
 
       <!-- ==================================================== sem marca -->
       <section>
         <div class="sec-head">
-          <h2>2. Não existe cor de marca</h2>
-          <p>é a decisão, não um esquecimento</p>
+          <h2>2. Um acento, só para a ação</h2>
+          <p>continua sem cor de marca</p>
         </div>
         <div class="grid2">
           <div class="card card-body stack">
-            <h3>A moldura é acromática</h3>
+            <h3>A moldura é acromática, menos a ação</h3>
             <p class="small muted">
-              Botão primário, item de menu ativo, anel de foco e cabeçalho de tabela usam
-              <code>--ink</code> (#14161a). Sem azul de produto, sem verde de marca. A pergunta "sage, indigo ou slate?" ficava aberta desde a v1; a direção D
-              responde eliminando a pergunta — qualquer cor de marca competiria com as dezesseis que carregam significado.
+              Sem azul de produto, sem verde de marca: a pergunta "sage, indigo ou slate?" segue respondida com "nenhuma". Mas a moldura toda preta deixava o
+              botão primário invisível como convite — ele parecia mais um elemento da tabela. Então <strong>a ação toma emprestado o verde da receita</strong>
+              (<code>--action</code>, #1a7a52): botão primário, anel de foco e item de menu ativo. Tabs, links, cabeçalho de tabela e todo o resto continuam em
+              <code>--ink</code>.
             </p>
             <div class="row wrap">
               <button class="btn">Novo lançamento</button>
               <button class="btn outline">Cancelar</button>
               <button class="btn ghost">Ver inativos</button>
+              <button class="btn danger">Excluir</button>
+            </div>
+            <div class="callout">
+              <span data-icon="info"></span>
+              <span>
+                Mesmo verde do dinheiro, duas gramáticas: <strong>ação é superfície preenchida, dinheiro é texto.</strong> Nenhum valor é retângulo verde,
+                nenhum botão é texto verde sobre branco. Se essa distinção não segurar na tela do mês, é aqui que se muda.
+              </span>
             </div>
           </div>
           <div class="card card-body stack">
@@ -237,7 +327,7 @@
       <section>
         <div class="sec-head">
           <h2>3. As quatro cores do dinheiro</h2>
-          <p>nunca mudam</p>
+          <p>aprovadas na revisão — nunca mudam</p>
         </div>
         <div class="card card-body">
           <p class="small muted" style="max-width: 66ch">
@@ -279,7 +369,7 @@
       <section>
         <div class="sec-head">
           <h2>4. Tipografia</h2>
-          <p>três papéis, três fontes</p>
+          <p>títulos e corpo aprovados; o número está em votação</p>
         </div>
         <div class="grid2" style="margin-bottom: 14px">
           <div class="card card-body">
@@ -296,22 +386,23 @@
           </div>
         </div>
 
-        <div class="card card-body">
-          <h3 style="margin-bottom: 10px">DM Mono — todo número</h3>
-          <div class="grid2">
-            <div>
-              <div class="xs muted" style="margin-bottom: 4px">Sem figuras tabulares</div>
-              <div style="font-size: 1.15rem; line-height: 1.35">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
-            </div>
-            <div>
-              <div class="xs muted" style="margin-bottom: 4px">Com figuras tabulares — usado em toda a aplicação</div>
-              <div class="num" style="font-size: 1.15rem; line-height: 1.35">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
-            </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>A fonte do número — escolha uma</h3>
+            <span class="badge draft">decisão aberta</span>
           </div>
-          <p class="small muted" style="margin-top: 12px">
-            Coluna de dinheiro que não alinha não se confere, e conferir é o trabalho da tela do mês. Data, valor, porcentagem e contagem usam a mesma fonte
-            pela mesma razão.
-          </p>
+          <div class="card-body">
+            <p class="small muted" style="max-width: 70ch">
+              Duas queixas contra o DM Mono: o zero cortado (<code>0</code> com barra) incomoda, e na tabela a coluna de data e valor destoa demais da coluna de
+              categoria. As três opções abaixo são a mesma tabela três vezes — só a fonte dos números muda. Elas cobrem o intervalo entre "idêntica ao corpo" e
+              "mono de verdade". O DM Mono atual fecha a lista, para comparação.
+            </p>
+            <div class="fontlab" id="fontlab"></div>
+            <p class="small muted" style="margin-top: 14px; max-width: 70ch">
+              Seja qual for a escolhida, ela vale para <em>todo</em> número: valor, data, porcentagem, contagem, eixo de gráfico — um só lugar no CSS. E mantém
+              figuras tabulares em qualquer caso: coluna de dinheiro que não alinha não se confere, e conferir é o trabalho da tela do mês.
+            </p>
+          </div>
         </div>
 
         <div class="card card-body" style="margin-top: 14px">
@@ -533,32 +624,41 @@
       <!-- =================================================== decisões -->
       <div class="decisions">
         <h2>Decisões a aprovar</h2>
-        <p>As duas perguntas que ficaram abertas desde a v1 estão respondidas aqui — nos itens 1 e 2.</p>
+        <p>
+          Segunda rodada. Cores do dinheiro, títulos, corpo, escala, campos, estados e animação já foram aprovados e saíram desta lista. O que sobrou é isto — o
+          item 1 é o único que precisa de você olhando a tela.
+        </p>
         <ol>
           <li>
-            <b>Não existe cor de marca.</b>
+            <b>Qual das três fontes de número</b> — A Public Sans, B Familjen Grotesk ou C Roboto Mono.
             <span>
-              A pergunta era "sage, indigo ou slate?". A resposta da direção D é nenhuma: a moldura é preta e cinza, e as únicas cores da tela são as dezesseis
-              das categorias mais as quatro do dinheiro. É a aposta central desta direção — se ela não convencer, é aqui que se diz.
+              Estão desenhadas na seção 4, na mesma tabela. A escolhida vale para todo número da aplicação; as outras duas somem do protótipo no mesmo dia.
             </span>
           </li>
           <li>
-            <b>Familjen Grotesk + Public Sans + DM Mono.</b>
+            <b>O verde do dinheiro é também o verde da ação.</b>
             <span>
-              A pergunta era "grotesk, humanist ou mixed?". Grotesk nos títulos, sans neutra no corpo, mono em todo número — três papéis em vez de uma família
-              só.
+              Botão primário, foco e menu ativo passam a usar <code>--income</code>. A regra que os mantém separados é gramatical: ação é superfície preenchida,
+              dinheiro é texto. Nenhuma cor nova entrou na aplicação.
             </span>
           </li>
           <li>
-            <b>O âmbar de caixinha escureceu</b> de <code>#a0700f</code> para <code>#8a6008</code>,
-            <span>para o texto passar de 4,4:1 para 5,6:1 sobre branco. Muda um pouco o tom da direção D.</span>
+            <b>O diálogo de lançamento abre sem tipo pré-selecionado?</b>
+            <span>
+              Consequência do item 2, e ainda não desenhada: se o botão verde abre um formulário já marcado como "Despesa", a cor promete entrada e entrega
+              saída. Sem seleção prévia, não promete nada. Decide-se ao desenhar a tela 07.
+            </span>
           </li>
           <li>
-            <b>As dezesseis cores exatamente como estão na direção D.</b>
+            <b>As dez cores, reafinadas.</b>
             <span>
-              É a única direção que as propôs de verdade, lado a lado. Vale olhar se alguma incomoda: elas ficam permanentes e aparecem em todo gráfico e todo
-              mês.
+              Seis das dezesseis eram quase repetição e saíram; as dez que ficaram foram escurecidas ou deslocadas o suficiente para nenhum par se confundir, e
+              todas passam a servir como texto. Ficam permanentes: aparecem em todo gráfico e todo mês.
             </span>
+          </li>
+          <li>
+            <b>Categoria repete cor a partir da décima primeira</b>,
+            <span>e o gráfico continua legível porque cada fatia leva o próprio valor como rótulo. Confirmado na revisão, registrado aqui.</span>
           </li>
           <li>
             <b>Animação acima de 320 ms só na faixa do mês</b>,
@@ -590,25 +690,20 @@
     </div>
 
     <script>
-      /* The palette is the hero, so it is data rather than markup: the sixteen
-         are named after the categories most likely to claim them first. */
+      /* The palette is the hero, so it is data rather than markup: the ten are
+         named after the categories most likely to claim them first. The last
+         one is grey and belongs to "Outros" permanently. */
       const SWATCHES = [
         ['Moradia', '#1f6f54'],
-        ['Transporte', '#2e6da4'],
-        ['Alimentação', '#b4641e'],
+        ['Transporte', '#1f5aa8'],
+        ['Alimentação', '#a85c1a'],
         ['Saúde', '#a32c3d'],
-        ['Lazer', '#6b4ca8'],
+        ['Lazer', '#7a45b5'],
         ['Educação', '#0f7c82'],
         ['Pessoal', '#b5407e'],
+        ['Casa', '#4c6019'],
+        ['Trabalho', '#6f3d24'],
         ['Outros', '#4a5568'],
-        ['Casa', '#7a8b1f'],
-        ['Filhos', '#c2571a'],
-        ['Impostos', '#2b4c9b'],
-        ['Presentes', '#8a2f5f'],
-        ['Assinaturas', '#157f6e'],
-        ['Animais', '#94701c'],
-        ['Viagem', '#5d5fa6'],
-        ['Trabalho', '#8c4a2f'],
       ];
 
       document.getElementById('palette').innerHTML = SWATCHES.map(
@@ -617,6 +712,30 @@
              <span class="n">${String(i + 1).padStart(2, '0')}</span>
              <span><b>${name}</b><br /><code>${hex}</code></span>
            </div>`,
+      ).join('');
+
+      /* Section 4's open decision, drawn rather than described: identical rows,
+         one typeface each. Two of these four disappear once one is chosen. */
+      const NUMFONTS = [
+        ['A', 'num-a', 'Public Sans', 'a mesma fonte do corpo — nenhum contraste na tabela'],
+        ['B', 'num-b', 'Familjen Grotesk', 'a voz dos títulos, ainda sem parecer código'],
+        ['C', 'num-c', 'Roboto Mono', 'mono de zero liso, sem barra nem ponto'],
+        ['—', 'num-d', 'DM Mono', 'a atual, com o zero cortado'],
+      ];
+      const NUMROWS = [
+        ['03/07', 'Salário', '+ 3.200,00 €'],
+        ['05/07', 'Supermercado', '− 128,40 €'],
+        ['14/07', 'Seguro do carro', '− 1.011,10 €'],
+      ];
+      document.getElementById('fontlab').innerHTML = NUMFONTS.map(
+        ([tag, cls, name, note]) => `
+          <div class="opt${cls === 'num-d' ? ' current' : ''}">
+            <div class="who"><b>${tag === '—' ? name : `${tag}. ${name}`}</b><span>${note}</span></div>
+            <table class="${cls}">
+              ${NUMROWS.map(([d, desc, v]) => `<tr><td>${d}</td><td style="font-family:'Public Sans',sans-serif">${desc}</td><td class="v">${v}</td></tr>`).join('')}
+            </table>
+            <div class="zero ${cls}">0123</div>
+          </div>`,
       ).join('');
 
       /* Miniature of the month strip's entrance — the one animation over 320 ms. */

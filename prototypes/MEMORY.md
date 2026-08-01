@@ -49,17 +49,43 @@ v2 is what the `frontend-design` skill produces. Later versions come from other 
 version each, so the comparison is between skills rather than between briefs. Keep them as
 separate `vN` sets and do not merge them.
 
+### First review of v2 — settled 2026-08-01
+
+The user reviewed `00-design-system.html` section by section. What that produced:
+
+- **Ten category colours, not sixteen.** Eleven or twelve categories is the real ceiling, and six
+  of the sixteen were near-duplicates (two blues, two oranges, two teals, two magentas, two purples,
+  two olives). **Repetition past ten is accepted** — the eleventh category reuses a colour and the
+  value label keeps the chart readable. The ten that stayed were re-tuned rather than merely
+  cut: every one is now ≥ 4.8:1 on the page (usable as text, not only as a dot) and no pair is
+  closer than ΔE2000 12.9 in normal vision. Final values live in `_shared/proto.css`.
+- **There is still no brand colour, but the action gets one.** The black primary button did not
+  read as a call to action — that was the user's complaint, in those words. **The action borrows
+  the income green** (`--action: var(--income)`), on the primary button, the focus ring and the
+  active nav item. Tabs, links, table headers and everything else stay ink. No new hue entered the
+  application.
+  - The risk was raised and the user chose the green anyway: on the month screen the same green
+    marks "entrada" in text and "act here" as a surface. **The rule that keeps them apart is
+    grammatical — action is a filled surface, money is text.** Provisional: if it fails on the
+    month screen, this is what changes.
+  - Follow-on, still open: the launch dialog opening with no pre-selected type, so a green button
+    never announces a type the form contradicts. Decide when screen 07 is drawn.
+- **The four money colours are approved as they stand.** Green income, red expense, blue transfer,
+  amber cashbox, amber already darkened. No longer an open question.
+- **Titles, body text and the type scale are approved.** Familjen Grotesk + Public Sans stay.
+- **The number typeface is rejected and now under vote.** Two complaints: DM Mono's slashed zero,
+  and the table's date/amount columns clashing with the category column. Section 4 now renders
+  **three options against the same rows** — A Public Sans tabular, B Familjen Grotesk tabular,
+  C Roboto Mono — with DM Mono kept last as the current state. **The user picks one by looking;**
+  the winner then replaces `.num` in `proto.css` and the two losers are deleted from the page.
+- **Components approved** except the buttons, now green. Animations approved as they are; a pass
+  for new animation opportunities was explicitly deferred (`find-animation-opportunities` skill).
+
 ### What v2 decided on its own, and needs confirming
 
-Three things the direction forced, all listed in the "Decisões a aprovar" block of the screen that
-introduced them. None is settled until the user says so:
-
-- **There is no brand colour.** Direction D's thesis is that colour belongs to the data, so the
-  chrome — primary button, active nav item, focus ring, table header — is ink (`#14161a`). This is
-  what answers open question 1 below; it answers it by removing the question rather than picking
-  one of the three.
 - **The cashbox amber darkened** from `#a0700f` to `#8a6008`, because the original sat at 4.4:1 on
   white, under the 4.5:1 floor. It is now 5.6:1. The other three money colours already passed.
+  **Approved in the first review.**
 - **The month list is rows, not a table**, which cost the plan's "sort by clicking a column
   header" — there is no header. Sorting moved to a select above the list. The gain is one layout
   that works at both ends without a table that scrolls sideways.
@@ -100,7 +126,7 @@ approval.
 
 | Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 00 design system      | partly            | **drawn in v2** — 16 swatches, no brand colour, Grotesk/Sans/Mono                                                               |
+| 00 design system      | partly            | **drawn in v2, first review applied** — 10 swatches, green action accent, number typeface under vote                            |
 | 01 login              | approved, in full | —                                                                                                                               |
 | 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
 | 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
@@ -148,23 +174,22 @@ half a reader would never guess.
 Partly settled. The colour discussion is deliberately postponed, so nothing here unblocks the
 design gate.
 
-- **The semantic colours are kept as they are**: green for income, red for expense, blue for
-  transfer, amber for cashbox — independent of the brand colour, so switching theme never changes
-  what a table means. What is left about them is the exact tone, to be picked together with the
-  brand colour.
-- **The category palette offers sixteen swatches, not eight.**
+- **The semantic colours are settled, tone included**: green for income, red for expense, blue for
+  transfer, amber for cashbox — independent of any brand colour, so switching theme never changes
+  what a table means.
+- **The category palette offers ten swatches**, cut from sixteen in the first v2 review. Grey
+  (`--c10`) is permanently "Outros".
 - **No dark mode**, so each swatch is one value rather than a light/dark pair.
 
-Two consequences of sixteen:
+Two things that survive the cut to ten:
 
-- It halves the collision risk flagged on screen 11. Categories with no colour fall back to a value
-  derived from their id, and since the charts now draw every category, two of them landing on the
-  same colour was a real possibility with eight.
-- It still does not make sixteen categories legible in a donut — that many hues cannot all be told
-  apart, fewer still for a colour-blind reader. **Resolved: the value does the identifying.** A
-  slice carries its own amount as a label; colour groups things, the number names them. So the
-  chart never depends on the reader matching a swatch to a legend, which is the part that fails
-  first.
+- Categories with no colour fall back to a value derived from their id, and the charts draw every
+  category without grouping into "Outras" — so two can land on the same colour. With ten swatches
+  and eleven or twelve categories that is now **expected and accepted**, not a defect.
+- Ten hues are still not all tellable apart in a donut, and fewer for a colour-blind reader —
+  orange/olive and blue/purple remain close under deuteranopia. **Resolved, unchanged: the value
+  does the identifying.** A slice carries its own amount as a label; colour groups things, the
+  number names them. Nothing in the application requires matching a swatch to a legend.
 
 ### 01 — Login
 
@@ -347,14 +372,15 @@ still open. Apply them once that settles.
 Every screen has been reviewed at concept level. What is left is the visual gate, and v2 now puts
 a concrete proposal against each of the two questions — they are answered on paper, not settled.
 
-1. **Colour: the tones.** Was "sage, indigo or slate, plus the exact tones". **v2 proposes: no
-   brand colour at all**, the sixteen category swatches exactly as direction D drew them, and the
-   money four with the amber darkened for contrast. See `00-design-system.html`, sections 1–3.
-2. **Type concept** — was "grotesk, humanist or mixed". **v2 proposes Familjen Grotesk (display) +
-   Public Sans (body) + DM Mono (every number)**: three roles rather than one family. Section 4.
+1. **Colour — closed.** No brand colour; ten category swatches; the money four approved; one action
+   accent borrowed from the income green. Sections 1–3 of `00-design-system.html`.
+2. **Type — half closed.** Familjen Grotesk (display) + Public Sans (body) approved, scale
+   approved. **What is left is the number typeface**, and section 4 now draws three candidates
+   against the same table rows for the user to choose: A Public Sans tabular, B Familjen Grotesk
+   tabular, C Roboto Mono.
 
-Both still block visual approval of all thirteen screens. Approving `00-design-system.html` closes
-them, and only then can `01-login.html` be drawn and M2-T06 start.
+Only the number typeface still blocks visual approval of `00-design-system.html`, and through it
+the other twelve screens. Once it is chosen, `01-login.html` can be drawn and M2-T06 can start.
 
 There is also one open question v2 raised rather than answered, on screen 09: whether the
 against-the-average column reads correctly when green and red mean good and bad next to an amount
