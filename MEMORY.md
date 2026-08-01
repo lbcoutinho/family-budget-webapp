@@ -16,15 +16,16 @@ Rewrite this file rather than appending to it.
 `prototypes/archives/v2-directions/`. v2 covers **three screens** — `00-design-system.html`,
 `06-month.html`, `09-reports-monthly.html` — on a shared `_shared/proto.css` + `proto.js`.
 
-**Design review finished** on branch `design-system-v2-review` (PR #43): ten category colours
-instead of sixteen, a green action accent (`--action` = `--income`) on primary button / focus /
-active nav, DM Mono dropped in favour of Public Sans with tabular figures, and the launch dialog
-settled as opening on EXPENSE. **No decision on `00-design-system.html` is open.** What is left is
-procedural: the user says whether the file moves to `prototypes/approved/`, which is what unblocks
-drawing the remaining ten screens and, through `01-login.html`, M2-T06.
+**`00-design-system.html` is approved** and moved to `prototypes/approved/` (PR #43, branch
+`design-system-v2-review`): ten category colours instead of sixteen, a green action accent
+(`--action` = `--income`) on primary button / focus / active nav, DM Mono dropped in favour of
+Public Sans with tabular figures, launch dialog settled as opening on EXPENSE.
 
-**The remaining ten screens are deliberately not drawn.** They follow once these three are
-approved — drawing them first would mean drawing them twice.
+**`01-login.html` is drawn and awaiting the user's review** — the screen M2-T06 needs. Nothing
+half-finished; the ticket stays blocked until that file moves to `approved/` too.
+
+**Screens are drawn one at a time from now on**, in the order the project needs them, and approved
+one at a time. Do not draw the remaining ones in a batch, and do not draw the next one unasked.
 
 **M2-T01 (#26), M2-T02 (#29), M2-T03 (#30), M2-T04 (#32) and M2-T05 (#33) merged.** Only M2-T06
 (the login screen, #22) is left in M2 — and it is blocked on a prototype approval, see below.
@@ -32,9 +33,8 @@ approved — drawing them first would mean drawing them twice.
 ## Gotchas the next ticket will hit
 
 - **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
-  `plans/0002-screens.md`). **M2-T06 is blocked twice over:** `01-login.html` has not been drawn in
-  v2 yet, and nothing has moved to `prototypes/approved/`. Drawing it needs
-  `00-design-system.html` approved first.
+  `plans/0002-screens.md`). **M2-T06 is blocked on one thing now:** `01-login.html` is drawn but
+  still under review. It ships the moment that file reaches `prototypes/approved/`.
 - **v2's design tokens after the first review:** no brand colour, but `--action` (= `--income`,
   `#1a7a52`) on primary button, focus ring and active nav item; **10** category swatches; money four
   with cashbox amber at `#8a6008`; **two typefaces only** — Familjen Grotesk for display, Public
@@ -97,8 +97,8 @@ Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loadin
 login screen never flashes. `useLogin`/`useLogout` are already exported from the generated client;
 the token store and the interceptors above are what it plugs into.
 
-**Do not start it until the login prototype exists and is approved.** `01-login.html` was discarded
-with v1 and has not been redrawn — it comes with the remaining ten screens, after
-`00-design-system.html` is approved. Its v1 concept was approved in full (narrow centred card, no
-illustration, generic error, no "remember me", demo account through the same form), and it also
-has to cover the "verificando sessão" state that keeps the form from flashing.
+**Do not start it until `01-login.html` is approved.** The prototype now exists and is under
+review; it draws all four states the ticket has to build — initial, submitting, invalid credential
+and the "verificando sessão" screen that keeps the form from flashing. Two behaviours it settles
+that the ticket must honour: the submitting state lives in the button (no overlay), and a failed
+attempt clears and focuses the password while keeping the email.

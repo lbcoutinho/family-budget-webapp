@@ -107,14 +107,17 @@ function buildShell(active) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  /* the strip that names the prototype — not part of the application */
+  /* the strip that names the prototype — not part of the application.
+     An approved screen lives one folder down, so the index link has to climb
+     back out. */
+  const indexHref = location.pathname.includes('/approved/') ? '../index.html' : 'index.html';
   document.querySelectorAll('[data-proto]').forEach((el) => {
     const ticket = el.dataset.ticket;
     el.className = 'proto-bar';
     el.innerHTML =
       `<b>${el.dataset.proto}</b>` +
       (ticket ? `<span class="ticket">${ticket}</span>` : '') +
-      `<span class="grow"></span><a href="index.html">Todos os protótipos</a>`;
+      `<span class="grow"></span><a href="${indexHref}">Todos os protótipos</a>`;
   });
 
   document.querySelectorAll('[data-shell]').forEach((el) => {

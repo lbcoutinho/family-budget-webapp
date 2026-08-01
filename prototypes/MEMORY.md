@@ -19,12 +19,13 @@ drawn without any design skill in play.
 rather than discarded: three of them lost a comparison they existed to lose, which is not the same
 as being rejected.
 
-**v2 is built and under review: three screens** — `00-design-system.html`, `06-month.html`,
-`09-reports-monthly.html` — sharing `_shared/proto.css` and `_shared/proto.js` again, now that
-there is a single direction to share.
+**`00-design-system.html` is approved** and moved to `approved/`. Its relative paths climb one
+level (`../_shared/…`), and `proto.js` picks the right index link by looking for `/approved/` in
+the path. `06-month.html`, `09-reports-monthly.html` and the new `01-login.html` are under review.
 
-**The remaining ten screens are not drawn yet, on purpose.** They follow once these three are
-design-approved. Do not draw them before that.
+**Screens are drawn one at a time from here on**, in the order the project needs them, and approved
+one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
+and never draw the next one unasked.**
 
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
 and v2 respects it — that is the whole reason this file exists separately from the mock-ups.
@@ -39,9 +40,9 @@ and v2 respects it — that is the whole reason this file exists separately from
 - **When colour cannot identify, the value identifies.** The answer to the sixteen-colour problem:
   charts label the slice with its amount instead of asking the reader to match a colour against a
   legend. Colour groups, the number names.
-- **v2 covers three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge a
-  direction — the token set, the densest screen, and the one with a chart and the new average
-  column. The remaining ten follow the direction that wins.
+- **v2 opened with three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge
+  a direction — the token set, the densest screen, and the one with a chart and the new average
+  column. With the design system approved, the rest are drawn **on demand, one at a time**.
 
 ### Versions are per design skill
 
@@ -119,15 +120,15 @@ the user's explicit instruction not to treat them as fixed:
 
 ## What "approved" means below
 
-**Concepts are approved; the visual design is not.** These are two separate gates, and only the
-first has been passed. Consequences:
+**Concept approval and design approval are separate gates.** Every screen passed the first one in
+the v1 review. The second is now being passed **one screen at a time**:
 
-- **No file moves to `prototypes/approved/`.** The blocking rule in `CLAUDE.md` therefore still
-  blocks implementation of every screen, M2-T06 included.
-- **The colour and type concepts are still unchosen** (see "Open" below), so no screen can be
-  visually approved yet — everything inherits from the design system.
-- What is settled is structure and behaviour: which actions a screen offers, which columns exist,
-  what is shown and what is not.
+- **`00-design-system.html` has passed both** and sits in `approved/`. Colour, type, spacing,
+  radius, shadow and motion are locked; no later screen may contradict it.
+- **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
+  implementation — M2-T06 included, until `01-login.html` is approved too.
+- What "concept approved" settles is structure and behaviour: which actions a screen offers, which
+  columns exist, what is shown and what is not.
 
 ## Status per screen
 
@@ -137,8 +138,8 @@ approval.
 
 | Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 00 design system      | partly            | **drawn in v2, first review applied** — 10 swatches, green action accent, number typeface under vote                            |
-| 01 login              | approved, in full | —                                                                                                                               |
+| 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
+| 01 login              | approved, in full | **drawn in v2, under review** — four states, the action is the only colour on the screen                                        |
 | 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
 | 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
 | 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
@@ -207,6 +208,20 @@ Two things that survive the cut to ten:
 All four decisions approved as prototyped: narrow centred card with no illustration; generic error
 that never reveals whether the email exists; no "remember me"; the demo account signs in through
 the same form with no separate button.
+
+**Drawn in v2 and under review.** Four states on one page — initial, submitting, invalid
+credential, verifying session — plus a live form at the top that actually fails once and then
+signs in, because the screen has exactly one interaction and it is worth prototyping for real.
+What it puts up for decision, beyond the four already approved:
+
+- **The action is the only colour on the screen.** Direction D at its limit: no data, so nothing
+  else is coloured except the mark, which is the palette itself.
+- **"Entrando…" lives in the button**, not in an overlay; the fields stay readable.
+- **On error the password is cleared and focused, the email is kept.** The email half was already
+  approved; clearing the password is new.
+- **The verifying state reuses the same card in the same place**, so nothing shifts when it
+  becomes the form.
+- **A quiet footer line for the demo account** — still no separate button.
 
 ### 02 — Shell
 

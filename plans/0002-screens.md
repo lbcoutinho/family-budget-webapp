@@ -205,14 +205,16 @@ that implements it. **The whole first set was discarded after review** and lives
 `prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` and are
 the input to v2.
 
-**v2 is direction D — Cromático**, and covers three screens: the design system, the month and the
-monthly report. Those three settle the token set, the densest layout and the new
-against-the-average column; the other ten follow their approval rather than being drawn twice.
+**v2 is direction D — Cromático.** The design system is **approved** and sits in
+`prototypes/approved/`; the month and the monthly report are still under review, and `01-login`
+is the first screen drawn on top of the approved system. From here on the remaining screens are
+drawn **one at a time, in the order the project needs them**, and approved one at a time — not in
+a batch.
 
 | #   | Screen             | Route                  | Ticket             | Prototype                    | Status      |
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
-| 00  | Design system      | —                      | —                  | `00-design-system.html`      | **v2 — under review** |
-| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | Awaiting v2 |
+| 00  | Design system      | —                      | —                  | `approved/00-design-system.html` | **approved** |
+| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | **v2 — under review** |
 | 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Awaiting v2 |
 | 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Awaiting v2 |
 | 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Awaiting v2 |
@@ -226,8 +228,8 @@ against-the-average column; the other ten follow their approval rather than bein
 | 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Awaiting v2 |
 | 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Awaiting v2 |
 
-"Awaiting v2" means the screen's concept survived the v1 review and only its drawing is missing —
-and that drawing comes out of the three above.
+"Awaiting v2" means the screen's concept survived the v1 review and only its drawing is missing.
+Each of those drawings is requested when the project reaches it, never in advance.
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance

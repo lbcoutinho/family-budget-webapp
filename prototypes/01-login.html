@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>01 — Login (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* The screen with no data on it. Direction D says colour belongs to the
+         data and to the action — with no data here, the only colour left is
+         the action, plus the mark, which is the palette itself. That is the
+         thesis at its cleanest, so nothing else is added to compensate. */
+      .auth {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px 20px 56px;
+      }
+      .auth-card {
+        width: 100%;
+        max-width: 366px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-md);
+        padding: 30px 28px 26px;
+        animation: card-in 260ms var(--ease) both;
+      }
+      @keyframes card-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.99);
+        }
+      }
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+      .auth-brand .mark {
+        display: grid;
+        grid-template-columns: 9px 9px;
+        gap: 3px;
+      }
+      .auth-brand .mark i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+      }
+      .auth-brand h1 {
+        font-size: 1.15rem;
+        letter-spacing: -0.03em;
+      }
+      .auth-brand p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-top: 1px;
+      }
+      .auth-form {
+        display: grid;
+        gap: 14px;
+      }
+      /* Full width, because it is the only action on the screen. Anywhere else
+         a primary button is inline. */
+      .auth-form .btn {
+        width: 100%;
+        padding: 9px 14px;
+        margin-top: 2px;
+      }
+      .auth-foot {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--ink-faint);
+        text-align: center;
+      }
+
+      /* The verifying state: same card, same place, so the swap to the form
+         does not move anything on the page. */
+      .auth-checking {
+        display: grid;
+        place-items: center;
+        gap: 12px;
+        padding: 34px 0 30px;
+        text-align: center;
+      }
+      .auth-checking .spinner {
+        width: 20px;
+        height: 20px;
+        border-width: 2.5px;
+        border-top-color: var(--action);
+      }
+
+      /* --- the prototype's own scaffolding, not part of the screen -------- */
+      .states {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 26px 20px 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 22px;
+        align-items: start;
+      }
+      .state > h2 {
+        font-size: 0.95rem;
+        margin-bottom: 3px;
+      }
+      .state > p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+      }
+      .state .auth-card {
+        margin: 0 auto;
+        animation: none;
+      }
+      .live {
+        padding: 0 20px 8px;
+        max-width: 1040px;
+        margin: 0 auto;
+      }
+      .live .auth {
+        min-height: 0;
+        padding: 4px 0 24px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+        background: var(--bg);
+        padding-top: 24px;
+      }
+      .ds-note {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="01 — Login" data-ticket="M2-T06 · v2 sobre o sistema aprovado"></div>
+
+    <div class="proto-note">
+      <strong>Uma ação só: entrar.</strong> Sem cadastro, sem "esqueci a senha", sem "lembrar de mim" — a aplicação tem um usuário, criado pelo seed, e a sessão
+      se restaura sozinha pelo cookie de refresh. Abaixo, a tela ao vivo e depois os quatro estados lado a lado.
+    </div>
+
+    <div class="live">
+      <div class="auth">
+        <form class="auth-card" id="form-live" autocomplete="on">
+          <div class="auth-brand">
+            <span class="mark">
+              <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+              <i style="background: var(--c5)"></i>
+            </span>
+            <span>
+              <h1>Orçamento</h1>
+              <p>Entre para continuar</p>
+            </span>
+          </div>
+
+          <div class="callout error" id="live-error" hidden>
+            <span data-icon="alert"></span>
+            <span>E-mail ou senha incorretos.</span>
+          </div>
+
+          <div class="auth-form">
+            <div class="field">
+              <label for="live-email">E-mail</label>
+              <input class="input" id="live-email" type="email" value="luis@exemplo.pt" autocomplete="username" />
+            </div>
+            <div class="field">
+              <label for="live-pass">Senha</label>
+              <input class="input" id="live-pass" type="password" value="demo1234" autocomplete="current-password" />
+            </div>
+            <button class="btn" type="submit" id="live-submit">Entrar</button>
+          </div>
+
+          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="ds-note">
+      <div class="callout">
+        <span data-icon="info"></span>
+        <span>
+          Envie o formulário acima para ver a sequência real: botão ocupado, resposta, erro. Duas submissões seguidas com a senha inalterada mostram o erro;
+          apagar um caractere da senha e enviar de novo mostra o sucesso.
+        </span>
+      </div>
+    </div>
+
+    <div class="states">
+      <div class="state">
+        <h2>Inicial</h2>
+        <p>Cartão estreito e centrado, sem ilustração nem coluna de marketing. A única cor da tela é o botão.</p>
+        <div class="auth-card">
+          <div class="auth-brand">
+            <span class="mark">
+              <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+              <i style="background: var(--c5)"></i>
+            </span>
+            <span>
+              <h1>Orçamento</h1>
+              <p>Entre para continuar</p>
+            </span>
+          </div>
+          <div class="auth-form">
+            <div class="field">
+              <label for="s1-email">E-mail</label>
+              <input class="input" id="s1-email" type="email" placeholder="voce@exemplo.pt" />
+            </div>
+            <div class="field">
+              <label for="s1-pass">Senha</label>
+              <input class="input" id="s1-pass" type="password" placeholder="••••••••" />
+            </div>
+            <button class="btn" type="button">Entrar</button>
+          </div>
+          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
+        </div>
+      </div>
+
+      <div class="state">
+        <h2>Enviando</h2>
+        <p>O botão fica ocupado e desabilitado; os campos continuam legíveis. Nada mais se mexe na tela.</p>
+        <div class="auth-card">
+          <div class="auth-brand">
+            <span class="mark">
+              <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+              <i style="background: var(--c5)"></i>
+            </span>
+            <span>
+              <h1>Orçamento</h1>
+              <p>Entre para continuar</p>
+            </span>
+          </div>
+          <div class="auth-form">
+            <div class="field">
+              <label for="s2-email">E-mail</label>
+              <input class="input" id="s2-email" type="email" value="luis@exemplo.pt" disabled />
+            </div>
+            <div class="field">
+              <label for="s2-pass">Senha</label>
+              <input class="input" id="s2-pass" type="password" value="demo1234" disabled />
+            </div>
+            <button class="btn" type="button" disabled><span class="spinner"></span> Entrando…</button>
+          </div>
+          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
+        </div>
+      </div>
+
+      <div class="state">
+        <h2>Credencial inválida</h2>
+        <p>Mensagem genérica: nunca diz se o e-mail existe. O e-mail digitado fica; a senha é limpa e recebe o foco.</p>
+        <div class="auth-card">
+          <div class="auth-brand">
+            <span class="mark">
+              <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+              <i style="background: var(--c5)"></i>
+            </span>
+            <span>
+              <h1>Orçamento</h1>
+              <p>Entre para continuar</p>
+            </span>
+          </div>
+          <div class="callout error">
+            <span data-icon="alert"></span>
+            <span>E-mail ou senha incorretos.</span>
+          </div>
+          <div class="auth-form" style="margin-top: 14px">
+            <div class="field">
+              <label for="s3-email">E-mail</label>
+              <input class="input" id="s3-email" type="email" value="luis@exemplo.pt" />
+              <span class="hint">O e-mail digitado é preservado.</span>
+            </div>
+            <div class="field">
+              <label for="s3-pass">Senha</label>
+              <input class="input error" id="s3-pass" type="password" value="" placeholder="••••••••" />
+            </div>
+            <button class="btn" type="button">Entrar</button>
+          </div>
+          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
+        </div>
+      </div>
+
+      <div class="state">
+        <h2>Verificando sessão</h2>
+        <p>
+          No carregamento, o refresh silencioso roda antes de qualquer rota. Enquanto isso a tela é esta — nunca o formulário, para ele não piscar em quem já
+          está autenticado.
+        </p>
+        <div class="auth-card">
+          <div class="auth-brand">
+            <span class="mark">
+              <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+              <i style="background: var(--c5)"></i>
+            </span>
+            <span>
+              <h1>Orçamento</h1>
+              <p>Um instante</p>
+            </span>
+          </div>
+          <div class="auth-checking">
+            <span class="spinner"></span>
+            <span class="small muted">Restaurando sessão…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-note">
+      <div class="decisions">
+        <h2>Decisões a aprovar</h2>
+        <p>
+          Os quatro conceitos da v1 foram aprovados em bloco e continuam de pé. O que muda aqui é o desenho sobre o sistema aprovado — e é isso que se decide.
+        </p>
+        <ol>
+          <li>
+            <b>A única cor da tela é o botão.</b>
+            <span>
+              É a tese da direção D levada ao caso limite: sem dado na tela, sobra a ação. A marca — os quatro quadradinhos — é a paleta, e é a única outra cor.
+              Se isto parecer vazio demais, a alternativa seria dar cor à moldura, o que contradiz as outras doze telas.
+            </span>
+          </li>
+          <li>
+            <b>"Entrando…" no botão, não sobre a tela.</b>
+            <span>
+              Sem overlay, sem bloqueio: o botão vira o indicador e os campos ficam legíveis. É a mesma gramática de carregamento que a tela do mês usa.
+            </span>
+          </li>
+          <li>
+            <b>No erro, a senha é limpa e recebe o foco; o e-mail fica.</b>
+            <span>
+              O e-mail preservado já estava aprovado. O que é novo é limpar a senha — quem errou vai reescrevê-la de qualquer jeito, e um campo com conteúdo
+              inválido convida a reenviar o mesmo erro.
+            </span>
+          </li>
+          <li>
+            <b>O estado "verificando" usa o mesmo cartão, no mesmo lugar.</b>
+            <span>
+              Nada se desloca quando ele dá lugar ao formulário. A alternativa — uma tela cheia com só um spinner — pisca duas vezes: uma ao aparecer, outra ao
+              virar formulário.
+            </span>
+          </li>
+          <li>
+            <b>Uma linha discreta no rodapé para a conta demo.</b>
+            <span> Sem botão separado, como já estava decidido. A linha existe só para quem abre a aplicação sem saber que existe uma conta pronta. </span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <script>
+      /* The whole screen has one interaction, so it is worth prototyping for
+         real: submit, wait, fail, then succeed. Two failed attempts in a row
+         with the same password would be a lie — the second one is what the
+         user would fix — so the mock fails once and then accepts. */
+      const form = document.getElementById('form-live');
+      const submit = document.getElementById('live-submit');
+      const errorBox = document.getElementById('live-error');
+      const pass = document.getElementById('live-pass');
+      let attempted = '';
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const wrong = pass.value === attempted || pass.value.length < 4;
+        attempted = pass.value;
+
+        errorBox.hidden = true;
+        submit.disabled = true;
+        submit.innerHTML = '<span class="spinner"></span> Entrando…';
+
+        setTimeout(() => {
+          submit.disabled = false;
+          if (wrong) {
+            submit.textContent = 'Entrar';
+            errorBox.hidden = false;
+            pass.classList.add('error');
+            pass.value = '';
+            pass.focus();
+          } else {
+            submit.textContent = 'Entrando…';
+            submit.disabled = true;
+            pass.classList.remove('error');
+            location.href = '06-month.html';
+          }
+        }, 900);
+      });
+
+      pass.addEventListener('input', () => pass.classList.remove('error'));
+    </script>
+  </body>
+</html>
