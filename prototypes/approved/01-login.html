@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* The screen with no data on it. Direction D says colour belongs to the
          data and to the action — with no data here, the only colour left is
@@ -61,11 +61,6 @@
       .auth-brand h1 {
         font-size: 1.3rem;
         letter-spacing: -0.03em;
-      }
-      .auth-brand p {
-        font-size: 12.5px;
-        color: var(--ink-soft);
-        margin-top: 1px;
       }
       .auth-form {
         display: grid;
@@ -162,10 +157,7 @@
               <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
               <i style="background: var(--c5)"></i>
             </span>
-            <span>
-              <h1>Orçamento</h1>
-              <p>Entre para continuar</p>
-            </span>
+            <h1>Orçamento</h1>
           </div>
 
           <div class="callout error" id="live-error" hidden>
@@ -184,8 +176,6 @@
             </div>
             <button class="btn" type="submit" id="live-submit">Entrar</button>
           </div>
-
-          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
         </form>
       </div>
     </div>
@@ -210,10 +200,7 @@
               <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
               <i style="background: var(--c5)"></i>
             </span>
-            <span>
-              <h1>Orçamento</h1>
-              <p>Entre para continuar</p>
-            </span>
+            <h1>Orçamento</h1>
           </div>
           <div class="auth-form">
             <div class="field">
@@ -226,7 +213,6 @@
             </div>
             <button class="btn" type="button">Entrar</button>
           </div>
-          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
         </div>
       </div>
 
@@ -239,10 +225,7 @@
               <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
               <i style="background: var(--c5)"></i>
             </span>
-            <span>
-              <h1>Orçamento</h1>
-              <p>Entre para continuar</p>
-            </span>
+            <h1>Orçamento</h1>
           </div>
           <div class="auth-form">
             <div class="field">
@@ -255,7 +238,6 @@
             </div>
             <button class="btn" type="button" disabled><span class="spinner"></span> Entrando…</button>
           </div>
-          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
         </div>
       </div>
 
@@ -268,10 +250,7 @@
               <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
               <i style="background: var(--c5)"></i>
             </span>
-            <span>
-              <h1>Orçamento</h1>
-              <p>Entre para continuar</p>
-            </span>
+            <h1>Orçamento</h1>
           </div>
           <div class="callout error">
             <span data-icon="alert"></span>
@@ -289,7 +268,6 @@
             </div>
             <button class="btn" type="button">Entrar</button>
           </div>
-          <div class="auth-foot">Conta demo: entra por este mesmo formulário.</div>
         </div>
       </div>
 
@@ -305,10 +283,7 @@
               <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
               <i style="background: var(--c5)"></i>
             </span>
-            <span>
-              <h1>Orçamento</h1>
-              <p>Um instante</p>
-            </span>
+            <h1>Orçamento</h1>
           </div>
           <div class="auth-checking">
             <span class="spinner"></span>
@@ -352,10 +327,6 @@
               virar formulário.
             </span>
           </li>
-          <li>
-            <b>Uma linha discreta no rodapé para a conta demo.</b>
-            <span> Sem botão separado, como já estava decidido. A linha existe só para quem abre a aplicação sem saber que existe uma conta pronta. </span>
-          </li>
         </ol>
       </div>
     </div>
@@ -392,7 +363,7 @@
             submit.textContent = 'Entrando…';
             submit.disabled = true;
             pass.classList.remove('error');
-            location.href = '06-month.html';
+            location.href = '../06-month.html';
           }
         }, 900);
       });

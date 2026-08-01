@@ -21,7 +21,8 @@ as being rejected.
 
 **`00-design-system.html` is approved** and moved to `approved/`. Its relative paths climb one
 level (`../_shared/…`), and `proto.js` picks the right index link by looking for `/approved/` in
-the path. `06-month.html`, `09-reports-monthly.html` and the new `01-login.html` are under review.
+the path. `01-login.html` is approved too and sits beside it. `06-month.html` and
+`09-reports-monthly.html` are still under review.
 
 **Screens are drawn one at a time from here on**, in the order the project needs them, and approved
 one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
@@ -125,8 +126,9 @@ the v1 review. The second is now being passed **one screen at a time**:
 
 - **`00-design-system.html` has passed both** and sits in `approved/`. Colour, type, spacing,
   radius, shadow and motion are locked; no later screen may contradict it.
+- **`01-login.html` has passed both** and sits in `approved/`, so M2-T06 is unblocked.
 - **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
-  implementation — M2-T06 included, until `01-login.html` is approved too.
+  implementation.
 - What "concept approved" settles is structure and behaviour: which actions a screen offers, which
   columns exist, what is shown and what is not.
 
@@ -139,7 +141,7 @@ approval.
 | Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
-| 01 login              | approved, in full | **drawn in v2, under review** — four states, the action is the only colour on the screen                                        |
+| 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
 | 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
 | 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
 | 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
@@ -209,10 +211,10 @@ All four decisions approved as prototyped: narrow centred card with no illustrat
 that never reveals whether the email exists; no "remember me"; the demo account signs in through
 the same form with no separate button.
 
-**Drawn in v2 and under review.** Four states on one page — initial, submitting, invalid
+**Approved in v2 and moved to `approved/`.** Four states on one page — initial, submitting, invalid
 credential, verifying session — plus a live form at the top that actually fails once and then
 signs in, because the screen has exactly one interaction and it is worth prototyping for real.
-What it puts up for decision, beyond the four already approved:
+What the review settled, beyond the four already approved:
 
 - **The action is the only colour on the screen.** Direction D at its limit: no data, so nothing
   else is coloured except the mark, which is the palette itself.
@@ -221,7 +223,10 @@ What it puts up for decision, beyond the four already approved:
   approved; clearing the password is new.
 - **The verifying state reuses the same card in the same place**, so nothing shifts when it
   becomes the form.
-- **A quiet footer line for the demo account** — still no separate button.
+- **No footer line about the demo account, and no subtitle under the title.** Rejected in
+  review: the demo account uses this same form, so saying so is noise, and "Entre para continuar"
+  states what two fields and a button already state. The card is title, fields, button — nothing
+  else. The same rule applies to every screen: don't label what the controls already say.
 
 ### 02 — Shell
 

@@ -206,15 +206,15 @@ that implements it. **The whole first set was discarded after review** and lives
 the input to v2.
 
 **v2 is direction D — Cromático.** The design system is **approved** and sits in
-`prototypes/approved/`; the month and the monthly report are still under review, and `01-login`
-is the first screen drawn on top of the approved system. From here on the remaining screens are
+`prototypes/approved/`, together with `01-login`, the first screen drawn on top of it; the month
+and the monthly report are still under review. From here on the remaining screens are
 drawn **one at a time, in the order the project needs them**, and approved one at a time — not in
 a batch.
 
 | #   | Screen             | Route                  | Ticket             | Prototype                    | Status      |
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
 | 00  | Design system      | —                      | —                  | `approved/00-design-system.html` | **approved** |
-| 01  | Login              | `/login`               | M2-T06             | `01-login.html`              | **v2 — under review** |
+| 01  | Login              | `/login`               | M2-T06             | `approved/01-login.html`     | **approved** |
 | 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | Awaiting v2 |
 | 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | Awaiting v2 |
 | 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | Awaiting v2 |
