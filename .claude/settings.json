@@ -37,6 +37,7 @@
     ]
   },
   "enabledPlugins": {
-    "chrome-devtools-mcp@chrome-devtools-plugins": true
+    "chrome-devtools-mcp@chrome-devtools-plugins": true,
+    "ponytail@ponytail": true
   }
 }
