@@ -1,5 +1,10 @@
+# Every text file is LF in the repository *and* in the working copy, on every machine.
+# Without the `eol=lf` half, Git hands Windows a CRLF checkout while Prettier
+# (`"endOfLine": "lf"`) writes LF back, so a single `pnpm format` marks the whole tree as
+# modified with no content change at all.
+* text=auto eol=lf
+
 # The Orval-generated client is verified in CI with `git diff --exit-code` after `pnpm gen`.
-# Pin it to LF so a CRLF checkout on Windows can never diff against the LF output Orval writes
-# on the Linux CI runner. (The package is excluded from Prettier, which would otherwise enforce
-# line endings.)
+# It is excluded from Prettier, so it needs the rule stated for itself — the line above would
+# cover it today, but this one survives a future `text=auto` change.
 packages/api-client/** text eol=lf
