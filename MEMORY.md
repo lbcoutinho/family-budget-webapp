@@ -16,12 +16,12 @@ Rewrite this file rather than appending to it.
 `prototypes/archives/v2-directions/`. v2 covers **three screens** — `00-design-system.html`,
 `06-month.html`, `09-reports-monthly.html` — on a shared `_shared/proto.css` + `proto.js`.
 
-**First design review applied** on branch `design-system-v2-review`: ten category colours instead
-of sixteen, a green action accent on primary button / focus / active nav, money colours and
-typography scale approved. Still **waiting on the user**, now on one thing only: **which of the
-three number typefaces** drawn in section 4 of `00-design-system.html` (A Public Sans, B Familjen
-Grotesk, C Roboto Mono). Picking one is a two-step follow-up — swap `.num` in
-`_shared/proto.css`, delete the two losing blocks and their Google Fonts entry.
+**Design review finished** on branch `design-system-v2-review` (PR #43): ten category colours
+instead of sixteen, a green action accent (`--action` = `--income`) on primary button / focus /
+active nav, DM Mono dropped in favour of Public Sans with tabular figures, and the launch dialog
+settled as opening on EXPENSE. **No decision on `00-design-system.html` is open.** What is left is
+procedural: the user says whether the file moves to `prototypes/approved/`, which is what unblocks
+drawing the remaining ten screens and, through `01-login.html`, M2-T06.
 
 **The remaining ten screens are deliberately not drawn.** They follow once these three are
 approved — drawing them first would mean drawing them twice.
@@ -37,8 +37,10 @@ approved — drawing them first would mean drawing them twice.
   `00-design-system.html` approved first.
 - **v2's design tokens after the first review:** no brand colour, but `--action` (= `--income`,
   `#1a7a52`) on primary button, focus ring and active nav item; **10** category swatches; money four
-  with cashbox amber at `#8a6008`; Familjen Grotesk + Public Sans, number typeface still open. They
-  live in `prototypes/_shared/proto.css` and become `apps/web/src/styles/index.css`.
+  with cashbox amber at `#8a6008`; **two typefaces only** — Familjen Grotesk for display, Public
+  Sans for body _and_ every number, the latter through `.num { font-variant-numeric: tabular-nums }`
+  rather than a monospaced family. They live in `prototypes/_shared/proto.css` and become
+  `apps/web/src/styles/index.css`.
 - **The token store is `@family-budget/api-client`, not a React context.** `setAccessToken` (call it
   with what `login`/`useLogin` returns), `getAccessToken`, `setSessionExpiredHandler`. Renewal needs
   no wiring: the interceptors are installed when `lib/axios.ts` loads. An `AuthProvider` should wrap

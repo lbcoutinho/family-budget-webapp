@@ -127,7 +127,7 @@ a {
 }
 
 code {
-  font-family: 'DM Mono', ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   background: var(--wash);
   border-radius: 4px;
   padding: 0.1em 0.35em;
@@ -141,9 +141,11 @@ code {
 }
 
 /* Every amount, every date, every count. Money that does not align cannot be
-   scanned, and scanning is the whole job of the month screen. */
+   scanned, and scanning is the whole job of the month screen — but what makes a
+   column align is the tabular figure, not a monospaced family. So numbers keep
+   the body face and only switch to fixed-width digits, which is what Material,
+   Carbon and the HIG actually ask for. No third typeface. */
 .num {
-  font-family: 'DM Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -229,7 +231,7 @@ code {
   border-bottom-color: #fff;
 }
 .proto-bar .ticket {
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #8e97a3;
 }
 

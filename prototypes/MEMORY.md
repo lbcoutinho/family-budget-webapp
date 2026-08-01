@@ -53,7 +53,7 @@ separate `vN` sets and do not merge them.
 
 The user reviewed `00-design-system.html` section by section. What that produced:
 
-- **Ten category colours, not sixteen.** Eleven or twelve categories is the real ceiling, and six
+- **Ten category colours, not sixteen — approved as drawn** in the second pass. Eleven or twelve categories is the real ceiling, and six
   of the sixteen were near-duplicates (two blues, two oranges, two teals, two magentas, two purples,
   two olives). **Repetition past ten is accepted** — the eleventh category reuses a colour and the
   value label keeps the chart readable. The ten that stayed were re-tuned rather than merely
@@ -68,16 +68,27 @@ The user reviewed `00-design-system.html` section by section. What that produced
     marks "entrada" in text and "act here" as a surface. **The rule that keeps them apart is
     grammatical — action is a filled surface, money is text.** Provisional: if it fails on the
     month screen, this is what changes.
-  - Follow-on, still open: the launch dialog opening with no pre-selected type, so a green button
-    never announces a type the form contradicts. Decide when screen 07 is drawn.
+  - **The green is approved after seeing it.** Idea parked for later, explicitly out of scope now:
+    letting the user pick that accent — green, blue, black or purple.
+  - **The launch dialog opens with EXPENSE pre-selected**, settled against the alternative of no
+    pre-selection: nearly every entry is an expense, so pre-selecting saves one interaction almost
+    every time. The green button means action, not type; the grammatical rule above carries that.
 - **The four money colours are approved as they stand.** Green income, red expense, blue transfer,
   amber cashbox, amber already darkened. No longer an open question.
 - **Titles, body text and the type scale are approved.** Familjen Grotesk + Public Sans stay.
-- **The number typeface is rejected and now under vote.** Two complaints: DM Mono's slashed zero,
-  and the table's date/amount columns clashing with the category column. Section 4 now renders
-  **three options against the same rows** — A Public Sans tabular, B Familjen Grotesk tabular,
-  C Roboto Mono — with DM Mono kept last as the current state. **The user picks one by looking;**
-  the winner then replaces `.num` in `proto.css` and the two losers are deleted from the page.
+- **DM Mono is out. Numbers are Public Sans with `font-variant-numeric: tabular-nums`** — two
+  families in the application, not three. Two complaints started it (the slashed zero, and the
+  date/amount columns clashing with the category column beside them), and the question that settled
+  it was whether any guideline requires numbers to have their own family.
+  - **It does not.** The real requirement is **tabular figures** — fixed-width digits so a column
+    aligns and the decimal comma always lands in the same place — which is a property of the
+    numeral, not a change of typeface. Material 3 and IBM Carbon ask for tabular figures in data
+    tables without a separate family (Carbon reserves Plex Mono for code); Apple's HIG points at
+    SF's own monospaced digits. **Monospace is a strong convention for code, not for money.**
+  - Verified against the upstream font binaries rather than assumed: **Public Sans and Familjen
+    Grotesk both ship `tnum`**; the monospaced faces do not need it.
+  - Consequence: the DM Mono webfont is gone from every page. `code` and the prototype's own ticket
+    label fall back to the system monospace stack — no webfont for either.
 - **Components approved** except the buttons, now green. Animations approved as they are; a pass
   for new animation opportunities was explicitly deferred (`find-animation-opportunities` skill).
 
@@ -274,6 +285,10 @@ numbered pages.
 
 ### 07 — Income / expense / transfer
 
+**The segmented control opens on "Despesa"** — settled in the second v2 review, when the green
+action accent raised the question of whether a pre-selected type would contradict the button's
+colour. It does not: nearly every entry is an expense, and pre-selecting saves an interaction.
+
 All five approved as prototyped: type as a segmented control at the top of the dialog; cashbox
 operations kept out of this form; reference month revealed only by the credit-card checkbox and
 suggesting the following month; date and amount before classification; optimistic insert with
@@ -374,13 +389,11 @@ a concrete proposal against each of the two questions — they are answered on p
 
 1. **Colour — closed.** No brand colour; ten category swatches; the money four approved; one action
    accent borrowed from the income green. Sections 1–3 of `00-design-system.html`.
-2. **Type — half closed.** Familjen Grotesk (display) + Public Sans (body) approved, scale
-   approved. **What is left is the number typeface**, and section 4 now draws three candidates
-   against the same table rows for the user to choose: A Public Sans tabular, B Familjen Grotesk
-   tabular, C Roboto Mono.
+2. **Type — closed.** Familjen Grotesk (display) + Public Sans (body and every number, with
+   tabular figures), scale approved. Two families, three roles.
 
-Only the number typeface still blocks visual approval of `00-design-system.html`, and through it
-the other twelve screens. Once it is chosen, `01-login.html` can be drawn and M2-T06 can start.
+**Nothing on `00-design-system.html` is open any more.** Whether the file moves to `approved/` is
+the user's call; once it does, `01-login.html` can be drawn and M2-T06 can start.
 
 There is also one open question v2 raised rather than answered, on screen 09: whether the
 against-the-average column reads correctly when green and red mean good and bad next to an amount

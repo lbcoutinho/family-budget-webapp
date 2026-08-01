@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="_shared/proto.css" />
@@ -44,82 +44,6 @@
         color: var(--ink-soft);
         max-width: 62ch;
         margin-top: 8px;
-      }
-
-      /* --- the number-font comparison, section 4 -------------------------- */
-      /* Each option renders the same rows, so only the typeface varies. The
-         classes live here rather than in proto.css: two of the three will be
-         deleted as soon as the choice is made. */
-      .fontlab {
-        display: grid;
-        gap: 10px;
-        margin-top: 16px;
-      }
-      .fontlab .opt {
-        border: 1px solid var(--line);
-        border-radius: var(--r);
-        padding: 12px 14px;
-        display: grid;
-        grid-template-columns: 132px 1fr auto;
-        gap: 16px;
-        align-items: center;
-      }
-      .fontlab .opt.current {
-        background: var(--wash);
-        border-style: dashed;
-      }
-      .fontlab .who b {
-        display: block;
-        font-family: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
-        font-size: 14px;
-      }
-      .fontlab .who span {
-        font-size: 11.5px;
-        color: var(--ink-soft);
-      }
-      .fontlab table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .fontlab td {
-        padding: 3px 10px 3px 0;
-        font-size: 13.5px;
-        white-space: nowrap;
-      }
-      .fontlab td.v {
-        text-align: right;
-        padding-right: 0;
-      }
-      /* The zero at reading size is the whole complaint, so it gets its own
-         column instead of being hunted for inside a row. */
-      .fontlab .zero {
-        font-size: 2.4rem;
-        line-height: 1;
-        color: var(--ink);
-      }
-      .num-a {
-        font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
-        font-variant-numeric: tabular-nums;
-      }
-      .num-b {
-        font-family: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
-        font-variant-numeric: tabular-nums;
-      }
-      .num-c {
-        font-family: 'Roboto Mono', ui-monospace, monospace;
-        font-variant-numeric: tabular-nums;
-      }
-      .num-d {
-        font-family: 'DM Mono', ui-monospace, monospace;
-        font-variant-numeric: tabular-nums;
-      }
-      @media (max-width: 640px) {
-        .fontlab .opt {
-          grid-template-columns: 1fr auto;
-        }
-        .fontlab .who {
-          grid-column: 1 / -1;
-        }
       }
 
       /* --- the hero: ten swatches, which are the identity ----------------- */
@@ -159,7 +83,7 @@
         align-self: flex-start;
       }
       .sw .n {
-        font-family: 'DM Mono', monospace;
+        font-variant-numeric: tabular-nums;
         font-size: 10.5px;
         opacity: 0.75;
       }
@@ -188,7 +112,7 @@
         border-bottom: 1px solid var(--line);
       }
       .scale-row .meta {
-        font-family: 'DM Mono', monospace;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: 11px;
         color: var(--ink-faint);
         width: 168px;
@@ -369,7 +293,7 @@
       <section>
         <div class="sec-head">
           <h2>4. Tipografia</h2>
-          <p>títulos e corpo aprovados; o número está em votação</p>
+          <p>duas famílias, três papéis</p>
         </div>
         <div class="grid2" style="margin-bottom: 14px">
           <div class="card card-body">
@@ -388,19 +312,30 @@
 
         <div class="card">
           <div class="card-head">
-            <h3>A fonte do número — escolha uma</h3>
-            <span class="badge draft">decisão aberta</span>
+            <h3>O número é Public Sans, com figura tabular</h3>
+            <span class="badge income">decidido</span>
           </div>
           <div class="card-body">
             <p class="small muted" style="max-width: 70ch">
-              Duas queixas contra o DM Mono: o zero cortado (<code>0</code> com barra) incomoda, e na tabela a coluna de data e valor destoa demais da coluna de
-              categoria. As três opções abaixo são a mesma tabela três vezes — só a fonte dos números muda. Elas cobrem o intervalo entre "idêntica ao corpo" e
-              "mono de verdade". O DM Mono atual fecha a lista, para comparação.
+              Não há terceira família. O DM Mono saiu por duas queixas — o zero cortado e o degrau entre a coluna de categoria e as de data e valor —, e a
+              pergunta que decidiu foi: <em>alguma regra manda o número ter fonte própria?</em> Não manda. O que Material 3, IBM Carbon e o HIG da Apple pedem
+              em tabela de dados é <strong>figura tabular</strong>: dígito de largura fixa, para a coluna alinhar e a vírgula cair sempre no mesmo lugar. Isso é
+              <code>font-variant-numeric: tabular-nums</code> — propriedade do numeral, não troca de fonte. Public Sans traz o recurso, verificado no binário.
+              Mono continua sendo convenção para <em>código</em>, não para dinheiro.
             </p>
-            <div class="fontlab" id="fontlab"></div>
+            <div class="grid2" style="margin-top: 14px">
+              <div>
+                <div class="xs muted" style="margin-bottom: 4px">Sem figuras tabulares — a vírgula anda</div>
+                <div style="font-size: 1.15rem; line-height: 1.4">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
+              </div>
+              <div>
+                <div class="xs muted" style="margin-bottom: 4px">Com figuras tabulares — usado em toda a aplicação</div>
+                <div class="num" style="font-size: 1.15rem; line-height: 1.4">1.111,11 €<br />8.888,88 €<br />&nbsp;&nbsp;974,20 €</div>
+              </div>
+            </div>
             <p class="small muted" style="margin-top: 14px; max-width: 70ch">
-              Seja qual for a escolhida, ela vale para <em>todo</em> número: valor, data, porcentagem, contagem, eixo de gráfico — um só lugar no CSS. E mantém
-              figuras tabulares em qualquer caso: coluna de dinheiro que não alinha não se confere, e conferir é o trabalho da tela do mês.
+              Vale para <em>todo</em> número: valor, data, porcentagem, contagem, eixo de gráfico — a classe <code>.num</code>, um só lugar no CSS. O que separa
+              a coluna de valor do resto da linha passa a ser alinhamento à direita, peso e cor, não a fonte.
             </p>
           </div>
         </div>
@@ -623,30 +558,32 @@
 
       <!-- =================================================== decisões -->
       <div class="decisions">
-        <h2>Decisões a aprovar</h2>
+        <h2>Decisões — todas fechadas</h2>
         <p>
-          Segunda rodada. Cores do dinheiro, títulos, corpo, escala, campos, estados e animação já foram aprovados e saíram desta lista. O que sobrou é isto — o
-          item 1 é o único que precisa de você olhando a tela.
+          Nada nesta página está esperando resposta. O que segue é o registro do que ficou decidido, para quem abrir isto depois entender por quê. As doze telas
+          restantes herdam tudo daqui.
         </p>
         <ol>
           <li>
-            <b>Qual das três fontes de número</b> — A Public Sans, B Familjen Grotesk ou C Roboto Mono.
+            <b>O número é Public Sans com figura tabular</b> — duas famílias na aplicação, não três.
             <span>
-              Estão desenhadas na seção 4, na mesma tabela. A escolhida vale para todo número da aplicação; as outras duas somem do protótipo no mesmo dia.
+              O DM Mono saiu pelo zero cortado e pelo degrau contra a coluna de categoria. A pergunta que decidiu foi se alguma regra manda o número ter fonte
+              própria: não manda. O que se exige é <code>tabular-nums</code>, que Public Sans traz — verificado no binário da fonte. Mono segue sendo convenção
+              para código.
             </span>
           </li>
           <li>
             <b>O verde do dinheiro é também o verde da ação.</b>
             <span>
-              Botão primário, foco e menu ativo passam a usar <code>--income</code>. A regra que os mantém separados é gramatical: ação é superfície preenchida,
-              dinheiro é texto. Nenhuma cor nova entrou na aplicação.
+              Botão primário, foco e menu ativo usam <code>--income</code>. A regra que os mantém separados é gramatical: ação é superfície preenchida, dinheiro
+              é texto. Guardado para depois, fora deste escopo: deixar esse acento escolhível — verde, azul, preto ou roxo.
             </span>
           </li>
           <li>
-            <b>O diálogo de lançamento abre sem tipo pré-selecionado?</b>
+            <b>O diálogo de lançamento abre com "Despesa" já marcada.</b>
             <span>
-              Consequência do item 2, e ainda não desenhada: se o botão verde abre um formulário já marcado como "Despesa", a cor promete entrada e entrega
-              saída. Sem seleção prévia, não promete nada. Decide-se ao desenhar a tela 07.
+              Decidido contra a alternativa de abrir sem seleção: a grande maioria dos lançamentos é despesa, e pré-selecionar poupa uma interação em quase toda
+              entrada. O verde do botão continua significando ação, não tipo — quem responde por isso é a regra do item acima.
             </span>
           </li>
           <li>
@@ -658,7 +595,7 @@
           </li>
           <li>
             <b>Categoria repete cor a partir da décima primeira</b>,
-            <span>e o gráfico continua legível porque cada fatia leva o próprio valor como rótulo. Confirmado na revisão, registrado aqui.</span>
+            <span>e o gráfico continua legível porque cada fatia leva o próprio valor como rótulo.</span>
           </li>
           <li>
             <b>Animação acima de 320 ms só na faixa do mês</b>,
@@ -712,30 +649,6 @@
              <span class="n">${String(i + 1).padStart(2, '0')}</span>
              <span><b>${name}</b><br /><code>${hex}</code></span>
            </div>`,
-      ).join('');
-
-      /* Section 4's open decision, drawn rather than described: identical rows,
-         one typeface each. Two of these four disappear once one is chosen. */
-      const NUMFONTS = [
-        ['A', 'num-a', 'Public Sans', 'a mesma fonte do corpo — nenhum contraste na tabela'],
-        ['B', 'num-b', 'Familjen Grotesk', 'a voz dos títulos, ainda sem parecer código'],
-        ['C', 'num-c', 'Roboto Mono', 'mono de zero liso, sem barra nem ponto'],
-        ['—', 'num-d', 'DM Mono', 'a atual, com o zero cortado'],
-      ];
-      const NUMROWS = [
-        ['03/07', 'Salário', '+ 3.200,00 €'],
-        ['05/07', 'Supermercado', '− 128,40 €'],
-        ['14/07', 'Seguro do carro', '− 1.011,10 €'],
-      ];
-      document.getElementById('fontlab').innerHTML = NUMFONTS.map(
-        ([tag, cls, name, note]) => `
-          <div class="opt${cls === 'num-d' ? ' current' : ''}">
-            <div class="who"><b>${tag === '—' ? name : `${tag}. ${name}`}</b><span>${note}</span></div>
-            <table class="${cls}">
-              ${NUMROWS.map(([d, desc, v]) => `<tr><td>${d}</td><td style="font-family:'Public Sans',sans-serif">${desc}</td><td class="v">${v}</td></tr>`).join('')}
-            </table>
-            <div class="zero ${cls}">0123</div>
-          </div>`,
       ).join('');
 
       /* Miniature of the month strip's entrance — the one animation over 320 ms. */
