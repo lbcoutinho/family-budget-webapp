@@ -147,6 +147,33 @@ no JavaScript compiler API, and the tools this project depends on still need one
 here is already free of what TypeScript 7 removed — no `baseUrl`, no `moduleResolution:
 node10` — so the upgrade is a version bump once the toolchain catches up.
 
+## MCP tooling
+
+[`.mcp.json`](.mcp.json) declares project-scoped MCP servers picked up automatically by
+Claude Code on clone — currently `codegraph` and `shadcn` (the
+[shadcn-ui-mcp-server](https://github.com/Jpisnice/shadcn-ui-mcp-server), used to look up
+shadcn/ui component source and demos).
+
+`codegraph` needs its CLI installed globally and an index built once per clone — `.codegraph/`
+holds the SQLite index and daemon files, is git-ignored (machine-local), and is empty right
+after clone:
+
+```bash
+npm install -g @colbymchenry/codegraph
+codegraph init      # builds the initial index at the repo root
+```
+
+`codegraph sync` catches the index up after pulling changes made outside a Claude Code session
+(the running MCP server/hook keeps it current during one); `codegraph status` shows whether it's
+stale.
+
+The `shadcn` server needs a GitHub personal access token for API rate limits — no scopes
+required. Export it in your shell before starting Claude Code, it is not read from `.env`:
+
+```bash
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
+```
+
 ## Documentation
 
 - [`plans/0001-overview.md`](plans/0001-overview.md) — architecture, domain model, formulas
