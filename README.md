@@ -23,12 +23,47 @@ standalone pnpm found on the `PATH`.
 
 ## Local setup
 
+Everything needed to go from a fresh clone to a working dev environment, in order. Each step
+is explained in more detail in the sections below (Database, MCP tooling).
+
 ```bash
+# 1. Toolchain
 nvm use              # Node 24, as pinned in .nvmrc
 corepack enable      # activates the pnpm version pinned in package.json
 pnpm install         # installs every workspace in one pass
 pnpm typecheck       # verifies the TypeScript setup across all workspaces
+
+# 2. Environment and database
+cp .env.example .env               # fill in real secrets before running anything
+docker compose up -d postgres postgres_test
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
+
+# 3. CodeGraph (code intelligence used by Claude Code)
+npm install -g @colbymchenry/codegraph
+codegraph init
+
+# 4. shadcn MCP server token (rate limits only, no scopes needed)
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
+
+# 5. Claude Code plugins — marketplaces are per-machine, not cloned with the repo
+claude plugin marketplace add ChromeDevTools/chrome-devtools-mcp
+claude plugin install chrome-devtools-mcp@chrome-devtools-plugins
+
+claude plugin marketplace add DietrichGebert/ponytail
+claude plugin install ponytail@ponytail
+
+claude plugin marketplace add anthropics/claude-plugins-official
+claude plugin install security-guidance@claude-plugins-official
+claude plugin install claude-md-management@claude-plugins-official
+
+claude   # inside the session: /reload-plugins
 ```
+
+The MCP servers (`codegraph`, `shadcn`) and the skills under `.claude/skills/` (emilkowalski's
+animation/React/deploy skills, impeccable, pick-ui-library, prototype, …) need none of this —
+they're declared in [`.mcp.json`](.mcp.json) or vendored as files, so they work right after
+`git clone` with no extra install step.
 
 ## Database
 
@@ -146,6 +181,33 @@ no JavaScript compiler API, and the tools this project depends on still need one
 `@typescript-eslint/no-floating-promises`) and no NestJS test transform. The configuration
 here is already free of what TypeScript 7 removed — no `baseUrl`, no `moduleResolution:
 node10` — so the upgrade is a version bump once the toolchain catches up.
+
+## MCP tooling
+
+[`.mcp.json`](.mcp.json) declares project-scoped MCP servers picked up automatically by
+Claude Code on clone — currently `codegraph` and `shadcn` (the
+[shadcn-ui-mcp-server](https://github.com/Jpisnice/shadcn-ui-mcp-server), used to look up
+shadcn/ui component source and demos).
+
+`codegraph` needs its CLI installed globally and an index built once per clone — `.codegraph/`
+holds the SQLite index and daemon files, is git-ignored (machine-local), and is empty right
+after clone:
+
+```bash
+npm install -g @colbymchenry/codegraph
+codegraph init      # builds the initial index at the repo root
+```
+
+`codegraph sync` catches the index up after pulling changes made outside a Claude Code session
+(the running MCP server/hook keeps it current during one); `codegraph status` shows whether it's
+stale.
+
+The `shadcn` server needs a GitHub personal access token for API rate limits — no scopes
+required. Export it in your shell before starting Claude Code, it is not read from `.env`:
+
+```bash
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
+```
 
 ## Documentation
 
