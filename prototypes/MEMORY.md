@@ -21,7 +21,7 @@ as being rejected.
 
 **`00-design-system.html` is approved** and moved to `approved/`. Its relative paths climb one
 level (`../_shared/…`), and `proto.js` picks the right index link by looking for `/approved/` in
-the path. `01-login.html` and `06-month.html` are approved too and sit beside it.
+the path. `01-login.html`, `02-app-shell.html` and `06-month.html` are approved too and sit beside it.
 `09-reports-monthly.html` is still under review.
 
 The two comparison pages that closed screen 06 — `06-month-chart.html` (the strip, simple ×
@@ -160,6 +160,7 @@ the v1 review. The second is now being passed **one screen at a time**:
 - **`00-design-system.html` has passed both** and sits in `approved/`. Colour, type, spacing,
   radius, shadow and motion are locked; no later screen may contradict it.
 - **`01-login.html` has passed both** and sits in `approved/`, so M2-T06 is unblocked.
+- **`02-app-shell.html` has passed both** and sits in `approved/`, so M3-T06 is unblocked.
 - **`06-month.html` has passed both** and sits in `approved/`, so M5-T01, M5-T05 and M5-T06 are
   unblocked on the UI side.
 - **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
@@ -177,7 +178,7 @@ approval.
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
 | 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
-| 02 shell              | approved          | **drawn in v2, under review** — the three registries under Configurações, Recorrências top-level, and a decisions block at last |
+| 02 shell              | **approved**      | in `approved/` — Caixinhas second, below Mês; Contas and Categorias under Configurações; no burger on the desktop               |
 | 03 accounts           | approved          | **drawn in v2, under review** — initial-balance column gone, current balance in the list, sorted by name                        |
 | 04 categories         | approved          | **drawn in v2, under review** — month-spend column gone, "+ Subcategoria" now a visible button on the parent row                |
 | 05 cashboxes          | approved          | **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added                      |
@@ -265,15 +266,27 @@ What the review settled, beyond the four already approved:
 
 ### 02 — Shell
 
-**The three registries become sub-items of a "Configurações" menu**, instead of a flat group under
-a "Cadastros" label: Contas, Categorias, Caixinhas.
+**The registries become sub-items of a "Configurações" menu**, instead of a flat group under a
+"Cadastros" label: Contas and Categorias.
 
-**Recorrências stays at the top level**, alongside Mês, Relatórios and Lançar por voz — it is
-visited while running the month, not set up once and forgotten.
+**Caixinhas is the second top-level item, directly below Mês** — decided in the v2 review, moved
+out of Configurações. Same reason as Recorrências: it is visited while running the month, not set
+up once and forgotten.
 
-Nothing else about the shell was approved — and this page never had a "Decisões a aprovar" block to
-approve, unlike every other one. **The v2 drawing has one**, with five decisions; the floating action
-button is the one with a real alternative drawn beside it.
+**Recorrências stays at the top level**, alongside Mês, Caixinhas, Relatórios and Lançar por voz.
+
+**No burger on the desktop.** The sidebar is fixed above 900 px, so the menu button has nothing to
+open and does not render. (In the v2 drawing it did — `.btn`'s `display` was overriding `.burger`'s;
+the rule now sits after the button rules in `proto.css`.)
+
+#### Review of the v2 drawing — settled 2026-08-02, all five approved
+
+1. **On the phone the main action stays in the top bar — no floating action button.** The
+   alternative was drawn beside it and rejected.
+2. **The sidebar does not collapse on the desktop.** 244 px fixed, no icons-only mode.
+3. **Logout asks for no confirmation.**
+4. **The brand is the palette — four squares — and the name is "Orçamento".**
+5. **The user and the logout sit at the foot of the sidebar**, not in the top bar.
 
 ### 03 — Accounts
 
