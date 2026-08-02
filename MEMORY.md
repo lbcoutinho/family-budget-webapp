@@ -11,60 +11,48 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**v2 prototypes done and pushed**, branch `claude/screens-prototypes-plan-7kk7l9` (restarted from
-`main` after #36 merged). Direction **D — Cromático** won; the four candidates moved to
-`prototypes/archives/v2-directions/`. v2 covers **three screens** — `00-design-system.html`,
-`06-month.html`, `09-reports-monthly.html` — on a shared `_shared/proto.css` + `proto.js`.
-
-**`00-design-system.html` is approved** and moved to `prototypes/approved/` (PR #43, branch
-`design-system-v2-review`): ten category colours instead of sixteen, a green action accent
-(`--action` = `--income`) on primary button / focus / active nav, DM Mono dropped in favour of
-Public Sans with tabular figures, launch dialog settled as opening on EXPENSE.
-
-**`01-login.html` is drawn and awaiting the user's review** — the screen M2-T06 needs. Nothing
-half-finished; the ticket stays blocked until that file moves to `approved/` too.
-
-**Screens are drawn one at a time from now on**, in the order the project needs them, and approved
-one at a time. Do not draw the remaining ones in a batch, and do not draw the next one unasked.
-
-**M2-T01 (#26), M2-T02 (#29), M2-T03 (#30), M2-T04 (#32) and M2-T05 (#33) merged.** Only M2-T06
-(the login screen, #22) is left in M2 — and it is blocked on a prototype approval, see below.
+**M2 Authentication is complete and merged.** M3 Master data is mirrored on GitHub
+(#45–#53). **M3-T01 (#45) is done and on branch `feat/m3-t01-account-model`, PR #57 open** —
+`Account` model, migration `20260802192727_add_account`, sample accounts in the seed and
+`test/e2e/account.e2e-spec.ts`. Nothing is half-finished. **Next backend ticket is M3-T02 (#46),
+the accounts API**, which inherits the `(userId, name)` unique key, `isActive`, `sortOrder` and the
+`onDelete: Restrict` foreign key from that model.
 
 ## Gotchas the next ticket will hit
 
-- **No screen ships without an approved prototype** (rule in `CLAUDE.md`, workflow in
-  `plans/0002-screens.md`). **M2-T06 is blocked on one thing now:** `01-login.html` is drawn but
-  still under review. It ships the moment that file reaches `prototypes/approved/`.
-- **v2's design tokens after the first review:** no brand colour, but `--action` (= `--income`,
-  `#1a7a52`) on primary button, focus ring and active nav item; **10** category swatches; money four
-  with cashbox amber at `#8a6008`; **two typefaces only** — Familjen Grotesk for display, Public
-  Sans for body _and_ every number, the latter through `.num { font-variant-numeric: tabular-nums }`
-  rather than a monospaced family. They live in `prototypes/_shared/proto.css` and become
-  `apps/web/src/styles/index.css`.
-- **The token store is `@family-budget/api-client`, not a React context.** `setAccessToken` (call it
-  with what `login`/`useLogin` returns), `getAccessToken`, `setSessionExpiredHandler`. Renewal needs
-  no wiring: the interceptors are installed when `lib/axios.ts` loads. An `AuthProvider` should wrap
-  this store, not replace it.
-- **The startup silent refresh is not written yet.** M2-T06 owns it: `POST /api/auth/refresh`
-  answers `{ accessToken, user }`, so one call restores the session with no separate "who am I".
-  Nothing calls `refresh()` on mount today — the interceptor only reacts to a 401.
-- **`installSessionExpiredRedirect()` runs in `main.tsx`** and does a full `location.assign`. Once
-  the router owns `/login`, M2-T06 may re-register a router-aware handler via
-  `setSessionExpiredHandler` — but something must stay registered, or a dead session goes nowhere.
-- **`/login` is still not a route.** The redirect currently lands on a 404 in dev.
-- **MSW is set up and strict.** `apps/web/src/test/server.ts` + `test/setup.ts` start it with
-  `onUnhandledRequest: 'error'`, so every request a test triggers needs a `server.use(...)` handler.
-- **`packages/api-client` is only ignored by lint/prettier under `src/generated/`.** Hand-written
-  files in `src/lib/` are linted and formatted like any other source.
-- **Every new route is protected the moment it is written** — `@Public()` is what opts out, and it
-  also clears the operation's bearer requirement in the OpenAPI document.
-- **`@ApiProperty` needs an explicit `type`.** The OpenAPI export runs under `tsx`, which emits no
-  `design:type` metadata, so a bare `@ApiProperty()` breaks `pnpm gen`.
+- **The seed writes sample data for the demo user only, never for the owner**, and those rows hold
+  a foreign key onto `User` with `onDelete: Restrict`: any fixture that deletes a user must delete
+  that user's accounts first (P2003) — see `removeFixtures()` in `test/e2e/account.e2e-spec.ts`.
+- **The design tokens now live in `apps/web/src/styles/index.css`**, ported from
+  `prototypes/_shared/proto.css` by M2-T06: one light appearance (no `.dark` block), `--primary` =
+  the income green `#1a7a52`, ten `--category-N` swatches, and the two typefaces loaded from Google
+  Fonts in `apps/web/index.html` (`font-sans` = Public Sans, `font-display` = Familjen Grotesk).
+  Money colours beyond `--destructive` arrive with the first screen showing an amount.
+- **The session is a React Query entry, not `useState`** — key `['auth', 'session']`
+  (`SESSION_QUERY_KEY` in `features/auth/auth-provider.tsx`), holding `AuthUserDto | null`. Login
+  seeds it with `setQueryData`; nothing else may write it. `useAuth()` is the read side.
+- **`lib/session.ts` is gone.** `AuthProvider` registers the `setSessionExpiredHandler` itself and
+  answers an expiry by setting the session query to `null`, so `ProtectedRoute` navigates instead
+  of the page hard-reloading. A `ponytail:` comment there marks what is still missing: other cached
+  queries survive an expiry, and must be evicted once real data is cached.
+- **`routes` is exported from `app/router.tsx`** alongside `router`, so tests mount the real route
+  table on `createMemoryRouter`. New screens go in that array, protected unless deliberately public.
+- **No screen ships without an approved prototype.** Approved so far: `00-design-system.html`,
+  `01-login.html`, `06-month.html`. M3's screens are not drawn yet — draw them one at a time, in
+  the order the project needs them, and never unasked.
+- **MSW is strict** (`onUnhandledRequest: 'error'`): every request a test triggers needs a
+  `server.use(...)` handler.
+- **`@ApiProperty` needs an explicit `type`** — the OpenAPI export runs under `tsx`, so a bare
+  `@ApiProperty()` breaks `pnpm gen`.
 - **Add a line to `packages/api-client/src/index.ts` per new API tag** — Orval's tags-split mode
-  emits no root barrel, so a generated tag is invisible until it is re-exported there.
+  emits no root barrel.
+- **Every new API route is protected the moment it is written**; `@Public()` is what opts out.
 
 ## Open decisions / blocked items
 
+- **`.claude/worktrees/` is not git-ignored** and holds two stale worktrees
+  (`proto-v2-02-05`, `mirror-m3-issues`). `git add -A` sweeps them in, and `pnpm lint` from the
+  repository root lints them (~3700 errors that CI never sees). Prune them, or ignore the path.
 - **Dependency review from M1 close still has no PR.** Branch `chore/m1-dependency-review`.
 - **Branch protection on `main` still not set** (requiring the `ci` check). The
   `gh api -X PUT .../branches/main/protection` call is blocked by the Claude Code permission
@@ -80,36 +68,15 @@ one at a time. Do not draw the remaining ones in a batch, and do not draw the ne
 
 - Native Windows, Node 24.18 / pnpm 11.17. **Do not run `pnpm format` (`prettier --write .`)** — it
   rewrites/CRLF-touches the whole repo. lint-staged formats staged files on commit.
+- **Docker was not running when M2-T06 was verified**, so the login flow was proven against MSW and
+  in the browser (the dev proxy 502s without the API, and the app correctly falls through to the
+  login form) but never against the real API. Worth one manual pass with
+  `docker compose up -d postgres postgres_test` + `pnpm --filter api db:seed` before merging.
 - **Windows Prisma gotcha:** `prisma generate` (api `postinstall`) can fail with
   `EPERM ... rename query_engine-windows.dll.node` when a leftover node process holds the DLL.
-  Harmless if the client is already generated at that version; otherwise close stray node
-  processes and retry. Does not block typecheck/lint/test.
+  Harmless if the client is already generated at that version.
 - Local dev needs `docker compose up -d postgres postgres_test` and a root `.env`
   (`cp .env.example .env`; git-ignored). Postgres 5432 (main) / 5433 (test). An existing `.env`
   needs the three `SEED_*` keys added by hand before `pnpm --filter api db:seed` will run.
-- **`prisma migrate dev` does not always regenerate the client** (it did not after adding `User`);
-  run `pnpm --filter api prisma:generate` when the new model is missing from `src/generated/prisma`.
-
-## M3-T01 done — PR #57 open
-
-`Account` model + migration `20260802192727_add_account` + sample accounts in the seed +
-`test/e2e/account.e2e-spec.ts`. Branch `feat/m3-t01-account-model`, awaiting review/merge.
-**Next backend ticket is M3-T02 (#46), Accounts API** — it inherits the `(userId, name)` unique
-key, `isActive`, `sortOrder` and the `onDelete: Restrict` foreign key from this model.
-
-Gotcha it will hit: **the seed now writes accounts, so any test fixture that deletes a `User` must
-delete that user's accounts first** (`Restrict`, P2003) — see `removeFixtures()` in
-`account.e2e-spec.ts` / `seed.e2e-spec.ts`.
-
-## Also open: M2-T06 — Login screen and route protection
-
-Issue #22, the last ticket in M2: `features/auth/` (`LoginPage`, `AuthProvider`, `useAuth`), React
-Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loading state so the
-login screen never flashes. `useLogin`/`useLogout` are already exported from the generated client;
-the token store and the interceptors above are what it plugs into.
-
-**Do not start it until `01-login.html` is approved.** The prototype now exists and is under
-review; it draws all four states the ticket has to build — initial, submitting, invalid credential
-and the "verificando sessão" screen that keeps the form from flashing. Two behaviours it settles
-that the ticket must honour: the submitting state lives in the button (no overlay), and a failed
-attempt clears and focuses the password while keeping the email.
+- **`prisma migrate dev` does not always regenerate the client**; run
+  `pnpm --filter api prisma:generate` when a new model is missing from `src/generated/prisma`.

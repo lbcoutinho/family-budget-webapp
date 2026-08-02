@@ -1,24 +1,24 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { LandingPage } from './landing-page';
 
-// Smoke test: the landing page renders inside the app-level providers without throwing.
-describe('LandingPage', () => {
-  it('renders the app title and a styled call to action', () => {
-    const queryClient = new QueryClient();
+import { AuthContext } from '@/features/auth/auth-context';
 
+// Smoke test: the landing page renders for a signed-in user. The session plumbing behind it is
+// covered by `features/auth/auth-flow.test.tsx`.
+describe('LandingPage', () => {
+  it('greets the signed-in user and offers a way out', () => {
     render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
+      <MemoryRouter>
+        <AuthContext value={{ user: { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís' }, logout: () => Promise.resolve() }}>
           <LandingPage />
-        </MemoryRouter>
-      </QueryClientProvider>,
+        </AuthContext>
+      </MemoryRouter>,
     );
 
-    expect(screen.getByText('Family Budget')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Say hello' })).toBeInTheDocument();
+    expect(screen.getByText('Olá, Luís.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 });

@@ -1,20 +1,23 @@
-import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/features/auth/auth-context';
 
-// Placeholder landing page. Exists to prove the stack renders end to end: a styled shadcn Card and
-// Button, Tailwind theme tokens applied, and the Sonner toaster wired through the providers.
+// Placeholder home screen, still. It now sits behind `ProtectedRoute`, so it is also the proof
+// that a session exists — and the only place to end one until the real shell arrives (M5).
 export function LandingPage() {
+  const { user, logout } = useAuth();
+
   return (
     <main className="flex min-h-svh items-center justify-center bg-background p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Family Budget</CardTitle>
-          <CardDescription>Frontend foundation is up and running.</CardDescription>
+          <CardDescription>Olá, {user?.name}.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => toast.success('It works!')}>Say hello</Button>
+          <Button variant="outline" onClick={() => void logout()}>
+            Sair
+          </Button>
         </CardContent>
       </Card>
     </main>

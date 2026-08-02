@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 
 import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/features/auth/auth-provider';
 
 // One QueryClient per app instance, held in state so hot-reload and React StrictMode's double
 // render don't discard the cache by recreating it on every render.
@@ -13,7 +14,11 @@ export function Providers() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      {/* Outside the router: the session has to be settled before any route decides whether it is
+          allowed to render, and the provider needs no route of its own to do it. */}
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
       <Toaster />
     </QueryClientProvider>
   );
