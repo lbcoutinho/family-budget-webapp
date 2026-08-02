@@ -21,8 +21,13 @@ as being rejected.
 
 **`00-design-system.html` is approved** and moved to `approved/`. Its relative paths climb one
 level (`../_shared/…`), and `proto.js` picks the right index link by looking for `/approved/` in
-the path. `01-login.html` is approved too and sits beside it. `06-month.html` and
-`09-reports-monthly.html` are still under review.
+the path. `01-login.html` and `06-month.html` are approved too and sit beside it.
+`09-reports-monthly.html` is still under review.
+
+The two comparison pages that closed screen 06 — `06-month-chart.html` (the strip, simple ×
+stacked) and `06-month-list.html` (the list, four variants) — are in
+`archives/v2-month-comparisons/`. They are self-contained (no `_shared/`, no index of their own),
+so they are archived as they are, without a copy of anything beside them.
 
 **Screens are drawn one at a time from here on**, in the order the project needs them, and approved
 one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
@@ -127,6 +132,8 @@ the v1 review. The second is now being passed **one screen at a time**:
 - **`00-design-system.html` has passed both** and sits in `approved/`. Colour, type, spacing,
   radius, shadow and motion are locked; no later screen may contradict it.
 - **`01-login.html` has passed both** and sits in `approved/`, so M2-T06 is unblocked.
+- **`06-month.html` has passed both** and sits in `approved/`, so M5-T01, M5-T05 and M5-T06 are
+  unblocked on the UI side.
 - **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
   implementation.
 - What "concept approved" settles is structure and behaviour: which actions a screen offers, which
@@ -146,7 +153,7 @@ approval.
 | 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
 | 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
 | 05 cashboxes          | approved          | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle                                            |
-| 06 month              | approved, in full | **drawn in v2** — month strip, rows instead of a table, sort moved to a select                                                  |
+| 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                          |
 | 07 income / expense   | approved, in full | —                                                                                                                               |
 | 08 cashbox operations | approved, in full | —                                                                                                                               |
 | 09 monthly report     | approved          | **drawn in v2** — CSV gone, against-the-average column drawn, composition band added                                            |
@@ -302,6 +309,64 @@ questions or affect other screens:
 Also approved: three footer lines rather than a strip of cards; explicit `+`/`−` alongside colour;
 credit-card icon with the original purchase date as a sub-line; infinite scroll rather than
 numbered pages.
+
+**Design-approved on 2026-08-02** and moved to `approved/`. Nothing on the screen is open any
+more; everything below is the record of how it got there.
+
+#### Second review, on the v2 drawing — settled 2026-08-01
+
+The six "Decisões a aprovar" on the page were **all approved as drawn**. What the review changed is
+everything around them, and all of it is applied:
+
+- **The sidebar is approved as a whole** — the app name on the left, Mês / Relatórios / Lançar por
+  voz / Recorrências at the top level, Configurações below. Two icons were wrong and are replaced
+  in `_shared/proto.js`, so every screen inherits them:
+  - **Configurações is a gear.** The circle-with-rays read as a sun, and the gear is the convention.
+  - **Recorrências is two arrows turning, one behind the other** — the cycle. The previous pair of
+    straight arrows read as a transfer.
+- **Clicking the month name opens a picker**: a year stepper plus a twelve-month grid, so any month
+  of any year is two clicks. The arrows stay for stepping one month at a time; "Hoje" stays.
+- **The cashbox button gets the cashbox amber and says what it does.** It was a white outline
+  button labelled just "Caixinha", which named a noun rather than an action and read as neutral
+  chrome. It is now **"Movimentar caixinha"** with the piggy icon, in the amber that already means
+  cashbox everywhere — outlined rather than filled, so it never competes with the green primary.
+  It opens the screen-08 dialog, which is deposit, withdraw and transfer in one, so "movimentar"
+  is the accurate verb rather than only "adicionar".
+- **The strip is titled "Despesas dia a dia"**, replacing "O que saiu, dia a dia". The chart itself
+  is liked and stays.
+- **"Total consolidado" now sits on an ink background**, white text, instead of the grey wash that
+  only barely told it apart from the four account cards. It stays uncoloured: a balance is not an
+  action, and the green belongs to the action.
+- Filters, sorting, the "31 lançamentos · 1 rascunho" summary and the entry rows are approved as
+  drawn — the summary explicitly, because it surfaces pending drafts.
+
+**The strip is stacked — settled after seeing `06-month-chart.html`.** A day can carry more than one
+colour: one segment per category, largest at the base, so nothing that left on that day disappears.
+It replaces the single dominant-category bar, which hid everything but the largest on 15 of July's
+24 spending days. The comparison page stays as the record, with the width slider that showed the
+real cost — at phone width a small expense becomes a 1–2 px sliver. The fallback if that sliver
+becomes a complaint is written down there and still undrawn: stack at most three segments and roll
+the rest into a grey fourth.
+
+**The list stays A — the wide row.** Chosen from the four in `06-month-list.html` (A wide row, B
+grouped by day, C dense statement, D collapsed by category), against the page's own recommendation
+of B. The comparison page stays as the record of what was rejected.
+
+**Every entry now carries the running balance of its account**, under the amount: grey, 11 px, no
+colour — the same shape the monthly report uses to put the average under the percentage. What that
+settled:
+
+- **Which account.** The origin — the account the money left. Transfers and cashbox moves have two
+  sides and both are applied to the running total, otherwise the destination's later rows would lie;
+  only the origin's balance is displayed. The account is named in the row's own sub-line already, so
+  the balance shows bare, with the account in a tooltip.
+- **Always chronological**, whatever the list is sorted by. Sorting by amount must not change a
+  balance.
+- **Drafts carry none.** They affect nothing, so there is nothing to show.
+- **No `+` on a positive balance**; a negative one keeps its `−`, because there it is information.
+- The prototype's June 30 opening balances are picked backwards so the month closes exactly on the
+  five balance cards at the top (Millennium 3.482,15 · Revolut 412,90 · Dinheiro −35,00 · caixinhas
+  4.150,00 · total 8.010,05). Verified, not assumed.
 
 ### 07 — Income / expense / transfer
 

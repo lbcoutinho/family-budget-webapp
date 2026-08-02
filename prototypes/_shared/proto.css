@@ -446,6 +446,20 @@ code {
   background: var(--wash);
   color: var(--ink);
 }
+/* A segunda ação da tela do mês. Não é a ação principal — essa é verde e é
+   sempre "novo lançamento" — mas também não é um botão neutro: leva ao mesmo
+   diálogo de caixinha, então usa o âmbar que já identifica caixinha em toda a
+   aplicação. Contornado, e não preenchido, para não disputar com o principal. */
+.btn.cashbox {
+  background: var(--cashbox-wash);
+  color: var(--cashbox);
+  border-color: var(--cashbox);
+}
+.btn.cashbox:hover {
+  background: var(--cashbox);
+  border-color: var(--cashbox);
+  color: #fff;
+}
 .btn.danger {
   background: var(--expense);
   border-color: var(--expense);
@@ -662,13 +676,22 @@ code {
   border-radius: var(--r);
   padding: 11px 14px;
 }
+/* O consolidado é a resposta da linha, não mais um cartão dela: fundo de tinta
+   em vez de cinza. Continua sem cor — saldo não é ação, e o verde é da ação. */
 .stat.total {
-  border-color: var(--line-strong);
-  background: var(--wash);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
 }
 .stat .k {
   font-size: 11.5px;
   color: var(--ink-soft);
+}
+.stat.total .k {
+  color: rgba(255, 255, 255, 0.72);
+}
+.stat.total .v {
+  color: var(--surface);
 }
 .stat .v {
   font-family: 'Familjen Grotesk', sans-serif;

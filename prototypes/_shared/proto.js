@@ -11,9 +11,13 @@ const ICONS = {
   calendar: '<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
   chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>',
-  repeat: '<path d="M3 8h13a4 4 0 0 1 4 4M21 16H8a4 4 0 0 1-4-4"/><path d="M17 4l4 4-4 4M7 12l-4 4 4 4"/>',
+  /* Recorrência: duas setas girando, uma atrás da outra — o ciclo, não a
+     troca. O par de setas retas anterior lia-se como "transferência". */
+  repeat: '<path d="M20.5 12a8.5 8.5 0 0 0-14.6-5.9L3 9"/><path d="M3 3.5V9h5.5"/><path d="M3.5 12a8.5 8.5 0 0 0 14.6 5.9L21 15"/><path d="M21 20.5V15h-5.5"/>',
+  /* Engrenagem, o padrão para configurações — o círculo com raios lia-se
+     como um sol. */
   settings:
-    '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1L5.3 5.3"/>',
+    '<circle cx="12" cy="12" r="3.1"/><path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5v-.2a1.9 1.9 0 1 1 3.8 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
   wallet: '<rect x="2.5" y="5.5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M17 14.5h1.5"/>',
   tags: '<path d="M3 3h7.2L21 13.8 13.8 21 3 10.2z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
   piggy: '<path d="M3 12.5a6.5 6.5 0 0 1 6.5-6.5h3A6.5 6.5 0 0 1 19 12.5V18h-3.5v-2h-5v2H7v-3a6.4 6.4 0 0 1-4-2.5z"/><path d="M20 11h1.5M13 6V3.5"/>',
