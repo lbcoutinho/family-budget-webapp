@@ -43,14 +43,19 @@ describe('Database seed (e2e)', () => {
     await moduleRef.init();
   });
 
+  // The seeded accounts hold a foreign key onto the user with `onDelete: Restrict`, so the rows
+  // come off in that order.
+  const removeFixtures = async (): Promise<void> => {
+    await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.user.deleteMany({ where: { email: { in: emails } } });
+  };
+
   // The database is shared with local development, so the fixtures are removed on both sides of
   // the suite: a run interrupted halfway never breaks the next one.
-  beforeEach(async () => {
-    await prisma.user.deleteMany({ where: { email: { in: emails } } });
-  });
+  beforeEach(removeFixtures);
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: { in: emails } } });
+    await removeFixtures();
     await moduleRef.close();
   });
 
@@ -77,6 +82,18 @@ describe('Database seed (e2e)', () => {
     await expect(hashService.verify(demoRow.passwordHash, credentials.password)).resolves.toBe(false);
   });
 
+  it('gives the demo user the two sample accounts, and the owner none (M3-T01)', async () => {
+    const { owner, demo } = await seedUsers(prisma, credentials);
+
+    const accounts = await prisma.account.findMany({ where: { userId: demo.id }, orderBy: { sortOrder: 'asc' } });
+
+    expect(accounts.map((account) => account.name)).toEqual(['Millennium', 'Revolut']);
+    expect(accounts[0]).toMatchObject({ initialBalance: 150_000, isActive: true });
+
+    // The owner's database is real data: the seed must never put sample rows in it.
+    await expect(prisma.account.count({ where: { userId: owner.id } })).resolves.toBe(0);
+  });
+
   it('is idempotent: a second run updates both rows instead of duplicating or failing', async () => {
     const first = await seedUsers(prisma, credentials);
     const second = await seedUsers(prisma, credentials);
@@ -85,6 +102,8 @@ describe('Database seed (e2e)', () => {
     expect(second.demo).toMatchObject({ id: first.demo.id, created: false });
 
     await expect(prisma.user.count({ where: { email: { in: emails } } })).resolves.toBe(2);
+    // The sample accounts are upserted too, so a second run must not double them.
+    await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(2);
   });
 
   it('re-derives the hash on every run, so the stored value changes while the password still verifies', async () => {

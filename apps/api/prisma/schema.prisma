@@ -45,5 +45,35 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  accounts Account[]
+
   @@map("users")
+}
+
+/// Where money sits: a current account, a savings account, a wallet. The first domain entity
+/// (M3-T01), and the template the other master-data models follow — `userId`, `isActive`,
+/// `sortOrder`.
+///
+/// Accounts are deactivated, not deleted, once they carry transactions (ADR-0015): `isActive`
+/// keeps a retired account out of the pickers while its history stays readable.
+model Account {
+  id             String   @id @default(uuid()) @db.Uuid
+  /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
+  userId         String   @map("user_id") @db.Uuid
+  name           String
+  /// Balance the account already held before the first recorded transaction, in **cents**
+  /// (ADR-0005) — never a Float. May be negative, e.g. an overdrawn account.
+  initialBalance Int      @default(0) @map("initial_balance")
+  isActive       Boolean  @default(true) @map("is_active")
+  /// Position in the user's own ordering of the list. Ties broken by `name` at query time.
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, isActive])
+  @@map("accounts")
 }

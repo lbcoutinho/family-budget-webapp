@@ -11,13 +11,18 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2 Authentication is complete.** M2-T06 (#22, the login screen and route protection) is on branch
-`m02-t06-login-screen` with a pull request open; every earlier M2 ticket is merged. Nothing is
-half-finished. **Next milestone is M3 Master data** — run the `github-mirroring` skill for it before
-the first ticket.
+**M2 Authentication is complete and merged.** M3 Master data is mirrored on GitHub
+(#45–#53). **M3-T01 (#45) is done and on branch `feat/m3-t01-account-model`, PR #57 open** —
+`Account` model, migration `20260802192727_add_account`, sample accounts in the seed and
+`test/e2e/account.e2e-spec.ts`. Nothing is half-finished. **Next backend ticket is M3-T02 (#46),
+the accounts API**, which inherits the `(userId, name)` unique key, `isActive`, `sortOrder` and the
+`onDelete: Restrict` foreign key from that model.
 
 ## Gotchas the next ticket will hit
 
+- **The seed writes sample data for the demo user only, never for the owner**, and those rows hold
+  a foreign key onto `User` with `onDelete: Restrict`: any fixture that deletes a user must delete
+  that user's accounts first (P2003) — see `removeFixtures()` in `test/e2e/account.e2e-spec.ts`.
 - **The design tokens now live in `apps/web/src/styles/index.css`**, ported from
   `prototypes/_shared/proto.css` by M2-T06: one light appearance (no `.dark` block), `--primary` =
   the income green `#1a7a52`, ten `--category-N` swatches, and the two typefaces loaded from Google
