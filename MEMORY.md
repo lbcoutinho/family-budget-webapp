@@ -90,7 +90,18 @@ one at a time. Do not draw the remaining ones in a batch, and do not draw the ne
 - **`prisma migrate dev` does not always regenerate the client** (it did not after adding `User`);
   run `pnpm --filter api prisma:generate` when the new model is missing from `src/generated/prisma`.
 
-## Next: M2-T06 — Login screen and route protection
+## M3-T01 done — PR #57 open
+
+`Account` model + migration `20260802192727_add_account` + sample accounts in the seed +
+`test/e2e/account.e2e-spec.ts`. Branch `feat/m3-t01-account-model`, awaiting review/merge.
+**Next backend ticket is M3-T02 (#46), Accounts API** — it inherits the `(userId, name)` unique
+key, `isActive`, `sortOrder` and the `onDelete: Restrict` foreign key from this model.
+
+Gotcha it will hit: **the seed now writes accounts, so any test fixture that deletes a `User` must
+delete that user's accounts first** (`Restrict`, P2003) — see `removeFixtures()` in
+`account.e2e-spec.ts` / `seed.e2e-spec.ts`.
+
+## Also open: M2-T06 — Login screen and route protection
 
 Issue #22, the last ticket in M2: `features/auth/` (`LoginPage`, `AuthProvider`, `useAuth`), React
 Hook Form + Zod, `ProtectedRoute`, and the silent refresh on mount with a loading state so the
