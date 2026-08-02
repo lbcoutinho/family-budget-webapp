@@ -58,7 +58,7 @@ function eur(n, { sign = true } = {}) {
    Settled on screen 02: everyday work stays at the top level and the three
    registries live under Configurações. Recorrências is not a registry — it is
    visited while running the month — so it stays out of that menu.
-   Items with href:null have no prototype yet; they come with the remaining ten
+   Items with href:null have no prototype yet; they come with the remaining
    screens and say so rather than pretending to be links. */
 const NAV = [
   { id: 'month', label: 'Mês', icon: 'calendar', href: '06-month.html' },
@@ -68,16 +68,29 @@ const NAV = [
 ];
 
 const NAV_SETTINGS = [
-  { id: 'accounts', label: 'Contas', icon: 'wallet', href: null },
-  { id: 'categories', label: 'Categorias', icon: 'tags', href: null },
-  { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: null },
+  { id: 'accounts', label: 'Contas', icon: 'wallet', href: '03-accounts.html' },
+  { id: 'categories', label: 'Categorias', icon: 'tags', href: '04-categories.html' },
+  { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: '05-cashboxes.html' },
 ];
 
-const SOON = 'Sem protótipo ainda — chega com as dez telas restantes';
+const SOON = 'Sem protótipo ainda — chega com as telas restantes';
+
+/* An approved screen lives one folder down, so a link between two screens has
+   to know which side of that boundary each end is on. Keeping the list here
+   means a file that gets approved is a one-line change, not a sweep through
+   every page's navigation. */
+const APPROVED = new Set(['00-design-system.html', '01-login.html', '06-month.html']);
+
+function protoHref(file) {
+  const here = location.pathname.includes('/approved/');
+  const there = APPROVED.has(file);
+  if (here === there) return file;
+  return here ? `../${file}` : `approved/${file}`;
+}
 
 function navItem(item, active) {
   const soon = !item.href;
-  return `<a href="${item.href || '#'}"
+  return `<a href="${item.href ? protoHref(item.href) : '#'}"
     ${active === item.id ? 'aria-current="page"' : ''}
     ${soon ? `aria-disabled="true" title="${SOON}"` : ''}
     >${icon(item.icon)}<span>${item.label}</span></a>`;

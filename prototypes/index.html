@@ -150,6 +150,38 @@
 
       <h2 class="sec">Em revisão</h2>
       <div class="cards">
+        <a class="big" href="02-app-shell.html">
+          <span class="no">02</span>
+          <span>
+            <h3>Shell / navegação</h3>
+            <p>A moldura de todas as rotas, e o desenho no celular. Ganha um bloco de decisões — a v1 passou sem nenhum.</p>
+          </span>
+          <span class="badge">M3-T06</span>
+        </a>
+        <a class="big" href="03-accounts.html">
+          <span class="no">03</span>
+          <span>
+            <h3>Contas</h3>
+            <p>Saldo atual na lista, saldo inicial só no diálogo, ordem alfabética. As três correções da v1, aplicadas.</p>
+          </span>
+          <span class="badge">M3-T07</span>
+        </a>
+        <a class="big" href="04-categories.html">
+          <span class="no">04</span>
+          <span>
+            <h3>Categorias</h3>
+            <p>A única tela em que a paleta aparece como paleta. Criar subcategoria agora é visível — era a correção pedida.</p>
+          </span>
+          <span class="badge">M3-T08</span>
+        </a>
+        <a class="big" href="05-cashboxes.html">
+          <span class="no">05</span>
+          <span>
+            <h3>Caixinhas</h3>
+            <p>Cartões com barra de meta, interruptor de inativas, e botões desabilitados no cartão inativo.</p>
+          </span>
+          <span class="badge">M3-T09</span>
+        </a>
         <a class="big" href="09-reports-monthly.html">
           <span class="no">09</span>
           <span>
@@ -161,10 +193,10 @@
       </div>
 
       <div class="note">
-        <b>Uma tela de cada vez</b>
-        O sistema de design está aprovado, então as telas passam a ser desenhadas <strong>uma a uma, na ordem em que o projeto precisa delas</strong>, e
-        aprovadas uma a uma. Nada de desenhar as nove restantes de enfiada: cada uma sai depois que a anterior fecha. A 01 e a 06 estão aprovadas — o M2-T06 e o
-        M5-T01/T05/T06 estão liberados.
+        <b>02 a 05 saíram juntas, a pedido</b>
+        A regra continua sendo <strong>uma tela de cada vez</strong>, e ela foi quebrada uma vez, explicitamente: as quatro telas do M3 foram pedidas em bloco
+        porque o milestone inteiro depende delas. <strong>A aprovação continua sendo uma a uma</strong> — cada arquivo tem seu próprio bloco de decisões e vai
+        para <code>approved/</code> sozinho. A 01 e a 06 já passaram por isso, e liberaram o M2-T06 e o M5-T01/T05/T06.
       </div>
 
       <h2 class="sec">Como aprovar</h2>
@@ -174,7 +206,7 @@
           Aprovar move o arquivo para <code>approved/</code>, e só então a tela vira ticket de implementação. Enquanto isso,
           <strong>nenhuma tela pode ser escrita em React</strong>. A 01 e a 06 já passaram por isso.
         </li>
-        <li>Desenho a próxima que o projeto pedir. Uma por vez.</li>
+        <li>Desenho a próxima que o projeto pedir — uma por vez, salvo quando você pedir um bloco, como foi com a 02 a 05.</li>
         <li>Duas coisas para <em>usar</em>, não só olhar: a faixa da tela 06 e os tooltips da coluna "contra a média" na 09.</li>
         <li>Vale abrir no celular: os dois tamanhos são o desenho, nenhum é o plano B do outro.</li>
       </ul>
@@ -206,27 +238,27 @@
               </tr>
               <tr>
                 <td class="num">02</td>
-                <td>Shell / navegação</td>
+                <td><a href="02-app-shell.html">Shell / navegação</a></td>
                 <td class="num">M3-T06</td>
-                <td><span class="badge">aguarda a v2</span></td>
+                <td><span class="badge cashbox">v2 em revisão</span></td>
               </tr>
               <tr>
                 <td class="num">03</td>
-                <td>Contas</td>
+                <td><a href="03-accounts.html">Contas</a></td>
                 <td class="num">M3-T07</td>
-                <td><span class="badge">aguarda a v2</span></td>
+                <td><span class="badge cashbox">v2 em revisão</span></td>
               </tr>
               <tr>
                 <td class="num">04</td>
-                <td>Categorias</td>
+                <td><a href="04-categories.html">Categorias</a></td>
                 <td class="num">M3-T08</td>
-                <td><span class="badge">aguarda a v2</span></td>
+                <td><span class="badge cashbox">v2 em revisão</span></td>
               </tr>
               <tr>
                 <td class="num">05</td>
-                <td>Caixinhas</td>
+                <td><a href="05-cashboxes.html">Caixinhas</a></td>
                 <td class="num">M3-T09 · M5-T06</td>
-                <td><span class="badge">aguarda a v2</span></td>
+                <td><span class="badge cashbox">v2 em revisão</span></td>
               </tr>
               <tr>
                 <td class="num">06</td>
@@ -281,7 +313,8 @@
         </div>
       </div>
       <p class="small muted" style="margin-top: 10px">
-        "Aguarda a v2" quer dizer que o conceito da tela já foi aprovado na revisão da v1 — o que falta é o desenho, e ele sai destas três.
+        "Aguarda a v2" quer dizer que o conceito da tela já foi aprovado na revisão da v1 — o que falta é o desenho. Sobram seis: a 07, a 08, a 10, a 11, a 12 e
+        a 13.
       </p>
 
       <h2 class="sec">O que veio antes</h2>
