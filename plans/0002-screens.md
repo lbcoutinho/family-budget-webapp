@@ -218,7 +218,7 @@ moves to `approved/` on its own.
 | --- | ------------------ | ---------------------- | ------------------ | ---------------------------- | ----------- |
 | 00  | Design system      | —                      | —                  | `approved/00-design-system.html` | **approved** |
 | 01  | Login              | `/login`               | M2-T06             | `approved/01-login.html`     | **approved** |
-| 02  | Shell / navigation | (frame)                | M3-T06             | `02-app-shell.html`          | **v2 — under review** |
+| 02  | Shell / navigation | (frame)                | M3-T06             | `approved/02-app-shell.html` | **approved** |
 | 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | **v2 — under review** |
 | 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | **v2 — under review** |
 | 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | **v2 — under review** |
@@ -261,10 +261,10 @@ verifying state, never behind the login form, so the form never flashes.
 | Open menu (mobile) | Drawer; closes on selection |
 | Logout | Clears the session, redirects to `/login` |
 
-Navigation is split into everyday work (Mês, Relatórios, Lançar por voz, Recorrências) and a
-**Configurações** menu holding the three registries: Contas, Categorias, Caixinhas. Recorrências
-stays at the top level: it is something the user visits while running the month, not something
-they set up once. The user and the logout action sit at the foot of the sidebar; the top bar
+Navigation is split into everyday work (Mês, Caixinhas, Relatórios, Lançar por voz, Recorrências)
+and a **Configurações** menu holding the two registries: Contas and Categorias. Caixinhas sits
+second, directly below Mês, and Recorrências stays at the top level: both are visited while running
+the month, not set up once. The user and the logout action sit at the foot of the sidebar; the top bar
 belongs to the current task.
 
 ### 03 — Accounts (`/accounts`)

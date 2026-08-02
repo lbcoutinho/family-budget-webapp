@@ -397,10 +397,6 @@ code {
   width: 100%;
 }
 
-.burger {
-  display: none;
-}
-
 /* --- buttons -------------------------------------------------------------- */
 
 .btn {
@@ -987,6 +983,13 @@ table.data.freeze tfoot td:first-child {
 }
 .decisions li span {
   color: var(--ink-soft);
+}
+
+/* O botão de menu só existe onde a barra lateral pode estar escondida. No
+   desktop ela é fixa, então o botão não tem o que abrir — e a regra tem de vir
+   depois de `.btn`, que também declara `display`. */
+.burger {
+  display: none;
 }
 
 /* --- responsive: both ends are the design, neither is a fallback ---------- */
