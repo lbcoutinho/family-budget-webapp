@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>04 — Categorias (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         A tela onde a cor é decidida — e a única em que a paleta aparece
+         como paleta. Em todas as outras a cor já chega pronta, presa a uma
+         categoria; aqui ela é escolhida, e por isso as dez amostras moram
+         nesta tela e em nenhuma outra.
+         Profundidade máxima 2: raiz e filha, nunca neta.
+         ================================================================== */
+      .cat {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      /* O disco de cor é a identidade da categoria. Só a raiz o tem cheio:
+         a subcategoria herda a cor nos gráficos, então repeti-lo em cada
+         filha seria dizer duas vezes a mesma coisa. */
+      .cat .swatch {
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+        flex: none;
+      }
+      .caret-btn {
+        border: 0;
+        background: transparent;
+        padding: 3px;
+        margin-left: -4px;
+        cursor: pointer;
+        color: var(--ink-faint);
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+      }
+      .caret-btn:hover {
+        background: var(--wash);
+        color: var(--ink);
+      }
+      .caret-btn svg {
+        width: 14px;
+        height: 14px;
+        transition: transform var(--fast) var(--ease);
+      }
+      /* A ação que faltava: criar subcategoria estava dentro do bloco que só
+         aparecia no hover, então era invisível em toque e em captura de tela.
+         Agora é um botão de texto, sempre visível, na própria linha da mãe. */
+      .add-sub {
+        border: 1px dashed var(--line-strong);
+        background: transparent;
+        color: var(--ink-soft);
+        font: inherit;
+        font-size: 12px;
+        padding: 3px 9px;
+        border-radius: var(--r-sm);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .add-sub:hover {
+        border-style: solid;
+        border-color: var(--action);
+        color: var(--action);
+        background: var(--action-wash);
+      }
+      .acts {
+        display: flex;
+        gap: 2px;
+        justify-content: flex-end;
+        opacity: 0.5;
+        transition: opacity var(--fast) var(--ease);
+      }
+      tr:hover .acts,
+      .acts:focus-within {
+        opacity: 1;
+      }
+      tr.off td,
+      tr.off .cat b {
+        color: var(--ink-faint);
+      }
+      tr.off .cat .swatch {
+        opacity: 0.4;
+      }
+
+      /* --- as dez amostras ---------------------------------------------- */
+      .swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .swatches button {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--r-sm);
+        border: 2px solid transparent;
+        cursor: pointer;
+        padding: 0;
+        position: relative;
+      }
+      .swatches button[aria-pressed='true'] {
+        border-color: var(--ink);
+        box-shadow: 0 0 0 2px var(--surface) inset;
+      }
+      .hexrow {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 9px;
+        align-items: end;
+      }
+      .hexpreview {
+        width: 38px;
+        height: 34px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--line);
+      }
+
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 74ch;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 14px;
+      }
+      .states h3 {
+        margin-bottom: 6px;
+      }
+      .dlg-body {
+        padding: 16px;
+        display: grid;
+        gap: 13px;
+      }
+      @media (max-width: 620px) {
+        .add-sub {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="04 — Categorias" data-ticket="M3-T08"></div>
+
+    <div class="proto-note">
+      <strong>Duas alturas, nunca três.</strong> Categoria raiz e subcategoria — a hierarquia para no segundo nível, por regra do domínio. A cor pertence à raiz
+      e as filhas a herdam nos gráficos. Toda raiz nasce com uma subcategoria <strong>"Outros"</strong>, marcada como automática, e ela não pode ser a última a
+      ser desativada. <strong>Sem coluna de gasto no mês</strong> — o que tirou a única dependência desta tela de dados de relatório.
+    </div>
+
+    <div data-shell="categories">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Categorias</span>
+          </div>
+          <div class="row">
+            <button class="btn sm"><span data-icon="plus"></span> Nova categoria</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="spread" style="margin-bottom: 11px">
+            <div class="segmented">
+              <button aria-selected="true">Despesa</button>
+              <button aria-selected="false">Receita</button>
+            </div>
+            <div class="row wrap">
+              <div class="search" style="width: 210px">
+                <span data-icon="search"></span>
+                <input class="input" placeholder="Buscar categoria…" />
+              </div>
+              <label class="row xs muted" style="gap: 7px; cursor: pointer">
+                <button class="switch" role="switch" aria-checked="true" aria-label="Mostrar inativas"></button>
+                Mostrar inativas
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Categoria</th>
+                    <th>Subcategorias</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Moradia, aberta -->
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="moradia" aria-expanded="true" aria-label="Recolher Moradia">
+                          <span data-icon="chevronRight" style="transform: rotate(90deg)"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c1)"></span><b>Moradia</b>
+                      </span>
+                    </td>
+                    <td class="muted num">4 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="moradia">
+                    <td>Renda</td>
+                    <td></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="moradia">
+                    <td>Água, luz e gás</td>
+                    <td></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child off" data-child="moradia">
+                    <td>Mudança <span class="badge">inativa</span></td>
+                    <td></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Reativar"><span data-icon="check"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="moradia">
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar" disabled><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- as demais, fechadas -->
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="transporte" aria-expanded="false" aria-label="Expandir Transporte">
+                          <span data-icon="chevronRight"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c2)"></span><b>Transporte</b>
+                      </span>
+                    </td>
+                    <td class="muted num">4 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="transporte" hidden>
+                    <td>Combustível</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="transporte" hidden>
+                    <td>Seguro</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="transporte" hidden>
+                    <td>Estacionamento</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="transporte" hidden>
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="alimentacao" aria-expanded="false" aria-label="Expandir Alimentação">
+                          <span data-icon="chevronRight"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c3)"></span><b>Alimentação</b>
+                      </span>
+                    </td>
+                    <td class="muted num">3 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="alimentacao" hidden>
+                    <td>Supermercado</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="alimentacao" hidden>
+                    <td>Restaurante</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="alimentacao" hidden>
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="saude" aria-expanded="false" aria-label="Expandir Saúde">
+                          <span data-icon="chevronRight"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c4)"></span><b>Saúde</b>
+                      </span>
+                    </td>
+                    <td class="muted num">3 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="saude" hidden>
+                    <td>Consultas</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="saude" hidden>
+                    <td>Farmácia</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="saude" hidden>
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="lazer" aria-expanded="false" aria-label="Expandir Lazer">
+                          <span data-icon="chevronRight"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c5)"></span><b>Lazer</b>
+                      </span>
+                    </td>
+                    <td class="muted num">3 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="lazer" hidden>
+                    <td>Espetáculos</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="lazer" hidden>
+                    <td>Livros</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr class="child" data-child="lazer" hidden>
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="cat">
+                        <button class="caret-btn" data-expand="outros" aria-expanded="false" aria-label="Expandir Outros">
+                          <span data-icon="chevronRight"></span>
+                        </button>
+                        <span class="swatch" style="background: var(--c10)"></span><b>Outros</b>
+                      </span>
+                    </td>
+                    <td class="muted num">1 <button class="add-sub" style="margin-left: 8px">+ Subcategoria</button></td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="child" data-child="outros" hidden>
+                    <td>Outros <span class="badge">automática</span></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 9px">
+            Na aba <strong>Receita</strong> a mesma árvore, com Trabalho (Salário, Outros) e Reembolsos (Outros) — são as duas categorias de receita de julho de
+            2026.
+          </p>
+
+          <!-- ===== criar ===== -->
+          <h2 class="sec">Criar uma raiz — e escolher a cor</h2>
+          <p>
+            Esta é a única tela em que a paleta aparece como paleta. Dez amostras, mais um campo hexadecimal para quem quiser sair delas. Onze ou doze
+            categorias é o teto real, então a partir da décima primeira duas repetem cor — e isso é esperado: nos gráficos quem identifica é o valor escrito na
+            fatia, não a cor.
+          </p>
+          <div class="card" style="max-width: 460px">
+            <div class="card-head"><h2>Nova categoria</h2></div>
+            <div class="dlg-body">
+              <div class="field">
+                <label for="c-name">Nome</label>
+                <input class="input" id="c-name" placeholder="Educação" />
+              </div>
+              <div class="field">
+                <label for="c-kind">Tipo</label>
+                <div class="segmented" id="c-kind">
+                  <button aria-selected="true">Despesa</button>
+                  <button aria-selected="false">Receita</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>Cor</label>
+                <div class="swatches" id="swatches">
+                  <button aria-pressed="false" style="background: var(--c1)" title="1"></button>
+                  <button aria-pressed="false" style="background: var(--c2)" title="2"></button>
+                  <button aria-pressed="false" style="background: var(--c3)" title="3"></button>
+                  <button aria-pressed="false" style="background: var(--c4)" title="4"></button>
+                  <button aria-pressed="false" style="background: var(--c5)" title="5"></button>
+                  <button aria-pressed="true" style="background: var(--c6)" title="6"></button>
+                  <button aria-pressed="false" style="background: var(--c7)" title="7"></button>
+                  <button aria-pressed="false" style="background: var(--c8)" title="8"></button>
+                  <button aria-pressed="false" style="background: var(--c9)" title="9"></button>
+                  <button aria-pressed="false" style="background: var(--c10)" title="10 — cinza, sempre 'Outros'"></button>
+                </div>
+                <div class="hexrow" style="margin-top: 4px">
+                  <div class="field">
+                    <label for="c-hex" class="xs muted">ou um hexadecimal</label>
+                    <input class="input num" id="c-hex" value="#0f7c82" />
+                  </div>
+                  <span class="hexpreview" id="hexpreview" style="background: #0f7c82"></span>
+                </div>
+              </div>
+              <div class="callout">
+                <span data-icon="info"></span>
+                <span
+                  >A categoria nasce com uma subcategoria <strong>"Outros"</strong>. Ela existe para que todo lançamento tenha onde cair enquanto você ainda não
+                  decidiu a divisão.</span
+                >
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn outline sm">Cancelar</button>
+              <button class="btn sm">Salvar</button>
+            </div>
+          </div>
+
+          <!-- ===== subcategoria ===== -->
+          <h2 class="sec">Criar uma subcategoria</h2>
+          <p>
+            Abre pelo botão da própria linha da mãe, que agora está sempre visível. A mãe vem preenchida e travada — trocar a mãe aqui seria mover a
+            subcategoria, que é outra ação.
+          </p>
+          <div class="states">
+            <div>
+              <h3>Diálogo</h3>
+              <div class="card">
+                <div class="card-head"><h2>Nova subcategoria</h2></div>
+                <div class="dlg-body">
+                  <div class="field">
+                    <label for="s-parent">Categoria</label>
+                    <input class="input" id="s-parent" value="Moradia" disabled />
+                  </div>
+                  <div class="field">
+                    <label for="s-name">Nome</label>
+                    <input class="input" id="s-name" placeholder="Condomínio" />
+                  </div>
+                  <p class="hint">Herda a cor de Moradia. Uma subcategoria não tem cor própria e não pode ter filhas.</p>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Salvar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Desativar a mãe leva as filhas</h3>
+              <div class="card">
+                <div class="card-head"><h2>Desativar "Lazer"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout warn">
+                    <span data-icon="alert"></span>
+                    <span
+                      >As 3 subcategorias vão junto: Espetáculos, Livros e Outros. Os lançamentos já feitos continuam intactos — o que some é a categoria dos
+                      lançamentos novos.</span
+                    >
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>A última ativa não sai</h3>
+              <div class="card">
+                <div class="card-head"><h2>Desativar "Outros"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout error">
+                    <span data-icon="alert"></span>
+                    <span>
+                      <strong>Não é possível.</strong> É a última subcategoria ativa de Moradia, e toda categoria precisa de pelo menos uma para receber
+                      lançamento. Crie outra antes, ou desative a categoria inteira.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot"><button class="btn outline sm">Fechar</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== estados ===== -->
+          <h2 class="sec">Vazia e com erro</h2>
+          <div class="states">
+            <div>
+              <h3>Nenhuma categoria</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="tags"></span>
+                  <h3>Nenhuma categoria de despesa</h3>
+                  <p class="small muted" style="max-width: 40ch">Categorias são o que faz o relatório existir: sem elas todo gasto vira uma linha solta.</p>
+                  <button class="btn sm" style="margin-top: 4px"><span data-icon="plus"></span> Nova categoria</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Busca sem resultado</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="search"></span>
+                  <h3>Nada encontrado para "seguro de vida"</h3>
+                  <p class="small muted">A busca varre raízes e subcategorias, inclusive as inativas quando o interruptor está ligado.</p>
+                  <button class="btn outline sm" style="margin-top: 4px">Limpar busca</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Erro ao carregar</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="alert"></span>
+                  <h3>Não foi possível carregar as categorias</h3>
+                  <p class="small muted">Verifique a conexão e tente de novo.</p>
+                  <button class="btn outline sm" style="margin-top: 4px">Tentar de novo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito foi aprovado na v1 com duas correções: sem coluna de gasto no mês, e criação de subcategoria visível. As duas estão aplicadas — a
+              segunda virou um botão de texto na linha da mãe, e não mais um ícone escondido no hover.
+            </p>
+            <ol>
+              <li>
+                <b>"+ Subcategoria" é um botão tracejado na coluna do meio, ao lado da contagem.</b>
+                <span>
+                  Sempre visível, em todas as linhas raiz, também em captura de tela. No celular ele some da tabela e a ação passa a viver dentro da linha
+                  expandida, como último item da lista de filhas — a alternativa era espremer mais um botão numa largura que já está apertada.
+                </span>
+              </li>
+              <li>
+                <b>A coluna do meio conta subcategorias — e é a única coluna que sobrou.</b>
+                <span>
+                  Sem gasto no mês, sem data, sem situação em coluna própria (inativa é um selo no nome). Sobrou nome, contagem e ações. Se a contagem parecer
+                  inútil, ela sai e a coluna vira só o botão.
+                </span>
+              </li>
+              <li>
+                <b>As dez amostras aparecem só aqui, e o hexadecimal fica ao lado delas, não escondido atrás de "avançado".</b>
+                <span>
+                  Dez cores e onze ou doze categorias significa que alguém vai querer a décima primeira diferente. Esconder o campo faria essa pessoa achar que
+                  não dá.
+                </span>
+              </li>
+              <li>
+                <b>A subcategoria automática "Outros" é marcada com um selo e tem o botão de desativar desabilitado quando é a última ativa.</b>
+                <span>
+                  Desabilitado, e não ausente: some o botão e some também a explicação de por que ele sumiu. Clicar mostra o motivo. A tentativa pelo servidor
+                  também é recusada com 409 — o desenho não é a única defesa.
+                </span>
+              </li>
+              <li>
+                <b>Só a raiz tem disco de cor.</b>
+                <span>
+                  A filha herda nos gráficos, então repetir o disco em cada linha filha diria a mesma coisa quatro vezes e sugeriria, falsamente, que ela pode
+                  ter cor própria.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* A escolha da cor é a única interação real desta tela, então ela
+         funciona de verdade: amostra e campo hexadecimal são a mesma decisão
+         vista de dois jeitos e por isso se acompanham. */
+      document.addEventListener('DOMContentLoaded', () => {
+        const swatches = document.getElementById('swatches');
+        const hex = document.getElementById('c-hex');
+        const preview = document.getElementById('hexpreview');
+
+        swatches.addEventListener('click', (e) => {
+          const btn = e.target.closest('button');
+          if (!btn) return;
+          swatches.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+          const value = getComputedStyle(btn).backgroundColor;
+          preview.style.background = value;
+          hex.value = rgbToHex(value);
+        });
+
+        hex.addEventListener('input', () => {
+          if (!/^#[0-9a-f]{6}$/i.test(hex.value)) return;
+          preview.style.background = hex.value;
+          swatches.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        });
+
+        const rgbToHex = (rgb) =>
+          '#' +
+          (rgb.match(/\d+/g) || [0, 0, 0])
+            .slice(0, 3)
+            .map((n) => Number(n).toString(16).padStart(2, '0'))
+            .join('');
+      });
+    </script>
+  </body>
+</html>

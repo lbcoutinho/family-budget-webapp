@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>03 — Contas (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         Um cadastro pequeno: três ou quatro linhas, para sempre.
+         A tela não precisa de invenção — precisa de não mentir sobre o
+         saldo e de deixar claro o que "desativar" faz. A única cor é a do
+         saldo negativo, que é dado, e a do botão, que é ação.
+         ================================================================== */
+      .acc-name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      /* Iniciais em vez de ícone: os bancos não têm ícone que os distinga, e
+         duas letras distinguem. Cinza — conta não é categoria, não tem cor
+         de identidade. */
+      .acc-name .av {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--r-sm);
+        background: var(--wash);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 600;
+        flex: none;
+      }
+      tr.off .acc-name .av,
+      tr.off td {
+        color: var(--ink-faint);
+      }
+      tr.off .acc-name b {
+        font-weight: 500;
+      }
+      /* Sempre visíveis, nunca só no hover — foi a correção pedida na
+         revisão da v1 e vale para todos os cadastros. */
+      .acts {
+        display: flex;
+        gap: 2px;
+        justify-content: flex-end;
+        opacity: 0.5;
+        transition: opacity var(--fast) var(--ease);
+      }
+      tr:hover .acts,
+      .acts:focus-within {
+        opacity: 1;
+      }
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 74ch;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 14px;
+      }
+      .states h3 {
+        margin-bottom: 6px;
+      }
+      .dlg-body {
+        padding: 16px;
+        display: grid;
+        gap: 13px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 620px) {
+        .two {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="03 — Contas" data-ticket="M3-T07 · saldo atual vem do M5-T06"></div>
+
+    <div class="proto-note">
+      <strong>Um cadastro de três ou quatro linhas.</strong> A lista mostra o <em>saldo atual</em> e não o inicial — o inicial se define uma vez e mora no
+      diálogo de edição. Ordem alfabética, sem ordenação manual. Desativar tira a conta dos lançamentos novos e mantém o histórico; apagar só passa se não
+      houver lançamento nenhum.
+    </div>
+
+    <div data-shell="accounts">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Contas</span>
+          </div>
+          <div class="row">
+            <label class="row xs muted" style="gap: 7px; cursor: pointer">
+              <button class="switch" role="switch" aria-checked="true" aria-label="Mostrar inativas"></button>
+              Mostrar inativas
+            </label>
+            <button class="btn sm"><span data-icon="plus"></span> Nova conta</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="card">
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Conta</th>
+                    <th>Tipo</th>
+                    <th class="n">Saldo atual</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span class="acc-name"><span class="av">DI</span><b>Dinheiro</b></span>
+                    </td>
+                    <td class="muted">Carteira</td>
+                    <td class="n num out strong">− 35,00 €</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="acc-name"><span class="av">ML</span><b>Millennium</b></span>
+                    </td>
+                    <td class="muted">Conta corrente</td>
+                    <td class="n num strong">3.482,15 €</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="acc-name"><span class="av">RV</span><b>Revolut</b></span>
+                    </td>
+                    <td class="muted">Conta corrente</td>
+                    <td class="n num strong">412,90 €</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="off">
+                    <td>
+                      <span class="acc-name"><span class="av">AC</span><b>Activobank</b> <span class="badge">inativa</span></span>
+                    </td>
+                    <td class="muted">Conta corrente</td>
+                    <td class="n num strong">0,00 €</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Reativar"><span data-icon="check"></span></button>
+                        <button class="btn icon ghost" title="Apagar"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="2">Total das contas ativas</td>
+                    <td class="n num">3.860,05 €</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 9px">
+            O total soma só as ativas, e por isso não bate com o consolidado da tela do mês — aquele inclui as caixinhas (4.150,00 €).
+          </p>
+
+          <!-- ===== diálogo ===== -->
+          <h2 class="sec">Criar e editar</h2>
+          <p>
+            Mesmo diálogo para as duas coisas. O saldo inicial fica aqui, e só aqui: é o valor que a conta tinha quando entrou na aplicação, e ele deixa de ser
+            interessante no dia seguinte. Ao editar uma conta que já tem lançamentos, o campo continua editável — corrigir um saldo inicial errado é justamente
+            para isso que ele serve.
+          </p>
+          <div class="card" style="max-width: 460px">
+            <div class="card-head"><h2>Nova conta</h2></div>
+            <div class="dlg-body">
+              <div class="field">
+                <label for="a-name">Nome</label>
+                <input class="input" id="a-name" placeholder="Millennium" />
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="a-type">Tipo</label>
+                  <select class="select" id="a-type">
+                    <option>Conta corrente</option>
+                    <option>Poupança</option>
+                    <option>Carteira</option>
+                    <option>Cartão de crédito</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="a-init">Saldo inicial</label>
+                  <input class="input num" id="a-init" value="0,00" inputmode="decimal" />
+                  <span class="hint">Aceita 1.234,56 e 1234.56.</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn outline sm">Cancelar</button>
+              <button class="btn sm">Salvar</button>
+            </div>
+          </div>
+
+          <!-- ===== confirmações ===== -->
+          <h2 class="sec">Desativar e apagar</h2>
+          <p>São duas ações diferentes e a tela nunca as confunde: desativar preserva, apagar destrói — e quase sempre é recusado pelo servidor.</p>
+          <div class="states">
+            <div>
+              <h3>Desativar</h3>
+              <div class="card">
+                <div class="card-head"><h2>Desativar "Revolut"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout">
+                    <span data-icon="info"></span>
+                    <span
+                      >Os 47 lançamentos já feitos continuam onde estão e o saldo segue sendo calculado. O que muda é que a conta some dos lançamentos
+                      novos.</span
+                    >
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Apagar, e o 409 que quase sempre vem</h3>
+              <div class="card">
+                <div class="card-head"><h2>Apagar "Revolut"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout error">
+                    <span data-icon="alert"></span>
+                    <span>
+                      <strong>Não é possível apagar.</strong> A conta tem 47 lançamentos. Apagar levaria o histórico junto — desative em vez disso, e ela some
+                      dos lançamentos novos sem perder nada.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Fechar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== estados ===== -->
+          <h2 class="sec">Carregando, vazia, com erro</h2>
+          <p>Os três estados que toda tela de dados especifica. Nenhum deles é uma página em branco.</p>
+          <div class="states">
+            <div>
+              <h3>Carregando</h3>
+              <div class="card">
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead>
+                      <tr>
+                        <th>Conta</th>
+                        <th class="n">Saldo atual</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="skeleton" style="width: 130px"></div></td>
+                        <td><div class="skeleton" style="width: 70px; margin-left: auto"></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="skeleton" style="width: 96px"></div></td>
+                        <td><div class="skeleton" style="width: 82px; margin-left: auto"></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="skeleton" style="width: 118px"></div></td>
+                        <td><div class="skeleton" style="width: 64px; margin-left: auto"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Nenhuma conta ainda</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="wallet"></span>
+                  <h3>Nenhuma conta cadastrada</h3>
+                  <p class="small muted" style="max-width: 40ch">Uma conta é de onde o dinheiro sai e para onde entra: o banco, a carteira, o cartão.</p>
+                  <button class="btn sm" style="margin-top: 4px"><span data-icon="plus"></span> Nova conta</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Erro ao carregar</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="alert"></span>
+                  <h3>Não foi possível carregar as contas</h3>
+                  <p class="small muted">Verifique a conexão e tente de novo.</p>
+                  <button class="btn outline sm" style="margin-top: 4px">Tentar de novo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito desta tela já foi aprovado na revisão da v1, com três correções: sem coluna de saldo inicial, saldo atual na lista, ordem alfabética.
+              As três estão aplicadas. O que segue é o que o desenho obrigou a decidir por cima disso.
+            </p>
+            <ol>
+              <li>
+                <b>A coluna de saldo atual só existe a partir do M5-T06.</b>
+                <span>
+                  Ela vem de <code>GET /accounts/balances</code>, e o M3-T07 chega antes disso. Duas saídas: a tela entra sem a coluna e ganha depois, ou o
+                  ticket espera. <strong>A proposta é entrar sem ela</strong> — um cadastro de quatro linhas é útil no dia em que existe, e a coluna é uma
+                  adição sem migração. Se preferir esperar, o M3-T07 passa a depender do M5-T06.
+                </span>
+              </li>
+              <li>
+                <b>Existe uma coluna "Tipo".</b>
+                <span>
+                  Conta corrente, poupança, carteira, cartão de crédito. A v1 não a tinha. Ela não muda nenhuma regra do domínio — é rótulo, não comportamento —
+                  mas separa "Dinheiro" de um banco sem depender do nome que você deu. Se soar como campo inventado, sai, e a coluna vira só nome e saldo.
+                </span>
+              </li>
+              <li>
+                <b>Contas inativas aparecem no rodapé da lista, esmaecidas, atrás do interruptor.</b>
+                <span
+                  >Mesma regra de categorias e caixinhas. Continuam mostrando saldo, porque o histórico atrás dele é real, e continuam podendo ser
+                  reativadas.</span
+                >
+              </li>
+              <li>
+                <b>O rodapé soma só as contas ativas — e diz que não é o consolidado.</b>
+                <span>
+                  O consolidado da tela do mês inclui as caixinhas. Ter dois números parecidos e diferentes em duas telas é o tipo de coisa que faz duvidar das
+                  duas, então o número aqui vem rotulado e com a diferença explicada logo abaixo. A alternativa é não somar nada nesta tela.
+                </span>
+              </li>
+              <li>
+                <b>Saldo negativo em vermelho, sem ícone e sem parênteses.</b>
+                <span>Já aprovado na v1; desenhado aqui para conferir que o sinal "−" antes do número basta.</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

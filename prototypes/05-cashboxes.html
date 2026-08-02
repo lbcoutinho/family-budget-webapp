@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>05 — Caixinhas (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         Cartões, não tabela: são poucas e a barra de meta precisa do espaço.
+         A cor da tela é o âmbar — a cor que significa caixinha em toda a
+         aplicação — e ela aparece só onde há movimento de caixinha. O verde
+         continua sendo da ação, e só dela.
+         ================================================================== */
+      .boxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+        gap: 12px;
+      }
+      .box {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-sm);
+        padding: 15px 16px 13px;
+        display: grid;
+        gap: 11px;
+        align-content: start;
+      }
+      .box .head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 9px;
+      }
+      .box .desc {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 2px;
+      }
+      /* O saldo é o número que a pessoa veio ver. Tamanho de display, âmbar,
+         tabular — o mesmo âmbar do cartão "Caixinhas" na tela do mês. */
+      .box .bal {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.3rem;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+        color: var(--cashbox);
+      }
+      .box .goal {
+        display: grid;
+        gap: 5px;
+      }
+      .box .goal .lbl {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .box .progress span {
+        background: var(--cashbox);
+      }
+      /* Meta atingida: a barra vira verde e não bloqueia nada — continua
+         dando para depositar. É comemoração, não trava. */
+      .box.done .progress span {
+        background: var(--income);
+      }
+      .box .acts {
+        display: flex;
+        gap: 7px;
+        border-top: 1px solid var(--line);
+        padding-top: 11px;
+      }
+      .box .acts .btn {
+        flex: 1;
+      }
+      /* Caixinha inativa: o saldo fica, porque o histórico atrás dele é real.
+         Os botões não ficam — uma entidade inativa não pode entrar em
+         lançamento novo, então eles são desabilitados de verdade, e não
+         apenas inertes. */
+      .box.off {
+        background: var(--wash);
+      }
+      .box.off h3,
+      .box.off .bal {
+        color: var(--ink-faint);
+      }
+
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 74ch;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 14px;
+      }
+      .states h3 {
+        margin-bottom: 6px;
+      }
+      .dlg-body {
+        padding: 16px;
+        display: grid;
+        gap: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="05 — Caixinhas" data-ticket="M3-T09 · saldo vem do M5-T06"></div>
+
+    <div class="proto-note">
+      <strong>Caixinha é tipo de lançamento, não categoria.</strong> Depositar tira de uma conta e guarda; resgatar faz o caminho de volta. Nada disso conta
+      como despesa em relatório nenhum. O saldo é sempre <em>calculado</em>, nunca armazenado — e é por isso que ele bate com o cartão "Caixinhas" da tela do
+      mês: 4.150,00 €.
+    </div>
+
+    <div data-shell="cashboxes">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Caixinhas</span>
+          </div>
+          <div class="row">
+            <label class="row xs muted" style="gap: 7px; cursor: pointer">
+              <button class="switch" role="switch" aria-checked="true" aria-label="Mostrar inativas"></button>
+              Mostrar inativas
+            </label>
+            <button class="btn sm cashbox"><span data-icon="piggy"></span> Movimentar caixinha</button>
+            <button class="btn sm"><span data-icon="plus"></span> Nova caixinha</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- ===== resumo ===== -->
+          <div class="stats" style="margin-bottom: 16px">
+            <div class="stat">
+              <div class="k">Total guardado</div>
+              <div class="v num cx">4.150,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Depositado em julho</div>
+              <div class="v num in">+ 600,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Resgatado em julho</div>
+              <div class="v num out">− 200,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Caixinhas ativas</div>
+              <div class="v num">2</div>
+            </div>
+          </div>
+
+          <!-- ===== cartões ===== -->
+          <div class="boxes">
+            <div class="box">
+              <div class="head">
+                <div>
+                  <h3>Férias 2027</h3>
+                  <p class="desc">Duas semanas na Grécia, em julho</p>
+                </div>
+                <div class="acts" style="border: 0; padding: 0; gap: 2px">
+                  <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                  <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                </div>
+              </div>
+              <div class="bal num">2.300,00 €</div>
+              <div class="goal">
+                <div class="progress"><span style="width: 46%"></span></div>
+                <div class="lbl"><span>46% da meta</span><span class="num">meta 5.000,00 €</span></div>
+              </div>
+              <div class="acts">
+                <button class="btn sm outline">Depositar</button>
+                <button class="btn sm outline">Resgatar</button>
+              </div>
+            </div>
+
+            <div class="box">
+              <div class="head">
+                <div>
+                  <h3>Obras</h3>
+                  <p class="desc">Cozinha e casa de banho</p>
+                </div>
+                <div class="acts" style="border: 0; padding: 0; gap: 2px">
+                  <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                  <button class="btn icon ghost" title="Desativar"><span data-icon="x"></span></button>
+                </div>
+              </div>
+              <div class="bal num">1.850,00 €</div>
+              <div class="acts">
+                <button class="btn sm outline">Depositar</button>
+                <button class="btn sm outline">Resgatar</button>
+              </div>
+            </div>
+
+            <div class="box off">
+              <div class="head">
+                <div>
+                  <h3>Carro novo <span class="badge">inativa</span></h3>
+                  <p class="desc">Encerrada — o carro foi comprado em maio</p>
+                </div>
+                <div class="acts" style="border: 0; padding: 0; gap: 2px">
+                  <button class="btn icon ghost" title="Editar"><span data-icon="pencil"></span></button>
+                  <button class="btn icon ghost" title="Reativar"><span data-icon="check"></span></button>
+                </div>
+              </div>
+              <div class="bal num">0,00 €</div>
+              <div class="acts">
+                <button class="btn sm outline" disabled title="Caixinha inativa não recebe lançamento novo">Depositar</button>
+                <button class="btn sm outline" disabled title="Caixinha inativa não recebe lançamento novo">Resgatar</button>
+              </div>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 10px">
+            2.300,00 + 1.850,00 = os 4.150,00 € do cartão "Caixinhas" na tela do mês. A inativa não soma — está em zero porque foi esvaziada antes de ser
+            encerrada, e é justamente por isso que desativar com saldo merece um aviso (abaixo).
+          </p>
+
+          <!-- ===== meta atingida ===== -->
+          <h2 class="sec">A barra quando a meta é atingida</h2>
+          <p>
+            Variação do cartão de cima, desenhada aqui à parte para não inventar uma quarta caixinha que não existe em julho de 2026. A barra vira verde e não
+            trava nada: continua dando para depositar acima da meta.
+          </p>
+          <div class="boxes" style="max-width: 300px">
+            <div class="box done">
+              <div class="head">
+                <div>
+                  <h3>Férias 2027</h3>
+                  <p class="desc">Duas semanas na Grécia, em julho</p>
+                </div>
+              </div>
+              <div class="bal num">5.120,00 €</div>
+              <div class="goal">
+                <div class="progress"><span style="width: 100%"></span></div>
+                <div class="lbl"><span class="in strong">Meta atingida</span><span class="num">meta 5.000,00 €</span></div>
+              </div>
+              <div class="acts">
+                <button class="btn sm outline">Depositar</button>
+                <button class="btn sm outline">Resgatar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== diálogos ===== -->
+          <h2 class="sec">Criar e editar</h2>
+          <p>Nome, descrição e uma meta opcional. Sem meta, o cartão simplesmente não tem barra — não há legenda dizendo que ela não existe.</p>
+          <div class="states">
+            <div>
+              <h3>Nova caixinha</h3>
+              <div class="card">
+                <div class="card-head"><h2>Nova caixinha</h2></div>
+                <div class="dlg-body">
+                  <div class="field">
+                    <label for="b-name">Nome</label>
+                    <input class="input" id="b-name" placeholder="Férias 2027" />
+                  </div>
+                  <div class="field">
+                    <label for="b-desc">Descrição <span class="muted">(opcional)</span></label>
+                    <input class="input" id="b-desc" placeholder="Duas semanas na Grécia, em julho" />
+                  </div>
+                  <div class="field">
+                    <label for="b-goal">Meta <span class="muted">(opcional)</span></label>
+                    <input class="input num" id="b-goal" placeholder="5.000,00" inputmode="decimal" />
+                    <span class="hint">Sem meta, o cartão mostra só o saldo. Atingir a meta não bloqueia depósito.</span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Salvar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Desativar</h3>
+              <div class="card">
+                <div class="card-head"><h2>Desativar "Obras"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout warn">
+                    <span data-icon="alert"></span>
+                    <span>
+                      A caixinha ainda tem <strong class="num">1.850,00 €</strong>. Ela continua contando no total guardado e o histórico fica — o que ela deixa
+                      de aceitar é depósito e resgate novos. Se a ideia era encerrá-la, resgate o saldo antes.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Apagar, e o 409</h3>
+              <div class="card">
+                <div class="card-head"><h2>Apagar "Obras"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout error">
+                    <span data-icon="alert"></span>
+                    <span>
+                      <strong>Não é possível apagar.</strong> A caixinha tem 9 movimentos registrados. Apagar levaria junto depósitos e resgates que aparecem no
+                      mês — desative em vez disso.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Fechar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== estados ===== -->
+          <h2 class="sec">Carregando, vazia, com erro</h2>
+          <div class="states">
+            <div>
+              <h3>Carregando</h3>
+              <div class="boxes" style="grid-template-columns: 1fr">
+                <div class="box">
+                  <div class="skeleton" style="width: 108px; height: 14px"></div>
+                  <div class="skeleton" style="width: 142px; height: 22px"></div>
+                  <div class="skeleton" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Nenhuma caixinha</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="piggy"></span>
+                  <h3>Nenhuma caixinha ainda</h3>
+                  <p class="small muted" style="max-width: 42ch">
+                    Uma caixinha separa dinheiro que está numa conta mas já tem destino — férias, obras, emergência. Guardar não é gastar, então nada disso
+                    entra como despesa.
+                  </p>
+                  <button class="btn sm" style="margin-top: 4px"><span data-icon="plus"></span> Nova caixinha</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Erro ao carregar</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="alert"></span>
+                  <h3>Não foi possível carregar as caixinhas</h3>
+                  <p class="small muted">Verifique a conexão e tente de novo.</p>
+                  <button class="btn outline sm" style="margin-top: 4px">Tentar de novo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito foi aprovado na v1, com quatro correções: nada de "Sem meta definida", fora o cartão tracejado de "+ Nova caixinha", interruptor de
+              inativas, e botões desabilitados no cartão inativo. As quatro estão aplicadas.
+            </p>
+            <ol>
+              <li>
+                <b>Depositar e resgatar continuam nos dois lugares — no cartão e na barra de cima.</b>
+                <span>
+                  Do cartão, a caixinha já vem escolhida; da barra de cima, escolhe-se dentro do diálogo. Os dois abrem o mesmo diálogo da tela 08, que é
+                  depósito, resgate e transferência entre caixinhas em um só. O botão da barra usa o âmbar contornado, igual ao da tela do mês.
+                </span>
+              </li>
+              <li>
+                <b>O saldo do cartão é âmbar, em tamanho de display.</b>
+                <span>
+                  É a única tela em que o âmbar carrega um número grande, e é coerente: aqui todo número é dinheiro de caixinha. Na tela do mês o mesmo valor
+                  aparece num cartão sem cor, porque lá ele divide a linha com saldos de conta e a cor perderia o sentido.
+                </span>
+              </li>
+              <li>
+                <b>Meta atingida vira a barra verde e não trava nada.</b>
+                <span>
+                  Verde de "receita", não de ação — é texto e barra, não superfície de botão, então a gramática que separa os dois se mantém. Continua dando
+                  para depositar acima da meta.
+                </span>
+              </li>
+              <li>
+                <b>Quatro cartões de resumo em cima, e um deles é uma contagem.</b>
+                <span>
+                  Total guardado, depositado no mês, resgatado no mês, quantas ativas. Os dois do meio são do mês corrente e não do total — se isso ficar
+                  ambíguo, eles ganham o nome do mês no rótulo ("Depositado em julho" já traz). A contagem é a mais dispensável das quatro.
+                </span>
+              </li>
+              <li>
+                <b>Desativar com saldo é permitido, e o aviso diz o que acontece.</b>
+                <span>
+                  A alternativa seria exigir saldo zero antes. Isso resolveria um caso e criaria outro: quem quer só parar de mexer numa caixinha ficaria
+                  obrigado a esvaziá-la. O saldo continua no total guardado, e o aviso é explícito quanto a isso.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
