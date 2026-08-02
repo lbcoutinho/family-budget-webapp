@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { config as loadEnv } from 'dotenv';
 
-import { PrismaClient } from '../src/generated/prisma/client';
+import { CategoryKind, type Prisma, PrismaClient } from '../src/generated/prisma/client';
 import { HashService } from '../src/modules/auth/hash.service';
 import { toDemoEmail } from '../src/modules/users/demo-email';
 
@@ -16,7 +16,7 @@ import { toDemoEmail } from '../src/modules/users/demo-email';
  *
  * **Sample data goes to the demo user only, never to the owner.** The owner's database holds real
  * money; the demo user is the one that has to look populated. M3-T01 adds the first of it — two
- * sample accounts.
+ * sample accounts — and M3-T03 the sample category tree.
  *
  * Run with `pnpm --filter api db:seed`. Prisma 7 invokes it through `migrations.seed` in
  * `prisma.config.ts`; the `prisma.seed` key in package.json is gone (ADR-0017).
@@ -106,6 +106,7 @@ export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentia
 
   // Demo only. The owner's database holds real money; sample rows never go into it.
   await seedAccounts(prisma, demo.id);
+  await seedCategories(prisma, demo.id);
 
   return { owner, demo };
 }
@@ -130,6 +131,76 @@ export async function seedAccounts(prisma: PrismaClient, userId: string): Promis
       create: { userId, ...account },
       update: {},
     });
+  }
+}
+
+/**
+ * The sample category tree the demo user starts with (M3-T03). Names, kinds and colours are the
+ * ones the prototypes are drawn with (`prototypes/approved/06-month.html`), so a screen built
+ * against this data looks like the picture it was approved from.
+ *
+ * Colours are the first five swatches of the palette (`--category-1..5` in
+ * `apps/web/src/styles/index.css`), in the order the prototypes use them. Only roots carry one —
+ * subcategories inherit their parent's in the charts.
+ *
+ * No automatic "Outros" subcategory here: that rule belongs to the categories service (M3-T04),
+ * and hard-coding it now would fork the behaviour across two tickets.
+ */
+const SAMPLE_CATEGORIES = [
+  { name: 'Moradia', kind: CategoryKind.EXPENSE, color: '#1f6f54', children: ['Renda', 'Água, luz e gás'] },
+  { name: 'Transporte', kind: CategoryKind.EXPENSE, color: '#1f5aa8', children: ['Combustível', 'Seguro', 'Estacionamento'] },
+  { name: 'Alimentação', kind: CategoryKind.EXPENSE, color: '#a85c1a', children: ['Supermercado', 'Restaurante'] },
+  { name: 'Saúde', kind: CategoryKind.EXPENSE, color: '#a32c3d', children: [] },
+  { name: 'Lazer', kind: CategoryKind.EXPENSE, color: '#7a45b5', children: ['Espetáculos'] },
+  // Left without a colour on purpose: it is a normal state, and the income side of the reports
+  // does not draw a category donut.
+  { name: 'Salário', kind: CategoryKind.INCOME, color: null, children: [] },
+] as const;
+
+/**
+ * Find a category by its natural key, or create it, returning its id either way.
+ *
+ * A `findFirst` rather than an `upsert` because roots are unique through the partial index
+ * (`category_root_name_unique`), which Prisma cannot address in a `where` — and because
+ * `parentId: null` in a compound unique key would compare as `NULL = NULL`, i.e. never match.
+ * `findFirst` emits `IS NULL`, so the same call covers roots and subcategories.
+ *
+ * Existing rows are returned untouched, so a second run never resets a colour or a name the user
+ * has since edited.
+ */
+async function findOrCreateCategory(prisma: PrismaClient, data: Prisma.CategoryUncheckedCreateInput): Promise<string> {
+  const existing = await prisma.category.findFirst({
+    where: { userId: data.userId, parentId: data.parentId ?? null, name: data.name },
+    select: { id: true },
+  });
+
+  if (existing !== null) {
+    return existing.id;
+  }
+
+  const created = await prisma.category.create({ data, select: { id: true } });
+
+  return created.id;
+}
+
+/**
+ * Give a user the sample category tree. Roots first, then their children — the self-referencing
+ * foreign key needs the parent to exist, and `sortOrder` counts from 1 within each level.
+ */
+export async function seedCategories(prisma: PrismaClient, userId: string): Promise<void> {
+  for (const [index, category] of SAMPLE_CATEGORIES.entries()) {
+    const parentId = await findOrCreateCategory(prisma, {
+      userId,
+      name: category.name,
+      kind: category.kind,
+      color: category.color,
+      sortOrder: index + 1,
+    });
+
+    for (const [childIndex, name] of category.children.entries()) {
+      // A subcategory inherits its parent's kind: nothing under "Alimentação" is income.
+      await findOrCreateCategory(prisma, { userId, parentId, name, kind: category.kind, sortOrder: childIndex + 1 });
+    }
   }
 }
 
