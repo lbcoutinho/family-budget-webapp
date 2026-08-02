@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-01T20:55:57.086Z",
+  "generatedAt": "2026-08-02T08:31:03.305Z",
   "title": "Design System: Family Budget",
   "extensions": {
     "colorMeta": {
@@ -347,6 +347,96 @@
           "oklch(72.1% 0.088 160.1)",
           "oklch(83.6% 0.073 160.1)",
           "oklch(95.0% 0.048 160.1)"
+        ]
+      },
+      "action-hover": {
+        "role": "primary",
+        "displayName": "Action Hover",
+        "canonical": "oklch(43.2% 0.089 159.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.089 159.9)",
+          "oklch(26.4% 0.089 159.9)",
+          "oklch(37.9% 0.089 159.9)",
+          "oklch(49.3% 0.089 159.9)",
+          "oklch(60.7% 0.086 159.9)",
+          "oklch(72.1% 0.077 159.9)",
+          "oklch(83.6% 0.062 159.9)",
+          "oklch(95.0% 0.040 159.9)"
+        ]
+      },
+      "action-wash": {
+        "role": "primary",
+        "displayName": "Action Wash",
+        "canonical": "oklch(95.1% 0.014 162.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 162.5)",
+          "oklch(26.4% 0.014 162.5)",
+          "oklch(37.9% 0.014 162.5)",
+          "oklch(49.3% 0.014 162.5)",
+          "oklch(60.7% 0.014 162.5)",
+          "oklch(72.1% 0.012 162.5)",
+          "oklch(83.6% 0.010 162.5)",
+          "oklch(95.0% 0.006 162.5)"
+        ]
+      },
+      "income-wash": {
+        "role": "secondary",
+        "displayName": "Income Wash",
+        "canonical": "oklch(95.1% 0.014 162.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 162.5)",
+          "oklch(26.4% 0.014 162.5)",
+          "oklch(37.9% 0.014 162.5)",
+          "oklch(49.3% 0.014 162.5)",
+          "oklch(60.7% 0.014 162.5)",
+          "oklch(72.1% 0.012 162.5)",
+          "oklch(83.6% 0.010 162.5)",
+          "oklch(95.0% 0.006 162.5)"
+        ]
+      },
+      "expense-wash": {
+        "role": "secondary",
+        "displayName": "Expense Wash",
+        "canonical": "oklch(95.1% 0.019 9.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.019 9.3)",
+          "oklch(26.4% 0.019 9.3)",
+          "oklch(37.9% 0.019 9.3)",
+          "oklch(49.3% 0.019 9.3)",
+          "oklch(60.7% 0.018 9.3)",
+          "oklch(72.1% 0.016 9.3)",
+          "oklch(83.6% 0.013 9.3)",
+          "oklch(95.0% 0.008 9.3)"
+        ]
+      },
+      "transfer-wash": {
+        "role": "secondary",
+        "displayName": "Transfer Wash",
+        "canonical": "oklch(94.9% 0.013 251.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.013 251.6)",
+          "oklch(26.4% 0.013 251.6)",
+          "oklch(37.9% 0.013 251.6)",
+          "oklch(49.3% 0.013 251.6)",
+          "oklch(60.7% 0.013 251.6)",
+          "oklch(72.1% 0.011 251.6)",
+          "oklch(83.6% 0.009 251.6)",
+          "oklch(95.0% 0.006 251.6)"
+        ]
+      },
+      "cashbox-wash": {
+        "role": "secondary",
+        "displayName": "Cashbox Wash",
+        "canonical": "oklch(95.6% 0.026 90.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.026 90.1)",
+          "oklch(26.4% 0.026 90.1)",
+          "oklch(37.9% 0.026 90.1)",
+          "oklch(49.3% 0.026 90.1)",
+          "oklch(60.7% 0.025 90.1)",
+          "oklch(72.1% 0.023 90.1)",
+          "oklch(83.6% 0.018 90.1)",
+          "oklch(95.0% 0.012 90.1)"
         ]
       }
     },
