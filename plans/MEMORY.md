@@ -38,7 +38,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 |---|---|---|---|
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1)–[#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | Created 2026-07-25 |
 | M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26; #18 widened 2026-07-27 |
-| M3 — Master data | — | — | Not started |
+| M3 — Master data | [milestone #3](https://github.com/lbcoutinho/family-budget-webapp/milestone/3) | [#45](https://github.com/lbcoutinho/family-budget-webapp/issues/45)–[#53](https://github.com/lbcoutinho/family-budget-webapp/issues/53) | Created 2026-08-02 |
 | M4 — Transactions (API) | — | — | Not started |
 | M5 — Entries (UI) | — | — | Not started |
 | M6 — Reports | — | — | Not started |
@@ -83,3 +83,25 @@ environment, so a sign-up endpoint was solving a problem the seed does not have.
 keeping — a demo account on the `+demo` sub-address — moved into M2-T02, and
 [#18](https://github.com/lbcoutinho/family-budget-webapp/issues/18)'s body was updated to match the
 plan. GitHub issues cannot be deleted, so #27 stays closed as the record of that detour.
+
+### M3 — Master data (2026-08-02)
+
+Created GitHub Milestone `M3 - Master data` (#3) and 9 issues from `plans/milestones/m03-master-data.md`:
+
+| Issue | Task | Labels |
+|---|---|---|
+| [#45](https://github.com/lbcoutinho/family-budget-webapp/issues/45) | M3-T01 — `Account` model and migration | backend |
+| [#46](https://github.com/lbcoutinho/family-budget-webapp/issues/46) | M3-T02 — Accounts API with deactivation | backend |
+| [#47](https://github.com/lbcoutinho/family-budget-webapp/issues/47) | M3-T03 — `Category` model with hierarchy and partial index | backend |
+| [#48](https://github.com/lbcoutinho/family-budget-webapp/issues/48) | M3-T04 — Categories API with the two-level rule | backend |
+| [#49](https://github.com/lbcoutinho/family-budget-webapp/issues/49) | M3-T05 — `Cashbox` model and API | backend |
+| [#50](https://github.com/lbcoutinho/family-budget-webapp/issues/50) | M3-T06 — Base layout and navigation | frontend |
+| [#51](https://github.com/lbcoutinho/family-budget-webapp/issues/51) | M3-T07 — Accounts screen | frontend |
+| [#52](https://github.com/lbcoutinho/family-budget-webapp/issues/52) | M3-T08 — Categories screen | frontend |
+| [#53](https://github.com/lbcoutinho/family-budget-webapp/issues/53) | M3-T09 — Cashboxes screen | frontend |
+
+New label created: `milestone: m3-master-data` (purple `#5319E7`).
+
+The three screen tickets (#51, #52, #53) are blocked on the prototype gate: `prototypes/approved/`
+holds only `00-design-system`, `01-login` and `06-month`, so accounts, categories and cashboxes
+have no approved prototype yet.
