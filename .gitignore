@@ -45,6 +45,9 @@ Thumbs.db
 /dataSources/
 /dataSources.local.xml
 
+# Claude Code scratch worktrees (local, ephemeral). Rest of .claude/ stays tracked.
+.claude/worktrees/
+
 # impeccable-ignore-start
 # Ephemeral output, runtime state, and per-dev overrides.
 # Unanchored: .impeccable may sit at the repo root or under a nested
