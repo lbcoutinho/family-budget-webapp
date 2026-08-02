@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>02 — Shell / navegação (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         A moldura, e nada além dela.
+         Esta tela não tem dados próprios: ela é o que sobra quando se tira
+         o conteúdo de todas as outras doze. Então o conteúdo aqui é um
+         retângulo pontilhado, de propósito — o que está em julgamento é a
+         barra lateral, a barra de cima e o que acontece no celular.
+         ================================================================== */
+      .placeholder {
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+        background: repeating-linear-gradient(135deg, transparent, transparent 9px, rgba(20, 22, 26, 0.018) 9px, rgba(20, 22, 26, 0.018) 18px);
+        display: grid;
+        place-items: center;
+        gap: 6px;
+        text-align: center;
+        padding: 62px 20px;
+        color: var(--ink-faint);
+      }
+      .placeholder b {
+        font-family: 'Familjen Grotesk', sans-serif;
+        color: var(--ink-soft);
+      }
+
+      /* --- a régua da anatomia ------------------------------------------ */
+      .anatomy {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .anatomy .card-body {
+        padding: 13px 15px;
+      }
+      .anatomy h3 {
+        margin-bottom: 4px;
+      }
+      .anatomy p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+
+      /* --- o celular ------------------------------------------------------
+         O desenho no celular não é o plano B do desenho no desktop, então
+         ele aparece aqui inteiro em vez de ser descrito. Duas molduras: a
+         gaveta fechada e a gaveta aberta, lado a lado, porque a decisão é
+         justamente sobre a passagem de uma para a outra. */
+      .phones {
+        display: flex;
+        gap: 22px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .phone {
+        width: 288px;
+        height: 520px;
+        border: 8px solid var(--ink);
+        border-radius: 26px;
+        overflow: hidden;
+        background: var(--bg);
+        position: relative;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        flex-direction: column;
+      }
+      .phone .topbar {
+        position: static;
+        padding: 9px 11px;
+      }
+      .phone .content {
+        padding: 12px;
+      }
+      .phone .placeholder {
+        padding: 40px 12px;
+        font-size: 12px;
+      }
+      /* A gaveta, desenhada dentro da moldura em vez de fixa na janela. */
+      .phone .side {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 220px;
+        transform: none;
+        z-index: 3;
+        box-shadow: var(--shadow-lg);
+      }
+      .phone .scrim {
+        position: absolute;
+        z-index: 2;
+        display: block;
+      }
+      .phone-label {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-top: 9px;
+        max-width: 288px;
+      }
+      /* O botão flutuante — a proposta do plano §3.4, desenhada para poder
+         ser recusada. */
+      .fab {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        z-index: 1;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 0;
+        background: var(--action);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+      }
+      .fab svg {
+        width: 21px;
+        height: 21px;
+      }
+
+      .sec {
+        margin: 30px 0 10px;
+      }
+      .sec:first-of-type {
+        margin-top: 0;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 72ch;
+      }
+      .page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 22px 22px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="02 — Shell / navegação" data-ticket="M3-T06"></div>
+
+    <div class="proto-note">
+      <strong>A moldura de todas as rotas.</strong> O trabalho do dia a dia fica no topo — Mês, Relatórios, Lançar por voz, Recorrências — e os três cadastros
+      moram dentro de <strong>Configurações</strong>. Recorrências não é cadastro: é visitada enquanto se toca o mês, então fica de fora do menu. A barra de
+      cima pertence à tarefa da rota, nunca à navegação.
+    </div>
+
+    <!-- ===== desktop: a moldura ao vivo ===== -->
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month">Julho de 2026</span>
+          </div>
+          <div class="row">
+            <button class="btn sm cashbox"><span data-icon="piggy"></span> Movimentar caixinha</button>
+            <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="placeholder">
+            <b>Conteúdo da rota</b>
+            <span class="small">Cada uma das outras doze telas entra aqui. A moldura não muda com a rota — só o título e a ação da barra de cima.</span>
+          </div>
+
+          <div class="anatomy">
+            <div class="card">
+              <div class="card-body">
+                <h3>Barra lateral — 244 px</h3>
+                <p>
+                  Marca, navegação, e no rodapé o usuário com o botão de sair. Não encolhe para uma faixa de ícones: são sete itens, cabem por extenso, e um
+                  ícone sozinho obriga a adivinhar.
+                </p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h3>Item ativo</h3>
+                <p>
+                  Fundo verde preenchido — o único acento da aplicação, o mesmo do botão principal. Ação e "você está aqui" compartilham a gramática:
+                  superfície.
+                </p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h3>Configurações</h3>
+                <p>Submenu que abre no lugar, sem sair da barra. Vem aberto quando a rota atual é um dos três cadastros, para você não ter que reabrir.</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h3>Barra de cima</h3>
+                <p>
+                  Gruda no topo, fundo translúcido com desfoque. Segura o contexto da rota à esquerda e a ação principal à direita. Vazia, se a rota não tem
+                  ação.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== celular ===== -->
+          <h2 class="sec">No celular</h2>
+          <p>
+            Abaixo de 900 px a barra lateral vira gaveta e o botão de menu aparece na barra de cima. A gaveta fecha ao escolher um item, no toque fora e no
+            <code>Esc</code>. O plano (§3.4) previa que a ação principal virasse um botão flutuante — está desenhado à direita para ser decidido, não para ser
+            aceito de véspera.
+          </p>
+          <div class="phones">
+            <div>
+              <div class="phone">
+                <div class="topbar">
+                  <div class="row">
+                    <button class="btn icon ghost" title="Menu"><span data-icon="menu"></span></button>
+                    <span class="strong">Julho de 2026</span>
+                  </div>
+                  <button class="btn sm"><span data-icon="plus"></span> Novo</button>
+                </div>
+                <div class="content">
+                  <div class="placeholder"><b>Conteúdo da rota</b></div>
+                </div>
+              </div>
+              <p class="phone-label"><strong>Gaveta fechada.</strong> A ação principal continua na barra de cima, encurtada para "Novo".</p>
+            </div>
+
+            <div>
+              <div class="phone">
+                <div class="topbar">
+                  <div class="row">
+                    <button class="btn icon ghost" title="Menu"><span data-icon="x"></span></button>
+                    <span class="strong">Julho de 2026</span>
+                  </div>
+                </div>
+                <div class="content">
+                  <div class="placeholder"><b>Conteúdo da rota</b></div>
+                </div>
+                <div class="scrim" style="background: rgba(20, 22, 26, 0.34)"></div>
+                <aside class="side">
+                  <div class="brand">
+                    <span class="mark">
+                      <i style="background: var(--c1)"></i><i style="background: var(--c3)"></i><i style="background: var(--c2)"></i>
+                      <i style="background: var(--c5)"></i>
+                    </span>
+                    Orçamento
+                  </div>
+                  <nav class="nav">
+                    <a href="#" aria-current="page"><span data-icon="calendar"></span><span>Mês</span></a>
+                    <a href="#"><span data-icon="chart"></span><span>Relatórios</span></a>
+                    <a href="#"><span data-icon="mic"></span><span>Lançar por voz</span></a>
+                    <a href="#"><span data-icon="repeat"></span><span>Recorrências</span></a>
+                    <button type="button" aria-expanded="true">
+                      <span data-icon="settings"></span><span>Configurações</span><span data-icon="chevronRight" class="caret"></span>
+                    </button>
+                    <div class="sub">
+                      <a href="#"><span data-icon="wallet"></span><span>Contas</span></a>
+                      <a href="#"><span data-icon="tags"></span><span>Categorias</span></a>
+                      <a href="#"><span data-icon="piggy"></span><span>Caixinhas</span></a>
+                    </div>
+                  </nav>
+                  <div class="user">
+                    <span class="av">LC</span>
+                    <span class="grow"><span class="strong">Luís</span><br /><span class="xs muted">luis@exemplo.pt</span></span>
+                    <button class="btn icon ghost" title="Sair"><span data-icon="logout"></span></button>
+                  </div>
+                </aside>
+                <button class="fab" title="Novo lançamento"><span data-icon="plus"></span></button>
+              </div>
+              <p class="phone-label">
+                <strong>Gaveta aberta, e o flutuante atrás dela.</strong> As duas coisas ao mesmo tempo é justamente o que decide se o flutuante entra: ele
+                repete a ação que a barra de cima já tem.
+              </p>
+            </div>
+          </div>
+
+          <!-- ===== sair ===== -->
+          <h2 class="sec">Sair</h2>
+          <p>Um clique no ícone do rodapé encerra a sessão e volta para o login. Sem confirmação — não há nada a perder, e a volta custa uma senha.</p>
+          <div class="card" style="max-width: 420px">
+            <div class="card-body">
+              <div class="user" style="margin: 0; border-top: 0; padding-top: 0">
+                <span class="av">LC</span>
+                <span class="grow"><span class="strong">Luís</span><br /><span class="xs muted">luis@exemplo.pt</span></span>
+                <button class="btn icon ghost" title="Sair"><span data-icon="logout"></span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              Duas coisas já estão decididas e não voltam à mesa: os três cadastros dentro de Configurações e Recorrências no primeiro nível. Esta tela nunca
+              teve um bloco destes — a v1 passou sem ele. Aqui está o que falta responder.
+            </p>
+            <ol>
+              <li>
+                <b>No celular, a ação principal fica na barra de cima — sem botão flutuante.</b>
+                <span>
+                  O plano previa o flutuante, e ele está desenhado ao lado para comparação. O argumento contra: a barra de cima gruda no topo, então a ação já
+                  está sempre visível, e o flutuante cobre a última linha da lista justamente na tela mais usada. O argumento a favor: o polegar alcança o canto
+                  de baixo e não alcança o de cima. Se preferir o flutuante, ele passa a valer em todas as rotas com ação principal, não só no mês.
+                </span>
+              </li>
+              <li>
+                <b>A barra lateral não encolhe no desktop.</b>
+                <span>
+                  Sem modo "só ícones", sem botão de recolher. São 244 px fixos, e a alternativa custa um estado a mais para lembrar e obriga a adivinhar sete
+                  ícones. Só cabe reconsiderar se alguma tela ficar apertada — a mais larga é a matriz anual, que já rola de lado por conta própria.
+                </span>
+              </li>
+              <li>
+                <b>Sair não pede confirmação.</b>
+                <span>Nada se perde ao sair, e a sessão volta com uma senha. Um diálogo de "tem certeza?" aqui é cerimônia sobre uma ação reversível.</span>
+              </li>
+              <li>
+                <b>A marca é a paleta — quatro quadradinhos — e o nome é "Orçamento".</b>
+                <span>
+                  Mesma marca do login. Não há logotipo, e é coerente com a tese: a aplicação não tem cor própria, então a marca só pode ser feita das cores que
+                  significam alguma coisa. O nome é o que aparece; se a aplicação vier a se chamar outra coisa, é aqui e no login que muda.
+                </span>
+              </li>
+              <li>
+                <b>O usuário e o "sair" ficam no rodapé da barra lateral, não na barra de cima.</b>
+                <span>
+                  A barra de cima pertence à tarefa da rota — mês, filtros, ação principal. Empurrar a conta para lá disputaria espaço com a ação justamente na
+                  largura em que ele é mais escasso.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

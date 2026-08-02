@@ -33,6 +33,11 @@ so they are archived as they are, without a copy of anything beside them.
 one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
 and never draw the next one unasked.**
 
+**Broken once, on 2026-08-02, by explicit request: 02, 03, 04 and 05 were drawn as a block**, because
+the whole of M3 depends on them. The rule stands for everything after — the exception was asked for,
+not assumed. **Approval stayed one at a time:** each of the four carries its own "Decisões a aprovar"
+block and moves to `approved/` on its own.
+
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
 and v2 respects it — that is the whole reason this file exists separately from the mock-ups.
 
@@ -108,6 +113,29 @@ The user reviewed `00-design-system.html` section by section. What that produced
   header" — there is no header. Sorting moved to a select above the list. The gain is one layout
   that works at both ends without a table that scrolls sideways.
 
+Raised by the M3 block drawn on 2026-08-02, all still open and each stated as a numbered decision on
+its own page:
+
+- **02 — no floating action button on mobile**, against the plan's own §3.4, which proposed one. The
+  sticky top bar already keeps the action visible and the floating button covers the last row of the
+  month list. Drawn both ways side by side so the choice is made by looking.
+- **02 — the sidebar never collapses on desktop**, no icon-only mode, no collapse control.
+- **02 — logging out asks for no confirmation.**
+- **03 — a "Tipo" column** (conta corrente, poupança, carteira, cartão de crédito), which the v1
+  never had. It changes no domain rule and is a label, not behaviour.
+- **03 — the account list's footer total covers active accounts only**, and says in a line below why
+  it does not match the month screen's consolidated total, which includes cashboxes.
+- **03 — M3-T07 ships without the current-balance column** and gains it at M5-T06, rather than the
+  ticket waiting. Proposed, not settled: the alternative is making M3-T07 depend on M5-T06.
+- **04 — "+ Subcategoria" is a dashed text button in the middle column**, and it disappears on the
+  phone, where the action moves inside the expanded parent row.
+- **04 — the "Outros" subcategory's deactivate button is disabled rather than absent** when it is the
+  last active one, so the reason can be shown on click. The backend still answers 409.
+- **05 — the cashbox balance is amber at display size**, the only screen where amber carries a large
+  number; on the month screen the same value sits in an uncoloured card.
+- **05 — deactivating a cashbox that still holds money is allowed**, with a warning that says the
+  balance stays in the total. The alternative — requiring an empty cashbox — was rejected.
+
 ### Rules deliberately broken in v2, and why
 
 v1's own rules were written before there was any design intent. These four break four of them, on
@@ -149,10 +177,10 @@ approval.
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
 | 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
-| 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
-| 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
-| 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
-| 05 cashboxes          | approved          | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle                                            |
+| 02 shell              | approved          | **drawn in v2, under review** — the three registries under Configurações, Recorrências top-level, and a decisions block at last |
+| 03 accounts           | approved          | **drawn in v2, under review** — initial-balance column gone, current balance in the list, sorted by name                        |
+| 04 categories         | approved          | **drawn in v2, under review** — month-spend column gone, "+ Subcategoria" now a visible button on the parent row                |
+| 05 cashboxes          | approved          | **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added                      |
 | 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                          |
 | 07 income / expense   | approved, in full | —                                                                                                                               |
 | 08 cashbox operations | approved, in full | —                                                                                                                               |
@@ -243,8 +271,9 @@ a "Cadastros" label: Contas, Categorias, Caixinhas.
 **Recorrências stays at the top level**, alongside Mês, Relatórios and Lançar por voz — it is
 visited while running the month, not set up once and forgotten.
 
-Nothing else about the shell was approved — and note that this page never had a "Decisões a
-aprovar" block to approve, unlike every other one. Write one when regenerating.
+Nothing else about the shell was approved — and this page never had a "Decisões a aprovar" block to
+approve, unlike every other one. **The v2 drawing has one**, with five decisions; the floating action
+button is the one with a real alternative drawn beside it.
 
 ### 03 — Accounts
 
