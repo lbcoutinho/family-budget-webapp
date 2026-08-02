@@ -7,18 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ================================================================
          A ASSINATURA — a faixa do mês
-         Um segmento por dia. Altura = quanto saiu, cor = a categoria que
-         mais pesou naquele dia. Antes de ler um número já se vê a forma
-         do mês: onde estão os picos, que cor domina, que dias ficaram em
-         branco. Clicar num dia filtra a lista.
+         Uma coluna por dia, empilhada por categoria: altura = quanto saiu,
+         cada segmento = uma categoria daquele dia, a maior na base. Antes de
+         ler um número já se vê a forma do mês: onde estão os picos, que cor
+         domina, que dias ficaram em branco. Clicar num dia filtra a lista.
          ================================================================ */
       .strip-card {
         margin-bottom: 14px;
@@ -45,24 +45,34 @@
         border-radius: 3px;
         min-width: 0;
       }
-      .day i {
-        display: block;
+      /* A coluna do dia é empilhada: um segmento por categoria, a maior na
+         base. Nada do que saiu no dia desaparece, e a altura passa a ser
+         justificada segmento a segmento. */
+      .bar {
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
         border-radius: 3px 3px 0 0;
+        overflow: hidden;
         transform-origin: bottom;
         transform: scaleY(0);
         animation: grow 420ms var(--ease) forwards;
+      }
+      .bar i {
+        display: block;
+        width: 100%;
       }
       @keyframes grow {
         to {
           transform: scaleY(1);
         }
       }
-      .day.empty i {
+      .day.empty .bar {
         height: 2px;
         background: var(--line);
       }
-      .day:hover i {
+      .day:hover .bar {
         filter: brightness(1.15);
       }
       .day[aria-pressed='true'] {
@@ -72,7 +82,7 @@
       .axis {
         display: flex;
         justify-content: space-between;
-        font-family: 'DM Mono', monospace;
+        font-variant-numeric: tabular-nums;
         font-size: 10px;
         color: var(--ink-faint);
         margin-top: 6px;
@@ -95,9 +105,99 @@
       /* Colour groups, the number names — so the legend carries its own total
          and nobody has to match a swatch against a slice. */
       .legend b {
-        font-family: 'DM Mono', monospace;
+        font-variant-numeric: tabular-nums;
         font-weight: 500;
         color: var(--ink);
+      }
+
+      /* --- o seletor de mês ---------------------------------------------
+         As setas andam de um em um; o nome do mês abre a lista. Saltar de
+         julho de 2026 para janeiro de 2025 são dois cliques, não vinte e um. */
+      .mpick {
+        position: relative;
+      }
+      .mpick > .month {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: var(--r-sm);
+        color: inherit;
+      }
+      .mpick > .month:hover {
+        background: var(--wash);
+        border-color: var(--line);
+      }
+      .mpick > .month svg {
+        width: 14px;
+        height: 14px;
+        color: var(--ink-faint);
+        transition: transform var(--fast) var(--ease);
+      }
+      .mpick[data-open] > .month svg {
+        transform: rotate(90deg);
+      }
+      .mpop {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: 268px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-md);
+        padding: 10px;
+        animation: pop 140ms var(--ease);
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-4px);
+        }
+      }
+      .mpop .yr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .mpop .yr b {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .mpop .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+      }
+      .mpop .grid button {
+        border: 1px solid transparent;
+        background: transparent;
+        border-radius: var(--r-sm);
+        padding: 7px 0;
+        font: inherit;
+        font-size: 12.5px;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .mpop .grid button:hover {
+        background: var(--wash);
+        border-color: var(--line);
+      }
+      .mpop .grid button[aria-current='true'] {
+        background: var(--action);
+        border-color: var(--action);
+        color: #fff;
+      }
+      /* Um mês sem nada lançado ainda pode ser escolhido — só não convida. */
+      .mpop .grid button.void {
+        color: var(--ink-faint);
       }
 
       /* --- a linha de lançamento ---------------------------------------- */
@@ -120,7 +220,7 @@
         border-bottom: 0;
       }
       .entry .d {
-        font-family: 'DM Mono', monospace;
+        font-variant-numeric: tabular-nums;
         font-size: 12.5px;
         color: var(--ink-soft);
       }
@@ -143,11 +243,21 @@
         vertical-align: -2px;
       }
       .entry .amt {
-        font-family: 'DM Mono', monospace;
-        font-weight: 500;
         font-variant-numeric: tabular-nums;
+        font-weight: 500;
         white-space: nowrap;
         text-align: right;
+      }
+      /* O saldo da conta depois deste lançamento, na mesma posição que a
+         média ocupa no relatório mensal: cinza, menor, debaixo do número
+         que qualifica. Nunca colorido — quem manda na cor da linha é o
+         lançamento, e o saldo é só o rastro que ele deixou. */
+      .entry .amt small {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--ink-faint);
+        margin-top: 1px;
       }
       .entry.draft {
         background: var(--wash);
@@ -233,12 +343,16 @@
           <div class="row">
             <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
             <button class="btn icon ghost" title="Mês anterior"><span data-icon="chevronLeft"></span></button>
-            <span class="month">Julho de 2026</span>
+            <span class="mpick" id="mpick">
+              <button class="month" id="mbtn" aria-expanded="false" aria-haspopup="true" title="Escolher mês e ano">
+                <span id="mlabel">Julho de 2026</span><span data-icon="chevronRight"></span>
+              </button>
+            </span>
             <button class="btn icon ghost" title="Próximo mês"><span data-icon="chevronRight"></span></button>
             <button class="btn sm ghost">Hoje</button>
           </div>
           <div class="row">
-            <button class="btn sm outline">Caixinha</button>
+            <button class="btn sm cashbox"><span data-icon="piggy"></span> Movimentar caixinha</button>
             <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
           </div>
         </div>
@@ -248,8 +362,8 @@
           <div class="card strip-card">
             <div class="card-body">
               <div class="spread" style="margin-bottom: 10px">
-                <h2>O que saiu, dia a dia</h2>
-                <span class="xs muted">altura = quanto saiu · cor = a categoria que mais pesou</span>
+                <h2>Despesas dia a dia</h2>
+                <span class="xs muted">altura = quanto saiu · cada cor = uma categoria daquele dia</span>
               </div>
               <div class="strip" id="strip" role="group" aria-label="Despesas por dia de julho de 2026"></div>
               <div class="axis"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
@@ -400,8 +514,8 @@
           alimentacao: { n: 'Alimentação', c: 'var(--c3)' },
           saude: { n: 'Saúde', c: 'var(--c4)' },
           lazer: { n: 'Lazer', c: 'var(--c5)' },
-          outros: { n: 'Outros', c: 'var(--c8)' },
-          trabalho: { n: 'Trabalho', c: 'var(--c16)' },
+          outros: { n: 'Outros', c: 'var(--c10)' },
+          trabalho: { n: 'Trabalho', c: 'var(--c9)' },
           reembolsos: { n: 'Reembolsos', c: 'var(--c6)' },
         };
 
@@ -448,6 +562,42 @@
         const DAYS = 31;
         const PAGE = 12; /* rolagem infinita: a primeira página do cursor */
 
+        /* ---- o saldo corrido ----
+           Saldo de 30 de junho, escolhido de trás para frente para que o mês
+           feche exatamente nos saldos dos cartões acima — é o que garante que
+           a última linha de cada conta bata com o painel. */
+        const START = { Millennium: 2941.55, Revolut: 283.4, Dinheiro: 109.1, 'Férias 2027': 2100, Obras: 1650 };
+
+        /* Transferências e caixinhas têm dois lados: a origem perde, o destino
+           recebe. Os dois entram na conta corrida, senão o saldo do destino
+           mente nas linhas seguintes. */
+        function sides(e) {
+          if (e.draft || !e.acc) return [];
+          const arrow = e.acc.split(' → ');
+          if (arrow.length === 2) {
+            return [
+              { acc: arrow[0], delta: -Math.abs(e.v) },
+              { acc: arrow[1], delta: Math.abs(e.v) },
+            ];
+          }
+          return [{ acc: e.acc, delta: e.v }];
+        }
+
+        /* Saldo nunca leva "+": um saldo positivo é o caso normal e o sinal só
+           faria ruído. O negativo leva, porque aí é informação. */
+        const saldo = (v) => (v < 0 ? '− ' : '') + eur(v, { sign: false });
+
+        /* Cronológico, sempre — a ordenação da lista não pode mudar o saldo. */
+        const bal = { ...START };
+        E.slice()
+          .sort((a, b) => a.d - b.d)
+          .forEach((e) => {
+            const s = sides(e);
+            s.forEach((x) => (bal[x.acc] = (bal[x.acc] ?? 0) + x.delta));
+            /* mostra-se o saldo da origem: é a conta de onde o dinheiro saiu */
+            if (s.length) e.bal = { acc: s[0].acc, v: bal[s[0].acc] };
+          });
+
         /* Só EXPENSE confirmado conta como despesa. Rascunho não entra em nada. */
         const isExpense = (e) => e.k === 'out' && !e.draft;
         const isIncome = (e) => e.k === 'in' && !e.draft;
@@ -456,9 +606,16 @@
         const byDay = [];
         for (let d = 1; d <= DAYS; d++) {
           const items = E.filter((e) => e.d === d && isExpense(e));
-          const total = items.reduce((s, e) => s + Math.abs(e.v), 0);
-          const top = items.slice().sort((a, b) => Math.abs(b.v) - Math.abs(a.v))[0];
-          byDay.push({ d, total, cat: top ? top.cat : null });
+          const parts = {};
+          items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + Math.abs(e.v)));
+          byDay.push({
+            d,
+            total: items.reduce((s, e) => s + Math.abs(e.v), 0),
+            /* da maior para a menor: a base da coluna é sempre o que mais
+               pesou, e é ela que continua legível quando a fatia de cima
+               fica com um pixel */
+            parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
+          });
         }
         const peak = Math.max(...byDay.map((x) => x.total));
 
@@ -466,13 +623,18 @@
           .map((x, i) => {
             if (!x.total) {
               return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
-                title="${x.d} de julho — nada saiu"><i></i></button>`;
+                title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
             }
             /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
             const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
+            const segs = x.parts
+              .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
+              .reverse()
+              .join('');
+            const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
             return `<button class="day" data-day="${x.d}" aria-pressed="false"
-              title="${x.d} de julho — ${eur(-x.total)} · ${CAT[x.cat].n}">
-              <i style="height:${h}%;background:${CAT[x.cat].c};animation-delay:${i * 20}ms"></i></button>`;
+              title="${x.d} de julho — ${eur(-x.total)} — ${detail}">
+              <span class="bar" style="height:${h}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
           })
           .join('');
 
@@ -529,7 +691,9 @@
               ${k.badge ? `<span class="badge ${k.badge[0]}">${k.badge[1]}</span>` : ''}
               <p>${sub(e)}</p>
             </div>
-            <div class="amt ${e.draft ? '' : k.cls}">${amount}</div>
+            <div class="amt ${e.draft ? '' : k.cls}">${amount}
+              ${e.bal ? `<small title="Saldo de ${e.bal.acc} depois deste lançamento">${saldo(e.bal.v)}</small>` : ''}
+            </div>
             <div class="acts">
               <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
               <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
@@ -594,6 +758,66 @@
           countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
           clearEl.hidden = !day;
         }
+
+        /* ---- o seletor de mês ----
+           Protótipo: só julho de 2026 tem lançamentos, então escolher outro
+           mês troca o rótulo e nada mais. O que se avalia aqui é a navegação,
+           não os dados. */
+        const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const mpick = document.getElementById('mpick');
+        const mbtn = document.getElementById('mbtn');
+        const mlabel = document.getElementById('mlabel');
+        let cur = { m: 6, y: 2026 }; /* o mês na tela */
+        let popYear = 2026; /* o ano folheado dentro da lista */
+        let pop = null;
+
+        function drawPop() {
+          pop.innerHTML = `<div class="yr">
+              <button class="btn icon ghost" data-y="-1" title="Ano anterior">${icon('chevronLeft')}</button>
+              <b>${popYear}</b>
+              <button class="btn icon ghost" data-y="1" title="Próximo ano">${icon('chevronRight')}</button>
+            </div>
+            <div class="grid">${MESES.map(
+              (n, i) =>
+                `<button data-m="${i}" aria-current="${i === cur.m && popYear === cur.y}"
+                   class="${popYear === 2026 && i === 6 ? '' : 'void'}">${n.slice(0, 3)}</button>`,
+            ).join('')}</div>`;
+        }
+
+        function closePop() {
+          if (!pop) return;
+          pop.remove();
+          pop = null;
+          mpick.removeAttribute('data-open');
+          mbtn.setAttribute('aria-expanded', 'false');
+        }
+
+        mbtn.addEventListener('click', () => {
+          if (pop) return closePop();
+          popYear = cur.y;
+          pop = document.createElement('div');
+          pop.className = 'mpop';
+          mpick.appendChild(pop);
+          mpick.setAttribute('data-open', '');
+          mbtn.setAttribute('aria-expanded', 'true');
+          drawPop();
+          pop.addEventListener('click', (ev) => {
+            const y = ev.target.closest('[data-y]');
+            if (y) {
+              popYear += Number(y.dataset.y);
+              return drawPop();
+            }
+            const m = ev.target.closest('[data-m]');
+            if (!m) return;
+            cur = { m: Number(m.dataset.m), y: popYear };
+            mlabel.textContent = `${MESES[cur.m]} de ${cur.y}`;
+            closePop();
+          });
+        });
+        document.addEventListener('click', (ev) => {
+          if (pop && !mpick.contains(ev.target)) closePop();
+        });
+        document.addEventListener('keydown', (ev) => ev.key === 'Escape' && closePop());
 
         document.getElementById('strip').addEventListener('click', (ev) => {
           const b = ev.target.closest('.day');

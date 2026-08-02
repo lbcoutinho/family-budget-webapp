@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06b — A faixa do mês: barra simples × empilhada</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ================================================================
+         Só a faixa, duas vezes, com os mesmos lançamentos de julho de
+         2026 da tela 06. A única diferença entre os dois blocos é como
+         o dia é pintado — nada mais muda, para que a comparação seja
+         mesmo entre os dois gráficos.
+         ================================================================ */
+      .strip {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 108px;
+      }
+      .day {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        height: 100%;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+        border-radius: 3px;
+        min-width: 0;
+      }
+      /* a coluna do dia: no modo simples tem um <i>, no empilhado tem vários */
+      .bar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        border-radius: 3px 3px 0 0;
+        overflow: hidden;
+        transform-origin: bottom;
+        transform: scaleY(0);
+        animation: grow 420ms var(--ease) forwards;
+      }
+      .bar i {
+        display: block;
+        width: 100%;
+      }
+      @keyframes grow {
+        to {
+          transform: scaleY(1);
+        }
+      }
+      .day.empty .bar {
+        height: 2px;
+        background: var(--line);
+      }
+      .day:hover .bar {
+        filter: brightness(1.15);
+      }
+      .axis {
+        display: flex;
+        justify-content: space-between;
+        font-variant-numeric: tabular-nums;
+        font-size: 10px;
+        color: var(--ink-faint);
+        margin-top: 6px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin-top: 11px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .legend b {
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      /* o controlo de largura: a pergunta real é como fica no celular */
+      .widthbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .widthbar input[type='range'] {
+        flex: 1;
+        max-width: 320px;
+        accent-color: var(--action);
+      }
+      /* Sem transição em max-width: o valor vem de arrastar o cursor, então
+         animar só atrasa o que a mão já está fazendo. */
+
+      /* o dia 11, lado a lado, ampliado — onde a diferença aparece */
+      .zoom {
+        display: flex;
+        gap: 34px;
+        align-items: flex-end;
+        padding: 6px 2px 0;
+      }
+      .zoom figure {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+      .zoom .strip {
+        height: 150px;
+        width: 46px;
+        gap: 0;
+      }
+      .zoom figcaption {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="06b — Faixa: simples × empilhada" data-ticket="M5-T01"></div>
+
+    <div class="proto-note">
+      <strong>Página de comparação, não é uma tela.</strong> A mesma faixa de julho de 2026 desenhada das duas maneiras, com exatamente os mesmos lançamentos da
+      tela 06. Em cima, <strong>uma cor por dia</strong> — a categoria que mais pesou. Embaixo, <strong>empilhada</strong> — um segmento por categoria do dia.
+      Arraste a largura para ver como cada uma se comporta no celular.
+    </div>
+
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month">Julho de 2026</span>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="widthbar">
+            <label for="w">Largura</label>
+            <input type="range" id="w" min="320" max="1080" value="1080" step="8" />
+            <span class="num" id="wv">1080 px</span>
+          </div>
+
+          <div class="stage" id="stage">
+            <!-- ===== A — uma cor por dia ===== -->
+            <div class="card" style="margin-bottom: 14px">
+              <div class="card-body" style="padding: 14px 16px 10px">
+                <div class="spread" style="margin-bottom: 10px">
+                  <h2>A — Despesas dia a dia, uma cor por dia</h2>
+                  <span class="xs muted">altura = quanto saiu · cor = a categoria que mais pesou</span>
+                </div>
+                <div class="strip" id="stripA" role="group" aria-label="Despesas por dia, uma cor por dia"></div>
+                <div class="axis"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+                <div class="legend" id="legendA"></div>
+              </div>
+            </div>
+
+            <!-- ===== B — empilhada ===== -->
+            <div class="card" style="margin-bottom: 14px">
+              <div class="card-body" style="padding: 14px 16px 10px">
+                <div class="spread" style="margin-bottom: 10px">
+                  <h2>B — Despesas dia a dia, empilhada por categoria</h2>
+                  <span class="xs muted">altura = quanto saiu · cada cor = uma categoria daquele dia</span>
+                </div>
+                <div class="strip" id="stripB" role="group" aria-label="Despesas por dia, empilhadas por categoria"></div>
+                <div class="axis"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+                <div class="legend" id="legendB"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== o dia 11 ampliado ===== -->
+          <div class="card" style="margin-bottom: 14px">
+            <div class="card-body" style="padding: 14px 16px 16px">
+              <div class="spread" style="margin-bottom: 10px">
+                <h2>O dia onde a diferença aparece</h2>
+                <span class="xs muted">11 de julho · Saúde 66,00 € + Alimentação 48,60 €</span>
+              </div>
+              <div class="zoom" id="zoom"></div>
+            </div>
+          </div>
+
+          <!-- ===== o que olhar ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              Só uma decisão está em jogo aqui, e ela é a mesma pergunta feita na revisão: um dia pode ter mais de uma cor? As duas faixas acima usam os mesmos
+              31 dias, a mesma escala de raiz quadrada e a mesma altura total por dia — a soma das despesas confirmadas. Só a pintura muda.
+            </p>
+            <ol>
+              <li>
+                <b>A — uma cor por dia.</b>
+                <span>
+                  A silhueta do mês fica limpa e a cor lê-se de longe: dá para dizer "julho foi um mês de alimentação" olhando a faixa inteira sem parar em
+                  nenhum dia. O custo é real: em julho, <b>15 dos 24 dias com despesa têm mais de uma categoria</b>, e nesses a faixa mostra só a maior. A barra
+                  do dia 11 tem 114,60 € de altura mas é toda da cor de Saúde, embora 48,60 € sejam de Alimentação.
+                </span>
+              </li>
+              <li>
+                <b>B — empilhada.</b>
+                <span>
+                  Nenhuma despesa desaparece e a altura passa a ser justificada segmento a segmento. O custo aparece na largura: com 31 colunas num celular,
+                  cada coluna tem cerca de 8 px e um gasto pequeno vira uma fatia de 1–2 px — presente, mas indistinguível. Arraste a largura para 360 px e
+                  compare.
+                </span>
+              </li>
+              <li>
+                <b>Um meio-termo existe, se nenhuma das duas convencer.</b>
+                <span>
+                  Empilhar no máximo três segmentos por dia e juntar o resto num quarto em cinza. Mantém a leitura de longe e elimina a fatia de 1 px. Não está
+                  desenhado aqui de propósito: é o desempate, não uma terceira opção a comparar de saída.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        /* Os mesmos lançamentos e as mesmas cores da tela 06 — copiados de
+           propósito: esta página é descartável e não deve criar uma
+           dependência que a tela 06 tenha de manter. */
+        const CAT = {
+          moradia: { n: 'Moradia', c: 'var(--c1)' },
+          transporte: { n: 'Transporte', c: 'var(--c2)' },
+          alimentacao: { n: 'Alimentação', c: 'var(--c3)' },
+          saude: { n: 'Saúde', c: 'var(--c4)' },
+          lazer: { n: 'Lazer', c: 'var(--c5)' },
+          outros: { n: 'Outros', c: 'var(--c10)' },
+        };
+
+        /* só as despesas confirmadas: é o que a faixa desenha */
+        const E = [
+          { d: 1, cat: 'moradia', v: 950 },
+          { d: 4, cat: 'alimentacao', v: 62.8 },
+          { d: 5, cat: 'alimentacao', v: 128.4 },
+          { d: 6, cat: 'lazer', v: 18.5 },
+          { d: 9, cat: 'moradia', v: 78.4 },
+          { d: 10, cat: 'transporte', v: 62.5 },
+          { d: 11, cat: 'alimentacao', v: 48.6 },
+          { d: 11, cat: 'saude', v: 66 },
+          { d: 12, cat: 'alimentacao', v: 96.2 },
+          { d: 14, cat: 'transporte', v: 145 },
+          { d: 15, cat: 'lazer', v: 88 },
+          { d: 16, cat: 'moradia', v: 62.1 },
+          { d: 18, cat: 'alimentacao', v: 41.2 },
+          { d: 19, cat: 'alimentacao', v: 84.5 },
+          { d: 20, cat: 'lazer', v: 43.5 },
+          { d: 21, cat: 'outros', v: 34 },
+          { d: 22, cat: 'transporte', v: 57.5 },
+          { d: 23, cat: 'alimentacao', v: 32 },
+          { d: 24, cat: 'moradia', v: 59.5 },
+          { d: 26, cat: 'alimentacao', v: 71.3 },
+          { d: 27, cat: 'lazer', v: 30 },
+          { d: 28, cat: 'saude', v: 30 },
+          { d: 29, cat: 'outros', v: 20 },
+          { d: 30, cat: 'alimentacao', v: 48 },
+        ];
+
+        const DAYS = 31;
+
+        /* um dia = total + as categorias que o compõem, da maior para a menor */
+        const byDay = [];
+        for (let d = 1; d <= DAYS; d++) {
+          const items = E.filter((e) => e.d === d);
+          const parts = {};
+          items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + e.v));
+          byDay.push({
+            d,
+            total: items.reduce((s, e) => s + e.v, 0),
+            parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
+          });
+        }
+        const peak = Math.max(...byDay.map((x) => x.total));
+
+        /* mesma escala nos dois: raiz quadrada, para a renda do dia 1 não
+           achatar o resto do mês */
+        const height = (total) => Math.max(9, Math.sqrt(total / peak) * 100);
+
+        const label = (x) => `${x.d} de julho — ${eur(-x.total)}`;
+
+        function drawSimple(x, i) {
+          if (!x.total) return `<button class="day empty" title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
+          const top = x.parts[0][0];
+          return `<button class="day" title="${label(x)} · ${CAT[top].n}">
+            <span class="bar" style="height:${height(x.total)}%;background:${CAT[top].c};animation-delay:${i * 20}ms"></span></button>`;
+        }
+
+        function drawStacked(x, i) {
+          if (!x.total) return `<button class="day empty" title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
+          /* a maior categoria fica embaixo: a base da coluna é sempre o que
+             mais pesou, e é ela que se lê quando a fatia de cima some */
+          const segs = x.parts
+            .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
+            .reverse()
+            .join('');
+          const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
+          return `<button class="day" title="${label(x)} — ${detail}">
+            <span class="bar" style="height:${height(x.total)}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
+        }
+
+        document.getElementById('stripA').innerHTML = byDay.map(drawSimple).join('');
+        document.getElementById('stripB').innerHTML = byDay.map(drawStacked).join('');
+
+        /* a legenda é idêntica nas duas: a cor agrupa, o número nomeia */
+        const totals = {};
+        E.forEach((e) => (totals[e.cat] = (totals[e.cat] || 0) + e.v));
+        const legend = Object.entries(totals)
+          .sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, { sign: false })}</b></span>`)
+          .join('');
+        document.getElementById('legendA').innerHTML = legend;
+        document.getElementById('legendB').innerHTML = legend;
+
+        /* ---- o dia 11 ampliado ---- */
+        const d11 = byDay[10];
+        document.getElementById('zoom').innerHTML = `
+          <figure><div class="strip">${drawSimple(d11, 0)}</div><figcaption>A — uma cor<br /><b class="num">114,60 €</b></figcaption></figure>
+          <figure><div class="strip">${drawStacked(d11, 0)}</div><figcaption>B — empilhada<br /><b class="num">114,60 €</b></figcaption></figure>`;
+
+        /* ---- largura ---- */
+        const w = document.getElementById('w');
+        const stage = document.getElementById('stage');
+        const wv = document.getElementById('wv');
+        const apply = () => {
+          stage.style.maxWidth = w.value + 'px';
+          wv.textContent = w.value + ' px';
+        };
+        w.addEventListener('input', apply);
+        apply();
+      });
+    </script>
+  </body>
+</html>

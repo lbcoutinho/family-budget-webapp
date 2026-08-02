@@ -1,10 +1,11 @@
 /* ============================================================================
    v2 — Cromático (direction D)
    ----------------------------------------------------------------------------
-   One thesis: colour belongs to the data, never to the chrome. A category's
-   colour is permanent identity, so the interface around it stays achromatic and
-   lets the sixteen swatches be the only hues on screen. There is no brand
-   accent — that is the decision, not an omission.
+   One thesis, amended once by review: colour belongs to the data, and to the
+   action. A category's colour is permanent identity, so the interface around it
+   stays achromatic — except for the one thing the user is meant to do next. A
+   black primary button did not read as a call to action, so the action borrows
+   the income green and no data may use it. There is still no brand accent.
 
    These tokens become CSS variables in apps/web/src/styles/index.css. The file
    is deleted screen by screen as each one ships in React.
@@ -33,23 +34,29 @@
   --transfer-wash: #e8eff7;
   --cashbox-wash: #f7f0dd;
 
-  /* --- the sixteen category swatches ------------------------------------ */
+  /* --- the action accent ------------------------------------------------ */
+  /* The income green, reused. Only ever a filled surface — primary button,
+     focus ring, active nav item. Money is green *text*; action is a green
+     *surface*. Same hue, two grammars, and no data may claim it. */
+  --action: var(--income);
+  --action-hover: #145f3f;
+  --action-wash: var(--income-wash);
+
+  /* --- the ten category swatches ---------------------------------------- */
+  /* Ten, not sixteen: eleven or twelve categories is the real ceiling, and six
+     of the sixteen were near-duplicates of another. Each is >= 4.8:1 on the
+     page, so a swatch can carry text, and no two are closer than dE2000 12.9
+     in normal vision. Grey is permanently "Outros". */
   --c1: #1f6f54;
-  --c2: #2e6da4;
-  --c3: #b4641e;
+  --c2: #1f5aa8;
+  --c3: #a85c1a;
   --c4: #a32c3d;
-  --c5: #6b4ca8;
+  --c5: #7a45b5;
   --c6: #0f7c82;
   --c7: #b5407e;
-  --c8: #4a5568;
-  --c9: #7a8b1f;
-  --c10: #c2571a;
-  --c11: #2b4c9b;
-  --c12: #8a2f5f;
-  --c13: #157f6e;
-  --c14: #94701c;
-  --c15: #5d5fa6;
-  --c16: #8c4a2f;
+  --c8: #4c6019;
+  --c9: #6f3d24;
+  --c10: #4a5568;
 
   /* --- shape ------------------------------------------------------------ */
   --r-sm: 6px;
@@ -120,7 +127,7 @@ a {
 }
 
 code {
-  font-family: 'DM Mono', ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   background: var(--wash);
   border-radius: 4px;
   padding: 0.1em 0.35em;
@@ -128,15 +135,17 @@ code {
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--action);
   outline-offset: 2px;
   border-radius: 3px;
 }
 
 /* Every amount, every date, every count. Money that does not align cannot be
-   scanned, and scanning is the whole job of the month screen. */
+   scanned, and scanning is the whole job of the month screen — but what makes a
+   column align is the tabular figure, not a monospaced family. So numbers keep
+   the body face and only switch to fixed-width digits, which is what Material,
+   Carbon and the HIG actually ask for. No third typeface. */
 .num {
-  font-family: 'DM Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -222,7 +231,7 @@ code {
   border-bottom-color: #fff;
 }
 .proto-bar .ticket {
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #8e97a3;
 }
 
@@ -263,7 +272,7 @@ code {
   align-items: center;
   gap: 9px;
 }
-/* The mark is the palette itself — four of the sixteen, stacked. */
+/* The mark is the palette itself — four of the ten, stacked. */
 .side .brand .mark {
   display: grid;
   grid-template-columns: 7px 7px;
@@ -298,7 +307,7 @@ code {
   color: var(--ink);
 }
 .nav a[aria-current='page'] {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   font-weight: 500;
 }
@@ -399,8 +408,8 @@ code {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
+  border: 1px solid var(--action);
+  background: var(--action);
   color: #fff;
   font: inherit;
   font-size: 13px;
@@ -413,7 +422,8 @@ code {
     border-color var(--fast) var(--ease);
 }
 .btn:hover {
-  background: #2a2e36;
+  background: var(--action-hover);
+  border-color: var(--action-hover);
 }
 .btn svg {
   width: 15px;
@@ -435,6 +445,20 @@ code {
 .btn.ghost:hover {
   background: var(--wash);
   color: var(--ink);
+}
+/* A segunda ação da tela do mês. Não é a ação principal — essa é verde e é
+   sempre "novo lançamento" — mas também não é um botão neutro: leva ao mesmo
+   diálogo de caixinha, então usa o âmbar que já identifica caixinha em toda a
+   aplicação. Contornado, e não preenchido, para não disputar com o principal. */
+.btn.cashbox {
+  background: var(--cashbox-wash);
+  color: var(--cashbox);
+  border-color: var(--cashbox);
+}
+.btn.cashbox:hover {
+  background: var(--cashbox);
+  border-color: var(--cashbox);
+  color: #fff;
 }
 .btn.danger {
   background: var(--expense);
@@ -652,13 +676,22 @@ code {
   border-radius: var(--r);
   padding: 11px 14px;
 }
+/* O consolidado é a resposta da linha, não mais um cartão dela: fundo de tinta
+   em vez de cinza. Continua sem cor — saldo não é ação, e o verde é da ação. */
 .stat.total {
-  border-color: var(--line-strong);
-  background: var(--wash);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
 }
 .stat .k {
   font-size: 11.5px;
   color: var(--ink-soft);
+}
+.stat.total .k {
+  color: rgba(255, 255, 255, 0.72);
+}
+.stat.total .v {
+  color: var(--surface);
 }
 .stat .v {
   font-family: 'Familjen Grotesk', sans-serif;

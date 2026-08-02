@@ -19,12 +19,19 @@ drawn without any design skill in play.
 rather than discarded: three of them lost a comparison they existed to lose, which is not the same
 as being rejected.
 
-**v2 is built and under review: three screens** — `00-design-system.html`, `06-month.html`,
-`09-reports-monthly.html` — sharing `_shared/proto.css` and `_shared/proto.js` again, now that
-there is a single direction to share.
+**`00-design-system.html` is approved** and moved to `approved/`. Its relative paths climb one
+level (`../_shared/…`), and `proto.js` picks the right index link by looking for `/approved/` in
+the path. `01-login.html` and `06-month.html` are approved too and sit beside it.
+`09-reports-monthly.html` is still under review.
 
-**The remaining ten screens are not drawn yet, on purpose.** They follow once these three are
-design-approved. Do not draw them before that.
+The two comparison pages that closed screen 06 — `06-month-chart.html` (the strip, simple ×
+stacked) and `06-month-list.html` (the list, four variants) — are in
+`archives/v2-month-comparisons/`. They are self-contained (no `_shared/`, no index of their own),
+so they are archived as they are, without a copy of anything beside them.
+
+**Screens are drawn one at a time from here on**, in the order the project needs them, and approved
+one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
+and never draw the next one unasked.**
 
 Discarding v1 discarded the files, not the decisions. Everything under "Settled" below still holds
 and v2 respects it — that is the whole reason this file exists separately from the mock-ups.
@@ -39,9 +46,9 @@ and v2 respects it — that is the whole reason this file exists separately from
 - **When colour cannot identify, the value identifies.** The answer to the sixteen-colour problem:
   charts label the slice with its amount instead of asking the reader to match a colour against a
   legend. Colour groups, the number names.
-- **v2 covers three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge a
-  direction — the token set, the densest screen, and the one with a chart and the new average
-  column. The remaining ten follow the direction that wins.
+- **v2 opened with three screens: 00 design system, 06 month, 09 monthly report.** Enough to judge
+  a direction — the token set, the densest screen, and the one with a chart and the new average
+  column. With the design system approved, the rest are drawn **on demand, one at a time**.
 
 ### Versions are per design skill
 
@@ -49,17 +56,54 @@ v2 is what the `frontend-design` skill produces. Later versions come from other 
 version each, so the comparison is between skills rather than between briefs. Keep them as
 separate `vN` sets and do not merge them.
 
+### First review of v2 — settled 2026-08-01
+
+The user reviewed `00-design-system.html` section by section. What that produced:
+
+- **Ten category colours, not sixteen — approved as drawn** in the second pass. Eleven or twelve categories is the real ceiling, and six
+  of the sixteen were near-duplicates (two blues, two oranges, two teals, two magentas, two purples,
+  two olives). **Repetition past ten is accepted** — the eleventh category reuses a colour and the
+  value label keeps the chart readable. The ten that stayed were re-tuned rather than merely
+  cut: every one is now ≥ 4.8:1 on the page (usable as text, not only as a dot) and no pair is
+  closer than ΔE2000 12.9 in normal vision. Final values live in `_shared/proto.css`.
+- **There is still no brand colour, but the action gets one.** The black primary button did not
+  read as a call to action — that was the user's complaint, in those words. **The action borrows
+  the income green** (`--action: var(--income)`), on the primary button, the focus ring and the
+  active nav item. Tabs, links, table headers and everything else stay ink. No new hue entered the
+  application.
+  - The risk was raised and the user chose the green anyway: on the month screen the same green
+    marks "entrada" in text and "act here" as a surface. **The rule that keeps them apart is
+    grammatical — action is a filled surface, money is text.** Provisional: if it fails on the
+    month screen, this is what changes.
+  - **The green is approved after seeing it.** Idea parked for later, explicitly out of scope now:
+    letting the user pick that accent — green, blue, black or purple.
+  - **The launch dialog opens with EXPENSE pre-selected**, settled against the alternative of no
+    pre-selection: nearly every entry is an expense, so pre-selecting saves one interaction almost
+    every time. The green button means action, not type; the grammatical rule above carries that.
+- **The four money colours are approved as they stand.** Green income, red expense, blue transfer,
+  amber cashbox, amber already darkened. No longer an open question.
+- **Titles, body text and the type scale are approved.** Familjen Grotesk + Public Sans stay.
+- **DM Mono is out. Numbers are Public Sans with `font-variant-numeric: tabular-nums`** — two
+  families in the application, not three. Two complaints started it (the slashed zero, and the
+  date/amount columns clashing with the category column beside them), and the question that settled
+  it was whether any guideline requires numbers to have their own family.
+  - **It does not.** The real requirement is **tabular figures** — fixed-width digits so a column
+    aligns and the decimal comma always lands in the same place — which is a property of the
+    numeral, not a change of typeface. Material 3 and IBM Carbon ask for tabular figures in data
+    tables without a separate family (Carbon reserves Plex Mono for code); Apple's HIG points at
+    SF's own monospaced digits. **Monospace is a strong convention for code, not for money.**
+  - Verified against the upstream font binaries rather than assumed: **Public Sans and Familjen
+    Grotesk both ship `tnum`**; the monospaced faces do not need it.
+  - Consequence: the DM Mono webfont is gone from every page. `code` and the prototype's own ticket
+    label fall back to the system monospace stack — no webfont for either.
+- **Components approved** except the buttons, now green. Animations approved as they are; a pass
+  for new animation opportunities was explicitly deferred (`find-animation-opportunities` skill).
+
 ### What v2 decided on its own, and needs confirming
 
-Three things the direction forced, all listed in the "Decisões a aprovar" block of the screen that
-introduced them. None is settled until the user says so:
-
-- **There is no brand colour.** Direction D's thesis is that colour belongs to the data, so the
-  chrome — primary button, active nav item, focus ring, table header — is ink (`#14161a`). This is
-  what answers open question 1 below; it answers it by removing the question rather than picking
-  one of the three.
 - **The cashbox amber darkened** from `#a0700f` to `#8a6008`, because the original sat at 4.4:1 on
   white, under the 4.5:1 floor. It is now 5.6:1. The other three money colours already passed.
+  **Approved in the first review.**
 - **The month list is rows, not a table**, which cost the plan's "sort by clicking a column
   header" — there is no header. Sorting moved to a select above the list. The gain is one layout
   that works at both ends without a table that scrolls sideways.
@@ -82,15 +126,18 @@ the user's explicit instruction not to treat them as fixed:
 
 ## What "approved" means below
 
-**Concepts are approved; the visual design is not.** These are two separate gates, and only the
-first has been passed. Consequences:
+**Concept approval and design approval are separate gates.** Every screen passed the first one in
+the v1 review. The second is now being passed **one screen at a time**:
 
-- **No file moves to `prototypes/approved/`.** The blocking rule in `CLAUDE.md` therefore still
-  blocks implementation of every screen, M2-T06 included.
-- **The colour and type concepts are still unchosen** (see "Open" below), so no screen can be
-  visually approved yet — everything inherits from the design system.
-- What is settled is structure and behaviour: which actions a screen offers, which columns exist,
-  what is shown and what is not.
+- **`00-design-system.html` has passed both** and sits in `approved/`. Colour, type, spacing,
+  radius, shadow and motion are locked; no later screen may contradict it.
+- **`01-login.html` has passed both** and sits in `approved/`, so M2-T06 is unblocked.
+- **`06-month.html` has passed both** and sits in `approved/`, so M5-T01, M5-T05 and M5-T06 are
+  unblocked on the UI side.
+- **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
+  implementation.
+- What "concept approved" settles is structure and behaviour: which actions a screen offers, which
+  columns exist, what is shown and what is not.
 
 ## Status per screen
 
@@ -100,13 +147,13 @@ approval.
 
 | Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
 | --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 00 design system      | partly            | **drawn in v2** — 16 swatches, no brand colour, Grotesk/Sans/Mono                                                               |
-| 01 login              | approved, in full | —                                                                                                                               |
+| 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
+| 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
 | 02 shell              | approved          | "Configurações" menu holds the three registries; Recorrências stays top-level                                                   |
 | 03 accounts           | approved          | drop the initial-balance column; sort by name                                                                                   |
 | 04 categories         | approved          | drop the month-spend column; make subcategory creation visible                                                                  |
 | 05 cashboxes          | approved          | drop the empty-goal wording and the "new cashbox" card; add a "show inactive" toggle                                            |
-| 06 month              | approved, in full | **drawn in v2** — month strip, rows instead of a table, sort moved to a select                                                  |
+| 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                          |
 | 07 income / expense   | approved, in full | —                                                                                                                               |
 | 08 cashbox operations | approved, in full | —                                                                                                                               |
 | 09 monthly report     | approved          | **drawn in v2** — CSV gone, against-the-average column drawn, composition band added                                            |
@@ -148,29 +195,45 @@ half a reader would never guess.
 Partly settled. The colour discussion is deliberately postponed, so nothing here unblocks the
 design gate.
 
-- **The semantic colours are kept as they are**: green for income, red for expense, blue for
-  transfer, amber for cashbox — independent of the brand colour, so switching theme never changes
-  what a table means. What is left about them is the exact tone, to be picked together with the
-  brand colour.
-- **The category palette offers sixteen swatches, not eight.**
+- **The semantic colours are settled, tone included**: green for income, red for expense, blue for
+  transfer, amber for cashbox — independent of any brand colour, so switching theme never changes
+  what a table means.
+- **The category palette offers ten swatches**, cut from sixteen in the first v2 review. Grey
+  (`--c10`) is permanently "Outros".
 - **No dark mode**, so each swatch is one value rather than a light/dark pair.
 
-Two consequences of sixteen:
+Two things that survive the cut to ten:
 
-- It halves the collision risk flagged on screen 11. Categories with no colour fall back to a value
-  derived from their id, and since the charts now draw every category, two of them landing on the
-  same colour was a real possibility with eight.
-- It still does not make sixteen categories legible in a donut — that many hues cannot all be told
-  apart, fewer still for a colour-blind reader. **Resolved: the value does the identifying.** A
-  slice carries its own amount as a label; colour groups things, the number names them. So the
-  chart never depends on the reader matching a swatch to a legend, which is the part that fails
-  first.
+- Categories with no colour fall back to a value derived from their id, and the charts draw every
+  category without grouping into "Outras" — so two can land on the same colour. With ten swatches
+  and eleven or twelve categories that is now **expected and accepted**, not a defect.
+- Ten hues are still not all tellable apart in a donut, and fewer for a colour-blind reader —
+  orange/olive and blue/purple remain close under deuteranopia. **Resolved, unchanged: the value
+  does the identifying.** A slice carries its own amount as a label; colour groups things, the
+  number names them. Nothing in the application requires matching a swatch to a legend.
 
 ### 01 — Login
 
 All four decisions approved as prototyped: narrow centred card with no illustration; generic error
 that never reveals whether the email exists; no "remember me"; the demo account signs in through
 the same form with no separate button.
+
+**Approved in v2 and moved to `approved/`.** Four states on one page — initial, submitting, invalid
+credential, verifying session — plus a live form at the top that actually fails once and then
+signs in, because the screen has exactly one interaction and it is worth prototyping for real.
+What the review settled, beyond the four already approved:
+
+- **The action is the only colour on the screen.** Direction D at its limit: no data, so nothing
+  else is coloured except the mark, which is the palette itself.
+- **"Entrando…" lives in the button**, not in an overlay; the fields stay readable.
+- **On error the password is cleared and focused, the email is kept.** The email half was already
+  approved; clearing the password is new.
+- **The verifying state reuses the same card in the same place**, so nothing shifts when it
+  becomes the form.
+- **No footer line about the demo account, and no subtitle under the title.** Rejected in
+  review: the demo account uses this same form, so saying so is noise, and "Entre para continuar"
+  states what two fields and a button already state. The card is title, fields, button — nothing
+  else. The same rule applies to every screen: don't label what the controls already say.
 
 ### 02 — Shell
 
@@ -247,7 +310,69 @@ Also approved: three footer lines rather than a strip of cards; explicit `+`/`�
 credit-card icon with the original purchase date as a sub-line; infinite scroll rather than
 numbered pages.
 
+**Design-approved on 2026-08-02** and moved to `approved/`. Nothing on the screen is open any
+more; everything below is the record of how it got there.
+
+#### Second review, on the v2 drawing — settled 2026-08-01
+
+The six "Decisões a aprovar" on the page were **all approved as drawn**. What the review changed is
+everything around them, and all of it is applied:
+
+- **The sidebar is approved as a whole** — the app name on the left, Mês / Relatórios / Lançar por
+  voz / Recorrências at the top level, Configurações below. Two icons were wrong and are replaced
+  in `_shared/proto.js`, so every screen inherits them:
+  - **Configurações is a gear.** The circle-with-rays read as a sun, and the gear is the convention.
+  - **Recorrências is two arrows turning, one behind the other** — the cycle. The previous pair of
+    straight arrows read as a transfer.
+- **Clicking the month name opens a picker**: a year stepper plus a twelve-month grid, so any month
+  of any year is two clicks. The arrows stay for stepping one month at a time; "Hoje" stays.
+- **The cashbox button gets the cashbox amber and says what it does.** It was a white outline
+  button labelled just "Caixinha", which named a noun rather than an action and read as neutral
+  chrome. It is now **"Movimentar caixinha"** with the piggy icon, in the amber that already means
+  cashbox everywhere — outlined rather than filled, so it never competes with the green primary.
+  It opens the screen-08 dialog, which is deposit, withdraw and transfer in one, so "movimentar"
+  is the accurate verb rather than only "adicionar".
+- **The strip is titled "Despesas dia a dia"**, replacing "O que saiu, dia a dia". The chart itself
+  is liked and stays.
+- **"Total consolidado" now sits on an ink background**, white text, instead of the grey wash that
+  only barely told it apart from the four account cards. It stays uncoloured: a balance is not an
+  action, and the green belongs to the action.
+- Filters, sorting, the "31 lançamentos · 1 rascunho" summary and the entry rows are approved as
+  drawn — the summary explicitly, because it surfaces pending drafts.
+
+**The strip is stacked — settled after seeing `06-month-chart.html`.** A day can carry more than one
+colour: one segment per category, largest at the base, so nothing that left on that day disappears.
+It replaces the single dominant-category bar, which hid everything but the largest on 15 of July's
+24 spending days. The comparison page stays as the record, with the width slider that showed the
+real cost — at phone width a small expense becomes a 1–2 px sliver. The fallback if that sliver
+becomes a complaint is written down there and still undrawn: stack at most three segments and roll
+the rest into a grey fourth.
+
+**The list stays A — the wide row.** Chosen from the four in `06-month-list.html` (A wide row, B
+grouped by day, C dense statement, D collapsed by category), against the page's own recommendation
+of B. The comparison page stays as the record of what was rejected.
+
+**Every entry now carries the running balance of its account**, under the amount: grey, 11 px, no
+colour — the same shape the monthly report uses to put the average under the percentage. What that
+settled:
+
+- **Which account.** The origin — the account the money left. Transfers and cashbox moves have two
+  sides and both are applied to the running total, otherwise the destination's later rows would lie;
+  only the origin's balance is displayed. The account is named in the row's own sub-line already, so
+  the balance shows bare, with the account in a tooltip.
+- **Always chronological**, whatever the list is sorted by. Sorting by amount must not change a
+  balance.
+- **Drafts carry none.** They affect nothing, so there is nothing to show.
+- **No `+` on a positive balance**; a negative one keeps its `−`, because there it is information.
+- The prototype's June 30 opening balances are picked backwards so the month closes exactly on the
+  five balance cards at the top (Millennium 3.482,15 · Revolut 412,90 · Dinheiro −35,00 · caixinhas
+  4.150,00 · total 8.010,05). Verified, not assumed.
+
 ### 07 — Income / expense / transfer
+
+**The segmented control opens on "Despesa"** — settled in the second v2 review, when the green
+action accent raised the question of whether a pre-selected type would contradict the button's
+colour. It does not: nearly every entry is an expense, and pre-selecting saves an interaction.
 
 All five approved as prototyped: type as a segmented control at the top of the dialog; cashbox
 operations kept out of this form; reference month revealed only by the credit-card checkbox and
@@ -347,14 +472,13 @@ still open. Apply them once that settles.
 Every screen has been reviewed at concept level. What is left is the visual gate, and v2 now puts
 a concrete proposal against each of the two questions — they are answered on paper, not settled.
 
-1. **Colour: the tones.** Was "sage, indigo or slate, plus the exact tones". **v2 proposes: no
-   brand colour at all**, the sixteen category swatches exactly as direction D drew them, and the
-   money four with the amber darkened for contrast. See `00-design-system.html`, sections 1–3.
-2. **Type concept** — was "grotesk, humanist or mixed". **v2 proposes Familjen Grotesk (display) +
-   Public Sans (body) + DM Mono (every number)**: three roles rather than one family. Section 4.
+1. **Colour — closed.** No brand colour; ten category swatches; the money four approved; one action
+   accent borrowed from the income green. Sections 1–3 of `00-design-system.html`.
+2. **Type — closed.** Familjen Grotesk (display) + Public Sans (body and every number, with
+   tabular figures), scale approved. Two families, three roles.
 
-Both still block visual approval of all thirteen screens. Approving `00-design-system.html` closes
-them, and only then can `01-login.html` be drawn and M2-T06 start.
+**Nothing on `00-design-system.html` is open any more.** Whether the file moves to `approved/` is
+the user's call; once it does, `01-login.html` can be drawn and M2-T06 can start.
 
 There is also one open question v2 raised rather than answered, on screen 09: whether the
 against-the-average column reads correctly when green and red mean good and bad next to an amount

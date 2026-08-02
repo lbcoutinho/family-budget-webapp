@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06c — A lista de lançamentos: quatro variações</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ================================================================
+         Quatro maneiras de listar os mesmos 32 lançamentos de julho de
+         2026. Nada mais muda: mesmos dados, mesmas cores, mesmo rodapé.
+         A pergunta é só uma — como a lista se organiza.
+         ================================================================ */
+
+      /* --- A — linha larga (o que está desenhado hoje) ------------------ */
+      .A .entry {
+        display: grid;
+        grid-template-columns: 48px 1fr auto auto;
+        gap: 12px;
+        align-items: center;
+        padding: 9px 16px 9px 13px;
+        border-bottom: 1px solid var(--line);
+        border-left: 3px solid transparent;
+      }
+      .A .entry:last-child {
+        border-bottom: 0;
+      }
+      .A .entry:hover {
+        background: var(--wash);
+      }
+      .A .d {
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .A .t b {
+        font-weight: 600;
+      }
+      .A .t p {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 1px;
+      }
+
+      /* --- B — agrupada por dia ---------------------------------------- */
+      /* O dia vira um cabeçalho com o seu próprio total. É a mesma unidade
+         que a faixa lá em cima usa: clicar num dia da faixa e rolar até o
+         dia na lista passam a falar da mesma coisa. */
+      .B .dayhead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 7px 16px;
+        background: var(--wash);
+        border-bottom: 1px solid var(--line);
+        border-top: 1px solid var(--line);
+      }
+      .B .dayhead .dl {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .B .dayhead .dl span {
+        font-family: 'Public Sans', sans-serif;
+        font-weight: 400;
+        color: var(--ink-soft);
+        margin-left: 6px;
+      }
+      .B .dayhead .dt {
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .B .entry {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 12px;
+        align-items: center;
+        padding: 8px 16px 8px 13px;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid var(--line);
+      }
+      .B .entry:hover {
+        background: var(--wash);
+      }
+      .B .t b {
+        font-weight: 600;
+      }
+      .B .t p {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin-top: 1px;
+      }
+
+      /* --- C — extrato denso ------------------------------------------- */
+      /* Sem segunda linha: categoria e conta viram colunas próprias e a cor
+         encolhe para um ponto. Cabe mais que o dobro de lançamentos na
+         mesma altura de tela. */
+      .C .entry {
+        display: grid;
+        grid-template-columns: 44px 16px minmax(0, 1fr) 132px 96px auto auto;
+        gap: 10px;
+        align-items: center;
+        padding: 5px 16px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .C .entry:hover {
+        background: var(--wash);
+      }
+      .C .colhead {
+        display: grid;
+        grid-template-columns: 44px 16px minmax(0, 1fr) 132px 96px auto auto;
+        gap: 10px;
+        padding: 6px 16px;
+        border-bottom: 1px solid var(--line-strong);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        background: var(--wash);
+      }
+      .C .d {
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-soft);
+      }
+      .C .t,
+      .C .cat,
+      .C .acc {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .C .cat,
+      .C .acc {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+
+      /* --- D — agrupada por categoria ---------------------------------- */
+      /* Troca a pergunta: em vez de "o que aconteceu, e quando", responde
+         "para onde foi o dinheiro". A ordem cronológica sobrevive dentro de
+         cada grupo. */
+      .D .cathead {
+        display: grid;
+        grid-template-columns: 12px 1fr auto 16px;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+        padding: 9px 16px;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .D .cathead:hover {
+        background: var(--wash);
+      }
+      .D .cathead .nm {
+        font-weight: 600;
+        font-size: 13.5px;
+      }
+      .D .cathead .nm span {
+        font-weight: 400;
+        color: var(--ink-faint);
+        margin-left: 6px;
+        font-size: 12px;
+      }
+      .D .cathead .vv {
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+        font-size: 13.5px;
+      }
+      .D .cathead svg {
+        width: 14px;
+        height: 14px;
+        color: var(--ink-faint);
+        transition: transform var(--fast) var(--ease);
+      }
+      .D .cathead[aria-expanded='true'] svg {
+        transform: rotate(90deg);
+      }
+      /* A barra de proporção mora no fundo do cabeçalho, sem ocupar linha
+         própria — a mesma ideia já aprovada na célula de porcentagem da 09. */
+      .D .cathead .prop {
+        grid-column: 1 / -1;
+        height: 3px;
+        border-radius: 2px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .D .cathead .prop i {
+        display: block;
+        height: 100%;
+      }
+      .D .entry {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 7px 16px 7px 30px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+        background: var(--wash);
+      }
+      .D .d {
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .D .acc {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+
+      /* --- comum a todas ------------------------------------------------ */
+      .amt {
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+        white-space: nowrap;
+        text-align: right;
+      }
+      .entry.draft {
+        background: var(--wash);
+      }
+      .entry.draft b,
+      .entry.draft .amt {
+        color: var(--ink-soft);
+      }
+      .entry svg.mk {
+        width: 14px;
+        height: 14px;
+        color: var(--ink-faint);
+        vertical-align: -2px;
+      }
+      .acts {
+        display: flex;
+        gap: 2px;
+        opacity: 0.45;
+        transition: opacity var(--fast) var(--ease);
+      }
+      .entry:hover .acts,
+      .acts:focus-within {
+        opacity: 1;
+      }
+      .listwrap {
+        max-height: 420px;
+        overflow-y: auto;
+      }
+      .scale {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .scale input[type='range'] {
+        flex: 1;
+        max-width: 300px;
+        accent-color: var(--action);
+      }
+      .verdict {
+        display: grid;
+        gap: 3px;
+        padding: 11px 16px;
+        border-top: 1px solid var(--line-strong);
+        background: var(--wash);
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .verdict b {
+        color: var(--ink);
+      }
+
+      @media (max-width: 760px) {
+        .C .entry,
+        .C .colhead {
+          grid-template-columns: 44px 16px minmax(0, 1fr) auto auto;
+        }
+        .C .cat,
+        .C .acc {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="06c — Lista: quatro variações" data-ticket="M5-T01"></div>
+
+    <div class="proto-note">
+      <strong>Página de comparação, não é uma tela.</strong> Os mesmos 32 lançamentos de julho de 2026 organizados de quatro maneiras. A faixa, os saldos, os
+      filtros e o rodapé ficam de fora de propósito: aqui só se decide a lista. Cada bloco termina com o que ela ganha e o que ela custa.
+    </div>
+
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month">Julho de 2026</span>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="scale">
+            <label for="w">Largura</label>
+            <input type="range" id="w" min="330" max="1080" value="1080" step="10" />
+            <span class="num" id="wv">1080 px</span>
+          </div>
+
+          <div id="stage">
+            <!-- ===== A ===== -->
+            <div class="card A" style="margin-bottom: 18px">
+              <div class="card-head">
+                <h2>A — Linha larga <span class="badge">o desenho atual</span></h2>
+                <span class="xs muted">31 lançamentos · 1 rascunho</span>
+              </div>
+              <div class="listwrap" id="listA"></div>
+              <div class="verdict">
+                <div><b>Ganha</b> — a descrição respira, e categoria, conta, cartão e parcela cabem todas na segunda linha sem abreviar nada.</div>
+                <div><b>Custa</b> — cerca de 46 px por lançamento: um mês de 31 entradas ocupa quase três telas de celular.</div>
+              </div>
+            </div>
+
+            <!-- ===== B ===== -->
+            <div class="card B" style="margin-bottom: 18px">
+              <div class="card-head">
+                <h2>B — Agrupada por dia</h2>
+                <span class="xs muted">cabeçalho fixo, com o total do dia</span>
+              </div>
+              <div class="listwrap" id="listB"></div>
+              <div class="verdict">
+                <div>
+                  <b>Ganha</b> — a data sai de dentro de cada linha e vira um cabeçalho com o seu próprio total. É a mesma unidade que a faixa do mês usa, então
+                  clicar num dia lá em cima e rolar até ele aqui embaixo passam a falar da mesma coisa. O cabeçalho gruda no topo enquanto se rola.
+                </div>
+                <div><b>Custa</b> — 24 cabeçalhos num mês. Dias com um único lançamento ganham uma faixa inteira só para si.</div>
+              </div>
+            </div>
+
+            <!-- ===== C ===== -->
+            <div class="card C" style="margin-bottom: 18px">
+              <div class="card-head">
+                <h2>C — Extrato denso</h2>
+                <span class="xs muted">uma linha por lançamento, colunas alinhadas</span>
+              </div>
+              <div class="colhead"><span>Data</span><span></span><span>Descrição</span><span>Categoria</span><span>Conta</span><span></span><span></span></div>
+              <div class="listwrap" id="listC"></div>
+              <div class="verdict">
+                <div>
+                  <b>Ganha</b> — cerca de 25 px por lançamento: o mês inteiro cabe numa tela de desktop sem rolar. Categoria e conta viram colunas, então a
+                  leitura vertical funciona — dá para varrer só a coluna de conta.
+                </div>
+                <div>
+                  <b>Custa</b> — descrições longas cortam com reticências, e no celular as duas colunas do meio somem. A cor vira um ponto de 8 px em vez de uma
+                  barra, o que enfraquece a leitura por cor que é a tese da direção D.
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== D ===== -->
+            <div class="card D" style="margin-bottom: 18px">
+              <div class="card-head">
+                <h2>D — Agrupada por categoria</h2>
+                <span class="xs muted">clique para abrir · barra = fatia do mês</span>
+              </div>
+              <div class="listwrap" id="listD"></div>
+              <div class="verdict">
+                <div>
+                  <b>Ganha</b> — responde "para onde foi o dinheiro" sem sair da tela do mês, e fechada mostra o mês inteiro em nove linhas. A ordem cronológica
+                  sobrevive dentro de cada grupo.
+                </div>
+                <div>
+                  <b>Custa</b> — deixa de responder "o que aconteceu ontem", que é a pergunta que traz a pessoa a esta tela. E repete o relatório mensal, que já
+                  existe e é feito exatamente para isso.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              Uma escolha e duas que dependem dela. As quatro usam os mesmos dados, o mesmo tratamento de rascunho e as mesmas ações sempre visíveis a 45% —
+              nada disso está em jogo aqui.
+            </p>
+            <ol>
+              <li>
+                <b>Qual das quatro.</b>
+                <span>
+                  A leitura de quem desenhou: <b>B para o dia a dia</b>. Ela é a única que faz par com a faixa do mês — as duas passam a falar em dias, e o
+                  total do dia aparece nos dois lugares. C é tentadora no desktop e perde justamente no celular, que é metade do projeto. D duplica o relatório
+                  mensal.
+                </span>
+              </li>
+              <li>
+                <b>Se for B: agrupar sempre, ou só quando não há filtro?</b>
+                <span>
+                  Ordenando por valor ou por descrição, o agrupamento por dia deixa de fazer sentido — cada grupo teria uma linha. A proposta é
+                  <b>agrupar por dia só nas duas ordens por data</b>, e cair na linha larga de A nas outras três. Uma lista, dois modos, decididos pelo próprio
+                  seletor de ordenação.
+                </span>
+              </li>
+              <li>
+                <b>O cabeçalho do dia mostra o total de quê?</b>
+                <span>
+                  Está desenhado como <b>só as despesas confirmadas do dia</b> — a mesma regra da faixa, e a mesma do rodapé. Um dia com salário mostra o
+                  salário na lista mas ele não entra no total do cabeçalho. A alternativa é mostrar o saldo do dia (entradas menos saídas), que fecha com o
+                  rodapé mas não fecha com a faixa.
+                </span>
+              </li>
+              <li>
+                <b>Densidade, independente da escolha.</b>
+                <span>
+                  Se C não vencer, vale roubar dela a linha mais baixa: A gasta 46 px por lançamento e B, com a data fora da linha, já cai para 40. Um ajuste de
+                  espaçamento, não um desenho novo.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const CAT = {
+          moradia: { n: 'Moradia', c: 'var(--c1)' },
+          transporte: { n: 'Transporte', c: 'var(--c2)' },
+          alimentacao: { n: 'Alimentação', c: 'var(--c3)' },
+          saude: { n: 'Saúde', c: 'var(--c4)' },
+          lazer: { n: 'Lazer', c: 'var(--c5)' },
+          outros: { n: 'Outros', c: 'var(--c10)' },
+          trabalho: { n: 'Trabalho', c: 'var(--c9)' },
+          reembolsos: { n: 'Reembolsos', c: 'var(--c6)' },
+        };
+
+        /* Os mesmos lançamentos da tela 06, copiados de propósito: esta página
+           é descartável e não deve criar uma dependência que a 06 mantenha. */
+        const E = [
+          { d: 1, t: 'Renda de julho', cat: 'moradia', sub: 'Renda', acc: 'Millennium', v: -950, k: 'out' },
+          { d: 3, t: 'Salário', cat: 'trabalho', sub: 'Salário', acc: 'Millennium', v: 3200, k: 'in' },
+          { d: 4, t: 'Tasca do Zé', cat: 'alimentacao', sub: 'Restaurante', acc: 'Millennium', v: -62.8, k: 'out' },
+          { d: 5, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -128.4, k: 'out', card: '05/06' },
+          { d: 6, t: 'Cinema São Jorge', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -18.5, k: 'out' },
+          { d: 7, t: 'Reserva de férias', acc: 'Millennium → Férias 2027', v: -200, k: 'cxin' },
+          { d: 8, t: 'Millennium → Revolut', acc: 'Millennium → Revolut', v: 300, k: 'tr' },
+          { d: 9, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -78.4, k: 'out' },
+          { d: 10, t: 'Seguro do carro', cat: 'transporte', sub: 'Seguro', acc: 'Millennium', v: -62.5, k: 'out', rec: 'parcela 4 de 12' },
+          { d: 11, t: 'Almoço fora', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -48.6, k: 'out' },
+          { d: 11, t: 'Consulta no dentista', cat: 'saude', sub: 'Consultas', acc: 'Millennium', v: -66, k: 'out' },
+          { d: 12, t: 'Supermercado Pingo Doce', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -96.2, k: 'out' },
+          { d: 12, t: 'Farmácia', acc: null, v: -24.9, k: 'out', draft: true },
+          { d: 14, t: 'Combustível', cat: 'transporte', sub: 'Combustível', acc: 'Millennium', v: -145, k: 'out' },
+          { d: 15, t: 'Concerto no Coliseu', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -88, k: 'out' },
+          { d: 16, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -62.1, k: 'out' },
+          { d: 17, t: 'Reserva de obras', acc: 'Millennium → Obras', v: -400, k: 'cxin' },
+          { d: 18, t: 'Jantar de aniversário', cat: 'alimentacao', sub: 'Restaurante', acc: 'Millennium', v: -41.2, k: 'out' },
+          { d: 19, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -84.5, k: 'out' },
+          { d: 20, t: 'Piscina municipal', cat: 'lazer', acc: 'Dinheiro', v: -43.5, k: 'out' },
+          { d: 21, t: 'Presente de casamento', cat: 'outros', acc: 'Revolut', v: -34, k: 'out' },
+          { d: 22, t: 'Estacionamento e portagens', cat: 'transporte', sub: 'Estacionamento', acc: 'Millennium', v: -57.5, k: 'out' },
+          { d: 23, t: 'Padaria e café', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -32, k: 'out' },
+          { d: 24, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -59.5, k: 'out' },
+          { d: 25, t: 'Resgate para o IRS', acc: 'Obras → Millennium', v: 200, k: 'cxout' },
+          { d: 26, t: 'Supermercado Lidl', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -71.3, k: 'out' },
+          { d: 27, t: 'Livraria Bertrand', cat: 'lazer', acc: 'Revolut', v: -30, k: 'out' },
+          { d: 28, t: 'Farmácia', cat: 'saude', acc: 'Millennium', v: -30, k: 'out' },
+          { d: 28, t: 'Reembolso da seguradora', cat: 'reembolsos', acc: 'Millennium', v: 84, k: 'in' },
+          { d: 29, t: 'Correios', cat: 'outros', acc: 'Dinheiro', v: -20, k: 'out' },
+          { d: 30, t: 'Supermercado Continente', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -48, k: 'out' },
+          { d: 30, t: 'Férias 2027 → Obras', acc: 'Férias 2027 → Obras', v: 500, k: 'cxtr' },
+        ];
+
+        const KIND = {
+          in: { cls: 'in', badge: null },
+          out: { cls: 'out', badge: null },
+          tr: { cls: 'tr', badge: ['transfer', 'transferência'] },
+          cxin: { cls: 'cx', badge: ['cashbox', 'depósito'] },
+          cxout: { cls: 'cx', badge: ['cashbox', 'resgate'] },
+          cxtr: { cls: 'cx', badge: ['cashbox', 'entre caixinhas'] },
+        };
+
+        const isExpense = (e) => e.k === 'out' && !e.draft;
+        const neutral = (e) => e.k === 'tr' || e.k === 'cxtr';
+        const money = (e) => (neutral(e) ? eur(e.v, { sign: false }) : eur(e.v));
+        const colour = (e) => (e.cat ? CAT[e.cat].c : 'transparent');
+        const dd = (e) => String(e.d).padStart(2, '0');
+
+        function marks(e) {
+          return (
+            (e.card ? icon('card', 'mk') : '') +
+            (e.rec ? icon('repeat', 'mk') : '') +
+            (e.draft ? '<span class="badge draft">rascunho</span>' : '') +
+            (KIND[e.k].badge ? `<span class="badge ${KIND[e.k].badge[0]}">${KIND[e.k].badge[1]}</span>` : '')
+          );
+        }
+
+        function detail(e, { withCat = true, withAcc = true } = {}) {
+          if (e.draft) return 'Falta a categoria — não entra em saldos nem relatórios';
+          const p = [];
+          if (withCat && e.cat) p.push(CAT[e.cat].n + (e.sub ? ` · ${e.sub}` : ''));
+          if (withAcc && e.acc) p.push(e.acc);
+          if (e.card) p.push(`cartão de crédito, compra em ${e.card}`);
+          if (e.rec) p.push(e.rec);
+          return p.join(' — ');
+        }
+
+        const acts = `<div class="acts">
+            <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
+            <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
+          </div>`;
+
+        /* ---- A — linha larga ---- */
+        document.getElementById('listA').innerHTML = E.map(
+          (e) => `<div class="entry ${e.draft ? 'draft' : ''}" style="border-left-color:${colour(e)}">
+            <div class="d">${dd(e)}/07</div>
+            <div class="t"><b>${e.t}</b> ${marks(e)}<p>${detail(e)}</p></div>
+            <div class="amt ${e.draft ? '' : KIND[e.k].cls}">${money(e)}</div>
+            ${acts}
+          </div>`,
+        ).join('');
+
+        /* ---- B — agrupada por dia ---- */
+        const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+        let htmlB = '';
+        for (let d = 1; d <= 31; d++) {
+          const items = E.filter((e) => e.d === d);
+          if (!items.length) continue;
+          /* o cabeçalho soma só o que a faixa desenha: despesa confirmada */
+          const spent = items.filter(isExpense).reduce((s, e) => s + Math.abs(e.v), 0);
+          htmlB +=
+            `<div class="dayhead">
+              <span class="dl">${dd(items[0])} de julho<span>${DIAS[new Date(2026, 6, d).getDay()]}</span></span>
+              <span class="dt">${spent ? eur(-spent) : 'nada saiu'}</span>
+            </div>` +
+            items
+              .map(
+                (e) => `<div class="entry ${e.draft ? 'draft' : ''}" style="border-left-color:${colour(e)}">
+                  <div class="t"><b>${e.t}</b> ${marks(e)}<p>${detail(e)}</p></div>
+                  <div class="amt ${e.draft ? '' : KIND[e.k].cls}">${money(e)}</div>
+                  ${acts}
+                </div>`,
+              )
+              .join('');
+        }
+        document.getElementById('listB').innerHTML = htmlB;
+
+        /* ---- C — extrato denso ---- */
+        document.getElementById('listC').innerHTML = E.map(
+          (e) => `<div class="entry ${e.draft ? 'draft' : ''}">
+            <div class="d">${dd(e)}/07</div>
+            <div><i class="dot" style="background:${colour(e)}"></i></div>
+            <div class="t"><b>${e.t}</b> ${marks(e)}</div>
+            <div class="cat">${e.draft ? '<span class="xs muted">sem categoria</span>' : e.cat ? CAT[e.cat].n : '—'}</div>
+            <div class="acc">${e.acc || '—'}</div>
+            <div class="amt ${e.draft ? '' : KIND[e.k].cls}">${money(e)}</div>
+            ${acts}
+          </div>`,
+        ).join('');
+
+        /* ---- D — agrupada por categoria ---- */
+        /* Transferências e caixinhas não têm categoria e não são despesa:
+           vão para um grupo próprio no fim, sem fatia do mês. */
+        const groups = {};
+        E.forEach((e) => {
+          const k = e.draft ? '_draft' : e.cat || '_mov';
+          (groups[k] = groups[k] || []).push(e);
+        });
+        const monthSpend = E.filter(isExpense).reduce((s, e) => s + Math.abs(e.v), 0);
+
+        const order = Object.keys(groups).sort((a, b) => {
+          const rank = (k) => (k === '_mov' ? 2 : k === '_draft' ? 3 : 0);
+          if (rank(a) !== rank(b)) return rank(a) - rank(b);
+          const sum = (k) => groups[k].reduce((s, e) => s + Math.abs(e.v), 0);
+          return sum(b) - sum(a);
+        });
+
+        document.getElementById('listD').innerHTML = order
+          .map((k, i) => {
+            const items = groups[k];
+            const spent = items.filter(isExpense).reduce((s, e) => s + Math.abs(e.v), 0);
+            const income = items.filter((e) => e.k === 'in').reduce((s, e) => s + e.v, 0);
+            const name = k === '_mov' ? 'Transferências e caixinhas' : k === '_draft' ? 'Rascunhos de voz' : CAT[k].n;
+            const c = k === '_mov' || k === '_draft' ? 'var(--line-strong)' : CAT[k].c;
+            const share = monthSpend ? (spent / monthSpend) * 100 : 0;
+            const value = spent
+              ? eur(-spent)
+              : income
+                ? eur(income)
+                : eur(
+                    items.reduce((s, e) => s + Math.abs(e.v), 0),
+                    { sign: false },
+                  );
+            const open = i === 0;
+            return `<button class="cathead" aria-expanded="${open}" data-g="${k}">
+                <i class="dot" style="background:${c}"></i>
+                <span class="nm">${name}<span>${items.length} lançamento${items.length === 1 ? '' : 's'}</span></span>
+                <span class="vv ${spent ? 'out' : income ? 'in' : ''}">${value}</span>
+                ${icon('chevronRight')}
+                <span class="prop"><i style="width:${share}%;background:${c}"></i></span>
+              </button>
+              <div data-body="${k}" ${open ? '' : 'hidden'}>${items
+                .map(
+                  (e) => `<div class="entry ${e.draft ? 'draft' : ''}">
+                    <div class="d">${dd(e)}/07</div>
+                    <div class="t"><b>${e.t}</b> ${marks(e)} <span class="acc">${detail(e, { withCat: false })}</span></div>
+                    <div class="amt ${e.draft ? '' : KIND[e.k].cls}">${money(e)}</div>
+                  </div>`,
+                )
+                .join('')}</div>`;
+          })
+          .join('');
+
+        document.getElementById('listD').addEventListener('click', (ev) => {
+          const h = ev.target.closest('.cathead');
+          if (!h) return;
+          const open = h.getAttribute('aria-expanded') === 'true';
+          h.setAttribute('aria-expanded', String(!open));
+          document.querySelector(`[data-body="${h.dataset.g}"]`).hidden = open;
+        });
+
+        /* ---- largura ---- */
+        const w = document.getElementById('w');
+        const stage = document.getElementById('stage');
+        const wv = document.getElementById('wv');
+        const apply = () => {
+          stage.style.maxWidth = w.value + 'px';
+          wv.textContent = w.value + ' px';
+        };
+        w.addEventListener('input', apply);
+        apply();
+      });
+    </script>
+  </body>
+</html>

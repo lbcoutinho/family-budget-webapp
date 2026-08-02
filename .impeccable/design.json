@@ -1,176 +1,641 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-31T00:00:00.000Z",
+  "generatedAt": "2026-08-02T08:31:03.305Z",
   "title": "Design System: Family Budget",
   "extensions": {
     "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "Page Off-White",
+        "canonical": "oklch(99.1% 0.001 286.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.001 286.4)",
+          "oklch(26.4% 0.001 286.4)",
+          "oklch(37.9% 0.001 286.4)",
+          "oklch(49.3% 0.001 286.4)",
+          "oklch(60.7% 0.001 286.4)",
+          "oklch(72.1% 0.001 286.4)",
+          "oklch(83.6% 0.001 286.4)",
+          "oklch(95.0% 0.001 286.4)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.4% 0.000 89.9)",
+          "oklch(37.9% 0.000 89.9)",
+          "oklch(49.3% 0.000 89.9)",
+          "oklch(60.7% 0.000 89.9)",
+          "oklch(72.1% 0.000 89.9)",
+          "oklch(83.6% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "oklch(97.3% 0.003 264.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 264.5)",
+          "oklch(26.4% 0.003 264.5)",
+          "oklch(37.9% 0.003 264.5)",
+          "oklch(49.3% 0.003 264.5)",
+          "oklch(60.7% 0.003 264.5)",
+          "oklch(72.1% 0.003 264.5)",
+          "oklch(83.6% 0.003 264.5)",
+          "oklch(95.0% 0.003 264.5)"
+        ]
+      },
       "ink": {
         "role": "primary",
         "displayName": "Ink",
-        "canonical": "#14161a",
-        "tonalRamp": ["#0b0c0e", "#14161a", "#2a2e36", "#3f444e", "#666d78", "#99a0aa", "#d5d9df", "#f5f6f8"]
+        "canonical": "oklch(20.0% 0.009 264.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 264.4)",
+          "oklch(26.4% 0.008 264.4)",
+          "oklch(37.9% 0.008 264.4)",
+          "oklch(49.3% 0.007 264.4)",
+          "oklch(60.7% 0.007 264.4)",
+          "oklch(72.1% 0.006 264.4)",
+          "oklch(83.6% 0.005 264.4)",
+          "oklch(95.0% 0.003 264.4)"
+        ]
       },
-      "income": {
-        "role": "secondary",
-        "displayName": "Income Green",
-        "canonical": "#1a7a52",
-        "tonalRamp": ["#0c3a27", "#125437", "#1a7a52", "#2a9668", "#57b389", "#8fceb0", "#c3e5d5", "#e7f2ec"]
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "oklch(53.3% 0.019 259.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.019 259.4)",
+          "oklch(26.4% 0.019 259.4)",
+          "oklch(37.9% 0.019 259.4)",
+          "oklch(49.3% 0.019 259.4)",
+          "oklch(60.7% 0.018 259.4)",
+          "oklch(72.1% 0.016 259.4)",
+          "oklch(83.6% 0.013 259.4)",
+          "oklch(95.0% 0.009 259.4)"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "oklch(70.3% 0.017 257.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.017 257.2)",
+          "oklch(26.4% 0.017 257.2)",
+          "oklch(37.9% 0.017 257.2)",
+          "oklch(49.3% 0.017 257.2)",
+          "oklch(60.7% 0.017 257.2)",
+          "oklch(72.1% 0.016 257.2)",
+          "oklch(83.6% 0.014 257.2)",
+          "oklch(95.0% 0.009 257.2)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(93.1% 0.006 264.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.006 264.5)",
+          "oklch(26.4% 0.006 264.5)",
+          "oklch(37.9% 0.006 264.5)",
+          "oklch(49.3% 0.006 264.5)",
+          "oklch(60.7% 0.006 264.5)",
+          "oklch(72.1% 0.006 264.5)",
+          "oklch(83.6% 0.006 264.5)",
+          "oklch(95.0% 0.005 264.5)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "oklch(88.4% 0.009 258.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 258.3)",
+          "oklch(26.4% 0.009 258.3)",
+          "oklch(37.9% 0.009 258.3)",
+          "oklch(49.3% 0.009 258.3)",
+          "oklch(60.7% 0.009 258.3)",
+          "oklch(72.1% 0.009 258.3)",
+          "oklch(83.6% 0.009 258.3)",
+          "oklch(95.0% 0.007 258.3)"
+        ]
+      },
+      "action": {
+        "role": "primary",
+        "displayName": "Action Green",
+        "canonical": "oklch(51.6% 0.107 160.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.107 160.1)",
+          "oklch(26.4% 0.107 160.1)",
+          "oklch(37.9% 0.107 160.1)",
+          "oklch(49.3% 0.107 160.1)",
+          "oklch(60.7% 0.100 160.1)",
+          "oklch(72.1% 0.088 160.1)",
+          "oklch(83.6% 0.073 160.1)",
+          "oklch(95.0% 0.048 160.1)"
+        ]
       },
       "expense": {
         "role": "secondary",
         "displayName": "Expense Red",
-        "canonical": "#bc2f3e",
-        "tonalRamp": ["#5b141b", "#8f2430", "#bc2f3e", "#d24956", "#e07982", "#eca9ae", "#f6d3d7", "#fbeaec"]
+        "canonical": "oklch(52.9% 0.177 20.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.177 20.2)",
+          "oklch(26.4% 0.177 20.2)",
+          "oklch(37.9% 0.177 20.2)",
+          "oklch(49.3% 0.177 20.2)",
+          "oklch(60.7% 0.166 20.2)",
+          "oklch(72.1% 0.147 20.2)",
+          "oklch(83.6% 0.122 20.2)",
+          "oklch(95.0% 0.081 20.2)"
+        ]
       },
       "transfer": {
         "role": "secondary",
         "displayName": "Transfer Blue",
-        "canonical": "#3a6ea5",
-        "tonalRamp": ["#12283d", "#26496e", "#3a6ea5", "#5688bc", "#7ea6cf", "#a9c4e0", "#d0dcef", "#e8eff7"]
+        "canonical": "oklch(52.8% 0.104 251.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.104 251.5)",
+          "oklch(26.4% 0.104 251.5)",
+          "oklch(37.9% 0.104 251.5)",
+          "oklch(49.3% 0.104 251.5)",
+          "oklch(60.7% 0.097 251.5)",
+          "oklch(72.1% 0.086 251.5)",
+          "oklch(83.6% 0.072 251.5)",
+          "oklch(95.0% 0.047 251.5)"
+        ]
       },
       "cashbox": {
         "role": "secondary",
         "displayName": "Cashbox Amber",
-        "canonical": "#8a6008",
-        "tonalRamp": ["#4a340a", "#6a4a07", "#8a6008", "#a87a1a", "#c69a3f", "#dcbb78", "#eddcb0", "#f7f0dd"]
+        "canonical": "oklch(52.0% 0.106 78.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.106 78.0)",
+          "oklch(26.4% 0.106 78.0)",
+          "oklch(37.9% 0.106 78.0)",
+          "oklch(49.3% 0.106 78.0)",
+          "oklch(60.7% 0.099 78.0)",
+          "oklch(72.1% 0.087 78.0)",
+          "oklch(83.6% 0.073 78.0)",
+          "oklch(95.0% 0.048 78.0)"
+        ]
       },
-      "surface": { "role": "neutral", "displayName": "Surface", "canonical": "#ffffff" },
-      "bg": { "role": "neutral", "displayName": "Background", "canonical": "#fcfcfd" },
-      "wash": { "role": "neutral", "displayName": "Wash", "canonical": "#f5f6f8" },
-      "ink-soft": { "role": "neutral", "displayName": "Ink Soft", "canonical": "#666d78" },
-      "ink-faint": { "role": "neutral", "displayName": "Ink Faint", "canonical": "#99a0aa" },
-      "line": { "role": "neutral", "displayName": "Line", "canonical": "#e6e8ec" },
-      "line-strong": { "role": "neutral", "displayName": "Line Strong", "canonical": "#d5d9df" }
+      "c1": {
+        "role": "tertiary",
+        "displayName": "Category Pine",
+        "canonical": "oklch(48.6% 0.088 166.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.088 166.2)",
+          "oklch(26.4% 0.088 166.2)",
+          "oklch(37.9% 0.088 166.2)",
+          "oklch(49.3% 0.088 166.2)",
+          "oklch(60.7% 0.080 166.2)",
+          "oklch(72.1% 0.071 166.2)",
+          "oklch(83.6% 0.059 166.2)",
+          "oklch(95.0% 0.039 166.2)"
+        ]
+      },
+      "c2": {
+        "role": "tertiary",
+        "displayName": "Category Cobalt",
+        "canonical": "oklch(47.4% 0.139 257.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.139 257.0)",
+          "oklch(26.4% 0.139 257.0)",
+          "oklch(37.9% 0.139 257.0)",
+          "oklch(49.3% 0.137 257.0)",
+          "oklch(60.7% 0.126 257.0)",
+          "oklch(72.1% 0.111 257.0)",
+          "oklch(83.6% 0.093 257.0)",
+          "oklch(95.0% 0.061 257.0)"
+        ]
+      },
+      "c3": {
+        "role": "tertiary",
+        "displayName": "Category Ochre",
+        "canonical": "oklch(55.3% 0.124 55.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.124 55.8)",
+          "oklch(26.4% 0.124 55.8)",
+          "oklch(37.9% 0.124 55.8)",
+          "oklch(49.3% 0.124 55.8)",
+          "oklch(60.7% 0.119 55.8)",
+          "oklch(72.1% 0.105 55.8)",
+          "oklch(83.6% 0.087 55.8)",
+          "oklch(95.0% 0.058 55.8)"
+        ]
+      },
+      "c4": {
+        "role": "tertiary",
+        "displayName": "Category Garnet",
+        "canonical": "oklch(48.2% 0.154 17.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.154 17.3)",
+          "oklch(26.4% 0.154 17.3)",
+          "oklch(37.9% 0.154 17.3)",
+          "oklch(49.3% 0.153 17.3)",
+          "oklch(60.7% 0.140 17.3)",
+          "oklch(72.1% 0.124 17.3)",
+          "oklch(83.6% 0.103 17.3)",
+          "oklch(95.0% 0.068 17.3)"
+        ]
+      },
+      "c5": {
+        "role": "tertiary",
+        "displayName": "Category Violet",
+        "canonical": "oklch(50.9% 0.172 302.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.172 302.5)",
+          "oklch(26.4% 0.172 302.5)",
+          "oklch(37.9% 0.172 302.5)",
+          "oklch(49.3% 0.172 302.5)",
+          "oklch(60.7% 0.159 302.5)",
+          "oklch(72.1% 0.141 302.5)",
+          "oklch(83.6% 0.117 302.5)",
+          "oklch(95.0% 0.077 302.5)"
+        ]
+      },
+      "c6": {
+        "role": "tertiary",
+        "displayName": "Category Teal",
+        "canonical": "oklch(53.5% 0.088 201.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.088 201.0)",
+          "oklch(26.4% 0.088 201.0)",
+          "oklch(37.9% 0.088 201.0)",
+          "oklch(49.3% 0.088 201.0)",
+          "oklch(60.7% 0.083 201.0)",
+          "oklch(72.1% 0.073 201.0)",
+          "oklch(83.6% 0.061 201.0)",
+          "oklch(95.0% 0.040 201.0)"
+        ]
+      },
+      "c7": {
+        "role": "tertiary",
+        "displayName": "Category Fuchsia",
+        "canonical": "oklch(55.3% 0.164 351.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.164 351.0)",
+          "oklch(26.4% 0.164 351.0)",
+          "oklch(37.9% 0.164 351.0)",
+          "oklch(49.3% 0.164 351.0)",
+          "oklch(60.7% 0.157 351.0)",
+          "oklch(72.1% 0.139 351.0)",
+          "oklch(83.6% 0.116 351.0)",
+          "oklch(95.0% 0.076 351.0)"
+        ]
+      },
+      "c8": {
+        "role": "tertiary",
+        "displayName": "Category Olive",
+        "canonical": "oklch(45.7% 0.098 123.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.098 123.9)",
+          "oklch(26.4% 0.098 123.9)",
+          "oklch(37.9% 0.098 123.9)",
+          "oklch(49.3% 0.096 123.9)",
+          "oklch(60.7% 0.088 123.9)",
+          "oklch(72.1% 0.078 123.9)",
+          "oklch(83.6% 0.065 123.9)",
+          "oklch(95.0% 0.043 123.9)"
+        ]
+      },
+      "c9": {
+        "role": "tertiary",
+        "displayName": "Category Umber",
+        "canonical": "oklch(41.6% 0.080 46.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.080 46.3)",
+          "oklch(26.4% 0.080 46.3)",
+          "oklch(37.9% 0.080 46.3)",
+          "oklch(49.3% 0.076 46.3)",
+          "oklch(60.7% 0.069 46.3)",
+          "oklch(72.1% 0.061 46.3)",
+          "oklch(83.6% 0.051 46.3)",
+          "oklch(95.0% 0.034 46.3)"
+        ]
+      },
+      "c10": {
+        "role": "tertiary",
+        "displayName": "Category Slate — permanently \"Outros\"",
+        "canonical": "oklch(44.7% 0.034 261.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.034 261.3)",
+          "oklch(26.4% 0.034 261.3)",
+          "oklch(37.9% 0.034 261.3)",
+          "oklch(49.3% 0.033 261.3)",
+          "oklch(60.7% 0.030 261.3)",
+          "oklch(72.1% 0.027 261.3)",
+          "oklch(83.6% 0.022 261.3)",
+          "oklch(95.0% 0.015 261.3)"
+        ]
+      },
+      "income": {
+        "role": "secondary",
+        "displayName": "Income Green",
+        "canonical": "oklch(51.6% 0.107 160.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.107 160.1)",
+          "oklch(26.4% 0.107 160.1)",
+          "oklch(37.9% 0.107 160.1)",
+          "oklch(49.3% 0.107 160.1)",
+          "oklch(60.7% 0.100 160.1)",
+          "oklch(72.1% 0.088 160.1)",
+          "oklch(83.6% 0.073 160.1)",
+          "oklch(95.0% 0.048 160.1)"
+        ]
+      },
+      "action-hover": {
+        "role": "primary",
+        "displayName": "Action Hover",
+        "canonical": "oklch(43.2% 0.089 159.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.089 159.9)",
+          "oklch(26.4% 0.089 159.9)",
+          "oklch(37.9% 0.089 159.9)",
+          "oklch(49.3% 0.089 159.9)",
+          "oklch(60.7% 0.086 159.9)",
+          "oklch(72.1% 0.077 159.9)",
+          "oklch(83.6% 0.062 159.9)",
+          "oklch(95.0% 0.040 159.9)"
+        ]
+      },
+      "action-wash": {
+        "role": "primary",
+        "displayName": "Action Wash",
+        "canonical": "oklch(95.1% 0.014 162.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 162.5)",
+          "oklch(26.4% 0.014 162.5)",
+          "oklch(37.9% 0.014 162.5)",
+          "oklch(49.3% 0.014 162.5)",
+          "oklch(60.7% 0.014 162.5)",
+          "oklch(72.1% 0.012 162.5)",
+          "oklch(83.6% 0.010 162.5)",
+          "oklch(95.0% 0.006 162.5)"
+        ]
+      },
+      "income-wash": {
+        "role": "secondary",
+        "displayName": "Income Wash",
+        "canonical": "oklch(95.1% 0.014 162.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 162.5)",
+          "oklch(26.4% 0.014 162.5)",
+          "oklch(37.9% 0.014 162.5)",
+          "oklch(49.3% 0.014 162.5)",
+          "oklch(60.7% 0.014 162.5)",
+          "oklch(72.1% 0.012 162.5)",
+          "oklch(83.6% 0.010 162.5)",
+          "oklch(95.0% 0.006 162.5)"
+        ]
+      },
+      "expense-wash": {
+        "role": "secondary",
+        "displayName": "Expense Wash",
+        "canonical": "oklch(95.1% 0.019 9.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.019 9.3)",
+          "oklch(26.4% 0.019 9.3)",
+          "oklch(37.9% 0.019 9.3)",
+          "oklch(49.3% 0.019 9.3)",
+          "oklch(60.7% 0.018 9.3)",
+          "oklch(72.1% 0.016 9.3)",
+          "oklch(83.6% 0.013 9.3)",
+          "oklch(95.0% 0.008 9.3)"
+        ]
+      },
+      "transfer-wash": {
+        "role": "secondary",
+        "displayName": "Transfer Wash",
+        "canonical": "oklch(94.9% 0.013 251.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.013 251.6)",
+          "oklch(26.4% 0.013 251.6)",
+          "oklch(37.9% 0.013 251.6)",
+          "oklch(49.3% 0.013 251.6)",
+          "oklch(60.7% 0.013 251.6)",
+          "oklch(72.1% 0.011 251.6)",
+          "oklch(83.6% 0.009 251.6)",
+          "oklch(95.0% 0.006 251.6)"
+        ]
+      },
+      "cashbox-wash": {
+        "role": "secondary",
+        "displayName": "Cashbox Wash",
+        "canonical": "oklch(95.6% 0.026 90.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.026 90.1)",
+          "oklch(26.4% 0.026 90.1)",
+          "oklch(37.9% 0.026 90.1)",
+          "oklch(49.3% 0.026 90.1)",
+          "oklch(60.7% 0.025 90.1)",
+          "oklch(72.1% 0.023 90.1)",
+          "oklch(83.6% 0.018 90.1)",
+          "oklch(95.0% 0.012 90.1)"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Page titles and stat-tile values; the only large type. Familjen Grotesk 700, tight tracking." },
-      "headline": { "displayName": "Headline", "purpose": "Section headers, top-bar month label, sidebar brand." },
-      "title": { "displayName": "Title", "purpose": "Card and subsection headers (h3)." },
-      "body": { "displayName": "Body", "purpose": "All running text, form values, table cells. Public Sans." },
-      "label": { "displayName": "Label", "purpose": "Uppercase table column headers and eyebrow labels." },
-      "mono": { "displayName": "Mono", "purpose": "Every amount, date, and count. DM Mono, tabular-nums." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles (h1) and stat-tile values. The only genuinely large type."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headers (h2), the top-bar month label, the sidebar brand."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and subsection headers (h3)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, form values, table cells. Prose caps at ~68ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase table column headers and small eyebrow labels."
+      },
+      "numeric": {
+        "displayName": "Numeric",
+        "purpose": "Every amount, date and count. Body face with tabular figures — no third family."
+      }
     },
     "shadows": [
       {
         "name": "rest",
         "value": "0 1px 2px rgba(20,22,26,0.05)",
-        "purpose": "Barely-there settle under cards at rest and the segmented control's active thumb."
+        "purpose": "Cards and the segmented thumb. Almost invisible on purpose — the border does the separating."
       },
-      { "name": "raised", "value": "0 4px 14px rgba(20,22,26,0.08)", "purpose": "Tooltips overlapping page content." },
+      {
+        "name": "raised",
+        "value": "0 4px 14px rgba(20,22,26,0.08)",
+        "purpose": "Tooltips and menus: content overlapping content inside the page."
+      },
       {
         "name": "floating",
         "value": "0 18px 48px rgba(20,22,26,0.16)",
-        "purpose": "Dialogs, toasts, and the mobile sidebar drawer — the only truly overlaid surfaces."
+        "purpose": "Dialogs, toasts, the mobile drawer — the only truly overlaid surfaces."
       }
     ],
     "motion": [
-      { "name": "ease", "value": "cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Default easing for every transition and entrance." },
-      { "name": "fast", "value": "120ms", "purpose": "Micro-transitions: hover fills, caret rotation, switch thumb." },
-      { "name": "base", "value": "200ms", "purpose": "Dialog/toast entrances, drawer slide, progress fills." }
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1)",
+        "purpose": "The only easing curve in the system."
+      },
+      {
+        "name": "fast",
+        "value": "120ms",
+        "purpose": "Hover, focus, toggles."
+      },
+      {
+        "name": "base",
+        "value": "200ms",
+        "purpose": "Dialog, drawer, toast."
+      },
+      {
+        "name": "month-strip",
+        "value": "~700ms",
+        "purpose": "Earned exception: the month strip enters day by day, once per screen. The duration is the content."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "1ms",
+        "purpose": "prefers-reduced-motion collapses every animation and transition."
+      }
     ],
-    "breakpoints": [{ "name": "mobile", "value": "900px" }]
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "900px"
+      }
+    ]
   },
   "components": [
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The default action; ink fill, used for the one primary action per view.",
-      "html": "<button class=\"ds-btn-primary\">Salvar</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background: #14161a; color: #fff; border: 1px solid #14161a; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-primary:hover { background: #2a2e36; } .ds-btn-primary:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+      "description": "The one thing to do next. Action green — a black fill was tried first and did not read as a call to action.",
+      "html": "<button class=\"ds-btn-primary\">Novo lançamento</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background: #1a7a52; border: 1px solid #1a7a52; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1), border-color 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-primary:hover { background: #145f3f; border-color: #145f3f; } .ds-btn-primary:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
     },
     {
       "name": "Outline Button",
       "kind": "button",
       "refersTo": "button-outline",
-      "description": "Secondary action; surface fill with a hairline-strong border.",
+      "description": "The secondary action. Ink on surface, hairline border — never green.",
       "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #14161a; border: 1px solid #d5d9df; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-outline:hover { background: #f5f6f8; } .ds-btn-outline:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #d5d9df; color: #14161a; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-outline:hover { background: #f5f6f8; } .ds-btn-outline:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
     },
     {
       "name": "Danger Button",
       "kind": "button",
       "refersTo": "button-danger",
-      "description": "Destructive action; the one place a money colour enters the chrome.",
+      "description": "Destructive confirmation. Borrows the expense red — the only other filled colour surface.",
       "html": "<button class=\"ds-btn-danger\">Excluir</button>",
-      "css": ".ds-btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #bc2f3e; color: #fff; border: 1px solid #bc2f3e; font-family: 'Public Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(0.2,0.9,0.3,1); } .ds-btn-danger:hover { background: #a52836; } .ds-btn-danger:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; }"
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #bc2f3e; border: 1px solid #bc2f3e; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-danger:hover { background: #a52836; border-color: #a52836; } .ds-btn-danger:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
     },
     {
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Standard field; quiet at rest, ink ring on focus, red border on error.",
-      "html": "<input class=\"ds-input\" placeholder=\"0,00\" />",
-      "css": ".ds-input { font-family: 'Public Sans', sans-serif; font-size: 13.5px; padding: 7px 10px; border: 1px solid #d5d9df; border-radius: 6px; background: #fff; color: #14161a; width: 220px; } .ds-input::placeholder { color: #99a0aa; } .ds-input:focus-visible { outline: 2px solid #14161a; outline-offset: 2px; } .ds-input.error { border-color: #bc2f3e; }"
+      "description": "Quiet until focused; the focus ring is the third and last place the action green appears.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-i1\">E-mail</label><input class=\"ds-input\" id=\"ds-i1\" type=\"email\" placeholder=\"voce@exemplo.com\"></div>",
+      "css": ".ds-field { display: grid; gap: 5px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; color: #14161a; } .ds-field label { font-size: 12.5px; font-weight: 500; } .ds-input { font-family: inherit; font-size: 13.5px; padding: 7px 10px; border: 1px solid #d5d9df; border-radius: 6px; background: #fff; color: #14161a; width: 100%; } .ds-input::placeholder { color: #99a0aa; } .ds-input:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
     },
     {
       "name": "Segmented Control",
       "kind": "chip",
-      "refersTo": "segmented",
-      "description": "Type/mode switcher; a wash track with a pressed-forward active thumb.",
-      "html": "<div class=\"ds-segmented\"><button aria-selected=\"true\">Despesa</button><button>Receita</button><button>Transf.</button></div>",
-      "css": ".ds-segmented { display: inline-flex; background: #f5f6f8; border: 1px solid #e6e8ec; border-radius: 6px; padding: 2px; gap: 2px; } .ds-segmented button { border: 0; background: transparent; font-family: 'Public Sans', sans-serif; font-size: 12.5px; color: #666d78; padding: 4px 12px; border-radius: 4px; cursor: pointer; } .ds-segmented button[aria-selected=\"true\"] { background: #fff; color: #14161a; font-weight: 600; box-shadow: 0 1px 2px rgba(20,22,26,0.05); }"
+      "refersTo": null,
+      "description": "Transaction type and report tabs. Stays achromatic even when the choice it makes is coloured elsewhere; the launch dialog opens on \"Despesa\".",
+      "html": "<div class=\"ds-segmented\"><button aria-selected=\"false\">Receita</button><button aria-selected=\"true\">Despesa</button><button aria-selected=\"false\">Transferência</button></div>",
+      "css": ".ds-segmented { display: inline-flex; background: #f5f6f8; border: 1px solid #e6e8ec; border-radius: 6px; padding: 2px; gap: 2px; } .ds-segmented button { border: 0; background: transparent; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; color: #666d78; padding: 4px 12px; border-radius: 4px; cursor: pointer; } .ds-segmented button:hover { color: #14161a; } .ds-segmented button[aria-selected=\"true\"] { background: #fff; color: #14161a; font-weight: 600; box-shadow: 0 1px 2px rgba(20,22,26,0.05); }"
     },
     {
       "name": "Active Nav Item",
       "kind": "nav",
       "refersTo": "nav-item-active",
-      "description": "Sidebar item; the active state is a solid ink fill — where a branded app would tint.",
-      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18\"/></svg>Mês</a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 19V5m6 14V9m6 10V13\"/></svg>Relatórios</a></nav>",
-      "css": ".ds-nav { display: grid; gap: 2px; width: 200px; font-family: 'Public Sans', sans-serif; } .ds-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; color: #666d78; font-size: 13.5px; text-decoration: none; } .ds-nav a:hover { background: #f5f6f8; color: #14161a; } .ds-nav a[aria-current=\"page\"] { background: #14161a; color: #fff; font-weight: 500; }"
+      "description": "Sidebar navigation. The active row is a solid action-green fill — the second of the three sanctioned green surfaces.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M8 2v4M16 2v4M3 10h18\"/></svg>Mês</a><a href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/></svg>Relatórios</a></nav>",
+      "css": ".ds-nav { display: grid; gap: 2px; background: #fff; padding: 8px; width: 220px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; } .ds-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; color: #666d78; font-size: 13.5px; text-decoration: none; } .ds-nav a svg { width: 16px; height: 16px; flex: none; } .ds-nav a:hover { background: #f5f6f8; color: #14161a; } .ds-nav a[aria-current=\"page\"] { background: #1a7a52; color: #fff; font-weight: 500; }"
     },
     {
-      "name": "Draft Badge",
+      "name": "Money Badge",
       "kind": "chip",
       "refersTo": "badge",
-      "description": "Marks an unconfirmed voice entry; a dashed outline reads as provisional.",
-      "html": "<span class=\"ds-badge-draft\">Rascunho</span>",
-      "css": ".ds-badge-draft { display: inline-flex; align-items: center; gap: 4px; font-family: 'Public Sans', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 7px; border-radius: 5px; background: transparent; border: 1px dashed #d5d9df; color: #666d78; }"
+      "description": "Transaction type marker. Money wash behind money-colour text — green as text, never as a surface.",
+      "html": "<span class=\"ds-badge ds-badge-income\">Receita</span> <span class=\"ds-badge ds-badge-expense\">Despesa</span> <span class=\"ds-badge ds-badge-draft\">Rascunho</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 7px; border-radius: 5px; background: #f5f6f8; color: #666d78; white-space: nowrap; } .ds-badge-income { background: #e7f2ec; color: #1a7a52; } .ds-badge-expense { background: #fbeaec; color: #bc2f3e; } .ds-badge-draft { background: transparent; border: 1px dashed #d5d9df; color: #666d78; }"
     },
     {
       "name": "Stat Tile",
       "kind": "card",
       "refersTo": "card",
-      "description": "A dense card carrying one headline figure; the number borrows the display face.",
-      "html": "<div class=\"ds-stat\"><div class=\"k\">Saldo do mês</div><div class=\"v\">€ 2.480,15</div></div>",
-      "css": ".ds-stat { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 11px 14px; box-shadow: 0 1px 2px rgba(20,22,26,0.05); width: 180px; } .ds-stat .k { font-family: 'Public Sans', sans-serif; font-size: 11.5px; color: #666d78; } .ds-stat .v { font-family: 'Familjen Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; margin-top: 1px; }"
+      "description": "The balance figures at the top of the month screen. Display type with tabular figures; the total tile swaps to a wash fill.",
+      "html": "<div class=\"ds-stats\"><div class=\"ds-stat\"><div class=\"ds-k\">Receitas</div><div class=\"ds-v ds-in\">+ 4.280,00</div></div><div class=\"ds-stat ds-total\"><div class=\"ds-k\">Saldo</div><div class=\"ds-v\">1.146,35</div></div></div>",
+      "css": ".ds-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 10px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; } .ds-stat { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 11px 14px; box-shadow: 0 1px 2px rgba(20,22,26,0.05); } .ds-stat.ds-total { background: #f5f6f8; border-color: #d5d9df; } .ds-k { font-size: 11.5px; color: #666d78; } .ds-v { font-family: \"Familjen Grotesk\", ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; margin-top: 1px; color: #14161a; } .ds-in { color: #1a7a52; }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The workhorse. Uppercase ink-soft headers, hairline rows, right-aligned tabular numbers, wash footer above a strong rule.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Categoria</th><th class=\"ds-n\">Julho</th></tr></thead><tbody><tr><td><span class=\"ds-dot\" style=\"background:#a85c1a\"></span> Mercado</td><td class=\"ds-n\">842,10</td></tr><tr><td><span class=\"ds-dot\" style=\"background:#1f5aa8\"></span> Transporte</td><td class=\"ds-n\">214,90</td></tr></tbody><tfoot><tr><td>Total</td><td class=\"ds-n\">1.057,00</td></tr></tfoot></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; color: #14161a; background: #fff; } .ds-table th { text-align: left; font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; color: #666d78; font-weight: 600; padding: 9px 14px; border-bottom: 1px solid #e6e8ec; white-space: nowrap; } .ds-table td { padding: 9px 14px; border-bottom: 1px solid #e6e8ec; } .ds-table tbody tr:hover { background: #f5f6f8; } .ds-table .ds-n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-table tfoot td { border-bottom: 0; border-top: 1px solid #d5d9df; background: #f5f6f8; font-weight: 600; } .ds-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; }"
     }
   ],
   "narrative": {
     "northStar": "The Instrument Panel",
-    "overview": "This is a reading instrument for a household's money, not a brand experience. Its governing decision is that colour belongs to the data and never to the chrome. There is no brand accent — the frame is built entirely from ink (#14161a) and hairline greys, so the only saturated colour on any screen comes from what the data means: the four money colours and the sixteen category swatches. The result reads as precise and restrained: high density, monospaced tabular numbers, structure drawn with 1px lines and pale washes rather than boxes and shadows. The system commits to one appearance — light only — and treats desktop and phone as equals.",
+    "overview": "This is a reading instrument for a household’s money, not a brand experience. Its governing decision — the thesis of the \"Cromático\" direction chosen from four candidates, amended once in review — is that colour belongs to the data, and to the action. There is still no brand accent. The frame around the data is built from ink (#14161a) and hairline greys, so almost every saturated colour on screen comes from what the data means: the four money colours and the ten category swatches. The single exception is --action, and it is not a new hue: it is the income green, reused as a surface for the one thing the user is meant to do next.\n\nThe result reads as precise and restrained. Density is high — this is a screen someone scans a bank statement against — so every figure is set with font-variant-numeric: tabular-nums so it aligns down its column, and structure is drawn with 1px lines and pale washes rather than boxes and shadows. The personality is in the discipline: an instrument you trust because it never decorates the readings.\n\nThe system commits to one appearance — light only. Dark mode is not deferred, it is rejected, and that single commitment is what makes the light palette worth tuning to the contrast floor. Both desktop and phone are first-class: a wide table is not a desktop feature with a mobile fallback; both layouts are the design.",
     "keyCharacteristics": [
-      "No brand colour — chrome is ink and hairline grey; hue means data.",
-      "Four fixed money colours + sixteen category swatches, each a single value.",
-      "Monospaced tabular numbers everywhere a figure appears.",
-      "Near-flat: depth from lines and washes, shadows reserved for what truly lifts.",
-      "Light-only, tuned to a 4.5:1 contrast floor.",
-      "Familjen Grotesk / Public Sans / DM Mono — three roles, three families."
+      "No brand colour. The chrome is ink and hairline grey; hue means data — except one green action surface.",
+      "Four fixed money colours + ten category swatches, each a single value (no light/dark pair).",
+      "Tabular figures everywhere a number appears, in the body face — no third typeface.",
+      "Near-flat: depth from lines and washes; shadows reserved for what truly lifts.",
+      "Light-only, tuned so every category swatch clears 4.8:1 on the page.",
+      "Two families, three roles: Familjen Grotesk for display, Public Sans for everything else including numbers."
     ],
     "rules": [
       {
         "name": "The No-Brand Rule",
-        "body": "No colour is decorative and no colour is the brand. If a hue is on screen it is because the data underneath it has that meaning. The chrome is ink and grey, always.",
+        "body": "No colour is decorative and no colour is the brand. If a hue is on screen it is because the data underneath it has that meaning, or because it is the action. The rest of the chrome is ink and grey, always.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Grammars Rule",
+        "body": "Action and income are the same green and must never be confused, so they are told apart by grammar rather than by hue: action is a filled surface, money is text. A green fill means \"act here\"; green text means \"money in\". No data may claim a green surface, and no action may be green text.",
         "section": "colors"
       },
       {
         "name": "The Value Names Rule",
-        "body": "Colour groups; the number names. Sixteen hues cannot be told apart in a donut, least of all by a colour-blind reader, so a chart always labels the slice with its own amount. Never require the reader to match a swatch to a legend.",
+        "body": "Colour groups; the number names. Ten hues cannot all be told apart in a donut, least of all by a colour-blind reader, so a chart always labels the slice with its own amount. Never require the reader to match a swatch to a legend, and never group categories into \"Outras\".",
         "section": "colors"
       },
       {
         "name": "The Money-Is-Fixed Rule",
-        "body": "The four money colours are semantic constants. They do not shift with any future theme decision, because a green that stops meaning 'in' breaks every table.",
+        "body": "The four money colours are semantic constants. They do not shift with any future theme decision, because a green that stops meaning \"in\" breaks every table.",
         "section": "colors"
       },
       {
         "name": "The Tabular Number Rule",
-        "body": "Every figure is DM Mono with font-variant-numeric: tabular-nums. Money that does not align down the column cannot be scanned, and scanning is the whole job.",
+        "body": "Every figure carries font-variant-numeric: tabular-nums. Money that does not align down the column cannot be scanned, and scanning is the whole job. Monospace is a strong convention for code, not for money.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Families Rule",
+        "body": "Familjen Grotesk and Public Sans. A third family needs a job neither can do; \"numbers look different\" is not that job.",
         "section": "typography"
       },
       {
         "name": "The Number-As-Display Rule",
-        "body": "The largest numbers on screen borrow Familjen Grotesk at 700 with tight tracking — a headline figure, not body text scaled up.",
+        "body": "The largest numbers on screen (stat-tile values) borrow Familjen Grotesk at 700 with tight tracking and tabular figures — a headline figure, not body text scaled up.",
         "section": "typography"
       },
       {
@@ -180,20 +645,22 @@
       }
     ],
     "dos": [
-      "Do keep all chrome ink-and-grey. Buttons, active nav, focus rings, headers, avatars, tooltips, toasts are ink (#14161a).",
-      "Do set every amount, date, and count in DM Mono with tabular-nums (.num).",
+      "Do keep the chrome ink-and-grey. Table headers, avatars, tooltips, toasts, and the toggle switch are ink (#14161a).",
+      "Do spend the action green in exactly three places: the primary button, the focus ring, the active nav item.",
+      "Do set every amount, date, and count with tabular-nums via .num, in Public Sans.",
       "Do build structure from 1px lines and washes first; use a shadow only for a card at rest or something that truly floats.",
-      "Do label chart slices with their own amount, so meaning never depends on matching a swatch to a legend.",
+      "Do label chart slices with their own amount, and draw every category — colour groups, the number names.",
       "Do keep the four money colours exactly as defined — they are semantic constants, not theme choices.",
       "Do design the phone layout as an equal: drawer sidebar, and frozen-column horizontal scroll for matrices that can't reflow."
     ],
     "donts": [
-      "Don't introduce a brand accent colour anywhere in the chrome. The absence is the identity.",
-      "Don't add dark mode or a second value for any token. The system is light-only by decision.",
-      "Don't set an amount in the body face, or let a number column go non-tabular.",
-      "Don't wrap surfaces in shadows to create hierarchy where a hairline or wash would do.",
-      "Don't repurpose a money colour for decoration, or let green/red mean 'good/bad' anywhere except the one confirmed against-the-average column.",
-      "Don't collapse the report matrices to cards on mobile — freeze the first column and scroll."
+      "Don’t introduce a brand accent colour. The green is the action, not the brand, and no fourth use of it is authorized.",
+      "Don’t give a data value a green surface, or an action green text — the grammar is what keeps income and action apart.",
+      "Don’t add dark mode or a second value for any token. The system is light-only by decision.",
+      "Don’t add a third typeface. Numbers already have what they need from tnum.",
+      "Don’t wrap surfaces in shadows to create hierarchy where a hairline or wash would do.",
+      "Don’t let green/red mean \"good/bad\" anywhere except the one confirmed against-the-average column on the monthly report.",
+      "Don’t group categories into \"Outras\", and don’t collapse the report matrices to cards on mobile — freeze the first column and scroll."
     ]
   }
 }
