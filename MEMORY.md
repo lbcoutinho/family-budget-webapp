@@ -11,15 +11,25 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2 Authentication is complete and merged.** M3 Master data is mirrored on GitHub
-(#45–#53). **M3-T01 (#45) is done and on branch `feat/m3-t01-account-model`, PR #57 open** —
-`Account` model, migration `20260802192727_add_account`, sample accounts in the seed and
-`test/e2e/account.e2e-spec.ts`. Nothing is half-finished. **Next backend ticket is M3-T02 (#46),
-the accounts API**, which inherits the `(userId, name)` unique key, `isActive`, `sortOrder` and the
-`onDelete: Restrict` foreign key from that model.
+**M2 Authentication is complete and merged; M3-T01 (#45) is merged (PR #57).** M3 Master data is
+mirrored on GitHub (#45–#53). **M3-T02 (#46) is done, on branch `feat/m3-t02-accounts-api`** —
+`AccountsModule` (CRUD + activate/deactivate + `?includeInactive` / `?includeId`),
+`common/assert-ownership.ts`, `P2003 → 409` in `PrismaExceptionFilter`, regenerated API client.
+Nothing is half-finished. **Next backend ticket is M3-T03 (#47), the `Category` model.**
 
 ## Gotchas the next ticket will hit
 
+- **M3-T02 set the master-data module pattern; copy it rather than reinventing it** for categories
+  and cashboxes: `assertOwnership(row, userId)` from `common/` (returns the row, throws 404 — never
+  403), `userId` from `@CurrentUser()` and never from the body, a `visibility()` helper building the
+  `OR` array (a branch of `{ id: undefined }` would match _every_ row), and no pre-check before a
+  duplicate name or a blocked delete — the database answers, and `PrismaExceptionFilter` maps P2002
+  and P2003 to 409.
+- **A boolean query param needs `@Transform`**, not just `@IsBoolean()`: `ValidationPipe`'s
+  `transform` coerces any non-empty string to `true`, so `?includeInactive=false` would be true.
+- **The delete-blocked 409 has no end-to-end test yet** — nothing references an `Account` until the
+  `Transaction` model lands in M4. The mapping is unit-tested in `prisma-exception.filter.spec.ts`;
+  add the real case with M4.
 - **The seed writes sample data for the demo user only, never for the owner**, and those rows hold
   a foreign key onto `User` with `onDelete: Restrict`: any fixture that deletes a user must delete
   that user's accounts first (P2003) — see `removeFixtures()` in `test/e2e/account.e2e-spec.ts`.

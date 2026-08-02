@@ -5,6 +5,7 @@
 // Orval's tags-split mode emits no root barrel, so each tag is re-exported here by hand. Add a line
 // per new API tag (one folder appears under `generated/` for each). The model index is generated.
 export * from './generated/model';
+export * from './generated/accounts/accounts';
 export * from './generated/auth/auth';
 export * from './generated/health/health';
 

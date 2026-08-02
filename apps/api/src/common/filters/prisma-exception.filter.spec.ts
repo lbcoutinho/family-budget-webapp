@@ -30,6 +30,15 @@ describe('PrismaExceptionFilter', () => {
     expect(json).toHaveBeenCalledWith(expect.objectContaining({ statusCode: HttpStatus.CONFLICT }));
   });
 
+  it('maps P2003 (foreign key constraint) to 409 Conflict', () => {
+    const { host, json, status } = hostWithResponse();
+
+    filter.catch(prismaError('P2003'), host);
+
+    expect(status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Deactivate it') as string }));
+  });
+
   it('maps P2025 (record not found) to 404 Not Found', () => {
     const { host, json, status } = hostWithResponse();
 
@@ -42,7 +51,7 @@ describe('PrismaExceptionFilter', () => {
   it('falls through to 500 for an unmapped code', () => {
     const { host, status } = hostWithResponse();
 
-    filter.catch(prismaError('P2003'), host);
+    filter.catch(prismaError('P2010'), host);
 
     expect(status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
   });
