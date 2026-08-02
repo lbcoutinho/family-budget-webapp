@@ -12,7 +12,10 @@ import { toDemoEmail } from '../src/modules/users/demo-email';
  *   - the **owner**, at `SEED_USER_EMAIL` / `SEED_USER_PASSWORD`;
  *   - a **demo** account at the `+demo` sub-address of the same mailbox, with its own
  *     `SEED_DEMO_USER_PASSWORD`, so the application can be shown to someone without exposing the
- *     real data. It starts empty — nothing but the `User` row.
+ *     real data.
+ *
+ * Both users also get the two sample accounts of M3-T01, so a fresh database has something to
+ * record transactions against.
  *
  * Run with `pnpm --filter api db:seed`. Prisma 7 invokes it through `migrations.seed` in
  * `prisma.config.ts`; the `prisma.seed` key in package.json is gone (ADR-0017).
@@ -34,7 +37,7 @@ export interface SeedCredentials {
 }
 
 /** What the seed wrote, for logging and for assertions. Never carries a password or a hash. */
-export interface SeededAccount {
+export interface SeededUser {
   id: string;
   email: string;
   name: string;
@@ -62,7 +65,7 @@ function ownerNameFrom(email: string): string {
  * Write one account, keyed on its email. Both branches set `passwordHash`, so an existing row is
  * brought in line with the current environment instead of keeping a stale password.
  */
-async function upsertAccount(prisma: PrismaClient, email: string, name: string, passwordHash: string): Promise<SeededAccount> {
+async function upsertUser(prisma: PrismaClient, email: string, name: string, passwordHash: string): Promise<SeededUser> {
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
 
   const user = await prisma.user.upsert({
@@ -81,7 +84,7 @@ async function upsertAccount(prisma: PrismaClient, email: string, name: string, 
  * Takes the client and the credentials as arguments rather than reading `process.env`, so the
  * integration test drives the same code path against the test database with its own fixtures.
  */
-export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentials): Promise<{ owner: SeededAccount; demo: SeededAccount }> {
+export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentials): Promise<{ owner: SeededUser; demo: SeededUser }> {
   const email = credentials.email.trim();
   const demoEmail = toDemoEmail(email);
 
@@ -97,10 +100,37 @@ export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentia
   // Hashed independently, so neither account's hash reveals anything about the other's password.
   const [passwordHash, demoPasswordHash] = await Promise.all([hashService.hash(credentials.password), hashService.hash(credentials.demoPassword)]);
 
-  const owner = await upsertAccount(prisma, email, ownerNameFrom(email), passwordHash);
-  const demo = await upsertAccount(prisma, demoEmail, 'Demo', demoPasswordHash);
+  const owner = await upsertUser(prisma, email, ownerNameFrom(email), passwordHash);
+  const demo = await upsertUser(prisma, demoEmail, 'Demo', demoPasswordHash);
+
+  for (const user of [owner, demo]) {
+    await seedAccounts(prisma, user.id);
+  }
 
   return { owner, demo };
+}
+
+/**
+ * The sample accounts every seeded user starts with (M3-T01). Same names the prototypes use, so
+ * the screens are read against the data they were drawn with. `initialBalance` is in cents.
+ */
+const SAMPLE_ACCOUNTS = [
+  { name: 'Millennium', initialBalance: 150_000, sortOrder: 1 },
+  { name: 'Revolut', initialBalance: 28_340, sortOrder: 2 },
+] as const;
+
+/**
+ * Give a user the sample accounts. Idempotent through the `(userId, name)` unique constraint, and
+ * `update: {}` so a second run never resets a balance the user has since edited.
+ */
+export async function seedAccounts(prisma: PrismaClient, userId: string): Promise<void> {
+  for (const account of SAMPLE_ACCOUNTS) {
+    await prisma.account.upsert({
+      where: { userId_name: { userId, name: account.name } },
+      create: { userId, ...account },
+      update: {},
+    });
+  }
 }
 
 /**
