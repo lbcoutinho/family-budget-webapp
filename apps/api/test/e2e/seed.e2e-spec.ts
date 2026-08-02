@@ -82,14 +82,16 @@ describe('Database seed (e2e)', () => {
     await expect(hashService.verify(demoRow.passwordHash, credentials.password)).resolves.toBe(false);
   });
 
-  it('gives each user the two sample accounts (M3-T01)', async () => {
-    const { owner } = await seedUsers(prisma, credentials);
+  it('gives the demo user the two sample accounts, and the owner none (M3-T01)', async () => {
+    const { owner, demo } = await seedUsers(prisma, credentials);
 
-    const accounts = await prisma.account.findMany({ where: { userId: owner.id }, orderBy: { sortOrder: 'asc' } });
+    const accounts = await prisma.account.findMany({ where: { userId: demo.id }, orderBy: { sortOrder: 'asc' } });
 
     expect(accounts.map((account) => account.name)).toEqual(['Millennium', 'Revolut']);
     expect(accounts[0]).toMatchObject({ initialBalance: 150_000, isActive: true });
-    await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(4);
+
+    // The owner's database is real data: the seed must never put sample rows in it.
+    await expect(prisma.account.count({ where: { userId: owner.id } })).resolves.toBe(0);
   });
 
   it('is idempotent: a second run updates both rows instead of duplicating or failing', async () => {
@@ -101,7 +103,7 @@ describe('Database seed (e2e)', () => {
 
     await expect(prisma.user.count({ where: { email: { in: emails } } })).resolves.toBe(2);
     // The sample accounts are upserted too, so a second run must not double them.
-    await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(4);
+    await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(2);
   });
 
   it('re-derives the hash on every run, so the stored value changes while the password still verifies', async () => {

@@ -14,8 +14,9 @@ import { toDemoEmail } from '../src/modules/users/demo-email';
  *     `SEED_DEMO_USER_PASSWORD`, so the application can be shown to someone without exposing the
  *     real data.
  *
- * Both users also get the two sample accounts of M3-T01, so a fresh database has something to
- * record transactions against.
+ * **Sample data goes to the demo user only, never to the owner.** The owner's database holds real
+ * money; the demo user is the one that has to look populated. M3-T01 adds the first of it — two
+ * sample accounts.
  *
  * Run with `pnpm --filter api db:seed`. Prisma 7 invokes it through `migrations.seed` in
  * `prisma.config.ts`; the `prisma.seed` key in package.json is gone (ADR-0017).
@@ -103,16 +104,15 @@ export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentia
   const owner = await upsertUser(prisma, email, ownerNameFrom(email), passwordHash);
   const demo = await upsertUser(prisma, demoEmail, 'Demo', demoPasswordHash);
 
-  for (const user of [owner, demo]) {
-    await seedAccounts(prisma, user.id);
-  }
+  // Demo only. The owner's database holds real money; sample rows never go into it.
+  await seedAccounts(prisma, demo.id);
 
   return { owner, demo };
 }
 
 /**
- * The sample accounts every seeded user starts with (M3-T01). Same names the prototypes use, so
- * the screens are read against the data they were drawn with. `initialBalance` is in cents.
+ * The sample accounts the demo user starts with (M3-T01). Same names the prototypes use, so the
+ * screens are read against the data they were drawn with. `initialBalance` is in cents.
  */
 const SAMPLE_ACCOUNTS = [
   { name: 'Millennium', initialBalance: 150_000, sortOrder: 1 },
