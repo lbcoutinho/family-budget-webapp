@@ -8,11 +8,15 @@
 
 export * from './accountDto';
 export * from './authUserDto';
+export * from './cashboxDto';
 export * from './createAccountDto';
+export * from './createCashboxDto';
 export * from './healthStatusDto';
 export * from './healthStatusDtoDb';
 export * from './healthStatusDtoStatus';
 export * from './listAccountsParams';
+export * from './listCashboxesParams';
 export * from './loginDto';
 export * from './sessionDto';
 export * from './updateAccountDto';
+export * from './updateCashboxDto';

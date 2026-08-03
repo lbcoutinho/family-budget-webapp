@@ -7,6 +7,7 @@
 export * from './generated/model';
 export * from './generated/accounts/accounts';
 export * from './generated/auth/auth';
+export * from './generated/cashboxes/cashboxes';
 export * from './generated/health/health';
 
 export { axiosInstance } from './lib/axios';

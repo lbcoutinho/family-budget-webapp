@@ -47,6 +47,7 @@ model User {
 
   accounts   Account[]
   categories Category[]
+  cashboxes  Cashbox[]
 
   @@map("users")
 }
@@ -130,4 +131,35 @@ model Category {
   @@unique([userId, parentId, name])
   @@index([userId, parentId, isActive])
   @@map("categories")
+}
+
+/// Money set aside for a purpose: an emergency fund, a holiday, the next car. A cashbox is a
+/// *transaction type* rather than a category (`CLAUDE.md`, domain rules) — money moves in and out
+/// of it with `CASHBOX_IN` / `CASHBOX_OUT` / `CASHBOX_TRANSFER`, and none of those count as an
+/// expense in the reports.
+///
+/// The balance is deliberately **not** a column: it is the sum of the confirmed movements, computed
+/// in M4-T07. A stored total is one crash away from disagreeing with the transactions that produced
+/// it. `targetAmount` is only a goal to draw progress against, and never enters any calculation.
+model Cashbox {
+  id           String   @id @default(uuid()) @db.Uuid
+  /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
+  userId       String   @map("user_id") @db.Uuid
+  name         String
+  /// Free text: what this money is for. Null and empty mean the same thing to the UI.
+  description  String?
+  /// Optional goal, in **cents** (ADR-0005). Null means the cashbox simply accumulates.
+  targetAmount Int?     @map("target_amount")
+  isActive     Boolean  @default(true) @map("is_active")
+  /// Position in the user's own ordering of the list. Ties broken by `name` at query time.
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, isActive])
+  @@map("cashboxes")
 }

@@ -6,6 +6,7 @@ import { validate } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { PrismaModule } from './prisma/prisma.module';
     HealthModule,
     AuthModule,
     AccountsModule,
+    CashboxesModule,
   ],
 })
 export class AppModule {}

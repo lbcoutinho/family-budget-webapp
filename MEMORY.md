@@ -11,13 +11,12 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58) and M3-T03
-(#47, PR #60) are merged.** M3 Master data is mirrored on GitHub (#45–#53). **M3-T06 (#50) is done
-on branch `claude/m3-t06-oujs6s` (PR #61)** — the app shell (`components/layout/`), the four shared
-components, `lib/money.ts` and `lib/date.ts`, and a placeholder route per navigation item. Nothing
-is half-finished. **Next backend ticket is M3-T04 (#48), the categories API** — build it on the
-M3-T02 module pattern below; on the frontend, M3-T07 (#51), the accounts screen, once
-`prototypes/03-accounts.html` is approved.
+**M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58), M3-T03
+(#47, PR #60) and M3-T06 (#50, PR #61) are merged.** M3 Master data is mirrored on GitHub (#45–#53).
+**M3-T05 (#49) is done on branch `worktree-m3-t05-cashbox`** — the `Cashbox` model, its migration
+and the cashboxes API, straight off the M3-T02 pattern. Nothing is half-finished. **Next backend
+ticket is M3-T04 (#48), the categories API**; on the frontend, M3-T07 (#51), the accounts screen,
+once `prototypes/03-accounts.html` is approved.
 
 ## Gotchas the next ticket will hit
 
@@ -45,6 +44,9 @@ M3-T02 module pattern below; on the frontend, M3-T07 (#51), the accounts screen,
   and P2003 to 409.
 - **A boolean query param needs `@Transform`**, not just `@IsBoolean()`: `ValidationPipe`'s
   `transform` coerces any non-empty string to `true`, so `?includeInactive=false` would be true.
+- **The demo user has no sample cashboxes.** M3-T05 seeded none — nothing in the ticket asked for
+  it, and a cashbox reads as empty until balances exist (M4-T07). Add them to `seed.ts` alongside
+  `seedAccounts` when the cashboxes screen (M3-T09) needs populated data.
 - **The delete-blocked 409 has no end-to-end test yet** — nothing references an `Account` until the
   `Transaction` model lands in M4. The mapping is unit-tested in `prisma-exception.filter.spec.ts`;
   add the real case with M4.
