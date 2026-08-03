@@ -178,7 +178,9 @@ The first CRUD screen. It defines the table-plus-dialog pattern reused by the ot
 
 ### Implementation notes
 - `/accounts` route listing data through the Orval-generated hook
-- Table with name, initial balance and status
+- Table with name, type and status — no balance column yet; it lands in M5-T06 once
+  `GET /accounts/balances` exists (`prototypes/approved/03-accounts.html`)
+- Initial balance stays in the create/edit dialog only, never in the list
 - Create/edit dialog using React Hook Form + Zod
 - Masked currency input, converted to cents on submit
 - Active/inactive toggle with confirmation
