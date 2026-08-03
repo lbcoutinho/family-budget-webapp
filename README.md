@@ -56,6 +56,7 @@ claude plugin install ponytail@ponytail
 claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin install security-guidance@claude-plugins-official
 claude plugin install claude-md-management@claude-plugins-official
+claude plugin install superpowers@claude-plugins-official
 
 claude   # inside the session: /reload-plugins
 ```
