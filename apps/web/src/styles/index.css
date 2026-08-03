@@ -54,6 +54,13 @@
   --category-10: #4a5568;
 }
 
+/* The one breakpoint the shell cares about: below it the sidebar is a drawer, above it a fixed
+   244 px column. Not `inline`, because `AppLayout` reads the same number through `matchMedia` and
+   the two must not be able to drift apart. */
+@theme {
+  --breakpoint-shell: 900px;
+}
+
 @theme inline {
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
