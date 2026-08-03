@@ -874,6 +874,7 @@ Wraps every `<Link>` navigation in `document.startViewTransition`. Use `default=
 **After Step 2:** Enable the experimental flag.
 
 **Step 4:** Use `transitionTypes` on `<Link>` (if available — see availability note below):
+
 ```tsx
 <Link href="/photo/1" transitionTypes={["nav-forward"]}>View</Link>
 <Link href="/" transitionTypes={["nav-back"]}>Back</Link>
