@@ -1,12 +1,16 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import { LandingPage } from './landing-page';
-
+import { AppLayout } from '@/components/layout/app-layout';
+import { NotFoundPlaceholder, RoutePlaceholder } from '@/components/layout/route-placeholder';
 import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
 
-// Feature routes are mounted here as milestones land. Everything except `/login` is behind
-// `ProtectedRoute`; a new route is protected unless it is deliberately opted out.
+// Everything except `/login` renders inside the shell, and everything inside the shell is behind
+// `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
+//
+// Every navigable route exists from here on, because navigation that leads nowhere is not
+// navigation; each one holds a placeholder until its own ticket replaces the element. They do not
+// arrive in the order they are listed — accounts, categories and cashboxes come next, in M3.
 //
 // Exported apart from the router itself so tests can mount the same route table on a memory
 // history — a test asserting on a redirect should exercise the real routes, not a copy of them.
@@ -16,12 +20,26 @@ export const routes = [
     element: <LoginPage />,
   },
   {
-    path: '/',
     element: (
       <ProtectedRoute>
-        <LandingPage />
+        <AppLayout />
       </ProtectedRoute>
     ),
+    children: [
+      // No dashboard: the month screen is this application's home, and the balance panel sits at
+      // the top of it.
+      { index: true, element: <Navigate to="/month" replace /> },
+      { path: 'month', element: <RoutePlaceholder title="Mês" ticket="M5-T01" /> },
+      { path: 'cashboxes', element: <RoutePlaceholder title="Caixinhas" ticket="M3-T09" /> },
+      { path: 'reports', element: <RoutePlaceholder title="Relatórios" ticket="M6-T03" /> },
+      { path: 'voice', element: <RoutePlaceholder title="Lançar por voz" ticket="M8-T04" /> },
+      { path: 'recurrences', element: <RoutePlaceholder title="Recorrências" ticket="M7-T06" /> },
+      { path: 'accounts', element: <RoutePlaceholder title="Contas" ticket="M3-T07" /> },
+      { path: 'categories', element: <RoutePlaceholder title="Categorias" ticket="M3-T08" /> },
+      // A mistyped address lands inside the shell rather than on the router's own error page, so
+      // the navigation is right there to recover with.
+      { path: '*', element: <NotFoundPlaceholder /> },
+    ],
   },
 ];
 
