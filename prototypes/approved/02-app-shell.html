@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ==================================================================
          A moldura, e nada além dela.
@@ -154,9 +154,9 @@
     <div data-proto="02 — Shell / navegação" data-ticket="M3-T06"></div>
 
     <div class="proto-note">
-      <strong>A moldura de todas as rotas.</strong> O trabalho do dia a dia fica no topo — Mês, Relatórios, Lançar por voz, Recorrências — e os três cadastros
-      moram dentro de <strong>Configurações</strong>. Recorrências não é cadastro: é visitada enquanto se toca o mês, então fica de fora do menu. A barra de
-      cima pertence à tarefa da rota, nunca à navegação.
+      <strong>A moldura de todas as rotas.</strong> O trabalho do dia a dia fica no topo — Mês, Caixinhas, Relatórios, Lançar por voz, Recorrências — e os dois
+      cadastros moram dentro de <strong>Configurações</strong>. Caixinhas e Recorrências não são cadastro: são visitadas enquanto se toca o mês, então ficam de
+      fora do menu. A barra de cima pertence à tarefa da rota, nunca à navegação.
     </div>
 
     <!-- ===== desktop: a moldura ao vivo ===== -->
@@ -185,7 +185,7 @@
                 <h3>Barra lateral — 244 px</h3>
                 <p>
                   Marca, navegação, e no rodapé o usuário com o botão de sair. Não encolhe para uma faixa de ícones: são sete itens, cabem por extenso, e um
-                  ícone sozinho obriga a adivinhar.
+                  ícone sozinho obriga a adivinhar. O botão de menu não aparece aqui — a barra é fixa no desktop, não há o que abrir.
                 </p>
               </div>
             </div>
@@ -201,7 +201,7 @@
             <div class="card">
               <div class="card-body">
                 <h3>Configurações</h3>
-                <p>Submenu que abre no lugar, sem sair da barra. Vem aberto quando a rota atual é um dos três cadastros, para você não ter que reabrir.</p>
+                <p>Submenu que abre no lugar, sem sair da barra. Vem aberto quando a rota atual é um dos dois cadastros, para você não ter que reabrir.</p>
               </div>
             </div>
             <div class="card">
@@ -261,6 +261,7 @@
                   </div>
                   <nav class="nav">
                     <a href="#" aria-current="page"><span data-icon="calendar"></span><span>Mês</span></a>
+                    <a href="#"><span data-icon="piggy"></span><span>Caixinhas</span></a>
                     <a href="#"><span data-icon="chart"></span><span>Relatórios</span></a>
                     <a href="#"><span data-icon="mic"></span><span>Lançar por voz</span></a>
                     <a href="#"><span data-icon="repeat"></span><span>Recorrências</span></a>
@@ -270,7 +271,6 @@
                     <div class="sub">
                       <a href="#"><span data-icon="wallet"></span><span>Contas</span></a>
                       <a href="#"><span data-icon="tags"></span><span>Categorias</span></a>
-                      <a href="#"><span data-icon="piggy"></span><span>Caixinhas</span></a>
                     </div>
                   </nav>
                   <div class="user">
@@ -305,8 +305,8 @@
           <div class="decisions">
             <h2>Decisões a aprovar</h2>
             <p>
-              Duas coisas já estão decididas e não voltam à mesa: os três cadastros dentro de Configurações e Recorrências no primeiro nível. Esta tela nunca
-              teve um bloco destes — a v1 passou sem ele. Aqui está o que falta responder.
+              <strong>Todas aprovadas na revisão.</strong> Ficam registradas como decidido, não como pergunta. A revisão mudou uma coisa no desenho: Caixinhas
+              saiu de Configurações e passou a ser o segundo item, logo abaixo de Mês — sobram dois cadastros no submenu, Contas e Categorias.
             </p>
             <ol>
               <li>

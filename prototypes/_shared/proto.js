@@ -55,13 +55,15 @@ function eur(n, { sign = true } = {}) {
 }
 
 /* --- navigation -----------------------------------------------------------
-   Settled on screen 02: everyday work stays at the top level and the three
-   registries live under Configurações. Recorrências is not a registry — it is
-   visited while running the month — so it stays out of that menu.
+   Settled on screen 02: everyday work stays at the top level and the two
+   registries live under Configurações. Caixinhas sits right below Mês — it is
+   visited constantly while running the month, so it is not a registry either.
+   Recorrências, same reason, also stays out of that menu.
    Items with href:null have no prototype yet; they come with the remaining
    screens and say so rather than pretending to be links. */
 const NAV = [
   { id: 'month', label: 'Mês', icon: 'calendar', href: '06-month.html' },
+  { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: '05-cashboxes.html' },
   { id: 'reports', label: 'Relatórios', icon: 'chart', href: '09-reports-monthly.html' },
   { id: 'voice', label: 'Lançar por voz', icon: 'mic', href: null },
   { id: 'recurrences', label: 'Recorrências', icon: 'repeat', href: null },
@@ -70,7 +72,6 @@ const NAV = [
 const NAV_SETTINGS = [
   { id: 'accounts', label: 'Contas', icon: 'wallet', href: '03-accounts.html' },
   { id: 'categories', label: 'Categorias', icon: 'tags', href: '04-categories.html' },
-  { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: '05-cashboxes.html' },
 ];
 
 const SOON = 'Sem protótipo ainda — chega com as telas restantes';
@@ -79,7 +80,7 @@ const SOON = 'Sem protótipo ainda — chega com as telas restantes';
    to know which side of that boundary each end is on. Keeping the list here
    means a file that gets approved is a one-line change, not a sweep through
    every page's navigation. */
-const APPROVED = new Set(['00-design-system.html', '01-login.html', '06-month.html']);
+const APPROVED = new Set(['00-design-system.html', '01-login.html', '02-app-shell.html', '06-month.html']);
 
 function protoHref(file) {
   const here = location.pathname.includes('/approved/');

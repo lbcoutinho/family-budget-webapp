@@ -34,6 +34,11 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       // Unique constraint failed.
       case 'P2002':
         return { status: HttpStatus.CONFLICT, message: 'A record with the same unique value already exists.' };
+      // Foreign key constraint failed — in practice, a delete the database refuses because other
+      // rows still point at the target (M3-T02's `DELETE /accounts/:id`). 409 rather than 500: the
+      // request is well-formed, the state of the data is what says no.
+      case 'P2003':
+        return { status: HttpStatus.CONFLICT, message: 'Other records still reference this one. Deactivate it instead of deleting it.' };
       // Record required by the operation was not found.
       case 'P2025':
         return { status: HttpStatus.NOT_FOUND, message: 'The requested record was not found.' };
