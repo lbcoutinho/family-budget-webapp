@@ -42,7 +42,7 @@ describe('authentication flow', () => {
 
     renderApp('/');
 
-    expect(await screen.findByText('Olá, Luís.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
   });
 
   it('shows the verifying state instead of the login form while the refresh is in flight', async () => {
@@ -58,7 +58,7 @@ describe('authentication flow', () => {
 
     expect(screen.getByText('Restaurando sessão…')).toBeInTheDocument();
     expect(screen.queryByLabelText('E-mail')).not.toBeInTheDocument();
-    await screen.findByText('Olá, Luís.');
+    await screen.findByRole('heading', { name: 'Mês' });
   });
 
   it('sends a protected route without a session to the login screen', async () => {
@@ -67,7 +67,9 @@ describe('authentication flow', () => {
     renderApp('/');
 
     expect(await screen.findByLabelText('E-mail')).toBeInTheDocument();
-    expect(screen.queryByText('Family Budget')).not.toBeInTheDocument();
+    // The login screen carries the same brand as the sidebar, so what proves the shell is not
+    // rendered is its navigation, not its name.
+    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).not.toBeInTheDocument();
   });
 
   it('logs in and lands on the home screen', async () => {
@@ -82,7 +84,7 @@ describe('authentication flow', () => {
     await user.type(screen.getByLabelText('Senha'), 'demo1234');
     await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
-    expect(await screen.findByText('Olá, Luís.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
   });
 
   it('clears the session on logout and returns to the login screen', async () => {
