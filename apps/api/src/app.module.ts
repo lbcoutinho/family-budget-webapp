@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     AccountsModule,
     CashboxesModule,
+    CategoriesModule,
   ],
 })
 export class AppModule {}
