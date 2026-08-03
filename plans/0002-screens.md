@@ -206,8 +206,8 @@ that implements it. **The whole first set was discarded after review** and lives
 the input to v2.
 
 **v2 is direction D — Cromático.** The design system is **approved** and sits in
-`prototypes/approved/`, together with `01-login` and `06-month`. Five are under review: the four M3
-screens (`02` shell, `03` accounts, `04` categories, `05` cashboxes) and `09` monthly report.
+`prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts` and `06-month`. Three
+are under review: `04` categories, `05` cashboxes and `09` monthly report.
 
 Screens are drawn **one at a time, in the order the project needs them**. That rule was broken once,
 on the user's explicit instruction: 02 to 05 were drawn as a block because the whole of M3 depends on
@@ -219,7 +219,7 @@ moves to `approved/` on its own.
 | 00  | Design system      | —                      | —                  | `approved/00-design-system.html` | **approved** |
 | 01  | Login              | `/login`               | M2-T06             | `approved/01-login.html`     | **approved** |
 | 02  | Shell / navigation | (frame)                | M3-T06             | `approved/02-app-shell.html` | **approved** |
-| 03  | Accounts           | `/accounts`            | M3-T07             | `03-accounts.html`           | **v2 — under review** |
+| 03  | Accounts           | `/accounts`            | M3-T07, M5-T06      | `approved/03-accounts.html`  | **approved** |
 | 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | **v2 — under review** |
 | 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | **v2 — under review** |
 | 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `approved/06-month.html`     | **approved** |

@@ -122,11 +122,14 @@ its own page:
 - **02 — the sidebar never collapses on desktop**, no icon-only mode, no collapse control.
 - **02 — logging out asks for no confirmation.**
 - **03 — a "Tipo" column** (conta corrente, poupança, carteira, cartão de crédito), which the v1
-  never had. It changes no domain rule and is a label, not behaviour.
+  never had. It changes no domain rule and is a label, not behaviour. **Kept as drawn, approved
+  2026-08-04.**
 - **03 — the account list's footer total covers active accounts only**, and says in a line below why
-  it does not match the month screen's consolidated total, which includes cashboxes.
+  it does not match the month screen's consolidated total, which includes cashboxes. **Approved as
+  drawn, 2026-08-04.**
 - **03 — M3-T07 ships without the current-balance column** and gains it at M5-T06, rather than the
-  ticket waiting. Proposed, not settled: the alternative is making M3-T07 depend on M5-T06.
+  ticket waiting. **Settled 2026-08-04: M3-T07 ships without it; M5-T06 adds the column to the
+  accounts list as part of its own scope** — both milestone files updated to match.
 - **04 — "+ Subcategoria" is a dashed text button in the middle column**, and it disappears on the
   phone, where the action moves inside the expanded parent row.
 - **04 — the "Outros" subcategory's deactivate button is disabled rather than absent** when it is the
@@ -163,6 +166,8 @@ the v1 review. The second is now being passed **one screen at a time**:
 - **`02-app-shell.html` has passed both** and sits in `approved/`, so M3-T06 is unblocked.
 - **`06-month.html` has passed both** and sits in `approved/`, so M5-T01, M5-T05 and M5-T06 are
   unblocked on the UI side.
+- **`03-accounts.html` has passed both**, approved 2026-08-04, and sits in `approved/`, so M3-T07
+  is unblocked on the UI side.
 - **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
   implementation.
 - What "concept approved" settles is structure and behaviour: which actions a screen offers, which
@@ -179,7 +184,7 @@ approval.
 | 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
 | 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
 | 02 shell              | **approved**      | in `approved/` — Caixinhas second, below Mês; Contas and Categorias under Configurações; no burger on the desktop               |
-| 03 accounts           | approved          | **drawn in v2, under review** — initial-balance column gone, current balance in the list, sorted by name                        |
+| 03 accounts           | **approved**      | in `approved/` — initial-balance column gone, current balance in the list (added by M5-T06), type column kept, sorted by name   |
 | 04 categories         | approved          | **drawn in v2, under review** — month-spend column gone, "+ Subcategoria" now a visible button on the parent row                |
 | 05 cashboxes          | approved          | **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added                      |
 | 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                          |
@@ -290,18 +295,30 @@ the rule now sits after the button rules in `proto.css`.)
 
 ### 03 — Accounts
 
-- **No initial-balance column.** It is a value that is set once and then rarely looked at; it lives
-  in the edit dialog, which is where the user goes when they do want it.
-- **Current balance stays in the list.** This resolves the either/or that was on the page: current
-  balance in the table, initial balance only in the form.
+**Design-approved on 2026-08-04** and moved to `approved/`. All five "Decisões a aprovar" on the
+page were approved:
+
+- **M3-T07 ships without the current-balance column; M5-T06 adds it.** The column comes from
+  `GET /accounts/balances`, which does not exist until M5-T06. Chosen over the alternative of
+  making M3-T07 depend on M5-T06. Both milestone files (`m03-master-data.md`, `m05-entries-ui.md`)
+  are updated to carry this split.
+- **The "Tipo" column stays** (conta corrente, poupança, carteira, cartão de crédito). It changes no
+  domain rule — label, not behaviour.
+- **Inactive accounts appear in the list, dimmed, behind the "show inactive" toggle** — same rule as
+  categories and cashboxes.
+- **The footer total covers active accounts only**, labelled, with the line below it explaining why
+  it does not match the month screen's consolidated total (which includes cashboxes).
+- **Negative balance in red, no icon, no parentheses** — carried over from the v1 approval.
+
+Earlier, already-settled decisions this drawing carried forward:
+
+- **No initial-balance column in the list.** It is a value that is set once and then rarely looked
+  at; it lives in the edit dialog, which is where the user goes when they do want it.
+- **Current balance stays in the list**, once it exists (see the M5-T06 split above). This resolves
+  the either/or that was on the page: current balance in the table, initial balance only in the
+  form.
 - **Default sort: alphabetical by account name.** Consistent with the already-approved decision not
   to expose manual ordering, even though `sortOrder` exists on the model.
-- Remaining approved as prototyped: negative balance in red with no extra icon; deactivation asks
-  for confirmation while delete attempts and surfaces the backend 409.
-
-Sequencing consequence, not a new question: the current balance comes from
-`GET /accounts/balances`, which arrives in M5-T06. M3-T07 lands before that, so the accounts screen
-either ships without that column and gains it later, or waits.
 
 ### 04 — Categories
 

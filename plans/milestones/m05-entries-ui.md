@@ -160,6 +160,8 @@ Immediate feedback that entries are correct. It is what makes the system trustwo
 - Data from `GET /accounts/balances` and `GET /cashboxes/balances`
 - Short `staleTime`; invalidated after any transaction mutation
 - Skeleton while loading
+- Adds the "Saldo atual" column to the accounts screen list (M3-T07), which shipped without it —
+  `GET /accounts/balances` did not exist yet (`prototypes/approved/03-accounts.html`)
 
 ### Acceptance criteria
 - [ ] Balances shown per account and per cashbox
@@ -168,6 +170,7 @@ Immediate feedback that entries are correct. It is what makes the system trustwo
 - [ ] Balances refresh after creating, editing or deleting an entry
 - [ ] Negative balances are visually highlighted
 - [ ] A skeleton shows while loading
+- [ ] The accounts screen list shows a "Saldo atual" column sourced from this endpoint
 
 ### Tests
 - Integration with MSW: rendering; refresh after mutation; conditional progress bar; negative formatting
