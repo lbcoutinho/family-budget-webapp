@@ -19,15 +19,8 @@ done**, T04 on branch `claude/m3-t04-categories-api` and T05 (this branch,
 `app.module.ts`, the api-client barrel files and this memory file, all additive on both sides.
 Nothing is half-finished. **M3's backend is now done** (T01–T06 all merged/complete); the
 remaining M3 tickets are frontend screens — M3-T07 (#51, accounts), M3-T08 (categories), M3-T09
-(cashboxes) — each blocked on its own prototype leaving `prototypes/approved/`.
-
-**M3 gained five tickets (T10–T14) on 2026-08-04, and they are not built in numeric order.** The
-i18n design is in `docs/superpowers/specs/2026-08-04-i18n-design.md`; the order table is at the top
-of `plans/milestones/m03-master-data.md`. **Next is M3-T10** (i18n foundation), then M3-T11 (API
-error codes), and only then T07/T08/T09 — writing those three screens before T10 means writing
-their strings twice. T12, T13 (Settings › General, blocked on a prototype that does not exist yet)
-and T14 (Vercel deploy, approach undecided — discuss before executing) follow. **Warn before
-starting any M3 ticket out of that order.** T10–T14 are not yet mirrored as GitHub issues.
+(cashboxes) — each blocked on its own prototype leaving `prototypes/approved/`. T07 is next once
+`prototypes/03-accounts.html` is approved.
 
 ## Gotchas the next ticket will hit
 
