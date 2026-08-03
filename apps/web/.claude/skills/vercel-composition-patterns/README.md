@@ -6,7 +6,7 @@ lifting state, and composing internals.
 
 ## Structure
 
-- `rules/` - Individual rule files (one per rule)
+- `rules` - Individual rule files (one per rule)
   - `_sections.md` - Section metadata (titles, impacts, descriptions)
   - `_template.md` - Template for creating new rules
   - `area-description.md` - Individual rule files
