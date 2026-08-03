@@ -168,6 +168,8 @@ the v1 review. The second is now being passed **one screen at a time**:
   unblocked on the UI side.
 - **`03-accounts.html` has passed both**, approved 2026-08-04, and sits in `approved/`, so M3-T07
   is unblocked on the UI side.
+- **`04-categories.html` has passed both**, approved 2026-08-04, and sits in `approved/`, so
+  M3-T08 is unblocked on the UI side.
 - **Every other screen is still concept-only**, so `CLAUDE.md`'s rule keeps blocking
   implementation.
 - What "concept approved" settles is structure and behaviour: which actions a screen offers, which
@@ -179,22 +181,22 @@ Every row's v1 file is in `discarded/v1-default/`. "Concept" is what survived re
 into v2. **Drawn in v2** marks the three that exist now; every other row is waiting on their
 approval.
 
-| Prototype             | Concept           | Changes to apply when regenerating                                                                                              |
-| --------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                   |
-| 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                       |
-| 02 shell              | **approved**      | in `approved/` — Caixinhas second, below Mês; Contas and Categorias under Configurações; no burger on the desktop               |
-| 03 accounts           | **approved**      | in `approved/` — initial-balance column gone, current balance in the list (added by M5-T06), type column kept, sorted by name   |
-| 04 categories         | approved          | **drawn in v2, under review** — month-spend column gone, "+ Subcategoria" now a visible button on the parent row                |
-| 05 cashboxes          | approved          | **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added                      |
-| 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                          |
-| 07 income / expense   | approved, in full | —                                                                                                                               |
-| 08 cashbox operations | approved, in full | —                                                                                                                               |
-| 09 monthly report     | approved          | **drawn in v2** — CSV gone, against-the-average column drawn, composition band added                                            |
-| 10 yearly report      | approved          | drop CSV; percentage beside the current-year value, one row per category; average column headed "Média 12 meses" with a tooltip |
-| 11 charts             | approved          | show every category, never group into "Outras"                                                                                  |
-| 12 recurrences        | approved, in full | keep the `autoConfirm` checkbox                                                                                                 |
-| 13 voice              | approved, in full | —                                                                                                                               |
+| Prototype             | Concept           | Changes to apply when regenerating                                                                                                                   |
+| --------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 00 design system      | **approved**      | in `approved/` — 10 swatches, green action accent, Grotesk + Public Sans with tabular figures                                                        |
+| 01 login              | **approved**      | in `approved/` — four states, the action is the only colour on the screen, no subtitle and no demo footer                                            |
+| 02 shell              | **approved**      | in `approved/` — Caixinhas second, below Mês; Contas and Categorias under Configurações; no burger on the desktop                                    |
+| 03 accounts           | **approved**      | in `approved/` — initial-balance column gone, current balance in the list (added by M5-T06), type column kept, sorted by name                        |
+| 04 categories         | **approved**      | in `approved/` — month-spend column gone, "+ Subcategoria" a visible button on the parent row, subcategory dialog shows the parent as a colour label |
+| 05 cashboxes          | approved          | **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added                                           |
+| 06 month              | **approved**      | in `approved/` — stacked month strip, the wide row, running balance under every amount                                                               |
+| 07 income / expense   | approved, in full | —                                                                                                                                                    |
+| 08 cashbox operations | approved, in full | —                                                                                                                                                    |
+| 09 monthly report     | approved          | **drawn in v2** — CSV gone, against-the-average column drawn, composition band added                                                                 |
+| 10 yearly report      | approved          | drop CSV; percentage beside the current-year value, one row per category; average column headed "Média 12 meses" with a tooltip                      |
+| 11 charts             | approved          | show every category, never group into "Outras"                                                                                                       |
+| 12 recurrences        | approved, in full | keep the `autoConfirm` checkbox                                                                                                                      |
+| 13 voice              | approved, in full | —                                                                                                                                                    |
 
 ---
 
@@ -322,6 +324,21 @@ Earlier, already-settled decisions this drawing carried forward:
 
 ### 04 — Categories
 
+**Design-approved on 2026-08-04** and moved to `approved/`. All five "Decisões a aprovar" on the
+page were approved, plus one change made during the review itself:
+
+- **The mobile gap is real and stays undrawn on purpose — but the ticket now says so explicitly.**
+  On the phone, expanding a category hides the "+ Subcategoria" button along with the count column
+  it sits in, and the prototype doesn't draw a replacement. Not worth reworking the mock-up for;
+  instead `plans/milestones/m03-master-data.md` (M3-T08) now states directly that the action must
+  move inside the expanded parent row on narrow viewports, so it isn't quietly lost when the
+  desktop layout gets implemented first.
+- **The count column and its number stay**, both approved as drawn.
+- **New, decided in this review rather than drawn originally: the subcategory dialog's "Categoria"
+  field is a label with the colour swatch beside it, not an input.** The field was disabled but
+  still looked like a form field, which invited the question of why it couldn't be typed into. A
+  label with the parent's swatch states the same fact — which category this will belong to — without
+  implying it's editable. Applied directly to the prototype before moving it to `approved/`.
 - **No "gasto no mês" / "recebido no mês" column.** This also removes the screen's only dependency
   on report data, so M3-T08 no longer needs anything from M6.
 - **Subcategory creation has to be visible.** The user's note is that the prototype does not show

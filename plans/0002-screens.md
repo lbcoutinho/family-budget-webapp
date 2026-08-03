@@ -206,8 +206,8 @@ that implements it. **The whole first set was discarded after review** and lives
 the input to v2.
 
 **v2 is direction D — Cromático.** The design system is **approved** and sits in
-`prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts` and `06-month`. Three
-are under review: `04` categories, `05` cashboxes and `09` monthly report.
+`prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts`, `04-categories` and
+`06-month`. Two are under review: `05` cashboxes and `09` monthly report.
 
 Screens are drawn **one at a time, in the order the project needs them**. That rule was broken once,
 on the user's explicit instruction: 02 to 05 were drawn as a block because the whole of M3 depends on
@@ -220,7 +220,7 @@ moves to `approved/` on its own.
 | 01  | Login              | `/login`               | M2-T06             | `approved/01-login.html`     | **approved** |
 | 02  | Shell / navigation | (frame)                | M3-T06             | `approved/02-app-shell.html` | **approved** |
 | 03  | Accounts           | `/accounts`            | M3-T07, M5-T06      | `approved/03-accounts.html`  | **approved** |
-| 04  | Categories         | `/categories`          | M3-T08             | `04-categories.html`         | **v2 — under review** |
+| 04  | Categories         | `/categories`          | M3-T08             | `approved/04-categories.html` | **approved** |
 | 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | **v2 — under review** |
 | 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `approved/06-month.html`     | **approved** |
 | 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Awaiting v2 |
@@ -287,14 +287,21 @@ ships without the column or waits. Rows are sorted alphabetically by name.
 | Switch expense / income tab | Filters by `kind` |
 | Expand a category | Reveals its subcategories |
 | Create root category | Automatically ships with an "Outros" subcategory |
-| Create subcategory from its parent | `parentId` pre-filled, parent locked |
-| Pick colour | Sixteen suggested swatches plus a hex field |
+| Create subcategory from its parent | `parentId` pre-filled; the parent shows as a label with its colour swatch, not an editable field |
+| Pick colour | Ten suggested swatches plus a hex field |
 | Deactivate parent | Confirmation stating that the children go with it |
 | Deactivate last active subcategory | Blocked, 409 explained inline |
 | Search | Filters the tree |
 
 Colour belongs to the root category; subcategories inherit it in charts. There is no "gasto no
 mês" column: it was dropped at review, which leaves this screen with no dependency on M6 data.
+
+**Design-approved 2026-08-04.** The row count column stays, shown as a number. On desktop
+"+ Subcategoria" is a visible dashed button beside the count, in the parent row's middle column.
+**On mobile that column disappears and the action must move inside the expanded parent row** —
+the prototype does not draw this state, so it is called out here rather than left implicit: an
+implementation that only ports the desktop button loses the ability to add a subcategory on
+mobile entirely.
 
 ### 05 — Cashboxes (`/cashboxes`)
 

@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ==================================================================
          A tela onde a cor é decidida — e a única em que a paleta aparece
@@ -498,8 +498,8 @@
           <!-- ===== subcategoria ===== -->
           <h2 class="sec">Criar uma subcategoria</h2>
           <p>
-            Abre pelo botão da própria linha da mãe, que agora está sempre visível. A mãe vem preenchida e travada — trocar a mãe aqui seria mover a
-            subcategoria, que é outra ação.
+            Abre pelo botão da própria linha da mãe, que agora está sempre visível. A mãe é sabida, não escolhida aqui — por isso aparece como rótulo com a cor
+            ao lado, nunca como campo: um campo sugeriria que dá para trocar, e trocar a mãe seria mover a subcategoria, que é outra ação.
           </p>
           <div class="states">
             <div>
@@ -508,8 +508,8 @@
                 <div class="card-head"><h2>Nova subcategoria</h2></div>
                 <div class="dlg-body">
                   <div class="field">
-                    <label for="s-parent">Categoria</label>
-                    <input class="input" id="s-parent" value="Moradia" disabled />
+                    <label>Categoria</label>
+                    <span class="cat"><span class="swatch" style="background: var(--c1)"></span><b>Moradia</b></span>
                   </div>
                   <div class="field">
                     <label for="s-name">Nome</label>
