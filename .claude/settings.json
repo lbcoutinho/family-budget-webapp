@@ -40,6 +40,7 @@
     "chrome-devtools-mcp@chrome-devtools-plugins": true,
     "ponytail@ponytail": true,
     "security-guidance@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   }
 }

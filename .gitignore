@@ -70,3 +70,6 @@ Thumbs.db
 .impeccable/live/deferred-svelte-component-accepts.json
 .impeccable/live/*.png
 # impeccable-ignore-end
+
+# headroom
+**/.headroom_wrap_marker.json
