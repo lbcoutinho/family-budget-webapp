@@ -210,18 +210,27 @@ The most complex master-data screen because of the hierarchy. It deserves its ow
 ### Implementation notes
 - `/categories` route with a tree view (expandable parent revealing its children)
 - Visual separation between income and expense categories (tabs or groups)
-- Creating a subcategory from its parent, with `parentId` pre-filled
+- Creating a subcategory from its parent, with `parentId` pre-filled; the dialog shows the parent
+  as a label with its colour swatch, not an editable or disabled input — the parent can't be
+  changed from this dialog, so nothing here should look editable
 - Color picker for `color`, with a suggested palette
 - "Inactive" badge on deactivated records when the toggle is on
 - Specific messages for the business 409s (last subcategory, kind change with transactions)
+- A subcategory count column and a "+ Subcategoria" button in the parent row's middle column. On
+  mobile that column is dropped — **the add-subcategory action must still be reachable**, moved
+  inside the expanded parent row. The prototype (`prototypes/approved/04-categories.html`) doesn't
+  draw this mobile state; don't let the desktop layout be the only one implemented
 
 ### Acceptance criteria
 - [ ] The tree renders parents and children correctly
-- [ ] Creating a subcategory from its parent pre-fills the relation
+- [ ] Creating a subcategory from its parent pre-fills the relation and shows the parent as a
+  read-only label with its colour, not an input
 - [ ] Income and expense categories appear separately
 - [ ] The selected color is persisted and displayed
 - [ ] Deactivating a parent reflects on its children after invalidation
 - [ ] 409 errors display the backend's specific message
+- [ ] On mobile, the subcategory count is dropped but adding a subcategory is still reachable
+  from inside the expanded parent row
 
 ### Tests
 - Integration with MSW: tree rendering; subcategory creation; deactivation cascade; last-subcategory error
