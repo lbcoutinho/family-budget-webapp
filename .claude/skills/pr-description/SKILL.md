@@ -21,7 +21,7 @@ Closes #<issue-number>.
 - **`<file-or-path>`** — <what it is / what it declares>.
 - **<file-or-path>** — <what it configures, one clause per notable setting>.
 - **<file-or-path>** — <what it configures>.
-- <Repeat one bullet per meaningful file/change. Group related files under a single bullet with a short sub-list or table when there are several similar items (e.g. one row per workspace/module).>
+- <Max 5 bullets. Repeat one bullet per meaningful file/change. Group related files under a single bullet with a short sub-list or table when there are several similar items (e.g. one row per workspace/module).>
 
 #### Decisions worth a look
 
