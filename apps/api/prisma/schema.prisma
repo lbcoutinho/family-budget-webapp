@@ -45,7 +45,8 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  accounts Account[]
+  accounts   Account[]
+  categories Category[]
 
   @@map("users")
 }
@@ -76,4 +77,57 @@ model Account {
   @@unique([userId, name])
   @@index([userId, isActive])
   @@map("accounts")
+}
+
+/// What a transaction is *for*. Income and expense are the only two sides that need classifying:
+/// cashbox movements and transfers are transaction types, not categories (`CLAUDE.md`, domain
+/// rules), so they never carry one.
+enum CategoryKind {
+  EXPENSE
+  INCOME
+
+  @@map("category_kind")
+}
+
+/// A spending or earning bucket, in a tree at most two levels deep (M3-T03): a root has
+/// `parentId = NULL`, a subcategory points at a root. The depth limit is a service rule — the
+/// schema cannot express "a parent must itself be a root" — and arrives with M3-T04, along with
+/// the automatic "Outros" subcategory and the deactivation cascade.
+///
+/// Uniqueness takes two constraints, not one. `@@unique([userId, parentId, name])` covers
+/// subcategories, but in PostgreSQL `NULL != NULL`, so it lets a user hold any number of roots
+/// called "Alimentação". The root half is a partial unique index — `WHERE parent_id IS NULL` —
+/// which Prisma's schema language cannot declare, so it is hand-written into the migration
+/// (`category_root_name_unique`). Both are load-bearing; neither replaces the other.
+model Category {
+  id       String       @id @default(uuid()) @db.Uuid
+  /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
+  userId   String       @map("user_id") @db.Uuid
+  /// `NULL` on a root category. A subcategory's parent is always a root.
+  parentId String?      @map("parent_id") @db.Uuid
+  name     String
+  kind     CategoryKind
+  /// `#RRGGBB`, and set on roots only: subcategories inherit their parent's colour in the charts
+  /// (`prototypes/MEMORY.md` §04). Null is a normal state, not a missing value — the palette has
+  /// ten swatches and the UI falls back to a colour derived from the id.
+  color    String?
+
+  isActive  Boolean  @default(true) @map("is_active")
+  /// Position in the user's own ordering, within its own level. Ties broken by `name` at query time.
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  // Restrict here too — a root with children is deleted deliberately, child rows first, never as
+  // a side effect. Note the check is immediate and per row, so a single `deleteMany` spanning
+  // parents and children fails with P2003: delete the subcategories in their own statement.
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  children Category[] @relation("CategoryTree")
+
+  // Subcategories only — see the note above on NULL and the partial index that covers roots.
+  @@unique([userId, parentId, name])
+  @@index([userId, parentId, isActive])
+  @@map("categories")
 }
