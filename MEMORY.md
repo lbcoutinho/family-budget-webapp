@@ -13,11 +13,14 @@ Rewrite this file rather than appending to it.
 
 **M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58), M3-T03
 (#47, PR #60) and M3-T06 (#50, PR #61) are merged.** M3 Master data is mirrored on GitHub
-(#45–#53). **M3-T04 (#48) is done on branch `claude/m3-t04-categories-api`** — the categories
-module, the automatic "Outros", the deactivation cascade and the tree query. Nothing is
-half-finished. **Next backend ticket is M3-T05 (#49), the cashboxes model and API** — the plainest
-of the three, straight off the M3-T02 pattern; on the frontend, M3-T07 (#51), the accounts screen,
-once `prototypes/03-accounts.html` is approved.
+(#45–#53). **M3-T04 (#48, categories API) and M3-T05 (#49, cashboxes model and API) are both
+done**, T04 on branch `claude/m3-t04-categories-api` and T05 (this branch,
+`worktree-m3-t05-cashbox`) merged with `main` to bring T04 in — conflicts were confined to
+`app.module.ts`, the api-client barrel files and this memory file, all additive on both sides.
+Nothing is half-finished. **M3's backend is now done** (T01–T06 all merged/complete); the
+remaining M3 tickets are frontend screens — M3-T07 (#51, accounts), M3-T08 (categories), M3-T09
+(cashboxes) — each blocked on its own prototype leaving `prototypes/approved/`. T07 is next once
+`prototypes/03-accounts.html` is approved.
 
 ## Gotchas the next ticket will hit
 
@@ -45,6 +48,9 @@ once `prototypes/03-accounts.html` is approved.
   and P2003 to 409.
 - **A boolean query param needs `@Transform`**, not just `@IsBoolean()`: `ValidationPipe`'s
   `transform` coerces any non-empty string to `true`, so `?includeInactive=false` would be true.
+- **The demo user has no sample cashboxes.** M3-T05 seeded none — nothing in the ticket asked for
+  it, and a cashbox reads as empty until balances exist (M4-T07). Add them to `seed.ts` alongside
+  `seedAccounts` when the cashboxes screen (M3-T09) needs populated data.
 - **The delete-blocked 409 has no end-to-end test yet** — nothing references an `Account` until the
   `Transaction` model lands in M4. The mapping is unit-tested in `prisma-exception.filter.spec.ts`;
   add the real case with M4. (Categories already prove the 409 through their self-relation: a root
