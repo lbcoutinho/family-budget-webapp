@@ -68,7 +68,7 @@ Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` 
 ## Conventions
 
 - **Branch-per-implementation.** All implementation on branch off `main` — never commit directly to `main`. Commit + push to feature branch, open pull request to `main`. **Never merge to `main`** — user reviews and merges.
-- **Run `pr-description` skill** (`.claude/skills/pr-description/`) **whenever opening pull request**, to structure PR body instead of freeform text.
+- **Run `pr-description` skill** (`.claude/skills/pr-description/`) **whenever opening pull request**, to structure PR body instead of freeform text. Skill pins `model: sonnet` — documentation work runs on Sonnet 5, so PR footer names Sonnet even when session runs another model.
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings localized.
 - **One task = one small PR**; split if diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.

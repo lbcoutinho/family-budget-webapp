@@ -43,10 +43,15 @@ describe('Database seed (e2e)', () => {
     await moduleRef.init();
   });
 
-  // The seeded accounts hold a foreign key onto the user with `onDelete: Restrict`, so the rows
-  // come off in that order.
+  // Every seeded row holds a foreign key onto the user with `onDelete: Restrict`, so they come off
+  // first. Categories take two passes of their own: the self-referencing key is `Restrict` too and
+  // is checked per row, so one `deleteMany` spanning parents and children fails with P2003.
   const removeFixtures = async (): Promise<void> => {
-    await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
+    const owner = { user: { email: { in: emails } } };
+
+    await prisma.account.deleteMany({ where: owner });
+    await prisma.category.deleteMany({ where: { ...owner, parentId: { not: null } } });
+    await prisma.category.deleteMany({ where: owner });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
   };
 
@@ -94,6 +99,30 @@ describe('Database seed (e2e)', () => {
     await expect(prisma.account.count({ where: { userId: owner.id } })).resolves.toBe(0);
   });
 
+  it('gives the demo user the sample category tree, and the owner none (M3-T03)', async () => {
+    const { owner, demo } = await seedUsers(prisma, credentials);
+
+    const roots = await prisma.category.findMany({
+      where: { userId: demo.id, parentId: null },
+      orderBy: { sortOrder: 'asc' },
+      include: { children: { orderBy: { sortOrder: 'asc' }, select: { name: true, kind: true, color: true } } },
+    });
+
+    expect(roots.map((root) => root.name)).toEqual(['Moradia', 'Transporte', 'Alimentação', 'Saúde', 'Lazer', 'Salário']);
+    expect(roots[0]).toMatchObject({ kind: 'EXPENSE', color: '#1f6f54', isActive: true });
+    // The income root is the one deliberately left without a colour.
+    expect(roots.at(-1)).toMatchObject({ name: 'Salário', kind: 'INCOME', color: null });
+
+    // Children inherit their parent's kind and carry no colour of their own.
+    expect(roots[2]?.children).toEqual([
+      { name: 'Supermercado', kind: 'EXPENSE', color: null },
+      { name: 'Restaurante', kind: 'EXPENSE', color: null },
+    ]);
+
+    // The owner's database is real data: the seed must never put sample rows in it.
+    await expect(prisma.category.count({ where: { userId: owner.id } })).resolves.toBe(0);
+  });
+
   it('is idempotent: a second run updates both rows instead of duplicating or failing', async () => {
     const first = await seedUsers(prisma, credentials);
     const second = await seedUsers(prisma, credentials);
@@ -104,6 +133,8 @@ describe('Database seed (e2e)', () => {
     await expect(prisma.user.count({ where: { email: { in: emails } } })).resolves.toBe(2);
     // The sample accounts are upserted too, so a second run must not double them.
     await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(2);
+    // Same for the category tree: six roots and eight subcategories, once.
+    await expect(prisma.category.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(14);
   });
 
   it('re-derives the hash on every run, so the stored value changes while the password still verifies', async () => {
