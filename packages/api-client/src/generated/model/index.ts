@@ -8,11 +8,16 @@
 
 export * from './accountDto';
 export * from './authUserDto';
+export * from './categoryDto';
+export * from './categoryKind';
 export * from './createAccountDto';
+export * from './createCategoryDto';
 export * from './healthStatusDto';
 export * from './healthStatusDtoDb';
 export * from './healthStatusDtoStatus';
 export * from './listAccountsParams';
+export * from './listCategoriesParams';
 export * from './loginDto';
 export * from './sessionDto';
 export * from './updateAccountDto';
+export * from './updateCategoryDto';

@@ -11,13 +11,13 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58) and M3-T03
-(#47, PR #60) are merged.** M3 Master data is mirrored on GitHub (#45–#53). **M3-T06 (#50) is done
-on branch `claude/m3-t06-oujs6s` (PR #61)** — the app shell (`components/layout/`), the four shared
-components, `lib/money.ts` and `lib/date.ts`, and a placeholder route per navigation item. Nothing
-is half-finished. **Next backend ticket is M3-T04 (#48), the categories API** — build it on the
-M3-T02 module pattern below; on the frontend, M3-T07 (#51), the accounts screen, once
-`prototypes/03-accounts.html` is approved.
+**M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58), M3-T03
+(#47, PR #60) and M3-T06 (#50, PR #61) are merged.** M3 Master data is mirrored on GitHub
+(#45–#53). **M3-T04 (#48) is done on branch `claude/m3-t04-categories-api`** — the categories
+module, the automatic "Outros", the deactivation cascade and the tree query. Nothing is
+half-finished. **Next backend ticket is M3-T05 (#49), the cashboxes model and API** — the plainest
+of the three, straight off the M3-T02 pattern; on the frontend, M3-T07 (#51), the accounts screen,
+once `prototypes/03-accounts.html` is approved.
 
 ## Gotchas the next ticket will hit
 
@@ -47,7 +47,15 @@ M3-T02 module pattern below; on the frontend, M3-T07 (#51), the accounts screen,
   `transform` coerces any non-empty string to `true`, so `?includeInactive=false` would be true.
 - **The delete-blocked 409 has no end-to-end test yet** — nothing references an `Account` until the
   `Transaction` model lands in M4. The mapping is unit-tested in `prisma-exception.filter.spec.ts`;
-  add the real case with M4.
+  add the real case with M4. (Categories already prove the 409 through their self-relation: a root
+  still holding subcategories cannot be deleted.)
+- **Two M3-T04 rules are waiting on the `Transaction` model, and M4 has to pick them up**: "block a
+  kind change when transactions reference the category" (a `ponytail:` comment marks the spot in
+  `CategoriesService.update`), and the delete-blocked case above. Both land with M4-T01.
+- **`CategoriesService` owns three invariants the schema cannot state**: the tree is two levels
+  deep, a subcategory matches its parent's kind and carries no colour of its own, and an active
+  root always has an active subcategory (hence the automatic "Outros" on create, and the 409 on
+  deactivating the last one). Deactivating _or_ activating a root cascades to its children.
 - **The seed writes sample data for the demo user only, never for the owner**, and those rows hold
   a foreign key onto `User` with `onDelete: Restrict`: any fixture that deletes a user must delete
   that user's accounts and categories first (P2003) — see `removeFixtures()` in
