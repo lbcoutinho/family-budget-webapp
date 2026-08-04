@@ -1,11 +1,12 @@
 import { type AccountDto } from '@family-budget/api-client';
-import { CheckIcon, PencilIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { PencilIcon, PowerIcon, PowerOffIcon, Trash2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 /** "Millennium" → "MI", "Conta Corrente" → "CC". Two letters, no icon set distinguishes a list of banks. */
@@ -81,21 +82,41 @@ export function AccountsTable({ accounts, onEdit, onDeactivate, onActivate, onDe
             </TableCell>
             <TableCell>
               <div className="flex justify-end gap-0.5">
-                <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => onEdit(account)}>
-                  <PencilIcon />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => onEdit(account)}>
+                      <PencilIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('common.edit')}</TooltipContent>
+                </Tooltip>
                 {account.isActive ? (
-                  <Button variant="ghost" size="icon-sm" aria-label={t('accounts.actions.deactivate')} onClick={() => onDeactivate(account)}>
-                    <XIcon />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon-sm" aria-label={t('accounts.actions.deactivate')} onClick={() => onDeactivate(account)}>
+                        <PowerOffIcon />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('accounts.actions.deactivate')}</TooltipContent>
+                  </Tooltip>
                 ) : (
-                  <Button variant="ghost" size="icon-sm" aria-label={t('accounts.actions.activate')} onClick={() => onActivate(account)}>
-                    <CheckIcon />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon-sm" aria-label={t('accounts.actions.activate')} onClick={() => onActivate(account)}>
+                        <PowerIcon />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('accounts.actions.activate')}</TooltipContent>
+                  </Tooltip>
                 )}
-                <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} onClick={() => onDelete(account)}>
-                  <Trash2Icon />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} onClick={() => onDelete(account)}>
+                      <Trash2Icon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('common.delete')}</TooltipContent>
+                </Tooltip>
               </div>
             </TableCell>
           </TableRow>
