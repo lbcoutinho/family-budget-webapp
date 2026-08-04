@@ -6,6 +6,23 @@
 
 **Depends on:** M2 complete.
 
+## Execution order (T10 and T11 come before T07–T09)
+
+T10–T14 were added after T01–T09 were already mirrored as GitHub issues, so their numbers continue
+the sequence while their position in the work does not. **The order below is the order to build
+in**; ask before deviating from it.
+
+| Order | Ticket | Why here |
+|---|---|---|
+| 1 | M3-T10 | The i18n foundation has to exist before any screen is written, or the screen is written twice |
+| 2 | M3-T11 | Error codes, so the screens can show a translated 409 rather than the API's English sentence |
+| 3 | M3-T07, M3-T08, M3-T09 | The three master-data screens, written with `t()` from the start (each blocked on its own approved prototype) |
+| 4 | M3-T12 | `locale` on `User` — needs the client to have somewhere to put it |
+| 5 | M3-T13 | Settings › General, the screen that sets the preference |
+| 6 | M3-T14 | Deploy, last: it deploys what the milestone built |
+
+Design behind T10–T13: `docs/superpowers/specs/2026-08-04-i18n-design.md`.
+
 ---
 
 ## M3-T01 — `Account` model and migration
@@ -254,5 +271,163 @@ Completes the master data. Follows the M3-T07 pattern.
 - [ ] Deactivation asks for confirmation
 - [ ] The empty state explains what a cashbox is
 
+
 ### Tests
 - Integration with MSW: full CRUD; optional goal
+- Integration with MSW: full CRUD; optional goal
+
+---
+
+## M3-T10 — i18n foundation on the web
+
+**Build first — before M3-T07/T08/T09.**
+
+### Why this is needed
+Every UI string is a literal inside the component that renders it (~35 of them). A second language
+cannot be added without touching every component, and the three screens still to be written would
+add thirty more literals each. See `docs/superpowers/specs/2026-08-04-i18n-design.md`.
+
+### Implementation notes
+- `i18next` + `react-i18next` in `apps/web`
+- `src/i18n/locales/pt-BR.json` and `en-US.json`, single namespace; keys grouped by domain
+  (`nav.month`, `common.loading`, `errors.<CODE>`)
+- pt-BR is the default and the source of truth for wording; en-US kept at parity in the same PR
+- Resolution order: `localStorage` mirror → `navigator.language` → `pt-BR` (the `User.locale`
+  step arrives with M3-T12)
+- Extract the existing strings: `nav-items.ts` holds a key not a label, `RoutePlaceholder` takes
+  `titleKey`, plus `loading-spinner`, `page-header`, `route-placeholder`, `router.tsx` and the
+  auth screens
+- `lib/money.ts` and `lib/date.ts` keep owning formatting but receive the active locale instead of
+  a hardcoded `pt-BR`
+- ESLint `i18next/no-literal-string` over `features/**` and `components/**` `.tsx`, with an
+  allowlist — without it the structure decays within two screens
+- Record **ADR-0018 — Internationalization**, and update the "UI strings pt-BR" convention in
+  `CLAUDE.md`
+
+### Acceptance criteria
+- [ ] No user-facing literal remains in `components/` or `features/`; the ESLint rule proves it
+- [ ] Both locale files hold the same key set
+- [ ] Switching the locale at runtime re-renders every string, including dates and money
+- [ ] ADR-0018 is written and `CLAUDE.md` updated
+
+### Tests
+- Existing tests resolve accessible names through the real `i18n` instance initialised to pt-BR in
+  the test setup, so no string is duplicated between test and locale file
+- Unit: a key missing from `en-US` fails a parity test
+
+---
+
+## M3-T11 — Stable error codes on the API
+
+**Build second — before M3-T07/T08/T09.**
+
+### Why this is needed
+The API's business errors are English sentences, and M3-T08 was written to display them verbatim.
+A pt-BR user would read English. The API stays monolingual and answers with codes; the web
+translates.
+
+### Implementation notes
+- Business errors respond with `{ statusCode, code, message }`; `code` in SCREAMING_SNAKE from one
+  shared enum, `message` English and never rendered
+- Codes existing today: last active subcategory, two-level tree violation, category as its own
+  parent, root category without `kind`, duplicate name (P2002), record in use (P2003)
+- `PrismaExceptionFilter` emits `code` for the mappings it already performs
+- Web resolves `errors.<CODE>`; an unknown code falls back to a generic translated message, never
+  to the English `message`
+- Comment on issue #52 amending M3-T08's "displays the backend's specific message" to mean the
+  translated message for the returned code
+
+### Acceptance criteria
+- [ ] Every business exception carries a code from the enum
+- [ ] The OpenAPI error schema documents `code`, so the generated client types it
+- [ ] An unknown code renders the generic message, not the English one
+
+### Tests
+- Unit: the filter maps P2002/P2003 to their codes
+- e2e: the last-active-subcategory 409 carries its code
+- Web integration with MSW: a 409 with a known code renders the translated string; an unknown code
+  renders the fallback
+
+---
+
+## M3-T12 — `locale` on `User`
+
+### Why this is needed
+The language must be a user preference that follows the account, not a browser setting.
+
+### Implementation notes
+- `locale String @default("pt-BR")` on `User`; one migration
+- `PATCH /api/users/me` accepting `locale` only, validated against the supported-locale list
+- `AuthUserDto` carries `locale`, so the app wakes up in the right language without an extra
+  request
+- The web resolution order gains its first step: `User.locale` → `localStorage` mirror →
+  `navigator.language` → `pt-BR`
+
+### Acceptance criteria
+- [ ] An unsupported locale is rejected with 400
+- [ ] The session response carries the locale
+- [ ] A reload keeps the chosen language, on any device
+
+### Tests
+- e2e: patch and read back; unsupported value rejected
+- Web integration: the session's locale wins over `navigator.language`
+
+---
+
+## M3-T13 — Settings › General screen
+
+**Blocked:** `prototypes/07-settings-general.html` does not exist. It must be drawn, reviewed and
+moved to `prototypes/approved/` before any React is written.
+
+### Why this is needed
+The place where the language is chosen — and where later preferences (theme, date format) will
+land without inventing a new screen for each.
+
+### Implementation notes
+- New nav item **Geral** inside the Configurações group, above Contas and Categorias
+- `/settings/general` route
+- One "Idioma" section: a `Select` offering Português (Brasil) and English (US), saved immediately
+  with a toast, no Save button
+- Update `plans/0002-screens.md` and `prototypes/index.html` with the screen
+
+### Acceptance criteria
+- [ ] Changing the language switches the interface without a reload
+- [ ] The choice survives a logout and login
+- [ ] A failed save reverts the control and explains itself
+
+### Tests
+- Integration with MSW: change, persistence, failure path
+
+---
+
+## M3-T14 — Deploy to Vercel
+
+**Do not execute before discussing the approach.** The options below were raised and deliberately
+left open; settle them at the start of the ticket, then record the choice as an ADR.
+
+### Why this is needed
+The milestone's output should be reachable at a URL rather than only on the developer's machine.
+
+### The open question
+Vercel hosts `apps/web` naturally (a static Vite SPA). The API is NestJS + Prisma + PostgreSQL,
+which is not Vercel's terrain and needs a managed database regardless.
+
+- **A** — Web on Vercel only, `VITE_API_URL` pointing at the API hosted elsewhere (Railway /
+  Render / Fly, plus Neon). Keeps Nest on a normal Node runtime; costs two providers plus CORS and
+  environment wiring. *Provisional recommendation.*
+- **B** — Everything on Vercel: static web, Nest as a single serverless handler, Postgres on Neon
+  or Vercel Postgres. One provider and one bill, paid for with Nest cold starts and Prisma
+  connection pooling in a serverless runtime.
+- **C** — Web on Vercel against mocks, no real API, as a showcase deploy until M5 delivers visible
+  value.
+
+### Implementation notes
+- Whatever is chosen: production build in CI, environment variables documented in
+  `.env.example`, `CORS_ORIGIN` set to the deployed origin, and a preview deployment per pull
+  request if the choice allows it
+- The `deploy-to-vercel` skill covers the Vercel side once the shape is decided
+
+### Acceptance criteria
+- [ ] The approach was discussed and recorded as an ADR before any configuration was written
+- [ ] The deployed application loads and authenticates against whatever backend the choice implies
+- [ ] Secrets live in the provider, never in the repository
