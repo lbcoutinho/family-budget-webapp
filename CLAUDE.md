@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Screens are drawn one at a time, in the order the project needs them, and approved one at a time.** Never draw the undrawn screens in a batch, and never draw the next one unasked.
 - Every prototype ends with a **"Decisões a aprovar"** block — the open choices, stated so they can be decided rather than guessed.
 - `00-design-system.html` is approved first; everything else inherits colour/type/motion from it.
-- **UI strings pt-BR** (the interface is localized); filenames, comments, commits stay en-US. Sample data fictional but consistent across screens (same accounts/categories, July 2026).
+- **UI strings go through i18n keys** (`apps/web/src/i18n/`, ADR-0018): pt-BR is the default locale and the source of truth for wording, en-US is kept at parity, `eslint-plugin-i18next` enforces it. Filenames, comments, commits stay en-US. Sample data fictional but consistent across screens (same accounts/categories, July 2026).
 - An approved prototype may be edited when implementation reveals a problem — say so in the PR. What must never happen is a built screen silently diverging from it.
 - Prototypes are not accessibility- or component-complete: shadcn/ui provides the real components; the prototype CSS is deleted as each screen ships.
 
@@ -69,7 +69,7 @@ Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` 
 
 - **Branch-per-implementation.** All implementation on branch off `main` — never commit directly to `main`. Commit + push to feature branch, open pull request to `main`. **Never merge to `main`** — user reviews and merges.
 - **Run `pr-description` skill** (`.claude/skills/pr-description/`) **whenever opening pull request**, to structure PR body instead of freeform text. Skill pins `model: sonnet` — documentation work runs on Sonnet 5, so PR footer names Sonnet even when session runs another model.
-- **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings localized.
+- **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings go through i18n keys, pt-BR as source of truth and en-US kept at parity.
 - **One task = one small PR**; split if diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises` enabled + critical for NestJS** — always await or explicitly void promises.

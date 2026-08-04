@@ -38,7 +38,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 |---|---|---|---|
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | [#1](https://github.com/lbcoutinho/family-budget-webapp/issues/1)–[#7](https://github.com/lbcoutinho/family-budget-webapp/issues/7) | Created 2026-07-25 |
 | M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | [#17](https://github.com/lbcoutinho/family-budget-webapp/issues/17)–[#22](https://github.com/lbcoutinho/family-budget-webapp/issues/22) | Created 2026-07-26; #18 widened 2026-07-27 |
-| M3 — Master data | [milestone #3](https://github.com/lbcoutinho/family-budget-webapp/milestone/3) | [#45](https://github.com/lbcoutinho/family-budget-webapp/issues/45)–[#53](https://github.com/lbcoutinho/family-budget-webapp/issues/53) | Created 2026-08-02 |
+| M3 — Master data | [milestone #3](https://github.com/lbcoutinho/family-budget-webapp/milestone/3) | [#45](https://github.com/lbcoutinho/family-budget-webapp/issues/45)–[#53](https://github.com/lbcoutinho/family-budget-webapp/issues/53), [#70](https://github.com/lbcoutinho/family-budget-webapp/issues/70)–[#74](https://github.com/lbcoutinho/family-budget-webapp/issues/74) | Created 2026-08-02; T10–T14 added 2026-08-04 |
 | M4 — Transactions (API) | — | — | Not started |
 | M5 — Entries (UI) | — | — | Not started |
 | M6 — Reports | — | — | Not started |
@@ -105,3 +105,19 @@ New label created: `milestone: m3-master-data` (purple `#5319E7`).
 The three screen tickets (#51, #52, #53) are blocked on the prototype gate: `prototypes/approved/`
 holds only `00-design-system`, `01-login` and `06-month`, so accounts, categories and cashboxes
 have no approved prototype yet.
+
+**2026-08-04 — T10–T14 mirrored.** Five tickets added to M3 by
+`docs/superpowers/specs/2026-08-04-i18n-design.md` (i18n foundation, error codes, `User.locale`,
+Settings › General, Vercel deploy) and mirrored to the existing `M3 - Master data` milestone:
+
+| Issue | Task | Labels |
+|---|---|---|
+| [#70](https://github.com/lbcoutinho/family-budget-webapp/issues/70) | M3-T10 — i18n foundation on the web | frontend |
+| [#71](https://github.com/lbcoutinho/family-budget-webapp/issues/71) | M3-T11 — Stable error codes on API business errors | backend, frontend |
+| [#72](https://github.com/lbcoutinho/family-budget-webapp/issues/72) | M3-T12 — `locale` on `User` + `PATCH /api/users/me` | backend, frontend |
+| [#73](https://github.com/lbcoutinho/family-budget-webapp/issues/73) | M3-T13 — Settings › General screen | frontend |
+| [#74](https://github.com/lbcoutinho/family-budget-webapp/issues/74) | M3-T14 — Deploy to Vercel | backend, frontend |
+
+No new label: all five carry `milestone: m3-master-data`. **Execution order is not numeric** — see
+`docs/superpowers/specs/2026-08-04-i18n-design.md` and `MEMORY.md` (root) for the order T10 → T11 →
+T07/T08/T09 → T12 → T13 → T14.
