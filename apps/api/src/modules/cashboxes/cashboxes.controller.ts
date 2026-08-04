@@ -12,6 +12,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ApiErrorDto } from '../../common/api-error';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -33,7 +34,7 @@ import { UpdateCashboxDto } from './dto/update-cashbox.dto';
  * up missing from `openapi.json` — and therefore from the generated client's signature, silently.
  */
 @ApiTags('cashboxes')
-@ApiNotFoundResponse({ description: 'No such cashbox — or it belongs to another user.' })
+@ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such cashbox — or it belongs to another user.' })
 @Controller('cashboxes')
 export class CashboxesController {
   constructor(private readonly cashboxes: CashboxesService) {}
@@ -58,7 +59,7 @@ export class CashboxesController {
   @ApiOperation({ operationId: 'createCashbox', summary: 'Create a cashbox' })
   @ApiBody({ type: CreateCashboxDto })
   @ApiCreatedResponse({ type: CashboxDto })
-  @ApiConflictResponse({ description: 'The user already has a cashbox with that name.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The user already has a cashbox with that name.' })
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateCashboxDto): Promise<CashboxDto> {
     return this.cashboxes.create(user.id, dto);
@@ -68,7 +69,7 @@ export class CashboxesController {
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateCashboxDto })
   @ApiOkResponse({ type: CashboxDto })
-  @ApiConflictResponse({ description: 'The user already has another cashbox with that name.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The user already has another cashbox with that name.' })
   @Patch(':id')
   update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCashboxDto): Promise<CashboxDto> {
     return this.cashboxes.update(user.id, id, dto);
@@ -93,7 +94,7 @@ export class CashboxesController {
   @ApiOperation({ operationId: 'deleteCashbox', summary: 'Delete a cashbox for good' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiNoContentResponse({ description: 'Deleted. Nothing referenced it.' })
-  @ApiConflictResponse({ description: 'Records still reference this cashbox — deactivate it instead of deleting it.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'Records still reference this cashbox — deactivate it instead of deleting it.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<void> {

@@ -41,5 +41,19 @@
       "heading": "This address does not exist",
       "description": "Pick one of the screens in the menu to carry on."
     }
+  },
+  "errors": {
+    "UNKNOWN": "Could not complete the operation. Try again.",
+    "INTERNAL_ERROR": "Unexpected server error. Try again in a moment.",
+    "DUPLICATE_NAME": "A record with that name already exists.",
+    "RECORD_IN_USE": "Other records still use this one. Deactivate it instead of deleting it.",
+    "RECORD_NOT_FOUND": "Record not found.",
+    "CATEGORY_ROOT_KIND_REQUIRED": "A main category needs a kind: income or expense.",
+    "CATEGORY_SELF_PARENT": "A category cannot be its own main category.",
+    "CATEGORY_HAS_SUBCATEGORIES": "This category has subcategories, so it cannot become a subcategory.",
+    "CATEGORY_TREE_TOO_DEEP": "A subcategory cannot hold subcategories: the tree is only two levels deep.",
+    "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "A subcategory inherits the kind of its main category.",
+    "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Only a main category carries a colour; a subcategory inherits its own.",
+    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead."
   }
 }

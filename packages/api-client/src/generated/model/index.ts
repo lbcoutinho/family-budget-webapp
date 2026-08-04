@@ -7,6 +7,8 @@
  */
 
 export * from './accountDto';
+export * from './apiErrorDto';
+export * from './apiErrorDtoCode';
 export * from './authUserDto';
 export * from './cashboxDto';
 export * from './categoryDto';

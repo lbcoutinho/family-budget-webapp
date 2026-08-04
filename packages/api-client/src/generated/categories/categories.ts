@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApiErrorDto,
   CategoryDto,
   CreateCategoryDto,
   ListCategoriesParams,
@@ -78,7 +79,7 @@ export const getListCategoriesQueryKey = (params?: ListCategoriesParams,) => {
     }
 
 
-export const getListCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(params?: ListCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>>, }
+export const getListCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<ApiErrorDto>>(params?: ListCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -97,10 +98,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listCategories>>>
-export type ListCategoriesQueryError = ErrorType<void>
+export type ListCategoriesQueryError = ErrorType<ApiErrorDto>
 
 
-export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(
+export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<ApiErrorDto>>(
  params: undefined |  ListCategoriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCategories>>,
@@ -110,7 +111,7 @@ export function useListCategories<TData = Awaited<ReturnType<typeof listCategori
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(
+export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCategories>>,
@@ -120,7 +121,7 @@ export function useListCategories<TData = Awaited<ReturnType<typeof listCategori
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(
+export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -128,7 +129,7 @@ export function useListCategories<TData = Awaited<ReturnType<typeof listCategori
  * @summary List the user's categories
  */
 
-export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<void>>(
+export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategories>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -166,7 +167,7 @@ export const createCategory = (
 
 
 
-export const getCreateCategoryMutationOptions = <TError = ErrorType<void>,
+export const getCreateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext> => {
 
@@ -195,12 +196,12 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createCategory>>>
     export type CreateCategoryMutationBody = BodyType<CreateCategoryDto>
-    export type CreateCategoryMutationError = ErrorType<void>
+    export type CreateCategoryMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Create a category
  */
-export const useCreateCategory = <TError = ErrorType<void>,
+export const useCreateCategory = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCategory>>,
@@ -235,7 +236,7 @@ export const getGetCategoryQueryKey = (id: string,) => {
     }
 
 
-export const getGetCategoryQueryOptions = <TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<void>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>>, }
+export const getGetCategoryQueryOptions = <TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<ApiErrorDto>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -254,10 +255,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetCategoryQueryResult = NonNullable<Awaited<ReturnType<typeof getCategory>>>
-export type GetCategoryQueryError = ErrorType<void>
+export type GetCategoryQueryError = ErrorType<ApiErrorDto>
 
 
-export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<void>>(
+export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategory>>,
@@ -267,7 +268,7 @@ export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<void>>(
+export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCategory>>,
@@ -277,7 +278,7 @@ export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<void>>(
+export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -285,7 +286,7 @@ export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, 
  * @summary Read one category
  */
 
-export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<void>>(
+export function useGetCategory<TData = Awaited<ReturnType<typeof getCategory>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCategory>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -323,7 +324,7 @@ export const updateCategory = (
 
 
 
-export const getUpdateCategoryMutationOptions = <TError = ErrorType<void>,
+export const getUpdateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext> => {
 
@@ -352,12 +353,12 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategory>>>
     export type UpdateCategoryMutationBody = BodyType<UpdateCategoryDto>
-    export type UpdateCategoryMutationError = ErrorType<void>
+    export type UpdateCategoryMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Update a category
  */
-export const useUpdateCategory = <TError = ErrorType<void>,
+export const useUpdateCategory = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCategory>>,
@@ -385,7 +386,7 @@ export const deleteCategory = (
 
 
 
-export const getDeleteCategoryMutationOptions = <TError = ErrorType<void>,
+export const getDeleteCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext> => {
 
@@ -414,12 +415,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategory>>>
 
-    export type DeleteCategoryMutationError = ErrorType<void>
+    export type DeleteCategoryMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Delete a category for good
  */
-export const useDeleteCategory = <TError = ErrorType<void>,
+export const useDeleteCategory = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCategory>>,
@@ -448,7 +449,7 @@ export const activateCategory = (
 
 
 
-export const getActivateCategoryMutationOptions = <TError = ErrorType<void>,
+export const getActivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext> => {
 
@@ -477,12 +478,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ActivateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof activateCategory>>>
 
-    export type ActivateCategoryMutationError = ErrorType<void>
+    export type ActivateCategoryMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Put a retired category back into use
  */
-export const useActivateCategory = <TError = ErrorType<void>,
+export const useActivateCategory = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateCategory>>,
@@ -511,7 +512,7 @@ export const deactivateCategory = (
 
 
 
-export const getDeactivateCategoryMutationOptions = <TError = ErrorType<void>,
+export const getDeactivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext> => {
 
@@ -540,12 +541,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeactivateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateCategory>>>
 
-    export type DeactivateCategoryMutationError = ErrorType<void>
+    export type DeactivateCategoryMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Retire a category, keeping its history
  */
-export const useDeactivateCategory = <TError = ErrorType<void>,
+export const useDeactivateCategory = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateCategory>>,
