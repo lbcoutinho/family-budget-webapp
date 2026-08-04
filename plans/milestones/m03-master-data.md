@@ -271,7 +271,9 @@ Completes the master data. Follows the M3-T07 pattern.
 - [ ] Deactivation asks for confirmation
 - [ ] The empty state explains what a cashbox is
 
+
 ### Tests
+- Integration with MSW: full CRUD; optional goal
 - Integration with MSW: full CRUD; optional goal
 
 ---
