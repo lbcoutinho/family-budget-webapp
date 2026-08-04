@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import { Providers } from '@/app/providers';
 
+// Side-effect import: the instance has to exist before the first component asks for a string.
+import '@/i18n';
+
 import './styles/index.css';
 
 const rootElement = document.getElementById('root');

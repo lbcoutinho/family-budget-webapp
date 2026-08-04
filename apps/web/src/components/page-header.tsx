@@ -1,5 +1,6 @@
 import { MenuIcon } from 'lucide-react';
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useSidebar } from '@/components/layout/sidebar-context';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ export interface PageHeaderProps {
  * reason the phone gets no floating button.
  */
 export function PageHeader({ title, actions, className }: PageHeaderProps) {
+  const { t } = useTranslation();
   const { isCompact, open } = useSidebar();
 
   return (
@@ -35,7 +37,7 @@ export function PageHeader({ title, actions, className }: PageHeaderProps) {
         {/* Above the breakpoint the sidebar is a fixed column, so the button has nothing to open
             and does not render at all. */}
         {isCompact && (
-          <Button variant="ghost" size="icon-sm" onClick={open} aria-label="Abrir menu">
+          <Button variant="ghost" size="icon-sm" onClick={open} aria-label={t('nav.openMenu')}>
             <MenuIcon />
           </Button>
         )}

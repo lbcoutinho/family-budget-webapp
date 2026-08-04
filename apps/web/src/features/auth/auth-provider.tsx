@@ -2,6 +2,7 @@ import { type AuthUserDto, refresh, setAccessToken, setSessionExpiredHandler, us
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { AuthCard } from './auth-card';
 import { AuthContext, type AuthContextValue } from './auth-context';
@@ -90,11 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 function SessionChecking() {
+  const { t } = useTranslation();
+
   return (
     <AuthCard>
       <output className="grid place-items-center gap-3 pt-[34px] pb-[30px] text-center">
         <Loader2Icon className="size-5 animate-spin text-primary" />
-        <span className="text-xs text-muted-foreground">Restaurando sessão…</span>
+        <span className="text-xs text-muted-foreground">{t('auth.restoringSession')}</span>
       </output>
     </AuthCard>
   );

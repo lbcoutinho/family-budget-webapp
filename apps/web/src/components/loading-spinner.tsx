@@ -1,4 +1,5 @@
 import { Loader2Icon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
@@ -17,11 +18,13 @@ export interface LoadingSpinnerProps {
  * `<output>` rather than a `div` with `role="status"` — same semantics, and it is what the login
  * screen already uses for the session check.
  */
-export function LoadingSpinner({ label = 'Carregando…', labelHidden = false, className }: LoadingSpinnerProps) {
+export function LoadingSpinner({ label, labelHidden = false, className }: LoadingSpinnerProps) {
+  const { t } = useTranslation();
+
   return (
     <output className={cn('flex items-center justify-center gap-2 text-sm text-muted-foreground', className)}>
       <Loader2Icon className="size-4 animate-spin text-primary" aria-hidden="true" />
-      <span className={cn(labelHidden && 'sr-only')}>{label}</span>
+      <span className={cn(labelHidden && 'sr-only')}>{label ?? t('common.loading')}</span>
     </output>
   );
 }

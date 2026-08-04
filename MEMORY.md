@@ -11,26 +11,34 @@ Rewrite this file rather than appending to it.
 
 ## Status
 
-**M2 Authentication is complete and merged; M3-T01 (#45, PR #57), M3-T02 (#46, PR #58), M3-T03
-(#47, PR #60) and M3-T06 (#50, PR #61) are merged.** M3 Master data is mirrored on GitHub
-(#45–#53). **M3-T04 (#48, categories API) and M3-T05 (#49, cashboxes model and API) are both
-done**, T04 on branch `claude/m3-t04-categories-api` and T05 (this branch,
-`worktree-m3-t05-cashbox`) merged with `main` to bring T04 in — conflicts were confined to
-`app.module.ts`, the api-client barrel files and this memory file, all additive on both sides.
-Nothing is half-finished. **M3's backend is now done** (T01–T06 all merged/complete); the
-remaining M3 tickets are frontend screens — M3-T07 (#51, accounts), M3-T08 (categories), M3-T09
-(cashboxes) — each blocked on its own prototype leaving `prototypes/approved/`.
+**M2 Authentication is complete and merged; M3-T01–T06 are all merged** (accounts, categories and
+cashboxes models/APIs, base layout and navigation). **M3-T10 (i18n foundation, #70) is done** on
+branch `feat/m3-t10-i18n-foundation` (commit d610f38), PR pending. Nothing is half-finished.
 
-**M3 gained five tickets (T10–T14) on 2026-08-04, and they are not built in numeric order.** The
-i18n design is in `docs/superpowers/specs/2026-08-04-i18n-design.md`; the order table is at the top
-of `plans/milestones/m03-master-data.md`. **Next is M3-T10** (i18n foundation), then M3-T11 (API
-error codes), and only then T07/T08/T09 — writing those three screens before T10 means writing
-their strings twice. T12, T13 (Settings › General, blocked on a prototype that does not exist yet)
-and T14 (Vercel deploy, approach undecided — discuss before executing) follow. **Warn before
-starting any M3 ticket out of that order.** T10–T14 are not yet mirrored as GitHub issues.
+**M3-T10…T14 are now mirrored on GitHub** (#70–#74, milestone `M3 - Master data`), on top of the
+original #45–#53. **Execution order is not numeric** — see
+`docs/superpowers/specs/2026-08-04-i18n-design.md`. **Next is M3-T11** (#71, API error codes), and
+only then T07/T08/T09 (accounts/categories/cashboxes screens, #51/#52/#53 — each still blocked on
+its own prototype leaving `prototypes/approved/`) — writing those three screens before T11 means
+their 409 error messages get rewritten right after. T12 (`User.locale`, #72), T13 (Settings ›
+General, #73, blocked on a prototype that does not exist yet) and T14 (Vercel deploy, #74, approach
+undecided — discuss before executing) follow. **Warn before starting any M3 ticket out of that
+order.**
 
 ## Gotchas the next ticket will hit
 
+- **Every user-facing string needs a key in both `apps/web/src/i18n/locales/pt-BR.json` and
+  `en-US.json`** — `locale-parity.test.ts` fails the build if the two key sets diverge.
+- **`eslint-plugin-i18next`'s `no-literal-string` rule fails the build on any literal string in a
+  `.tsx` under `apps/web/src/components/**` or `apps/web/src/features/**`** (markup only;
+  `components/ui/**` is exempt). Reach for `t('group.key')`, not a hardcoded string.
+- **Translation keys are typed from the pt-BR file** (`apps/web/src/i18n/i18next.d.ts`), so a
+  typo'd or removed key is a TypeScript compile error, not a silent blank string.
+- **`apps/web/src/test/setup.ts` pins the language to pt-BR** before tests run — jsdom reports
+  `navigator.language` as `en-US`, which would otherwise resolve the wrong locale and break every
+  test asserting on Portuguese accessible names.
+- **The `errors.*` key group does not exist yet** — M3-T11 defines the error codes it keys off;
+  writing it before that ticket means inventing the codes twice.
 - **A screen goes inside the shell, not beside it.** Add the route to the array in
   `app/router.tsx` (it is a child of the `AppLayout` route, so it is protected already), then
   render `<PageHeader title actions>` followed by `<PageContent>` — those two are the page frame

@@ -7,6 +7,7 @@
 
 const js = require('@eslint/js');
 const prettier = require('eslint-config-prettier/flat');
+const i18next = require('eslint-plugin-i18next');
 const importPlugin = require('eslint-plugin-import');
 const jsxA11y = require('eslint-plugin-jsx-a11y');
 const reactHooks = require('eslint-plugin-react-hooks');
@@ -152,6 +153,24 @@ module.exports = tseslint.config(
     },
     rules: {
       ...reactHooks.configs['recommended-latest'].rules,
+    },
+  },
+
+  // ---------------------------------------------------------------------------------------
+  // apps/web — no user-facing literal outside a locale file (M3-T10, ADR-0018). This rule is what
+  // proves the extraction stays done: without it the structure decays within two screens.
+  //
+  // `markupOnly` means only text rendered as markup counts, so `className`, `to` and `type` need
+  // no hand-maintained allowlist; `onlyAttribute` adds back the four attributes a user can read.
+  // ---------------------------------------------------------------------------------------
+  {
+    name: 'family-budget/web-i18n',
+    files: ['apps/web/src/{features,components}/**/*.tsx'],
+    // shadcn/ui is vendored rather than hand-written, and its literals are not user copy.
+    ignores: ['apps/web/src/components/ui/**'],
+    plugins: { i18next },
+    rules: {
+      'i18next/no-literal-string': ['error', { markupOnly: true, onlyAttribute: ['title', 'alt', 'placeholder', 'aria-label'] }],
     },
   },
 

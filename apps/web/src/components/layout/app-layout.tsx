@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { AppSidebar } from './app-sidebar';
@@ -17,6 +18,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 const COMPACT = '(max-width: 899.98px)';
 
 export function AppLayout() {
+  const { t } = useTranslation();
   const isCompact = useMediaQuery(COMPACT);
   const [isOpen, setIsOpen] = useState(false);
   const { pathname } = useLocation();
@@ -66,7 +68,12 @@ export function AppLayout() {
         <AppSidebar />
 
         {isCompact && isOpen && (
-          <button type="button" aria-label="Fechar menu" onClick={close} className="fixed inset-0 z-30 cursor-default bg-foreground/35 animate-in fade-in" />
+          <button
+            type="button"
+            aria-label={t('nav.closeMenu')}
+            onClick={close}
+            className="fixed inset-0 z-30 cursor-default bg-foreground/35 animate-in fade-in"
+          />
         )}
 
         <div className="flex min-w-0 flex-col">

@@ -3,12 +3,29 @@
  * file is the only place that turns those cents into something a person reads, or reads something
  * a person typed back into cents.
  *
- * Single currency (euro), single locale for the numbers (pt-BR): `1.234,56 €`.
+ * Single currency (euro); the grouping and the decimal comma follow the active locale — pt-BR gives
+ * `1.234,56 €`, en-US `1,234.56 €`.
  */
 
-// Built once: constructing an `Intl.NumberFormat` per row is the expensive half of formatting a
-// table, and this one never varies.
-const decimal = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import i18n from '@/i18n';
+
+// Constructing an `Intl.NumberFormat` per row is the expensive half of formatting a table, so they
+// are built once per locale. Two entries in practice, and the map is what makes switching language
+// at runtime reformat every amount.
+const decimalFormatters = new Map<string, Intl.NumberFormat>();
+
+function decimal(locale: string): Intl.NumberFormat {
+  const existing = decimalFormatters.get(locale);
+
+  if (existing) {
+    return existing;
+  }
+
+  const formatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  decimalFormatters.set(locale, formatter);
+
+  return formatter;
+}
 
 /** U+2212, the typographic minus. Wider than a hyphen and aligned with the digits. */
 const MINUS = '−';
@@ -20,6 +37,8 @@ export interface FormatCentsOptions {
    * is noise.
    */
   sign?: boolean;
+  /** Defaults to the active interface language. Passed explicitly only by the tests. */
+  locale?: string;
 }
 
 /**
@@ -27,11 +46,11 @@ export interface FormatCentsOptions {
  *
  * A negative value keeps its minus whatever `sign` says: there it is information, not decoration.
  */
-export function formatCents(cents: number, { sign = false }: FormatCentsOptions = {}): string {
+export function formatCents(cents: number, { sign = false, locale = i18n.language }: FormatCentsOptions = {}): string {
   // Cents are integers by contract; rounding here means a value that slipped through arithmetic
   // (a division, an average) still prints as money instead of as `1.234,565 €`.
   const rounded = Math.round(cents);
-  const amount = decimal.format(Math.abs(rounded) / 100);
+  const amount = decimal(locale).format(Math.abs(rounded) / 100);
 
   if (rounded < 0) {
     return sign ? `${MINUS} ${amount} €` : `${MINUS}${amount} €`;

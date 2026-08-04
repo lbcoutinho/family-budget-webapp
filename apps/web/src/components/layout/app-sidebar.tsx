@@ -1,5 +1,6 @@
 import { ChevronRightIcon, LogOutIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
 import { NAV_ITEMS, type NavItem, SETTINGS_NAV_ITEMS } from './nav-items';
@@ -25,6 +26,7 @@ const linkClasses = (isActive: boolean) =>
  * fixed pixels, because seven items fit by name and an icon alone has to be guessed at.
  */
 export function AppSidebar() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { isOpen, isCompact, close } = useSidebar();
   const { pathname } = useLocation();
@@ -65,10 +67,10 @@ export function AppSidebar() {
           <i className="size-[7px] rounded-[2px] bg-[var(--category-2)]" />
           <i className="size-[7px] rounded-[2px] bg-[var(--category-5)]" />
         </span>
-        Orçamento
+        {t('app.name')}
       </div>
 
-      <nav aria-label="Navegação principal" className="grid gap-0.5">
+      <nav aria-label={t('nav.mainNav')} className="grid gap-0.5">
         {NAV_ITEMS.map((item) => (
           <SidebarLink key={item.to} item={item} onNavigate={close} />
         ))}
@@ -81,7 +83,7 @@ export function AppSidebar() {
           className={cn(linkClasses(false), 'cursor-pointer')}
         >
           <SettingsIcon className="size-4 shrink-0" aria-hidden="true" />
-          <span>Configurações</span>
+          <span>{t('nav.settings')}</span>
           <ChevronRightIcon
             className={cn('ml-auto size-4 shrink-0 transition-transform duration-[120ms]', settingsExpanded && 'rotate-90')}
             aria-hidden="true"
@@ -104,7 +106,7 @@ export function AppSidebar() {
           <span className="block truncate text-[11px] text-muted-foreground">{user?.email}</span>
         </span>
         {/* No confirmation: nothing is lost by leaving, and coming back costs a password. */}
-        <Button variant="ghost" size="icon-sm" title="Sair" aria-label="Sair" onClick={() => void logout()}>
+        <Button variant="ghost" size="icon-sm" title={t('nav.logout')} aria-label={t('nav.logout')} onClick={() => void logout()}>
           <LogOutIcon />
         </Button>
       </div>
@@ -113,12 +115,13 @@ export function AppSidebar() {
 }
 
 function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+  const { t } = useTranslation();
   const Icon = item.icon;
 
   return (
     <NavLink to={item.to} onClick={onNavigate} className={({ isActive }) => linkClasses(isActive)}>
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      <span>{item.label}</span>
+      <span>{t(item.labelKey)}</span>
     </NavLink>
   );
 }
