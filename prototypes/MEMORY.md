@@ -3,8 +3,7 @@
 What the user has already decided about the prototypes. A regeneration reads this first and treats
 everything under "Settled" as input, not as a question to ask again.
 
-Three `MEMORY.md` files exist and they do not overlap: the one at the repository root is the
-implementation handoff, `plans/MEMORY.md` tracks GitHub mirroring, and this one records UI
+Two `MEMORY.md` files exist and they do not overlap: `plans/MEMORY.md` tracks GitHub mirroring, and this one records UI
 decisions.
 
 ---

@@ -14,9 +14,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Ticket workflow (follow for every task)
 
-- **Read `MEMORY.md` at project root before writing any new code.** Handoff file: lets session that ends mid-implementation resume next. (Distinct from `plans/MEMORY.md`, which only tracks GitHub mirroring progress.)
-- **Write `MEMORY.md` when you finish or stop work on ticket, and whenever user says "salve o progresso" / "vamos parar aqui"** (or equivalent any language) — that phrase = explicit checkpoint signal.
-- **Keep `MEMORY.md` minimal, rewrite not append.** Holds only what needed to resume interrupted work or start next ticket — where unfinished change stopped, any non-obvious gotcha next ticket hits. Nothing else: what built + why belongs in Issue, PR body, `docs/adr/`. If last ticket finished + unrelated to next, one line naming it enough.
 - **Create GitHub Issue immediately before starting ticket**, so GitHub never drifts from plan docs. Run `.claude/skills/github-mirroring/` skill when starting milestone — drive automatically, unasked — and before starting any individual ticket.
 - **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues** to match.
 - **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.

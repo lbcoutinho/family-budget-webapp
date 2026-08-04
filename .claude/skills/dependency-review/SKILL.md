@@ -80,9 +80,6 @@ accepted one), plus the updates the ticket workflow in `CLAUDE.md` requires.
 
 - **One commit for the upgrade**, separate from feature work, so a regression is easy to bisect
   and revert. Say in the message what moved and why the newest was or wasn't taken.
-- **Record it in `MEMORY.md`** — what moved, and, more useful to the next ticket, what was
-  deliberately *not* moved and why. Any config or API change an upgrade forced belongs there
-  too, as a gotcha for whoever hits the same scaffold later.
 - If an upgrade required a decision (a runtime major, a database version), write the ADR and
   update the affected plan text and issues so the mirroring stays in sync.
 

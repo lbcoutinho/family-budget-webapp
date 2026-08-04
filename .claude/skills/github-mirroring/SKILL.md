@@ -54,10 +54,14 @@ Reuse the same colors for every new milestone so the board stays readable.
 
 Update `plans/MEMORY.md` in the same change:
 
-- the **progress log** row for that milestone — the GitHub Milestone link, the issue range, and
+- the **progress log** row for that milestone — the GitHub Milestone link and
   the status with the date;
 - a short per-milestone section listing each issue, its task and its labels, matching the shape
   of the M1 section already there.
+- Keep in the **progress log** only the tracking of which milestones and issues where created and when.
+- Don't mention other tickets that were out of the plan, labels created, execution order or anything that is not the issue created and date.
+- In the Milestones table, keep "Milestone | GitHub Milestone | Status"
+- In the Issues table, keep a single table with "Issue | Task | Created Date"
 
 Without that update the next session cannot tell what is mirrored, and the check at the top of
 this skill stops working.
