@@ -19,9 +19,6 @@ because it is the one that introduces the shared pieces the other two import.
 | M3-T08 Categories | `prototypes/approved/04-categories.html` | No |
 | M3-T09 Cashboxes | `prototypes/05-cashboxes.html` — **still under review** | **Yes** — design approval gate, §3.0 |
 
-Root `MEMORY.md` still claims 03 and 04 are under review. That line is stale (they were approved on
-2026-08-04, commits `88b7d7f` and `cb7aad7`); correct it in whichever branch lands first.
-
 **Build order: T07 → T08 → T09.** Not a technical dependency, a duplication one: T07 adds the
 shadcn primitives (`switch`, `badge`, `skeleton`) and the shared `common.*` keys the other two
 reuse, and settles the create/edit dialog shape. Building T09 first means writing that twice.
