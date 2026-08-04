@@ -41,5 +41,19 @@
       "heading": "Este endereço não existe",
       "description": "Escolha uma das telas no menu para continuar."
     }
+  },
+  "errors": {
+    "UNKNOWN": "Não foi possível concluir a operação. Tente novamente.",
+    "INTERNAL_ERROR": "Erro inesperado no servidor. Tente novamente daqui a pouco.",
+    "DUPLICATE_NAME": "Já existe um registo com esse nome.",
+    "RECORD_IN_USE": "Outros registos ainda usam este. Desative-o em vez de o eliminar.",
+    "RECORD_NOT_FOUND": "Registo não encontrado.",
+    "CATEGORY_ROOT_KIND_REQUIRED": "Uma categoria principal precisa de um tipo: receita ou despesa.",
+    "CATEGORY_SELF_PARENT": "Uma categoria não pode ser a sua própria categoria principal.",
+    "CATEGORY_HAS_SUBCATEGORIES": "Esta categoria tem subcategorias, por isso não pode tornar-se uma subcategoria.",
+    "CATEGORY_TREE_TOO_DEEP": "Uma subcategoria não pode conter subcategorias: a árvore tem só dois níveis.",
+    "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "Uma subcategoria herda o tipo da categoria principal.",
+    "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
+    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal."
   }
 }

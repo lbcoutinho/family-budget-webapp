@@ -13,6 +13,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ApiErrorDto } from '../../common/api-error';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -34,7 +35,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
  * up missing from `openapi.json` — and therefore from the generated client's signature, silently.
  */
 @ApiTags('categories')
-@ApiNotFoundResponse({ description: 'No such category — or it belongs to another user.' })
+@ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such category — or it belongs to another user.' })
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categories: CategoriesService) {}
@@ -64,8 +65,11 @@ export class CategoriesController {
   })
   @ApiBody({ type: CreateCategoryDto })
   @ApiCreatedResponse({ type: CategoryDto })
-  @ApiBadRequestResponse({ description: 'The parent is itself a subcategory, the kind does not match the parent, or a subcategory was given a colour.' })
-  @ApiConflictResponse({ description: 'The user already has a category with that name at that level.' })
+  @ApiBadRequestResponse({
+    type: ApiErrorDto,
+    description: 'The parent is itself a subcategory, the kind does not match the parent, or a subcategory was given a colour.',
+  })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The user already has a category with that name at that level.' })
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateCategoryDto): Promise<CategoryDto> {
     return this.categories.create(user.id, dto);
@@ -75,8 +79,8 @@ export class CategoriesController {
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateCategoryDto })
   @ApiOkResponse({ type: CategoryDto })
-  @ApiBadRequestResponse({ description: 'The move would make the tree three levels deep, or the kind does not match the parent.' })
-  @ApiConflictResponse({ description: 'A duplicate name, or a category with subcategories being turned into a subcategory.' })
+  @ApiBadRequestResponse({ type: ApiErrorDto, description: 'The move would make the tree three levels deep, or the kind does not match the parent.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'A duplicate name, or a category with subcategories being turned into a subcategory.' })
   @Patch(':id')
   update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCategoryDto): Promise<CategoryDto> {
     return this.categories.update(user.id, id, dto);
@@ -93,7 +97,7 @@ export class CategoriesController {
   @ApiOperation({ operationId: 'deactivateCategory', summary: 'Retire a category, keeping its history', description: 'On a root, its subcategories follow.' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({ type: CategoryDto })
-  @ApiConflictResponse({ description: 'This is the last active subcategory of an active category.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'This is the last active subcategory of an active category.' })
   @Patch(':id/deactivate')
   deactivate(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<CategoryDto> {
     return this.categories.setActive(user.id, id, false);
@@ -102,7 +106,7 @@ export class CategoriesController {
   @ApiOperation({ operationId: 'deleteCategory', summary: 'Delete a category for good' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiNoContentResponse({ description: 'Deleted. Nothing referenced it.' })
-  @ApiConflictResponse({ description: 'Subcategories or records still reference this category — deactivate it instead of deleting it.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'Subcategories or records still reference this category — deactivate it instead of deleting it.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<void> {

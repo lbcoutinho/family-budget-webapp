@@ -26,6 +26,7 @@ import type {
 
 import type {
   AccountDto,
+  ApiErrorDto,
   CreateAccountDto,
   ListAccountsParams,
   UpdateAccountDto
@@ -78,7 +79,7 @@ export const getListAccountsQueryKey = (params?: ListAccountsParams,) => {
     }
 
 
-export const getListAccountsQueryOptions = <TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<void>>(params?: ListAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, }
+export const getListAccountsQueryOptions = <TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<ApiErrorDto>>(params?: ListAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -97,10 +98,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof listAccounts>>>
-export type ListAccountsQueryError = ErrorType<void>
+export type ListAccountsQueryError = ErrorType<ApiErrorDto>
 
 
-export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<void>>(
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<ApiErrorDto>>(
  params: undefined |  ListAccountsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAccounts>>,
@@ -110,7 +111,7 @@ export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<void>>(
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAccounts>>,
@@ -120,7 +121,7 @@ export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<void>>(
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -128,7 +129,7 @@ export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>
  * @summary List the user's accounts
  */
 
-export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<void>>(
+export function useListAccounts<TData = Awaited<ReturnType<typeof listAccounts>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccounts>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -165,7 +166,7 @@ export const createAccount = (
 
 
 
-export const getCreateAccountMutationOptions = <TError = ErrorType<void>,
+export const getCreateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext> => {
 
@@ -194,12 +195,12 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof createAccount>>>
     export type CreateAccountMutationBody = BodyType<CreateAccountDto>
-    export type CreateAccountMutationError = ErrorType<void>
+    export type CreateAccountMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Create an account
  */
-export const useCreateAccount = <TError = ErrorType<void>,
+export const useCreateAccount = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createAccount>>,
@@ -234,7 +235,7 @@ export const getGetAccountQueryKey = (id: string,) => {
     }
 
 
-export const getGetAccountQueryOptions = <TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<void>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>>, }
+export const getGetAccountQueryOptions = <TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<ApiErrorDto>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -253,10 +254,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getAccount>>>
-export type GetAccountQueryError = ErrorType<void>
+export type GetAccountQueryError = ErrorType<ApiErrorDto>
 
 
-export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<void>>(
+export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAccount>>,
@@ -266,7 +267,7 @@ export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<void>>(
+export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAccount>>,
@@ -276,7 +277,7 @@ export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<void>>(
+export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -284,7 +285,7 @@ export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TE
  * @summary Read one account
  */
 
-export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<void>>(
+export function useGetAccount<TData = Awaited<ReturnType<typeof getAccount>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -322,7 +323,7 @@ export const updateAccount = (
 
 
 
-export const getUpdateAccountMutationOptions = <TError = ErrorType<void>,
+export const getUpdateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext> => {
 
@@ -351,12 +352,12 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccount>>>
     export type UpdateAccountMutationBody = BodyType<UpdateAccountDto>
-    export type UpdateAccountMutationError = ErrorType<void>
+    export type UpdateAccountMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Update an account
  */
-export const useUpdateAccount = <TError = ErrorType<void>,
+export const useUpdateAccount = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateAccount>>,
@@ -384,7 +385,7 @@ export const deleteAccount = (
 
 
 
-export const getDeleteAccountMutationOptions = <TError = ErrorType<void>,
+export const getDeleteAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext> => {
 
@@ -413,12 +414,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
 
-    export type DeleteAccountMutationError = ErrorType<void>
+    export type DeleteAccountMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Delete an account for good
  */
-export const useDeleteAccount = <TError = ErrorType<void>,
+export const useDeleteAccount = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteAccount>>,
@@ -446,7 +447,7 @@ export const activateAccount = (
 
 
 
-export const getActivateAccountMutationOptions = <TError = ErrorType<void>,
+export const getActivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext> => {
 
@@ -475,12 +476,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ActivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof activateAccount>>>
 
-    export type ActivateAccountMutationError = ErrorType<void>
+    export type ActivateAccountMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Put a retired account back into use
  */
-export const useActivateAccount = <TError = ErrorType<void>,
+export const useActivateAccount = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateAccount>>,
@@ -508,7 +509,7 @@ export const deactivateAccount = (
 
 
 
-export const getDeactivateAccountMutationOptions = <TError = ErrorType<void>,
+export const getDeactivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext> => {
 
@@ -537,12 +538,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeactivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateAccount>>>
 
-    export type DeactivateAccountMutationError = ErrorType<void>
+    export type DeactivateAccountMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Retire an account, keeping its history
  */
-export const useDeactivateAccount = <TError = ErrorType<void>,
+export const useDeactivateAccount = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateAccount>>,

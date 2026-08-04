@@ -12,6 +12,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ApiErrorDto } from '../../common/api-error';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -33,7 +34,7 @@ import { UpdateAccountDto } from './dto/update-account.dto';
  * up missing from `openapi.json` — and therefore from the generated client's signature, silently.
  */
 @ApiTags('accounts')
-@ApiNotFoundResponse({ description: 'No such account — or it belongs to another user.' })
+@ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such account — or it belongs to another user.' })
 @Controller('accounts')
 export class AccountsController {
   constructor(private readonly accounts: AccountsService) {}
@@ -58,7 +59,7 @@ export class AccountsController {
   @ApiOperation({ operationId: 'createAccount', summary: 'Create an account' })
   @ApiBody({ type: CreateAccountDto })
   @ApiCreatedResponse({ type: AccountDto })
-  @ApiConflictResponse({ description: 'The user already has an account with that name.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The user already has an account with that name.' })
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateAccountDto): Promise<AccountDto> {
     return this.accounts.create(user.id, dto);
@@ -68,7 +69,7 @@ export class AccountsController {
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateAccountDto })
   @ApiOkResponse({ type: AccountDto })
-  @ApiConflictResponse({ description: 'The user already has another account with that name.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The user already has another account with that name.' })
   @Patch(':id')
   update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAccountDto): Promise<AccountDto> {
     return this.accounts.update(user.id, id, dto);
@@ -93,7 +94,7 @@ export class AccountsController {
   @ApiOperation({ operationId: 'deleteAccount', summary: 'Delete an account for good' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiNoContentResponse({ description: 'Deleted. Nothing referenced it.' })
-  @ApiConflictResponse({ description: 'Records still reference this account — deactivate it instead of deleting it.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'Records still reference this account — deactivate it instead of deleting it.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<void> {

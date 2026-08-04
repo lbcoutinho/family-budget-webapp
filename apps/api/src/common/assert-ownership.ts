@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { notFound } from './api-error';
 
 /**
  * The one place the API decides what "someone else's record" looks like from the outside: a 404,
@@ -19,7 +19,7 @@ import { NotFoundException } from '@nestjs/common';
  */
 export function assertOwnership<T extends { userId: string }>(entity: T | null | undefined, userId: string): T {
   if (entity?.userId !== userId) {
-    throw new NotFoundException('The requested record was not found.');
+    throw notFound('RECORD_NOT_FOUND', 'The requested record was not found.');
   }
 
   return entity;

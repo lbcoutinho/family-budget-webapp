@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApiErrorDto,
   CashboxDto,
   CreateCashboxDto,
   ListCashboxesParams,
@@ -78,7 +79,7 @@ export const getListCashboxesQueryKey = (params?: ListCashboxesParams,) => {
     }
 
 
-export const getListCashboxesQueryOptions = <TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<void>>(params?: ListCashboxesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>>, }
+export const getListCashboxesQueryOptions = <TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<ApiErrorDto>>(params?: ListCashboxesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -97,10 +98,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListCashboxesQueryResult = NonNullable<Awaited<ReturnType<typeof listCashboxes>>>
-export type ListCashboxesQueryError = ErrorType<void>
+export type ListCashboxesQueryError = ErrorType<ApiErrorDto>
 
 
-export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<void>>(
+export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<ApiErrorDto>>(
  params: undefined |  ListCashboxesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCashboxes>>,
@@ -110,7 +111,7 @@ export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<void>>(
+export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCashboxesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCashboxes>>,
@@ -120,7 +121,7 @@ export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<void>>(
+export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCashboxesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -128,7 +129,7 @@ export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes
  * @summary List the user's cashboxes
  */
 
-export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<void>>(
+export function useListCashboxes<TData = Awaited<ReturnType<typeof listCashboxes>>, TError = ErrorType<ApiErrorDto>>(
  params?: ListCashboxesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxes>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -165,7 +166,7 @@ export const createCashbox = (
 
 
 
-export const getCreateCashboxMutationOptions = <TError = ErrorType<void>,
+export const getCreateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext> => {
 
@@ -194,12 +195,12 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof createCashbox>>>
     export type CreateCashboxMutationBody = BodyType<CreateCashboxDto>
-    export type CreateCashboxMutationError = ErrorType<void>
+    export type CreateCashboxMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Create a cashbox
  */
-export const useCreateCashbox = <TError = ErrorType<void>,
+export const useCreateCashbox = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCashbox>>,
@@ -234,7 +235,7 @@ export const getGetCashboxQueryKey = (id: string,) => {
     }
 
 
-export const getGetCashboxQueryOptions = <TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<void>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>>, }
+export const getGetCashboxQueryOptions = <TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<ApiErrorDto>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -253,10 +254,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetCashboxQueryResult = NonNullable<Awaited<ReturnType<typeof getCashbox>>>
-export type GetCashboxQueryError = ErrorType<void>
+export type GetCashboxQueryError = ErrorType<ApiErrorDto>
 
 
-export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<void>>(
+export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashbox>>,
@@ -266,7 +267,7 @@ export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<void>>(
+export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashbox>>,
@@ -276,7 +277,7 @@ export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<void>>(
+export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -284,7 +285,7 @@ export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TE
  * @summary Read one cashbox
  */
 
-export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<void>>(
+export function useGetCashbox<TData = Awaited<ReturnType<typeof getCashbox>>, TError = ErrorType<ApiErrorDto>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashbox>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -322,7 +323,7 @@ export const updateCashbox = (
 
 
 
-export const getUpdateCashboxMutationOptions = <TError = ErrorType<void>,
+export const getUpdateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext> => {
 
@@ -351,12 +352,12 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof updateCashbox>>>
     export type UpdateCashboxMutationBody = BodyType<UpdateCashboxDto>
-    export type UpdateCashboxMutationError = ErrorType<void>
+    export type UpdateCashboxMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Update a cashbox
  */
-export const useUpdateCashbox = <TError = ErrorType<void>,
+export const useUpdateCashbox = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCashbox>>,
@@ -384,7 +385,7 @@ export const deleteCashbox = (
 
 
 
-export const getDeleteCashboxMutationOptions = <TError = ErrorType<void>,
+export const getDeleteCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext> => {
 
@@ -413,12 +414,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCashbox>>>
 
-    export type DeleteCashboxMutationError = ErrorType<void>
+    export type DeleteCashboxMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Delete a cashbox for good
  */
-export const useDeleteCashbox = <TError = ErrorType<void>,
+export const useDeleteCashbox = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCashbox>>,
@@ -446,7 +447,7 @@ export const activateCashbox = (
 
 
 
-export const getActivateCashboxMutationOptions = <TError = ErrorType<void>,
+export const getActivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext> => {
 
@@ -475,12 +476,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ActivateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof activateCashbox>>>
 
-    export type ActivateCashboxMutationError = ErrorType<void>
+    export type ActivateCashboxMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Put a retired cashbox back into use
  */
-export const useActivateCashbox = <TError = ErrorType<void>,
+export const useActivateCashbox = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateCashbox>>,
@@ -508,7 +509,7 @@ export const deactivateCashbox = (
 
 
 
-export const getDeactivateCashboxMutationOptions = <TError = ErrorType<void>,
+export const getDeactivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext> => {
 
@@ -537,12 +538,12 @@ const {mutation: mutationOptions} = options ?
 
     export type DeactivateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateCashbox>>>
 
-    export type DeactivateCashboxMutationError = ErrorType<void>
+    export type DeactivateCashboxMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Retire a cashbox, keeping its history
  */
-export const useDeactivateCashbox = <TError = ErrorType<void>,
+export const useDeactivateCashbox = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateCashbox>>,

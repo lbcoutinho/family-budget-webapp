@@ -1,5 +1,6 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
+import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Category, type CategoryKind, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -71,7 +72,7 @@ export class CategoriesService {
     }
 
     if (dto.kind === undefined) {
-      throw new BadRequestException('A root category needs a kind.');
+      throw badRequest('CATEGORY_ROOT_KIND_REQUIRED', 'A root category needs a kind.');
     }
 
     const kind = dto.kind;
@@ -182,7 +183,7 @@ export class CategoriesService {
     }
 
     if (dto.parentId === current.id) {
-      throw new BadRequestException('A category cannot be its own parent.');
+      throw badRequest('CATEGORY_SELF_PARENT', 'A category cannot be its own parent.');
     }
 
     const parent = await this.load(userId, dto.parentId);
@@ -192,7 +193,7 @@ export class CategoriesService {
 
     // The two-level rule read from the other side: this row's children would become the third level.
     if ((await this.prisma.category.count({ where: { parentId: current.id } })) > 0) {
-      throw new ConflictException('This category has subcategories, so it cannot become a subcategory itself.');
+      throw conflict('CATEGORY_HAS_SUBCATEGORIES', 'This category has subcategories, so it cannot become a subcategory itself.');
     }
 
     return dto.parentId;
@@ -201,14 +202,14 @@ export class CategoriesService {
   /** Invariant 1, at the only point where a parent is chosen. */
   private assertCanParent(parent: Category): void {
     if (parent.parentId !== null) {
-      throw new BadRequestException('A subcategory cannot hold subcategories: the category tree is two levels deep.');
+      throw badRequest('CATEGORY_TREE_TOO_DEEP', 'A subcategory cannot hold subcategories: the category tree is two levels deep.');
     }
   }
 
   /** Invariant 2, kind half. Returns the kind to write, so callers cannot forget to apply it. */
   private inheritedKind(kind: CategoryKind | undefined, parent: Category): CategoryKind {
     if (kind !== undefined && kind !== parent.kind) {
-      throw new BadRequestException("A subcategory inherits its parent's kind, so it cannot be given a different one.");
+      throw badRequest('CATEGORY_SUBCATEGORY_KIND_MISMATCH', "A subcategory inherits its parent's kind, so it cannot be given a different one.");
     }
 
     return parent.kind;
@@ -217,7 +218,7 @@ export class CategoriesService {
   /** Invariant 2, colour half. `null` is allowed — it is what a subcategory already holds. */
   private assertNoColour(color: string | null | undefined): void {
     if (typeof color === 'string') {
-      throw new BadRequestException("Only a root category carries a colour; a subcategory inherits its parent's.");
+      throw badRequest('CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED', "Only a root category carries a colour; a subcategory inherits its parent's.");
     }
   }
 
@@ -236,7 +237,7 @@ export class CategoriesService {
     const remaining = await this.prisma.category.count({ where: { parentId, isActive: true, id: { not: id } } });
 
     if (remaining === 0) {
-      throw new ConflictException('This is the last active subcategory of an active category. Deactivate the parent category instead.');
+      throw conflict('CATEGORY_LAST_ACTIVE_SUBCATEGORY', 'This is the last active subcategory of an active category. Deactivate the parent category instead.');
     }
   }
 

@@ -307,7 +307,10 @@ describe('Categories API (e2e)', () => {
 
       await authed('patch', `/categories/${sub.id}/deactivate`).expect(200);
 
-      await authed('patch', `/categories/${outros!.id}/deactivate`).expect(409);
+      // The code, not the sentence, is the contract: the web renders `errors.<CODE>` (M3-T11).
+      await authed('patch', `/categories/${outros!.id}/deactivate`)
+        .expect(409)
+        .expect(({ body }: { body: { code: string } }) => expect(body.code).toBe('CATEGORY_LAST_ACTIVE_SUBCATEGORY'));
     });
   });
 
