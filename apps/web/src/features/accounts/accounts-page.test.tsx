@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { AccountsPage } from './accounts-page';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { server } from '@/test/server';
 
 const ACTIVE: AccountDto = {
@@ -36,7 +37,9 @@ function renderPage() {
     user: userEvent.setup(),
     ...render(
       <QueryClientProvider client={queryClient}>
-        <AccountsPage />
+        <TooltipProvider>
+          <AccountsPage />
+        </TooltipProvider>
       </QueryClientProvider>,
     ),
   };
