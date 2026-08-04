@@ -28,7 +28,7 @@ export const DEFAULT_SUBCATEGORY_NAME = 'Outros';
  *
  *  1. **Two levels, never three.** A parent must itself be a root.
  *  2. **A subcategory matches its parent's kind**, and carries no colour of its own — it inherits
- *     the parent's in the charts (`prototypes/MEMORY.md` §04).
+ *     the parent's in the charts (`prototypes/memory/04-categories.md`).
  *  3. **An active root always has an active subcategory**, so a transaction always has somewhere to
  *     go. Hence the automatic "Outros" on creation, and the 409 on deactivating the last one.
  *

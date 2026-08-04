@@ -109,7 +109,7 @@ model Category {
   name     String
   kind     CategoryKind
   /// `#RRGGBB`, and set on roots only: subcategories inherit their parent's colour in the charts
-  /// (`prototypes/MEMORY.md` §04). Null is a normal state, not a missing value — the palette has
+  /// (`prototypes/memory/04-categories.md`). Null is a normal state, not a missing value — the palette has
   /// ten swatches and the UI falls back to a colour derived from the id.
   color    String?
 
