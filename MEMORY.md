@@ -13,17 +13,16 @@ Rewrite this file rather than appending to it.
 
 **M2 Authentication is complete and merged; M3-T01–T06 are all merged** (accounts, categories and
 cashboxes models/APIs, base layout and navigation). **M3-T10 (i18n foundation, #70) is done** on
-branch `feat/m3-t10-i18n-foundation` (commit d610f38), PR pending. Nothing is half-finished.
+branch `feat/m3-t10-i18n-foundation` (commit d610f38), PR pending. **M3-T11 (error codes, #71) is
+done** on branch `feat/m3-t11-error-codes`, PR #76 open. Nothing is half-finished.
 
-**M3-T10…T14 are now mirrored on GitHub** (#70–#74, milestone `M3 - Master data`), on top of the
+**M3-T10…T14 are mirrored on GitHub** (#70–#74, milestone `M3 - Master data`), on top of the
 original #45–#53. **Execution order is not numeric** — see
-`docs/superpowers/specs/2026-08-04-i18n-design.md`. **Next is M3-T11** (#71, API error codes), and
-only then T07/T08/T09 (accounts/categories/cashboxes screens, #51/#52/#53 — each still blocked on
-its own prototype leaving `prototypes/approved/`) — writing those three screens before T11 means
-their 409 error messages get rewritten right after. T12 (`User.locale`, #72), T13 (Settings ›
-General, #73, blocked on a prototype that does not exist yet) and T14 (Vercel deploy, #74, approach
-undecided — discuss before executing) follow. **Warn before starting any M3 ticket out of that
-order.**
+`docs/superpowers/specs/2026-08-04-i18n-design.md`. **Next are T07/T08/T09** (accounts, categories
+and cashboxes screens, #51/#52/#53 — each still blocked on its own prototype leaving
+`prototypes/approved/`). T12 (`User.locale`, #72), T13 (Settings › General, #73, blocked on a
+prototype that does not exist yet) and T14 (Vercel deploy, #74, approach undecided — discuss before
+executing) follow. **Warn before starting any M3 ticket out of that order.**
 
 ## Gotchas the next ticket will hit
 
@@ -37,8 +36,15 @@ order.**
 - **`apps/web/src/test/setup.ts` pins the language to pt-BR** before tests run — jsdom reports
   `navigator.language` as `en-US`, which would otherwise resolve the wrong locale and break every
   test asserting on Portuguese accessible names.
-- **The `errors.*` key group does not exist yet** — M3-T11 defines the error codes it keys off;
-  writing it before that ticket means inventing the codes twice.
+- **A failed API call is rendered through `apiErrorMessage(error, t)`** (`apps/web/src/lib/api-error.ts`,
+  M3-T11), never through `error.message`: the API answers `{ statusCode, code, message }` and the
+  `message` is English for logs. A new business error needs its code in `ERROR_CODES`
+  (`apps/api/src/common/api-error.ts`) **and** an `errors.<CODE>` string in both locale files, or it
+  renders as `errors.UNKNOWN`.
+- **Business errors are thrown through `badRequest`/`conflict`/`notFound`** from
+  `apps/api/src/common/api-error.ts`, not `new ConflictException('sentence')` — a bare Nest
+  exception ships no code. Document the response with `type: ApiErrorDto` so the generated client
+  keeps typing `code`.
 - **A screen goes inside the shell, not beside it.** Add the route to the array in
   `app/router.tsx` (it is a child of the `AppLayout` route, so it is protected already), then
   render `<PageHeader title actions>` followed by `<PageContent>` — those two are the page frame
