@@ -1,11 +1,20 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { routes } from '@/app/router';
 import { AuthContext } from '@/features/auth/auth-context';
 import { COMPACT_VIEWPORT, stubMatchMedia } from '@/test/match-media';
+import { server } from '@/test/server';
+
+// The accounts route now renders the real AccountsPage, so any navigation there fetches; a route
+// this suite treats as a navigation target, not a screen under test, just needs an empty list.
+beforeEach(() => {
+  server.use(http.get('/api/accounts', () => HttpResponse.json([])));
+});
 
 const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho' };
 
@@ -16,13 +25,17 @@ function useCompactViewport() {
 
 /** The real route table, so what is asserted here is the navigation the application ships. */
 function renderShell(initialEntry = '/month', logout = vi.fn()) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
   return {
     logout,
     user: userEvent.setup(),
     ...render(
-      <AuthContext value={{ user: USER, logout }}>
-        <RouterProvider router={createMemoryRouter(routes, { initialEntries: [initialEntry] })} />
-      </AuthContext>,
+      <QueryClientProvider client={queryClient}>
+        <AuthContext value={{ user: USER, logout }}>
+          <RouterProvider router={createMemoryRouter(routes, { initialEntries: [initialEntry] })} />
+        </AuthContext>
+      </QueryClientProvider>,
     ),
   };
 }

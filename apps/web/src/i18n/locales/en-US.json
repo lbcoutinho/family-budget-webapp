@@ -19,7 +19,13 @@
   "common": {
     "loading": "Loading…",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "retry": "Try again",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions"
   },
   "auth": {
     "email": "Email",
@@ -55,5 +61,47 @@
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "A subcategory inherits the kind of its main category.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Only a main category carries a colour; a subcategory inherits its own.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead."
+  },
+  "accounts": {
+    "new": "New account",
+    "showInactive": "Show inactive",
+    "columns": {
+      "name": "Account"
+    },
+    "inactiveBadge": "inactive",
+    "actions": {
+      "deactivate": "Deactivate",
+      "activate": "Reactivate"
+    },
+    "form": {
+      "createTitle": "New account",
+      "editTitle": "Edit account",
+      "name": "Name",
+      "namePlaceholder": "Millennium",
+      "nameRequired": "Enter the account's name.",
+      "nameTooLong": "The name can have at most 80 characters.",
+      "initialBalance": "Initial balance",
+      "initialBalanceHint": "Accepts 1,234.56 and 1.234,56.",
+      "initialBalanceInvalid": "Enter a valid amount."
+    },
+    "deactivate": {
+      "title": "Deactivate \"{{name}}\"?",
+      "description": "The account disappears from new transactions. Its history stays exactly where it is.",
+      "confirm": "Deactivate"
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\"?",
+      "description": "This action cannot be undone.",
+      "confirm": "Delete",
+      "blockedTitle": "This account cannot be deleted"
+    },
+    "empty": {
+      "title": "No accounts yet",
+      "description": "An account is where the money comes from and goes to: a bank, a wallet, a card."
+    },
+    "error": {
+      "title": "Could not load the accounts",
+      "description": "Check your connection and try again."
+    }
   }
 }
