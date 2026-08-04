@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { NotFoundPlaceholder, RoutePlaceholder } from '@/components/layout/route-placeholder';
+import { AccountsPage } from '@/features/accounts/accounts-page';
 import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
 
@@ -34,7 +35,7 @@ export const routes = [
       { path: 'reports', element: <RoutePlaceholder titleKey="nav.reports" ticket="M6-T03" /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },
       { path: 'recurrences', element: <RoutePlaceholder titleKey="nav.recurrences" ticket="M7-T06" /> },
-      { path: 'accounts', element: <RoutePlaceholder titleKey="nav.accounts" ticket="M3-T07" /> },
+      { path: 'accounts', element: <AccountsPage /> },
       { path: 'categories', element: <RoutePlaceholder titleKey="nav.categories" ticket="M3-T08" /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.

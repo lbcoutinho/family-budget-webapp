@@ -19,7 +19,13 @@
   "common": {
     "loading": "Carregando…",
     "confirm": "Confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "close": "Fechar",
+    "retry": "Tentar de novo",
+    "edit": "Editar",
+    "delete": "Apagar",
+    "actions": "Ações"
   },
   "auth": {
     "email": "E-mail",
@@ -55,5 +61,47 @@
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "Uma subcategoria herda o tipo da categoria principal.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal."
+  },
+  "accounts": {
+    "new": "Nova conta",
+    "showInactive": "Mostrar inativas",
+    "columns": {
+      "name": "Conta"
+    },
+    "inactiveBadge": "inativa",
+    "actions": {
+      "deactivate": "Desativar",
+      "activate": "Reativar"
+    },
+    "form": {
+      "createTitle": "Nova conta",
+      "editTitle": "Editar conta",
+      "name": "Nome",
+      "namePlaceholder": "Millennium",
+      "nameRequired": "Informe o nome da conta.",
+      "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
+      "initialBalance": "Saldo inicial",
+      "initialBalanceHint": "Aceita 1.234,56 e 1234.56.",
+      "initialBalanceInvalid": "Informe um valor válido."
+    },
+    "deactivate": {
+      "title": "Desativar \"{{name}}\"?",
+      "description": "A conta some dos lançamentos novos. O histórico continua exatamente onde está.",
+      "confirm": "Desativar"
+    },
+    "delete": {
+      "title": "Apagar \"{{name}}\"?",
+      "description": "Esta ação não pode ser desfeita.",
+      "confirm": "Apagar",
+      "blockedTitle": "Não é possível apagar"
+    },
+    "empty": {
+      "title": "Nenhuma conta cadastrada",
+      "description": "Uma conta é de onde o dinheiro sai e para onde entra: o banco, a carteira, o cartão."
+    },
+    "error": {
+      "title": "Não foi possível carregar as contas",
+      "description": "Verifique a conexão e tente de novo."
+    }
   }
 }
