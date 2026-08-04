@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -15,10 +16,13 @@ import { SESSION_QUERY_KEY } from './auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { type TranslationKey } from '@/i18n';
 
+// The schema is module-level, where `t` does not exist, so its messages are keys and are translated
+// where they are rendered. Rebuilding the schema per render just to inject `t` buys nothing.
 const loginSchema = z.object({
-  email: z.email('Informe um e-mail válido.'),
-  password: z.string().min(1, 'Informe a sua senha.'),
+  email: z.email('auth.invalidEmail' satisfies TranslationKey),
+  password: z.string().min(1, 'auth.passwordRequired' satisfies TranslationKey),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -29,6 +33,7 @@ type LoginValues = z.infer<typeof loginSchema>;
  * refresh cookie.
  */
 export function LoginPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -77,7 +82,7 @@ export function LoginPage() {
             return;
           }
 
-          toast.error('Não foi possível entrar. Verifique a ligação e tente novamente.');
+          toast.error(t('auth.networkError'));
         },
       },
     );
@@ -88,18 +93,18 @@ export function LoginPage() {
       {credentialsRejected && (
         <div role="alert" className="mb-3.5 flex items-start gap-2 rounded-md border border-destructive/25 bg-destructive/8 p-2.5 text-sm text-destructive">
           <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
-          <span>E-mail ou senha incorretos.</span>
+          <span>{t('auth.invalidCredentials')}</span>
         </div>
       )}
 
       <form noValidate onSubmit={(event) => void onSubmit(event)} className="grid gap-3.5">
         <div className="grid gap-1.5">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input
             id="email"
             type="email"
             autoComplete="username"
-            placeholder="voce@exemplo.pt"
+            placeholder={t('auth.emailPlaceholder')}
             aria-invalid={errors.email !== undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             disabled={isPending}
@@ -107,13 +112,13 @@ export function LoginPage() {
           />
           {errors.email && (
             <span id="email-error" className="text-xs text-destructive">
-              {errors.email.message}
+              {t(errors.email.message as TranslationKey)}
             </span>
           )}
         </div>
 
         <div className="grid gap-1.5">
-          <Label htmlFor="password">Senha</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <Input
             id="password"
             type="password"
@@ -126,7 +131,7 @@ export function LoginPage() {
           />
           {errors.password && (
             <span id="password-error" className="text-xs text-destructive">
-              {errors.password.message}
+              {t(errors.password.message as TranslationKey)}
             </span>
           )}
         </div>
@@ -137,10 +142,10 @@ export function LoginPage() {
           {isPending ? (
             <>
               <Loader2Icon className="animate-spin" />
-              Entrando…
+              {t('auth.submitting')}
             </>
           ) : (
-            'Entrar'
+            t('auth.submit')
           )}
         </Button>
       </form>

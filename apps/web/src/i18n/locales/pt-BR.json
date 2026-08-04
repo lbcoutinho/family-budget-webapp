@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Orçamento"
+  },
+  "nav": {
+    "month": "Mês",
+    "cashboxes": "Caixinhas",
+    "reports": "Relatórios",
+    "voice": "Lançar por voz",
+    "recurrences": "Recorrências",
+    "settings": "Configurações",
+    "accounts": "Contas",
+    "categories": "Categorias",
+    "mainNav": "Navegação principal",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "logout": "Sair"
+  },
+  "common": {
+    "loading": "Carregando…",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Senha",
+    "emailPlaceholder": "voce@exemplo.pt",
+    "submit": "Entrar",
+    "submitting": "Entrando…",
+    "restoringSession": "Restaurando sessão…",
+    "invalidCredentials": "E-mail ou senha incorretos.",
+    "invalidEmail": "Informe um e-mail válido.",
+    "passwordRequired": "Informe a sua senha.",
+    "networkError": "Não foi possível entrar. Verifique a ligação e tente novamente."
+  },
+  "placeholder": {
+    "routeTitle": "Conteúdo da rota",
+    "routeDescription": "Esta tela chega em {{ticket}}. Por enquanto existe só a moldura à volta dela.",
+    "notFound": {
+      "title": "Página não encontrada",
+      "heading": "Este endereço não existe",
+      "description": "Escolha uma das telas no menu para continuar."
+    }
+  }
+}

@@ -1,8 +1,10 @@
 import { CalendarIcon, ChartColumnIcon, type LucideIcon, MicIcon, PiggyBankIcon, RepeatIcon, TagsIcon, WalletIcon } from 'lucide-react';
 
+import { type TranslationKey } from '@/i18n';
+
 export interface NavItem {
   to: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: LucideIcon;
 }
 
@@ -12,15 +14,15 @@ export interface NavItem {
  * up once. Recorrências stays at this level for the same reason.
  */
 export const NAV_ITEMS: NavItem[] = [
-  { to: '/month', label: 'Mês', icon: CalendarIcon },
-  { to: '/cashboxes', label: 'Caixinhas', icon: PiggyBankIcon },
-  { to: '/reports', label: 'Relatórios', icon: ChartColumnIcon },
-  { to: '/voice', label: 'Lançar por voz', icon: MicIcon },
-  { to: '/recurrences', label: 'Recorrências', icon: RepeatIcon },
+  { to: '/month', labelKey: 'nav.month', icon: CalendarIcon },
+  { to: '/cashboxes', labelKey: 'nav.cashboxes', icon: PiggyBankIcon },
+  { to: '/reports', labelKey: 'nav.reports', icon: ChartColumnIcon },
+  { to: '/voice', labelKey: 'nav.voice', icon: MicIcon },
+  { to: '/recurrences', labelKey: 'nav.recurrences', icon: RepeatIcon },
 ];
 
 /** The two registries. Set up rarely, so they live one level down, behind Configurações. */
 export const SETTINGS_NAV_ITEMS: NavItem[] = [
-  { to: '/accounts', label: 'Contas', icon: WalletIcon },
-  { to: '/categories', label: 'Categorias', icon: TagsIcon },
+  { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
+  { to: '/categories', labelKey: 'nav.categories', icon: TagsIcon },
 ];

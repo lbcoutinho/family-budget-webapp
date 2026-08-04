@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Budget"
+  },
+  "nav": {
+    "month": "Month",
+    "cashboxes": "Cashboxes",
+    "reports": "Reports",
+    "voice": "Voice entry",
+    "recurrences": "Recurrences",
+    "settings": "Settings",
+    "accounts": "Accounts",
+    "categories": "Categories",
+    "mainNav": "Main navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "logout": "Log out"
+  },
+  "common": {
+    "loading": "Loading…",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "you@example.com",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "restoringSession": "Restoring session…",
+    "invalidCredentials": "Wrong email or password.",
+    "invalidEmail": "Enter a valid email address.",
+    "passwordRequired": "Enter your password.",
+    "networkError": "Could not sign in. Check your connection and try again."
+  },
+  "placeholder": {
+    "routeTitle": "Route content",
+    "routeDescription": "This screen arrives in {{ticket}}. For now only the frame around it exists.",
+    "notFound": {
+      "title": "Page not found",
+      "heading": "This address does not exist",
+      "description": "Pick one of the screens in the menu to carry on."
+    }
+  }
+}

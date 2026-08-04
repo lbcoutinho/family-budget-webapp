@@ -1,10 +1,12 @@
 import { CompassIcon, HammerIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
+import { type TranslationKey } from '@/i18n';
 
 export interface RoutePlaceholderProps {
-  title: string;
+  titleKey: TranslationKey;
   /** The ticket that replaces this with the real screen, so the gap is dated rather than silent. */
   ticket: string;
 }
@@ -14,12 +16,14 @@ export interface RoutePlaceholderProps {
  * purpose — the alternative is reworking the structure under each of them — so this is the dashed
  * rectangle the shell prototype draws where the content goes, and nothing more.
  */
-export function RoutePlaceholder({ title, ticket }: RoutePlaceholderProps) {
+export function RoutePlaceholder({ titleKey, ticket }: RoutePlaceholderProps) {
+  const { t } = useTranslation();
+
   return (
     <>
-      <PageHeader title={title} />
+      <PageHeader title={t(titleKey)} />
       <PageContent>
-        <EmptyState icon={HammerIcon} title="Conteúdo da rota" description={`Esta tela chega em ${ticket}. Por enquanto existe só a moldura à volta dela.`} />
+        <EmptyState icon={HammerIcon} title={t('placeholder.routeTitle')} description={t('placeholder.routeDescription', { ticket })} />
       </PageContent>
     </>
   );
@@ -27,11 +31,13 @@ export function RoutePlaceholder({ title, ticket }: RoutePlaceholderProps) {
 
 /** A mistyped address, kept inside the shell so the navigation is right there to recover with. */
 export function NotFoundPlaceholder() {
+  const { t } = useTranslation();
+
   return (
     <>
-      <PageHeader title="Página não encontrada" />
+      <PageHeader title={t('placeholder.notFound.title')} />
       <PageContent>
-        <EmptyState icon={CompassIcon} title="Este endereço não existe" description="Escolha uma das telas no menu para continuar." />
+        <EmptyState icon={CompassIcon} title={t('placeholder.notFound.heading')} description={t('placeholder.notFound.description')} />
       </PageContent>
     </>
   );

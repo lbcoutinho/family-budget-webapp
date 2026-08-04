@@ -8,19 +8,37 @@
  * for anyone west of Greenwich.
  */
 
-const monthAndYear = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+import i18n from '@/i18n';
+
+// One formatter per locale rather than one for the whole application: the map is what makes
+// switching language at runtime relabel every month.
+const monthAndYearFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function monthAndYear(locale: string): Intl.DateTimeFormat {
+  const existing = monthAndYearFormatters.get(locale);
+
+  if (existing) {
+    return existing;
+  }
+
+  const formatter = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' });
+  monthAndYearFormatters.set(locale, formatter);
+
+  return formatter;
+}
 
 /** The first day of the month the date falls in, at midnight. This is `referenceMonth`'s shape. */
 export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-/** `formatMonth(new Date(2026, 6, 15))` → `"Julho de 2026"`. */
-export function formatMonth(date: Date): string {
-  const formatted = monthAndYear.format(date);
+/** `formatMonth(new Date(2026, 6, 15))` → `"Julho de 2026"`. Defaults to the active language. */
+export function formatMonth(date: Date, locale: string = i18n.language): string {
+  const formatted = monthAndYear(locale).format(date);
 
   // pt-BR month names are lowercase; the interface uses them as titles ("Julho de 2026"), so the
-  // capital is added here rather than by a CSS transform that would also hit the year.
+  // capital is added here rather than by a CSS transform that would also hit the year. It is a
+  // no-op in en-US, where `Intl` already capitalizes.
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
