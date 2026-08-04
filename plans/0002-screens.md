@@ -202,8 +202,8 @@ months written out ("Julho de 2026") in navigation. Money input accepts both `1.
 
 Thirteen screens plus the design system. "Prototype" names the file; "Ticket" the milestone task
 that implements it. **The whole first set was discarded after review** and lives in
-`prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` and are
-the input to v2.
+`prototypes/discarded/v1-default/`; the decisions it produced are in `prototypes/MEMORY.md` (index)
+and `prototypes/memory/` and are the input to v2.
 
 **v2 is direction D — Cromático.** The design system is **approved** and sits in
 `prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts`, `04-categories` and
@@ -494,7 +494,7 @@ restore it.
 ## 7. Open questions to settle at approval
 
 Answers as they are given, plus every other decision the user has made about the prototypes, are
-recorded in `prototypes/MEMORY.md`. That file is the record; this list only tracks what is left.
+recorded in `prototypes/MEMORY.md` and `prototypes/memory/`. That's the record; this list only tracks what is left.
 
 Still open — both now have a concrete proposal in `00-design-system.html`, which is what approving
 that screen accepts or rejects:
@@ -529,4 +529,4 @@ Settled:
 - **There is no CSV export anywhere in the application** — not on the monthly report, not on the
   yearly one, nowhere. Applied to M6-T03 in `plans/milestones/m06-reports.md`.
 - **The monthly report gains a column comparing the month against the category's average**, which
-  M6-T01 has to feed — see "Plan impact" in `prototypes/MEMORY.md`.
+  M6-T01 has to feed — see "Plan impact" in `prototypes/memory/09-monthly-report.md`.

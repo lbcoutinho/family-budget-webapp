@@ -39,7 +39,7 @@ without an approved prototype.
 To unblock, in one commit: the user design-approves 05 (the five "Decisões a aprovar" at the bottom
 of the file, plus the three deferrals in §3.1); `git mv` it into `approved/`; update the status
 table and the link in `prototypes/index.html`; update §4 of `plans/0002-screens.md`; update the
-status table and add the decision bullets in `prototypes/MEMORY.md`.
+status table in `prototypes/MEMORY.md` and add the decision bullets to `prototypes/memory/05-cashboxes.md`.
 
 ### 3.1 Three drawn elements that cannot ship in T09
 
@@ -166,7 +166,7 @@ that fails when M4-T07 swaps the hook, which is exactly when it should be rewrit
 - The blocker (§3.0) — everything above is worthless until 05 is in `approved/`.
 - The four summary cards are the biggest open item. If the user wants "Total guardado" visible in
   M3, there is no honest source for it. Get an explicit "ships with M4-T07" at the gate.
-- The three deferrals must be recorded in `prototypes/MEMORY.md` at approval time, not discovered in
+- The three deferrals must be recorded in `prototypes/memory/05-cashboxes.md` at approval time, not discovered in
   review — the 03-accounts balance column is the precedent for how to word them.
 - `prototypes/index.html` has a prose line listing which tickets each approval unblocks; it is easy
   to move the file and forget the sentence. Same commit, per `CLAUDE.md`.
