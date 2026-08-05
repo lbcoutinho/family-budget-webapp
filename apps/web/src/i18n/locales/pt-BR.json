@@ -103,5 +103,84 @@
       "title": "Não foi possível carregar as contas",
       "description": "Verifique a conexão e tente de novo."
     }
+  },
+  "categories": {
+    "new": "Nova categoria",
+    "search": "Buscar categoria…",
+    "clearSearch": "Limpar busca",
+    "showInactive": "Mostrar inativas",
+    "kind": {
+      "EXPENSE": "Despesa",
+      "INCOME": "Receita"
+    },
+    "column": {
+      "name": "Categoria",
+      "subcategories": "Subcategorias"
+    },
+    "expand": "Expandir {{name}}",
+    "collapse": "Recolher {{name}}",
+    "addSubcategory": "Subcategoria",
+    "addSubcategoryFor": "Adicionar subcategoria a {{name}}",
+    "badge": {
+      "inactive": "inativa",
+      "automatic": "automática"
+    },
+    "action": {
+      "deactivate": "Desativar",
+      "activate": "Reativar"
+    },
+    "dialog": {
+      "newRoot": "Nova categoria",
+      "editRoot": "Editar categoria",
+      "newChild": "Nova subcategoria",
+      "editChild": "Editar subcategoria"
+    },
+    "field": {
+      "parent": "Categoria",
+      "name": "Nome",
+      "namePlaceholder": "Educação",
+      "childPlaceholder": "Condomínio",
+      "kind": "Tipo",
+      "color": "Cor",
+      "colorHex": "ou um hexadecimal"
+    },
+    "color": {
+      "swatch": "Cor {{number}}",
+      "swatchGrey": "Cor {{number}} — cinza, sempre \"Outros\"",
+      "invalid": "Informe uma cor hexadecimal válida, no formato #RRGGBB."
+    },
+    "form": {
+      "nameRequired": "Informe o nome da categoria.",
+      "nameTooLong": "O nome pode ter no máximo 80 caracteres."
+    },
+    "hint": {
+      "inheritsColor": "Herda a cor de {{name}}. Uma subcategoria não tem cor própria e não pode ter filhas.",
+      "automaticOthers": "A categoria nasce com uma subcategoria \"Outros\". Ela existe para que todo lançamento tenha onde cair enquanto você ainda não decidiu a divisão."
+    },
+    "deactivate": {
+      "title": "Desativar \"{{name}}\"?",
+      "description_one": "A subcategoria vai junto: {{names}}. Os lançamentos já feitos continuam intactos — o que some é a categoria dos lançamentos novos.",
+      "description_other": "As {{count}} subcategorias vão junto: {{names}}. Os lançamentos já feitos continuam intactos — o que some é a categoria dos lançamentos novos.",
+      "descriptionChild": "A subcategoria some dos lançamentos novos. O histórico continua exatamente onde está."
+    },
+    "delete": {
+      "title": "Apagar \"{{name}}\"?",
+      "description": "Esta ação não pode ser desfeita."
+    },
+    "empty": {
+      "EXPENSE": {
+        "title": "Nenhuma categoria de despesa"
+      },
+      "INCOME": {
+        "title": "Nenhuma categoria de receita"
+      },
+      "description": "Categorias são o que faz o relatório existir: sem elas todo gasto vira uma linha solta.",
+      "searchTitle": "Nada encontrado para \"{{query}}\"",
+      "searchDescription": "A busca varre raízes e subcategorias, inclusive as inativas quando o interruptor está ligado."
+    },
+    "error": {
+      "title": "Não foi possível carregar as categorias",
+      "description": "Verifique a conexão e tente de novo."
+    }
   }
 }

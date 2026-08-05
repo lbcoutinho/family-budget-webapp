@@ -103,5 +103,84 @@
       "title": "Could not load the accounts",
       "description": "Check your connection and try again."
     }
+  },
+  "categories": {
+    "new": "New category",
+    "search": "Search categories…",
+    "clearSearch": "Clear search",
+    "showInactive": "Show inactive",
+    "kind": {
+      "EXPENSE": "Expense",
+      "INCOME": "Income"
+    },
+    "column": {
+      "name": "Category",
+      "subcategories": "Subcategories"
+    },
+    "expand": "Expand {{name}}",
+    "collapse": "Collapse {{name}}",
+    "addSubcategory": "Subcategory",
+    "addSubcategoryFor": "Add subcategory to {{name}}",
+    "badge": {
+      "inactive": "inactive",
+      "automatic": "automatic"
+    },
+    "action": {
+      "deactivate": "Deactivate",
+      "activate": "Reactivate"
+    },
+    "dialog": {
+      "newRoot": "New category",
+      "editRoot": "Edit category",
+      "newChild": "New subcategory",
+      "editChild": "Edit subcategory"
+    },
+    "field": {
+      "parent": "Category",
+      "name": "Name",
+      "namePlaceholder": "Education",
+      "childPlaceholder": "Condo fee",
+      "kind": "Kind",
+      "color": "Colour",
+      "colorHex": "or a hex code"
+    },
+    "color": {
+      "swatch": "Colour {{number}}",
+      "swatchGrey": "Colour {{number}} — grey, always \"Other\"",
+      "invalid": "Enter a valid hex colour, in the format #RRGGBB."
+    },
+    "form": {
+      "nameRequired": "Enter the category's name.",
+      "nameTooLong": "The name can have at most 80 characters."
+    },
+    "hint": {
+      "inheritsColor": "Inherits the colour of {{name}}. A subcategory has no colour of its own and cannot have children.",
+      "automaticOthers": "The category is born with an \"Other\" subcategory. It exists so every transaction has somewhere to land before you've decided the split."
+    },
+    "deactivate": {
+      "title": "Deactivate \"{{name}}\"?",
+      "description_one": "Its subcategory goes with it: {{names}}. Past transactions stay untouched — only the category for new ones disappears.",
+      "description_other": "All {{count}} subcategories go with it: {{names}}. Past transactions stay untouched — only the category for new ones disappears.",
+      "descriptionChild": "The subcategory disappears from new transactions. Its history stays exactly where it is."
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\"?",
+      "description": "This action cannot be undone."
+    },
+    "empty": {
+      "EXPENSE": {
+        "title": "No expense categories yet"
+      },
+      "INCOME": {
+        "title": "No income categories yet"
+      },
+      "description": "Categories are what makes a report exist: without them every expense becomes a loose line.",
+      "searchTitle": "Nothing found for \"{{query}}\"",
+      "searchDescription": "Search covers roots and subcategories, including inactive ones when the switch is on."
+    },
+    "error": {
+      "title": "Could not load the categories",
+      "description": "Check your connection and try again."
+    }
   }
 }
