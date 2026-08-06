@@ -4,9 +4,16 @@ Questions raised during a prototype review that belong to no single screen and h
 decided yet. Each one is here to be discussed in its own session, not guessed at during
 implementation.
 
-## Renaming rewrites history — cashboxes, and by extension accounts and categories
+## ~~Renaming rewrites history — cashboxes~~ — decided 2026-08-06
 
-Raised 2026-08-06, reviewing `05-cashboxes.html`. **Not decided. Do not implement either way.**
+Raised 2026-08-06 reviewing `05-cashboxes.html`, **decided the same day for cashboxes in
+[ADR-0019](../../docs/adr/0019-cashbox-label-snapshot-and-deletion.md)**: the transaction snapshots
+the cashbox name (`cashboxLabel`, `destinationCashboxLabel`), renaming stays allowed and no longer
+touches the past, and a cashbox with a zero balance may be deleted even with entries — its
+`cashboxId` goes to `NULL` and the label carries the history. A non-zero balance still returns 409.
+
+The same question for **accounts and categories stays open**: they keep ADR-0015 unchanged, and no
+rename problem has been raised for them in practice. The record of the original discussion follows.
 
 A cashbox is referenced by id, so renaming it rewrites every place its name is shown: the statement,
 the monthly report, the yearly report. The name is not stored on the transaction.

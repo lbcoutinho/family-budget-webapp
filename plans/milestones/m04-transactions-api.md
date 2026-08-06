@@ -21,6 +21,11 @@ The central table of the system. Keeping the migration separate from business lo
 - **No** `externalHash` (see ADR-0013)
 - **No** `fundedByTransactionId` (see ADR-0008)
 - All account/cashbox/category foreign keys are nullable — requirements are enforced per type in the service layer
+- `cashboxId` and `destinationCashboxId` use `onDelete: SetNull` — deleting a zero-balance cashbox
+  (ADR-0019) nulls these on its transactions instead of failing the delete
+- `cashboxLabel` and `destinationCashboxLabel` (String, nullable): the cashbox name snapshotted at
+  write time, alongside the id columns. The migration backfills both from the referenced cashbox
+  (ADR-0019)
 - `date` and `referenceMonth` typed as `@db.Date` (no timezone)
 - Indexes: `[userId, referenceMonth, status]`, `[userId, type, referenceMonth]`, `[userId, categoryId, referenceMonth]`, `[userId, cashboxId]`
 - CHECK constraint via raw SQL: `amount > 0`
@@ -31,6 +36,8 @@ The central table of the system. Keeping the migration separate from business lo
 - [ ] A negative `amount` is rejected by the database
 - [ ] A `referenceMonth` not on the first of the month is rejected by the database
 - [ ] Dates are written and read back without timezone drift
+- [ ] Deleting a cashbox sets `cashboxId`/`destinationCashboxId` to `NULL` on its transactions
+  without deleting them
 
 ### Tests
 - Integration: valid insert; rejection of negative `amount`; rejection of invalid `referenceMonth`; date round-trip preserving the day
@@ -132,6 +139,9 @@ The product's distinctive mechanic. It gets its own pull request because of the 
 - Return 409 including the available balance when funds are insufficient
 - The balance check also runs on **update** — raising the amount of an old withdrawal can drive the balance negative
 - `CASHBOX_TRANSFER` does not require `accountId`
+- `cashboxLabel`/`destinationCashboxLabel` are set from the referenced cashbox's current name on
+  create, and kept in sync whenever `cashboxId`/`destinationCashboxId` change on update — never
+  touched by a rename of the cashbox itself (ADR-0019)
 
 ### Acceptance criteria
 - [ ] A deposit debits the account and credits the cashbox
@@ -140,6 +150,10 @@ The product's distinctive mechanic. It gets its own pull request because of the 
 - [ ] A withdrawal above the balance returns 409 stating what is available
 - [ ] Editing a withdrawal above the balance returns 409
 - [ ] Transferring to the same cashbox returns 400
+- [ ] Creating a cashbox transaction snapshots the current cashbox name(s) into
+  `cashboxLabel`/`destinationCashboxLabel`
+- [ ] Renaming a cashbox does not change the label already stored on its past transactions
+- [ ] Changing which cashbox a transaction points to updates its snapshotted label
 
 ### Tests
 - Unit: sufficient-balance rule, including the update case
@@ -209,6 +223,10 @@ The foundation of the frontend's monthly tab. Without pagination the screen degr
 - Response includes `total` and aggregates over the filtered set (income sum, expense sum)
 - Relations included selectively (category and account), avoiding N+1
 - Default: `status = CONFIRMED` when not specified
+- `?cashboxId=` matches the live foreign key only — a transaction whose cashbox was since deleted
+  (`cashboxId = NULL`) is excluded, even though `cashboxLabel` still names it; the response's
+  `cashboxLabel`/`destinationCashboxLabel` let the frontend display those rows elsewhere without a
+  join (ADR-0019)
 
 ### Acceptance criteria
 - [ ] Filtering by `referenceMonth` returns the correct month

@@ -36,6 +36,12 @@ Two things follow, and both are work rather than wording:
   states section draws the "Apagar" dialog and its 409, and accounts and categories both put a trash
   icon next to edit and deactivate. The cashbox card offers only edit and deactivate, so the delete
   it documents is unreachable. Fixed to match 03 and 04.
+- **The 409 this dialog draws is no longer "has transactions" but "balance is not zero".**
+  ADR-0019 narrows ADR-0015 for Cashbox only: a zero-balance cashbox may be deleted even with
+  transaction history — the row is removed and its transactions keep the cashbox's name as text
+  (`cashboxLabel`) while `cashboxId` goes to `NULL`. A non-zero balance still returns 409. Renaming
+  a cashbox no longer rewrites the label on past entries either. Deactivate stays the reversible
+  default action on the card; delete is the permanent one, and its confirmation says so.
 
 ## Raised by the M3 block drawn on 2026-08-02
 

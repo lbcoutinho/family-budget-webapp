@@ -75,3 +75,4 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | [#72](https://github.com/lbcoutinho/family-budget-webapp/issues/72) | M3-T12 — `locale` on `User` + `PATCH /api/users/me` | 2026-08-04 |
 | [#73](https://github.com/lbcoutinho/family-budget-webapp/issues/73) | M3-T13 — Settings › General screen | 2026-08-04 |
 | [#74](https://github.com/lbcoutinho/family-budget-webapp/issues/74) | M3-T14 — Deploy to Vercel | 2026-08-04 |
+| [#84](https://github.com/lbcoutinho/family-budget-webapp/issues/84) | M3-T15 — Cashbox deletion by zero balance | 2026-08-06 |

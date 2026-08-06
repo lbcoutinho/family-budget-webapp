@@ -109,6 +109,10 @@ Different enough from the expense form that it does not belong there: no categor
 - Current balance of the selected cashbox shown live
 - A client-side warning when the amount exceeds the balance, without blocking submission — the decision belongs to the backend
 - The backend 409 is surfaced with the available balance
+- Editing an old entry whose cashbox was since deleted (`cashboxId`/`destinationCashboxId` is
+  `NULL`) shows the transaction's `cashboxLabel`/`destinationCashboxLabel` marked "(deleted
+  cashbox)" instead of a selector, since there is nothing left to select; a live cashbox must be
+  chosen before the entry can be saved again (ADR-0019)
 
 ### Acceptance criteria
 - [ ] All three modes create the correct transaction
@@ -117,6 +121,8 @@ Different enough from the expense form that it does not belong there: no categor
 - [ ] An amount above the balance shows a warning before submission
 - [ ] The 409 shows a clear message including the available amount
 - [ ] Transfer mode shows no account selector
+- [ ] Editing an entry with a deleted cashbox shows its snapshotted label marked "(deleted
+  cashbox)" rather than an empty selector
 
 ### Tests
 - Integration with MSW: each mode; balance display; 409 handling
@@ -162,6 +168,9 @@ Immediate feedback that entries are correct. It is what makes the system trustwo
 - Skeleton while loading
 - Adds the "Saldo atual" column to the accounts screen list (M3-T07), which shipped without it —
   `GET /accounts/balances` did not exist yet (`prototypes/approved/03-accounts.html`)
+- A deleted cashbox has no card here — it is gone from `GET /cashboxes/balances` along with the row
+  — its past entries still display through `cashboxLabel` wherever transactions are listed
+  (ADR-0019)
 
 ### Acceptance criteria
 - [ ] Balances shown per account and per cashbox
@@ -171,6 +180,7 @@ Immediate feedback that entries are correct. It is what makes the system trustwo
 - [ ] Negative balances are visually highlighted
 - [ ] A skeleton shows while loading
 - [ ] The accounts screen list shows a "Saldo atual" column sourced from this endpoint
+- [ ] A deleted cashbox has no card in this panel
 
 ### Tests
 - Integration with MSW: rendering; refresh after mutation; conditional progress bar; negative formatting
