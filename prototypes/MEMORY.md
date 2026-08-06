@@ -27,7 +27,7 @@ this table and that screen's own file, nothing else.
 | 02  | Shell                       | **approved**              | [memory/02-shell.md](memory/02-shell.md)                                     |
 | 03  | Accounts                    | **approved**              | [memory/03-accounts.md](memory/03-accounts.md)                               |
 | 04  | Categories                  | **approved**              | [memory/04-categories.md](memory/04-categories.md)                           |
-| 05  | Cashboxes                   | drawn in v2, under review | [memory/05-cashboxes.md](memory/05-cashboxes.md)                             |
+| 05  | Cashboxes                   | **approved**              | [memory/05-cashboxes.md](memory/05-cashboxes.md)                             |
 | 06  | Month                       | **approved**              | [memory/06-month.md](memory/06-month.md)                                     |
 | 07  | Income / expense / transfer | approved, in full         | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
 | 08  | Cashbox operations          | approved, in full         | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
@@ -38,8 +38,8 @@ this table and that screen's own file, nothing else.
 | 13  | Voice                       | approved, in full         | [memory/13-voice.md](memory/13-voice.md)                                     |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
-type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04 and
-06 have passed it — those five plus 00 sit in `approved/` and unblock their tickets on the UI side.
+type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05
+and 06 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
 See [memory/global-rules.md](memory/global-rules.md#what-approved-means) for the two-gate rule.
 
 Every row's v1 file is in `discarded/v1-default/`.
@@ -48,3 +48,8 @@ Every row's v1 file is in `discarded/v1-default/`.
 
 Every screen has been reviewed at concept level. What's left per screen is tracked in that screen's
 own file. This section is only for questions that don't belong to one screen.
+
+- [memory/open-questions.md](memory/open-questions.md) — cross-cutting questions with no screen of
+  their own. **Renaming rewrites history**, raised 2026-08-06, decided the same day for cashboxes
+  ([ADR-0019](../../docs/adr/0019-cashbox-label-snapshot-and-deletion.md)); accounts and categories
+  keep ADR-0015 unchanged. File is empty until the next one is raised.

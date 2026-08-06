@@ -221,7 +221,7 @@ moves to `approved/` on its own.
 | 02  | Shell / navigation | (frame)                | M3-T06             | `approved/02-app-shell.html` | **approved** |
 | 03  | Accounts           | `/accounts`            | M3-T07, M5-T06      | `approved/03-accounts.html`  | **approved** |
 | 04  | Categories         | `/categories`          | M3-T08             | `approved/04-categories.html` | **approved** |
-| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `05-cashboxes.html`          | **v2 — under review** |
+| 05  | Cashboxes          | `/cashboxes`           | M3-T09, M5-T06     | `approved/05-cashboxes.html` | **approved** |
 | 06  | Monthly tab        | `/month/:year/:month`  | M5-T01, T05, T06   | `approved/06-month.html`     | **approved** |
 | 07  | Entry form         | (dialog)               | M5-T02, M5-T03     | `07-transaction-form.html`   | Awaiting v2 |
 | 08  | Cashbox operations | (dialog)               | M5-T04             | `08-cashbox-form.html`       | Awaiting v2 |
@@ -310,7 +310,7 @@ mobile entirely.
 | Create / edit | Name, description, optional target |
 | Deposit / withdraw from a card | Opens the operations dialog (08) with the cashbox pre-filled |
 | Deposit / withdraw from the top bar | Same dialog, cashbox chosen inside it |
-| Deactivate, delete | Same pattern as accounts, 409 when entries exist |
+| Deactivate, delete | Deactivate is the default, reversible action; delete is permanent, allowed only at zero balance, 409 otherwise (ADR-0019) |
 | Toggle "show inactive" | Adds the dimmed cards |
 
 Cards rather than a table: there are few of them and the target progress bar needs the room. The

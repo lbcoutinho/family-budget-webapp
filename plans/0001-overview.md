@@ -34,6 +34,8 @@ This is the non-trivial part of the domain. A cashbox is a pot of reserved money
 
 There is no tracing between a withdrawal and the expenses it funded. A €500 withdrawal may fund six independent purchases, and there is no real way to know which euro paid for what. A cashbox is simply a pot with its own balance.
 
+A cashbox is expected to end: renaming it never rewrites past entries (each transaction snapshots the cashbox name at the time), and once its balance is zero it may be deleted outright, even with transaction history (ADR-0019).
+
 ### 1.3 Cash basis and credit cards
 
 The user works on a **cash basis**: an expense is recorded in the month the money actually leaves the account. Credit card purchases are recorded in the month the statement is paid, while preserving the original purchase date.
@@ -215,6 +217,10 @@ Frequency         : MONTHLY | YEARLY
 | `CASHBOX_OUT` | destination | — | source | — | — | — |
 | `CASHBOX_TRANSFER` | — | — | source | destination | — | — |
 
+`CASHBOX_IN`, `CASHBOX_OUT` and `CASHBOX_TRANSFER` also snapshot `cashboxLabel` and, where
+applicable, `destinationCashboxLabel` — the cashbox name at the moment the entry is written, set by
+the server, not user input (ADR-0019).
+
 ### 5.3 Invariants
 
 - `amount` is always positive; the sign is derived from `type`
@@ -227,7 +233,12 @@ Frequency         : MONTHLY | YEARLY
 - every referenced entity belongs to the same `userId`
 - **balances and reports always filter `status = CONFIRMED`**
 - inactive entities cannot be used when creating or editing
-- deleting an Account, Category or Cashbox that has transactions is blocked
+- deleting an Account or Category that has transactions is blocked
+- a Cashbox with a non-zero balance cannot be deleted (409); a zero-balance Cashbox may be deleted
+  even with transactions — its transactions keep `cashboxLabel`/`destinationCashboxLabel` but get
+  `cashboxId`/`destinationCashboxId` set to `NULL` (ADR-0019)
+- a `CASHBOX_*` transaction with a null `cashboxId`/`destinationCashboxId` means its cashbox was
+  deleted, never "no cashbox" (ADR-0019)
 
 ### 5.4 Balance formulas
 

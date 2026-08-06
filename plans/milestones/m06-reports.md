@@ -21,7 +21,9 @@ The aggregation behind both the table and the charts. Computing it on the fronte
 - Grouped by `referenceMonth`, never by `date`
 - Aggregation performed in SQL
 - Categories with no activity in the period are omitted
-- A separate informational block with the month's cashbox activity (deposits, withdrawals, balance)
+- A separate informational block with the month's cashbox activity (deposits, withdrawals,
+  balance), naming each cashbox by its live name when it still exists and by `cashboxLabel` when it
+  was since deleted (ADR-0019)
 - **Each category also carries its rolling monthly average**, so the screen can show whether the
   month is above or below it. Project-wide definition: the twelve months ending with the requested
   one, divided by the number of those months that had movement — never by a flat twelve. It cannot
@@ -145,6 +147,10 @@ Cashboxes are excluded from expense reports by construction, so they need a view
 - Table of deposits, withdrawals and closing balance per cashbox for the period
 - Progress against `targetAmount` where defined
 - `GET /reports/cashboxes?year=` returning the time series
+- A cashbox deleted during the period (zero balance, ADR-0019) still has a row for the months it
+  was active in, labeled from `cashboxLabel`, ending at its last month of activity — it has no
+  entity to link to, so its row is not clickable. Grouping is by `cashboxId`, falling back to
+  `cashboxLabel` when it is null — otherwise every deleted cashbox collapses into a single row
 
 ### Acceptance criteria
 - [ ] Monthly balance evolution shown per cashbox
@@ -152,6 +158,8 @@ Cashboxes are excluded from expense reports by construction, so they need a view
 - [ ] Cashbox transfers are reflected in both cashboxes involved
 - [ ] Progress against the goal is shown where applicable
 - [ ] An inactive cashbox with history still appears in the report
+- [ ] A deleted cashbox still appears in the report for the months it was active, named from
+  `cashboxLabel`
 
 ### Tests
 - Integration: time series including cashbox transfers; an inactive cashbox with history

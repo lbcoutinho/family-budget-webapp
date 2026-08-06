@@ -142,15 +142,17 @@ The last master-data entity. It follows the established pattern, so it fits in a
 ### Implementation notes
 - `Cashbox` model: `id`, `userId`, `name`, `description`, `targetAmount` (nullable Int), `isActive`, `sortOrder`, timestamps
 - `@@unique([userId, name])`
-- CRUD following the M3-T02 pattern
-- Deletion blocked when transactions exist
+- CRUD following the M3-T02 pattern: `DELETE` returns 409 when transactions exist, otherwise
+  deletes for real
 - `targetAmount` is an optional goal with no effect on balance calculation
 - Balance is **not** stored — it is computed in M4-T07
+- ADR-0019 later narrows this delete rule to "blocked only when the balance is non-zero"; that
+  change is M4-T09, not this ticket
 
 ### Acceptance criteria
 - [ ] Full CRUD works
 - [ ] Deactivation is available
-- [ ] Deleting with transactions returns 409
+- [ ] Deleting a cashbox with transactions returns 409
 - [ ] `targetAmount` accepts null
 - [ ] Isolation by `userId`
 
@@ -264,16 +266,23 @@ Completes the master data. Follows the M3-T07 pattern.
 - Fields: name, description, optional goal (`targetAmount`)
 - Balance shown as a placeholder until M4-T07; the progress bar against the goal is prepared
 - CRUD and deactivation following the established pattern
+- A delete action alongside edit and deactivate (`prototypes/memory/05-cashboxes.md`), unlike
+  Accounts/Categories: the confirmation states that deletion is permanent and only possible while
+  the balance is zero; a non-zero balance shows the backend's 409 instead of deleting. Deactivation
+  stays the reversible default action on the card (ADR-0019). Until M4-T09 lands, the backend still
+  blocks on "has transactions" — with no `Transaction` model yet, no cashbox can have any, so the
+  screen behaves as specified either way
 
 ### Acceptance criteria
 - [ ] Full CRUD works
 - [ ] The goal is optional and can be left blank
-- [ ] Deactivation asks for confirmation
+- [ ] Deactivation asks for confirmation and stays the default, reversible action
 - [ ] The empty state explains what a cashbox is
-
+- [ ] A zero-balance cashbox can be deleted from its card, with a confirmation stating the deletion
+  is permanent
+- [ ] A non-zero-balance cashbox shows the 409 message instead of deleting
 
 ### Tests
-- Integration with MSW: full CRUD; optional goal
 - Integration with MSW: full CRUD; optional goal
 
 ---
@@ -431,3 +440,4 @@ which is not Vercel's terrain and needs a managed database regardless.
 - [ ] The approach was discussed and recorded as an ADR before any configuration was written
 - [ ] The deployed application loads and authenticates against whatever backend the choice implies
 - [ ] Secrets live in the provider, never in the repository
+
