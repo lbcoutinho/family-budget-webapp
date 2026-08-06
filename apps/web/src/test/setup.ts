@@ -20,6 +20,14 @@ beforeAll(async () => {
 // The shell reads the viewport through `matchMedia`, which jsdom does not implement at all.
 stubMatchMedia(NO_MATCH);
 
+// Radix's Tabs primitive measures itself with ResizeObserver, which jsdom does not implement either.
+class StubResizeObserver {
+  observe = () => undefined;
+  unobserve = () => undefined;
+  disconnect = () => undefined;
+}
+globalThis.ResizeObserver ??= StubResizeObserver as unknown as typeof ResizeObserver;
+
 // Testing Library does not auto-clean between tests under Vitest's globals, so unmount and
 // clear the DOM after each one to keep tests isolated. Request handlers are per-test for the
 // same reason.

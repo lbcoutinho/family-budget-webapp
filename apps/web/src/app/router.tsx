@@ -5,6 +5,7 @@ import { NotFoundPlaceholder, RoutePlaceholder } from '@/components/layout/route
 import { AccountsPage } from '@/features/accounts/accounts-page';
 import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
+import { CategoriesPage } from '@/features/categories/categories-page';
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -36,7 +37,7 @@ export const routes = [
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },
       { path: 'recurrences', element: <RoutePlaceholder titleKey="nav.recurrences" ticket="M7-T06" /> },
       { path: 'accounts', element: <AccountsPage /> },
-      { path: 'categories', element: <RoutePlaceholder titleKey="nav.categories" ticket="M3-T08" /> },
+      { path: 'categories', element: <CategoriesPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },

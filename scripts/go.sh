@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# One-shot dev bootstrap: node version, deps, db up, migrate, seed, dev servers.
+# Usage: pnpm go   (or: bash scripts/go.sh)
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if command -v nvm >/dev/null 2>&1; then
+  nvm use >/dev/null 2>&1 || nvm use "$(cat .nvmrc)"
+fi
+
+pnpm install
+
+docker compose up -d postgres
+
+echo "Waiting for postgres..."
+until docker compose exec -T postgres pg_isready -U "${POSTGRES_USER:-budget}" -d "${POSTGRES_DB:-budget}" >/dev/null 2>&1; do
+  sleep 1
+done
+
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
+
+if command -v powershell.exe >/dev/null 2>&1; then
+  WINPWD="$(cygpath -w "$(pwd)" 2>/dev/null || pwd)"
+  powershell.exe -NoProfile -Command "Start-Process cmd -ArgumentList '/k','pnpm dev' -WorkingDirectory '$WINPWD'"
+else
+  pnpm dev &
+fi

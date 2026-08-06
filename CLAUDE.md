@@ -70,3 +70,4 @@ Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` 
 - **One task = one small PR**; split if diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises` enabled + critical for NestJS** — always await or explicitly void promises.
+- When implementing code use subagents for all the development tasks like coding, test, validation, etc. Make it parallel as much as possible and use the main thread to coordinate the agents. For example, if you're developing a screen that need 2 new components, dispatch 2 subagents to create the components and when they are done then dispatch a 3rd subagent to implement the screen.
