@@ -240,3 +240,33 @@ The foundation of the frontend's monthly tab. Without pagination the screen degr
 ### Tests
 - Unit: building the `where` clause from filters
 - Integration: each filter; combinations; paging through every page; default exclusion of `DRAFT`
+
+---
+
+## M4-T09 — Cashbox deletion by zero balance
+
+**Last task of the milestone.** Follow-up to the already-shipped M3-T05, moved here because it
+needs the `Transaction` model (M4-T01) and the balance formula (M4-T07), both delivered earlier in
+this milestone.
+
+### Why this is needed
+ADR-0019 narrows ADR-0015 for `Cashbox` only: a finished cashbox has a zero balance and should be
+removable even with entries, instead of staying deactivated forever with its name taken.
+
+### Implementation notes
+- Change the cashboxes service delete rule from "blocked when transactions exist" to "blocked when
+  the balance is not zero" — 409 otherwise (ADR-0019)
+- The balance uses the same formula as `GET /cashboxes/balances`, recomputed inside the delete
+  database transaction rather than read beforehand, so a concurrent entry cannot slip past the check
+- The `onDelete: SetNull` change on the `Transaction` cashbox relations (`cashboxId`,
+  `destinationCashboxId`) belongs to M4-T01, not here
+
+### Acceptance criteria
+- [ ] Deleting a zero-balance cashbox with transactions succeeds
+- [ ] Deleting a non-zero-balance cashbox returns 409
+- [ ] Deleting an untouched cashbox still succeeds
+
+### Tests
+- Integration: deleting a zero-balance cashbox with transactions succeeds
+- Integration: deleting a non-zero-balance cashbox returns 409 with the current balance
+- Integration: deleting an untouched cashbox still succeeds

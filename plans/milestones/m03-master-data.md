@@ -147,7 +147,7 @@ The last master-data entity. It follows the established pattern, so it fits in a
 - `targetAmount` is an optional goal with no effect on balance calculation
 - Balance is **not** stored — it is computed in M4-T07
 - ADR-0019 later narrows this delete rule to "blocked only when the balance is non-zero"; that
-  change is M3-T15, not this ticket
+  change is M4-T09, not this ticket
 
 ### Acceptance criteria
 - [ ] Full CRUD works
@@ -269,7 +269,7 @@ Completes the master data. Follows the M3-T07 pattern.
 - A delete action alongside edit and deactivate (`prototypes/memory/05-cashboxes.md`), unlike
   Accounts/Categories: the confirmation states that deletion is permanent and only possible while
   the balance is zero; a non-zero balance shows the backend's 409 instead of deleting. Deactivation
-  stays the reversible default action on the card (ADR-0019). Until M3-T15 lands, the backend still
+  stays the reversible default action on the card (ADR-0019). Until M4-T09 lands, the backend still
   blocks on "has transactions" — with no `Transaction` model yet, no cashbox can have any, so the
   screen behaves as specified either way
 
@@ -441,33 +441,3 @@ which is not Vercel's terrain and needs a managed database regardless.
 - [ ] The deployed application loads and authenticates against whatever backend the choice implies
 - [ ] Secrets live in the provider, never in the repository
 
----
-
-## M3-T15 — Cashbox deletion by zero balance
-
-**Blocked on M4-T01 and M4-T07:** this is the follow-up to the already-shipped M3-T05, but it needs
-the `Transaction` model (M4-T01) and the balance formula (M4-T07) to exist before it can be built.
-It is numbered in M3 because it belongs to the Cashbox ticket it amends, not because it can run in
-M3's order.
-
-### Why this is needed
-ADR-0019 narrows ADR-0015 for `Cashbox` only: a finished cashbox has a zero balance and should be
-removable even with entries, instead of staying deactivated forever with its name taken.
-
-### Implementation notes
-- Change the cashboxes service delete rule from "blocked when transactions exist" to "blocked when
-  the balance is not zero" — 409 otherwise (ADR-0019)
-- The balance uses the same formula as `GET /cashboxes/balances`, recomputed inside the delete
-  database transaction rather than read beforehand, so a concurrent entry cannot slip past the check
-- The `onDelete: SetNull` change on the `Transaction` cashbox relations (`cashboxId`,
-  `destinationCashboxId`) belongs to M4-T01, not here
-
-### Acceptance criteria
-- [ ] Deleting a zero-balance cashbox with transactions succeeds
-- [ ] Deleting a non-zero-balance cashbox returns 409
-- [ ] Deleting an untouched cashbox still succeeds
-
-### Tests
-- Integration: deleting a zero-balance cashbox with transactions succeeds
-- Integration: deleting a non-zero-balance cashbox returns 409 with the current balance
-- Integration: deleting an untouched cashbox still succeeds

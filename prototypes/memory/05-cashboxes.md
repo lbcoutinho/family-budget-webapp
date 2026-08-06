@@ -1,7 +1,7 @@
 # 05 — Cashboxes
 
-Status: **drawn in v2, under review** — no empty-goal wording, no "new cashbox" card, "show
-inactive" toggle added.
+Status: **approved** — no empty-goal wording, no "new cashbox" card, "show inactive" toggle added,
+delete button added, moved to `prototypes/approved/05-cashboxes.html`.
 
 Liked, and kept: **the summary cards at the top** and **the goal progress bars**.
 
