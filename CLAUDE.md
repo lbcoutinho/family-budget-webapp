@@ -2,15 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project state: M1 complete (Foundation)
+## Project state: M3 in progress (Master data)
 
-**M1 Foundation scaffolded** — monorepo, tooling, CI, health-check API, web bootstrap, and the OpenAPI→Orval client all exist. **M2 Authentication is next; no feature/domain code yet.** `plans/` and `docs/adr/` remain **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
+**M1 Foundation and M2 Authentication complete.** M3 Master data underway: Account, Category and Cashbox models/APIs, base layout/nav, i18n foundation and stable API error codes all shipped; Accounts and Categories screens (M3-T07, M3-T08) are built. **M3-T09 (Cashboxes screen) is next** — its prototype (`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). `plans/` and `docs/adr/` remain **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
 - `plans/0002-screens.md` — screen inventory, actions per screen, prototype workflow, open UI questions.
 - `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry), each list of small tasks. First user-visible value at end of M5.
 - `plans/MEMORY.md` — GitHub mirroring convention + progress tracker.
-- `docs/adr/` — 15 accepted ADRs. **Accepted ADRs never edited** — supersede with new one (sequential 4-digit, kebab-case, use `template.md`).
+- `docs/adr/` — 18 accepted ADRs. **Accepted ADRs never edited** — supersede with new one (sequential 4-digit, kebab-case, use `template.md`).
 
 ## Ticket workflow (follow for every task)
 
