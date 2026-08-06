@@ -23,6 +23,20 @@ Two things follow, and both are work rather than wording:
   (`CLAUDE.md`, domain rules). So those cards keep their balance — the history behind it is real —
   but their actions are disabled, not merely inert.
 
+## Review of the v2 draw, 2026-08-06
+
+- **The four summary cards follow the monthly report's order**: caixinhas ativas, depositado no mês,
+  resgatado no mês and, last, total guardado. The screen ends on the accumulated figure the same way
+  screen 09 ends on the cashboxes after income and expense. The count stays — it is no longer "the
+  most dispensable of the four", it opens the row.
+- Everything else in the "Decisões a aprovar" block stands as drawn: deposit/withdraw in both
+  places, amber display-size balance on the card, green bar on a reached goal that blocks nothing,
+  deactivating with a balance allowed with a warning.
+- **The card has no delete button, and that is an oversight, not a decision.** The screen's own
+  states section draws the "Apagar" dialog and its 409, and accounts and categories both put a trash
+  icon next to edit and deactivate. The cashbox card offers only edit and deactivate, so the delete
+  it documents is unreachable. Fixed to match 03 and 04.
+
 ## Raised by the M3 block drawn on 2026-08-02
 
 - **The cashbox balance is amber at display size**, the only screen where amber carries a large

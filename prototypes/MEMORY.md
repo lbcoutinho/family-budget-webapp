@@ -48,3 +48,8 @@ Every row's v1 file is in `discarded/v1-default/`.
 
 Every screen has been reviewed at concept level. What's left per screen is tracked in that screen's
 own file. This section is only for questions that don't belong to one screen.
+
+- [memory/open-questions.md](memory/open-questions.md) — **renaming rewrites history.** Renaming a
+  cashbox (or account, or category) relabels every past entry in the statement and the reports, so a
+  reused "Carro" pot turns its old deposits into "Férias". Raised 2026-08-06, undecided, has its own
+  session ahead.
