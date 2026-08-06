@@ -223,6 +223,58 @@ describe('CategoriesPage', () => {
     });
   });
 
+  it('clears a stale mutation error when the create dialog is reopened', async () => {
+    server.use(
+      http.get('/api/categories', () => HttpResponse.json([ROOT])),
+      http.post('/api/categories', () => HttpResponse.json({ statusCode: 409, code: 'DUPLICATE_NAME', message: 'duplicate' }, { status: 409 })),
+    );
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova categoria' }));
+    let dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Nome'), 'Habitação');
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+    await within(dialog).findByText('Já existe um registo com esse nome.');
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Nova categoria' }));
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).queryByText('Já existe um registo com esse nome.')).not.toBeInTheDocument();
+  });
+
+  it('offers delete on a subcategory row, not just on the root', async () => {
+    server.use(http.get('/api/categories', () => HttpResponse.json([ROOT])));
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Expandir Habitação' }));
+    const rendaRow = screen.getByText('Renda').closest('tr');
+
+    expect(within(rendaRow!).getByRole('button', { name: 'Apagar' })).toBeInTheDocument();
+  });
+
+  it('lists roots and subcategories alphabetically, with the automatic "Outros" pinned last', async () => {
+    const rootB: CategoryDto = { ...ROOT, id: 'r3', name: 'Zeladoria', children: [] };
+    server.use(http.get('/api/categories', () => HttpResponse.json([ROOT, rootB])));
+
+    const { user } = renderPage();
+
+    await screen.findByText('Zeladoria');
+    const rootNames = screen
+      .getAllByRole('row')
+      .slice(1, 3)
+      .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+    expect(rootNames).toEqual(['Habitação', 'Zeladoria']);
+
+    await user.click(screen.getByRole('button', { name: 'Expandir Habitação' }));
+    const childNames = (await screen.findAllByRole('row')).slice(2, 4).map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+    expect(childNames?.[0]).toContain('Renda');
+    expect(childNames?.[1]).toContain('Outros');
+  });
+
   it('renders the empty state for a kind with no categories', async () => {
     server.use(http.get('/api/categories', () => HttpResponse.json([])));
 

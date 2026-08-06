@@ -24,8 +24,7 @@ export interface CategoryTreeProps {
   onAddSubcategory: (root: CategoryDto) => void;
   onActivate: (category: CategoryDto) => void;
   onDeactivate: (category: CategoryDto) => void;
-  /** Roots only — the prototype gives no delete action to a subcategory. */
-  onDelete: (root: CategoryDto) => void;
+  onDelete: (category: CategoryDto) => void;
 }
 
 export function CategoryTreeSkeleton() {
@@ -172,7 +171,7 @@ function RootRows({ root, children, isExpanded, onToggleExpand, onEdit, onAddSub
             </TableCell>
             <TableCell className="hidden shell:table-cell" />
             <TableCell>
-              <RowActions category={child} onEdit={onEdit} onActivate={onActivate} onDeactivate={onDeactivate} />
+              <RowActions category={child} onEdit={onEdit} onActivate={onActivate} onDeactivate={onDeactivate} onDelete={onDelete} />
             </TableCell>
           </TableRow>
         ))}
@@ -201,8 +200,7 @@ interface RowActionsProps {
   onEdit: (category: CategoryDto) => void;
   onActivate: (category: CategoryDto) => void;
   onDeactivate: (category: CategoryDto) => void;
-  /** Present on a root row only — a subcategory has no delete action in this screen. */
-  onDelete?: (category: CategoryDto) => void;
+  onDelete: (category: CategoryDto) => void;
 }
 
 function RowActions({ category, onEdit, onActivate, onDeactivate, onDelete }: RowActionsProps) {
@@ -237,16 +235,14 @@ function RowActions({ category, onEdit, onActivate, onDeactivate, onDelete }: Ro
           <TooltipContent>{t('categories.action.activate')}</TooltipContent>
         </Tooltip>
       )}
-      {onDelete && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} onClick={() => onDelete(category)}>
-              <Trash2Icon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('common.delete')}</TooltipContent>
-        </Tooltip>
-      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} onClick={() => onDelete(category)}>
+            <Trash2Icon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t('common.delete')}</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

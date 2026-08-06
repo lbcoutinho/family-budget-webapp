@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { AUTOMATIC_SUBCATEGORY_NAME } from './category-colors';
 import { type CategoryDialogSubmitValues, CategoryDialog } from './category-dialog';
 import { CategoryTree, CategoryTreeSkeleton } from './category-tree';
 
@@ -108,11 +109,23 @@ export function CategoriesPage() {
 
   const searchLower = search.trim().toLowerCase();
 
+  // Alphabetical, locale-aware — except the automatic "Outros", which stays last as the catch-all
+  // it is rather than sorting wherever its letter falls.
+  function byName(a: CategoryDto, b: CategoryDto): number {
+    if (a.name === AUTOMATIC_SUBCATEGORY_NAME) return 1;
+    if (b.name === AUTOMATIC_SUBCATEGORY_NAME) return -1;
+
+    return a.name.localeCompare(b.name);
+  }
+
   // "A root matches if its own name or any child's matches; a matching root shows only its
   // matching children" — filtering happens on the loaded tree only, which is fine at a dozen
   // categories.
   const displayRoots = useMemo(() => {
-    const kindRoots = (data ?? []).filter((root) => root.kind === activeKind);
+    const kindRoots = (data ?? [])
+      .filter((root) => root.kind === activeKind)
+      .map((root) => ({ ...root, children: [...(root.children ?? [])].sort(byName) }))
+      .sort(byName);
 
     if (searchLower === '') {
       return kindRoots;
@@ -120,7 +133,7 @@ export function CategoriesPage() {
 
     return kindRoots.flatMap((root) => {
       const rootMatches = root.name.toLowerCase().includes(searchLower);
-      const matchingChildren = (root.children ?? []).filter((child) => child.name.toLowerCase().includes(searchLower));
+      const matchingChildren = root.children.filter((child) => child.name.toLowerCase().includes(searchLower));
 
       return rootMatches || matchingChildren.length > 0 ? [{ ...root, children: matchingChildren }] : [];
     });
@@ -258,8 +271,8 @@ export function CategoriesPage() {
               onAddSubcategory={(root) => setEditing({ mode: 'new-child', parent: root })}
               onActivate={(category) => activateCategory.mutate({ id: category.id })}
               onDeactivate={setDeactivating}
-              onDelete={(root) => {
-                setDeleting(root);
+              onDelete={(category) => {
+                setDeleting(category);
                 setDeleteBlocked(false);
               }}
             />
@@ -272,6 +285,8 @@ export function CategoriesPage() {
         onOpenChange={(open) => {
           if (!open) {
             setEditing(null);
+            createCategory.reset();
+            updateCategory.reset();
           }
         }}
         category={editing?.mode === 'edit-root' || editing?.mode === 'edit-child' ? editing.category : undefined}
