@@ -49,7 +49,7 @@ Every row's v1 file is in `discarded/v1-default/`.
 Every screen has been reviewed at concept level. What's left per screen is tracked in that screen's
 own file. This section is only for questions that don't belong to one screen.
 
-- [memory/open-questions.md](memory/open-questions.md) — **renaming rewrites history.** Renaming a
-  cashbox (or account, or category) relabels every past entry in the statement and the reports, so a
-  reused "Carro" pot turns its old deposits into "Férias". Raised 2026-08-06, undecided, has its own
-  session ahead.
+- [memory/open-questions.md](memory/open-questions.md) — cross-cutting questions with no screen of
+  their own. **Renaming rewrites history**, raised 2026-08-06, decided the same day for cashboxes
+  ([ADR-0019](../../docs/adr/0019-cashbox-label-snapshot-and-deletion.md)); accounts and categories
+  keep ADR-0015 unchanged. File is empty until the next one is raised.
