@@ -19,6 +19,7 @@
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r typecheck",
     "gen": "pnpm --filter api openapi:export && pnpm --filter web gen:client",
+    "go": "bash scripts/go.sh",
     "prepare": "husky"
   },
   "devDependencies": {
