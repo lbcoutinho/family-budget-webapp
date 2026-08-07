@@ -5,6 +5,7 @@ import { NotFoundPlaceholder, RoutePlaceholder } from '@/components/layout/route
 import { AccountsPage } from '@/features/accounts/accounts-page';
 import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
+import { CashboxesPage } from '@/features/cashboxes/cashboxes-page';
 import { CategoriesPage } from '@/features/categories/categories-page';
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
@@ -32,7 +33,7 @@ export const routes = [
       // the top of it.
       { index: true, element: <Navigate to="/month" replace /> },
       { path: 'month', element: <RoutePlaceholder titleKey="nav.month" ticket="M5-T01" /> },
-      { path: 'cashboxes', element: <RoutePlaceholder titleKey="nav.cashboxes" ticket="M3-T09" /> },
+      { path: 'cashboxes', element: <CashboxesPage /> },
       { path: 'reports', element: <RoutePlaceholder titleKey="nav.reports" ticket="M6-T03" /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },
       { path: 'recurrences', element: <RoutePlaceholder titleKey="nav.recurrences" ticket="M7-T06" /> },
