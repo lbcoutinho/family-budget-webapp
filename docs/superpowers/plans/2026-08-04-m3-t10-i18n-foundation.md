@@ -121,7 +121,7 @@ allowlist is needed.
 - `docs/adr/0018-internationalization.md` — records D1–D4 from the spec.
 - `CLAUDE.md` — the "UI strings pt-BR" convention becomes "UI strings through i18n keys; pt-BR is
   the default locale, en-US is kept at parity".
-- Open the PR through the `pr-description` skill.
+- Open the PR through the `create-pr` skill.
 
 Documentation work runs on Sonnet 5.
 

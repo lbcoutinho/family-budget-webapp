@@ -74,12 +74,10 @@ the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim con
 ## Conventions
 
 - **Branch-per-implementation.** All implementation on branch off `main` — never commit directly to `main`. Commit + push to feature branch, open pull request
-  to `main`. **Never merge to `main`** — user reviews and merges.
-- **Run `pr-description` skill** (`.claude/skills/pr-description/`) **whenever opening pull request**, to structure PR body instead of freeform text. Skill pins
-  `model: sonnet` — documentation work runs on Sonnet 5, so PR footer names Sonnet even when session runs another model.
-- **English (en-US) everywhere** — code, comments, commit messages, identifiers. Only user-facing UI strings go through i18n keys, pt-BR as source of truth and
-  en-US kept at parity.
-- **One task = one small PR**; split if diff exceeds ~400 lines. Merge only on green CI (lint + typecheck + tests).
+  to `main`.
+- **Never merge to `main`** — user reviews and merges.
+- **English (en-US) everywhere** — code, comments, commit messages, identifiers.
+- **One task = one small PR**; split if diff exceeds ~400 lines.
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises`
   enabled + critical for NestJS** — always await or explicitly void promises.
