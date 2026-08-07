@@ -149,7 +149,7 @@ consumer appears.
 - GitHub issue #72 already exists — no `github-mirroring` run needed; comment on it only if a
   decision deviates from the ticket.
 - Tick the acceptance criteria in `plans/milestones/m03-master-data.md` §M3-T12 when green.
-- Branch off `main` (e.g. `feat/m3-t12-user-locale`), one PR, `pr-description` skill for the body.
+- Branch off `main` (e.g. `feat/m3-t12-user-locale`), one PR, `create-pr` skill for the body.
   Never merge to `main`.
 
 ## Verification

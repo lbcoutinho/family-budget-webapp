@@ -177,4 +177,4 @@ error states.
 - `pnpm --filter web test`, `pnpm -r typecheck`, `pnpm lint` green before the PR. Watch
   `i18next/no-literal-string` — it fails on any literal in a `.tsx` under `features/**`.
 - Both locale files in the same commit; pt-BR first (keys are typed from it), en-US at parity.
-- PR body via the `pr-description` skill. Record every prototype divergence there.
+- PR body via the `create-pr` skill. Record every prototype divergence there.

@@ -211,5 +211,5 @@ round-trip, em dash where the balance goes.
 ## PR
 
 Issue first (`github-mirroring`), branch off `main`, never commit to `main`, never merge. PR body via
-the `pr-description` skill, recording: the three deferrals, the new M4 ticket, the prototype
+the `create-pr` skill, recording: the three deferrals, the new M4 ticket, the prototype
 delete-copy correction, and the plain-div progress bar instead of shadcn `progress`.
