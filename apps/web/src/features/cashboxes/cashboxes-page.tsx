@@ -197,9 +197,7 @@ export function CashboxesPage() {
         open={deactivating !== null}
         onOpenChange={(open) => !open && setDeactivating(null)}
         title={t('cashboxes.deactivate.title', { name: deactivating?.name ?? '' })}
-        // No balance figure exists yet in M3 (no Transaction model) — the "—" glyph matches the
-        // card's own placeholder for an unknown balance rather than leaving `{{balance}}` unfilled.
-        description={t('cashboxes.deactivate.description', { name: deactivating?.name ?? '', balance: '—' })}
+        description={t('cashboxes.deactivate.description', { name: deactivating?.name ?? '' })}
         confirmLabel={t('cashboxes.deactivate.confirm')}
         variant="default"
         isPending={deactivateCashbox.isPending}

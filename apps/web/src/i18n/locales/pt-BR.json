@@ -216,7 +216,7 @@
     },
     "deactivate": {
       "title": "Desativar \"{{name}}\"?",
-      "description": "A caixinha ainda tem {{balance}}. Ela continua contando no total guardado e o histórico fica — o que ela deixa de aceitar é depósito e resgate novos. Se a ideia era encerrá-la, resgate o saldo antes.",
+      "description": "O saldo guardado continua a contar no total e o histórico fica — o que ela deixa de aceitar é depósito e resgate novos. Se a ideia era encerrá-la, resgate o saldo antes.",
       "confirm": "Desativar"
     },
     "activate": {

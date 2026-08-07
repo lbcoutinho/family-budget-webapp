@@ -216,7 +216,7 @@
     },
     "deactivate": {
       "title": "Deactivate \"{{name}}\"?",
-      "description": "The cashbox still has {{balance}}. It keeps counting in the total saved and its history stays — what it stops accepting is new deposits and withdrawals. If the idea was to close it, withdraw the balance first.",
+      "description": "The saved balance keeps counting in the total and its history stays — what it stops accepting is new deposits and withdrawals. If the idea was to close it, withdraw the balance first.",
       "confirm": "Deactivate"
     },
     "activate": {
