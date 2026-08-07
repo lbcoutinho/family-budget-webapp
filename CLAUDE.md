@@ -77,7 +77,8 @@ the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim con
   to `main`.
 - **Never merge to `main`** — user reviews and merges.
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers.
-- **One task = one small PR**; split if diff exceeds ~400 lines.
+- **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Use skill `create-commit`.
+- **One task = one small PR**; split if diff exceeds ~400 lines. Use skill `create-pr`.
 - **One migration per schema-changing task**; never edited after commit.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises`
   enabled + critical for NestJS** — always await or explicitly void promises.
