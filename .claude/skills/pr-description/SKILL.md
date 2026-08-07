@@ -1,7 +1,8 @@
 ---
 name: pr-description
 description: Structure a pull request description using this project's standard PR body format — Closes-issue link, "What's in here", "Decisions worth a look", "Verification", and the attribution footer. Use this whenever opening a pull request in this repository, or when asked to draft/write a PR description.
-model: sonnet
+model: haiku
+effort: medium
 ---
 
 # PR description format
