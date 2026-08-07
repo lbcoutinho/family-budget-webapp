@@ -39,7 +39,7 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | M1 — Foundation | [milestone #1](https://github.com/lbcoutinho/family-budget-webapp/milestone/1) | Created 2026-07-25 |
 | M2 — Authentication | [milestone #2](https://github.com/lbcoutinho/family-budget-webapp/milestone/2) | Created 2026-07-26; #18 widened 2026-07-27 |
 | M3 — Master data | [milestone #3](https://github.com/lbcoutinho/family-budget-webapp/milestone/3) | Created 2026-08-02; T10–T14 added 2026-08-04 |
-| M4 — Transactions (API) | — | Not started |
+| M4 — Transactions (API) | [milestone #4](https://github.com/lbcoutinho/family-budget-webapp/milestone/4) | Created 2026-08-07; T01–T09 planned; T10 added 2026-08-07 |
 | M5 — Entries (UI) | —  | Not started |
 | M6 — Reports | — |  Not started |
 | M7 — Recurrence | —  | Not started |
@@ -76,3 +76,4 @@ When creating a new milestone's issues: create its `milestone: m<N>-<slug>` labe
 | [#73](https://github.com/lbcoutinho/family-budget-webapp/issues/73) | M3-T13 — Settings › General screen | 2026-08-04 |
 | [#74](https://github.com/lbcoutinho/family-budget-webapp/issues/74) | M3-T14 — Deploy to Vercel | 2026-08-04 |
 | [#84](https://github.com/lbcoutinho/family-budget-webapp/issues/84) | M4-T09 — Cashbox deletion by zero balance (moved from M3-T15; user renaming issue on GitHub) | 2026-08-06 |
+| [#89](https://github.com/lbcoutinho/family-budget-webapp/issues/89) | M4-T10 — Cashboxes summary cards | 2026-08-07 |
