@@ -182,5 +182,62 @@
       "title": "Could not load the categories",
       "description": "Check your connection and try again."
     }
+  },
+  "cashboxes": {
+    "new": "New cashbox",
+    "showInactive": "Show inactive",
+    "inactiveBadge": "inactive",
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Reactivate",
+      "delete": "Delete"
+    },
+    "balancePending": "Balance not yet calculated",
+    "goal": {
+      "target": "goal {{amount}}",
+      "progress": "{{percent}}% of the goal",
+      "reached": "Goal reached"
+    },
+    "form": {
+      "createTitle": "New cashbox",
+      "editTitle": "Edit cashbox",
+      "name": "Name",
+      "namePlaceholder": "Vacation 2027",
+      "nameRequired": "Enter the cashbox's name.",
+      "nameTooLong": "The name can have at most 80 characters.",
+      "description": "Description",
+      "descriptionPlaceholder": "Two weeks in Greece, in July",
+      "descriptionTooLong": "The description can have at most 500 characters.",
+      "target": "Goal",
+      "targetPlaceholder": "5,000.00",
+      "targetHint": "Without a goal, the card shows only the balance. Reaching the goal does not block a deposit.",
+      "targetInvalid": "Enter a valid amount."
+    },
+    "deactivate": {
+      "title": "Deactivate \"{{name}}\"?",
+      "description": "The cashbox still has {{balance}}. It keeps counting in the total saved and its history stays — what it stops accepting is new deposits and withdrawals. If the idea was to close it, withdraw the balance first.",
+      "confirm": "Deactivate"
+    },
+    "activate": {
+      "title": "Reactivate \"{{name}}\"?",
+      "description": "The cashbox goes back to accepting deposits and withdrawals. Its balance and history do not change.",
+      "confirm": "Reactivate"
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\"?",
+      "description": "This action cannot be undone.",
+      "confirm": "Delete",
+      "blockedTitle": "This cashbox cannot be deleted",
+      "blockedDescription": "The cashbox still has a balance. Deleting is only allowed with a zero balance — deactivate it instead, or withdraw the balance and try again."
+    },
+    "empty": {
+      "title": "No cashboxes yet",
+      "description": "A cashbox sets aside money that is still in an account but already has a purpose — a vacation, renovations, an emergency fund. Saving is not spending, so none of it counts as an expense."
+    },
+    "error": {
+      "title": "Could not load the cashboxes",
+      "description": "Check your connection and try again."
+    }
   }
 }
