@@ -270,3 +270,41 @@ removable even with entries, instead of staying deactivated forever with its nam
 - Integration: deleting a zero-balance cashbox with transactions succeeds
 - Integration: deleting a non-zero-balance cashbox returns 409 with the current balance
 - Integration: deleting an untouched cashbox still succeeds
+
+---
+
+## M4-T10 — Cashboxes summary cards
+
+### Why this is needed
+The cashboxes screen (`prototypes/approved/05-cashboxes.html`) ships with four summary cards at
+the top: active cashbox count, deposits this month, withdrawals this month, and total saved. These
+cards are the primary summary of the screen and require data from the `GET /cashboxes/balances`
+endpoint plus monthly transaction flow.
+
+### Implementation notes
+- Displays four summary cards in order: "Caixinhas ativas", "Depositado em [month]", "Resgatado
+  em [month]", "Total guardado"
+- Caixinhas ativas: count of active cashboxes (status = ACTIVE)
+- Depositado em [month]: sum of `CASHBOX_IN` transactions for the current month, formatted with
+  currency and the month name in the label (ADR-0019 review; see `prototypes/memory/05-cashboxes.md`
+  for the wording decision)
+- Resgatado em [month]: sum of `CASHBOX_OUT` transactions for the current month, formatted with
+  currency and the month name in the label
+- Total guardado: total balance from `GET /cashboxes/balances` (sum of all active cashbox balances)
+- Uses `GET /cashboxes/balances` (M4-T07) and `GET /transactions` filtered by `referenceMonth` and
+  type (M4-T08)
+- Month name is localized from `new Date()` to the current viewing month (or as navigated)
+
+### Acceptance criteria
+- [ ] The active cashbox count matches the number of ACTIVE cashboxes
+- [ ] Deposited amount sums `CASHBOX_IN` transactions for the reference month only
+- [ ] Withdrawn amount sums `CASHBOX_OUT` transactions for the reference month only
+- [ ] Total saved matches the sum from `GET /cashboxes/balances`
+- [ ] All values update when the month changes
+- [ ] Navigating to a past month shows the historical monthly deposits/withdrawals for that month
+- [ ] The month name appears in the "Depositado" and "Resgatado" labels
+
+### Tests
+- Integration: four cards render with correct values after loading balances and transactions
+- Integration: values update correctly when month changes
+- Unit (if applicable): any pure calculation function for aggregating monthly flow

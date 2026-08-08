@@ -68,8 +68,8 @@ the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim con
 
 - Use Opus model exclusively for thinking tasks like architecture analysis and decisions, writings ADRs and plans. If you're in a session with Opus selected and
   need to write code or update docs then start a subagent with Haiku medium to do the work.
-- When implementing plans, use a subagent for each step. Analyze the plan and create a decision tree to understand what can be done in parallel and what's
-  sequential. Use the main session to coordinate the subagents
+- When implementing plans, use a subagent for each step. Analyze the plan and create a dependency tree to understand what can be done in parallel and what's
+  sequential. Use the main session to coordinate the subagents.
 
 ## Conventions
 
