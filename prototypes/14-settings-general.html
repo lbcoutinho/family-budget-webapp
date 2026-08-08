@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>14 — Configurações › Geral (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         A tela mais curta do cadastro: um campo. Ela existe para ter um
+         lugar — quando tema e formato de data chegarem, entram aqui como
+         uma segunda seção, não como uma tela nova. Por ser um campo só,
+         não há diálogo, não há rodapé de card, não há botão "Salvar": a
+         troca do <select> já é o envio.
+         ================================================================== */
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec:first-of-type {
+        margin-top: 0;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 72ch;
+      }
+      .field-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 15px 17px;
+      }
+      .field-row .select {
+        min-width: 220px;
+      }
+      .field-row .meta {
+        flex: 1;
+      }
+      .field-row .meta h3 {
+        margin-bottom: 2px;
+      }
+      .saving {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .saving .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--ink-faint);
+        animation: pulse 1s var(--ease) infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 14px;
+      }
+      .states h3 {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="14 — Configurações › Geral" data-ticket="M3-T13"></div>
+
+    <div class="proto-note">
+      <strong>Uma seção só: Idioma.</strong> Sem botão "Salvar" — trocar o <em>select</em> já grava, com um toast confirmando. É o lugar onde tema e formato de
+      data chegam mais tarde, cada um sua própria seção; nenhum dos dois existe ainda.
+    </div>
+
+    <div data-shell="general">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Geral</span>
+          </div>
+        </div>
+
+        <div class="content">
+          <h2 class="sec">Idioma</h2>
+          <p>Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.</p>
+          <div class="card" style="max-width: 620px">
+            <div class="field-row">
+              <div class="meta">
+                <h3>Idioma da interface</h3>
+                <p class="small muted">Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.</p>
+              </div>
+              <select class="select" id="lang">
+                <option value="pt-BR" selected>Português (Brasil)</option>
+                <option value="en-US">English (US)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ===== o que acontece ao trocar ===== -->
+          <h2 class="sec">Ao trocar</h2>
+          <p>Três momentos, do envio à confirmação — ou à reversão, se o servidor recusar.</p>
+          <div class="states">
+            <div>
+              <h3>Gravando</h3>
+              <div class="card" style="max-width: 320px">
+                <div class="field-row">
+                  <div class="meta">
+                    <h3>Idioma da interface</h3>
+                    <span class="saving"><span class="dot"></span> Salvando…</span>
+                  </div>
+                  <select class="select" disabled>
+                    <option selected>English (US)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Confirmado</h3>
+              <div class="toast-stack" style="position: static">
+                <div class="toast">
+                  <span data-icon="check"></span>
+                  <span>Idioma atualizado para English (US).</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Falhou — reverte e explica</h3>
+              <div class="card" style="max-width: 320px">
+                <div class="field-row">
+                  <div class="meta">
+                    <h3>Idioma da interface</h3>
+                    <p class="small" style="color: var(--expense)">Não foi possível salvar. O idioma voltou para Português (Brasil).</p>
+                  </div>
+                  <select class="select">
+                    <option selected>Português (Brasil)</option>
+                    <option>English (US)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <ol>
+              <li>
+                <b>Sem botão "Salvar" — o <em>select</em> grava sozinho.</b>
+                <span>
+                  É um campo, não um formulário: pedir confirmação para trocar de idioma é cerimônia sobre uma ação que já é reversível trocando de volta. Se
+                  preferir o botão explícito, a tela ganha rodapé de card como as de conta e categoria.
+                </span>
+              </li>
+              <li>
+                <b>O erro reverte o <em>select</em> para o valor anterior e explica embaixo dele, sem diálogo.</b>
+                <span>
+                  Um <code>callout</code> modal pararia a tela para um campo só; a explicação ao lado do próprio controle já mostra o que mudou e o que não
+                  mudou. Não há botão "Tentar de novo" — é só escolher de novo no <em>select</em>.
+                </span>
+              </li>
+              <li>
+                <b>"Geral" entra acima de Contas e Categorias no submenu Configurações.</b>
+                <span>É a única tela de preferência hoje; a ordem antecipa tema e formato de data chegando como seções dela, não como itens novos de menu.</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

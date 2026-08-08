@@ -230,9 +230,14 @@ moves to `approved/` on its own.
 | 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Awaiting v2 |
 | 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Awaiting v2 |
 | 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Awaiting v2 |
+| 14  | Settings › General | `/settings/general`    | M3-T13             | `14-settings-general.html`   | **v2 — under review** |
 
 "Awaiting v2" means the screen's concept survived the v1 review and only its drawing is missing.
 Each of those drawings is requested when the project reaches it, never in advance.
+
+Screen 14 is outside the original thirteen; it was added for M3-T13. Its issue (#73) asked for
+`07-settings-general.html`, but 07 is already the entry-form dialog above — drawn as 14, the next
+free number, and flagged as a deviation on the issue rather than reused silently.
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance
