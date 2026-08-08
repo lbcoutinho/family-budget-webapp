@@ -36,10 +36,16 @@ this table and that screen's own file, nothing else.
 | 11  | Charts                      | approved                  | [memory/11-charts.md](memory/11-charts.md)                                   |
 | 12  | Recurrences                 | approved, in full         | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
 | 13  | Voice                       | approved, in full         | [memory/13-voice.md](memory/13-voice.md)                                     |
+| 14  | Settings › General          | **approved**               | [memory/14-settings-general.md](memory/14-settings-general.md)               |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
-type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05
-and 06 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
+type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,
+06 and 14 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
+
+**14 is a new screen, added for M3-T13, outside the original thirteen-screen inventory.** Its ticket
+(issue #73) asked for `prototypes/07-settings-general.html`, but 07 is already the entry-form dialog
+(`plans/0002-screens.md` §4) — reused here as 14, the next free number, and flagged on the issue as a
+deviation rather than silently renumbered.
 See [memory/global-rules.md](memory/global-rules.md#what-approved-means) for the two-gate rule.
 
 Every row's v1 file is in `discarded/v1-default/`.

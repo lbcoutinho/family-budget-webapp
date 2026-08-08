@@ -206,8 +206,8 @@ that implements it. **The whole first set was discarded after review** and lives
 and `prototypes/memory/` and are the input to v2.
 
 **v2 is direction D — Cromático.** The design system is **approved** and sits in
-`prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts`, `04-categories` and
-`06-month`. Two are under review: `05` cashboxes and `09` monthly report.
+`prototypes/approved/`, together with `01-login`, `02-app-shell`, `03-accounts`, `04-categories`,
+`06-month` and `14-settings-general`. Two are under review: `05` cashboxes and `09` monthly report.
 
 Screens are drawn **one at a time, in the order the project needs them**. That rule was broken once,
 on the user's explicit instruction: 02 to 05 were drawn as a block because the whole of M3 depends on
@@ -230,9 +230,14 @@ moves to `approved/` on its own.
 | 11  | Charts             | `/reports?view=charts` | M6-T04, M6-T05     | `11-reports-charts.html`     | Awaiting v2 |
 | 12  | Recurrences        | `/recurrences`         | M7-T06             | `12-recurrences.html`        | Awaiting v2 |
 | 13  | Voice entry        | `/voice`               | M8-T01, M8-T04     | `13-voice.html`              | Awaiting v2 |
+| 14  | Settings › General | `/settings/general`    | M3-T13             | `approved/14-settings-general.html` | **approved** |
 
 "Awaiting v2" means the screen's concept survived the v1 review and only its drawing is missing.
 Each of those drawings is requested when the project reaches it, never in advance.
+
+Screen 14 is outside the original thirteen; it was added for M3-T13. Its issue (#73) asked for
+`07-settings-general.html`, but 07 is already the entry-form dialog above — drawn as 14, the next
+free number, and flagged as a deviation on the issue rather than reused silently.
 
 There is deliberately **no dashboard**. The monthly tab is the home screen; `/` redirects to
 `/month`, which redirects to the current month. A separate overview would duplicate the balance
