@@ -1,6 +1,6 @@
 # 14 — Settings › General
 
-Status: v2, drawn, under review. Ticket M3-T13, issue #73.
+Status: **approved**, in `approved/14-settings-general.html`. Ticket M3-T13, issue #73.
 
 ## What's settled going in (from the ticket)
 
@@ -25,11 +25,18 @@ inventory. Flagged as a comment on issue #73 rather than silently reusing 07.
   it, no modal).
 - No card footer, no dialog — it's one field, not a form. Matches the ticket's "no Save button."
 
-## Open for review
+## Approved, with revision
 
-See the prototype's own "Decisões a aprovar" block:
+All three points below were approved in full. The review also asked for a layout pass, applied
+before moving to `approved/`:
 
-1. Autosave-on-select vs. an explicit Save button.
-2. Inline revert-and-explain on failure vs. a modal/toast-only error.
+1. Autosave-on-select, no explicit Save button.
+2. Inline revert-and-explain on failure, no modal.
 3. "Geral" positioned above Contas/Categorias in the submenu (anticipates theme/date-format landing
    as future sections of this same screen, not new menu items).
+
+**Layout revision (2026-08-08):** label shortened from "Idioma da interface" to "Idioma"; the note
+and the error message now span from the start of the label to the end of the field (`.field-row`
+became a two-column grid with the note/error on a full-width row beneath), instead of being trapped
+under the label's column only; label column widened; `.select` narrowed to 160px, sized to the text
+it holds rather than a flat 220px minimum.

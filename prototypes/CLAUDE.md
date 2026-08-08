@@ -10,8 +10,9 @@
   (exploration that did its job, kept as the record of a choice — not a rejection). A whole generation moves to `discarded/vN-<name>/` or `archives/vN-<name>/`,
   carrying `_shared/` and the index so it still renders. Moving a file also updates the status table in `prototypes/index.html` and §4 of
   `plans/0002-screens.md`, same commit.
-- **State right now: `00-design-system.html`, `01-login.html`, `02-app-shell.html` and `06-month.html` are approved**
-  and live in `approved/` (so M2-T06, M3-T06 and the M5 month tickets are unblocked on the UI side);
+- **State right now: `00-design-system.html`, `01-login.html`, `02-app-shell.html`, `06-month.html` and
+  `14-settings-general.html` are approved**
+  and live in `approved/` (so M2-T06, M3-T06, the M5 month tickets and M3-T13 are unblocked on the UI side);
   `09-reports-monthly.html` is under review. v2 is direction **D — Cromático**, chosen from four candidates now in
   `archives/v2-directions/`; v1 is in `discarded/v1-default/`. Its thesis, amended once in review: **colour belongs to the data — and to the action** — no brand
   colour, but `--action` (= `--income`) on primary button, focus ring and active nav item; 10 category swatches; two typefaces, Familjen Grotesk + Public Sans,

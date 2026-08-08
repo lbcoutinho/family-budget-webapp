@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ==================================================================
          A tela mais curta do cadastro: um campo. Ela existe para ter um
@@ -33,19 +33,26 @@
         max-width: 72ch;
       }
       .field-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
+        display: grid;
+        grid-template-columns: minmax(120px, 1.5fr) minmax(0, 1fr);
+        column-gap: 14px;
+        row-gap: 7px;
         padding: 15px 17px;
+        align-items: center;
+      }
+      .field-row h3 {
+        margin: 0;
       }
       .field-row .select {
-        min-width: 220px;
+        width: 160px;
+        justify-self: start;
       }
-      .field-row .meta {
-        flex: 1;
-      }
-      .field-row .meta h3 {
-        margin-bottom: 2px;
+      /* a nota e o erro correm do começo da label até o fim do campo — não
+         só embaixo da label, que é o que ficava mal formatado. */
+      .field-row .row-note,
+      .field-row .row-error,
+      .field-row .saving {
+        grid-column: 1 / -1;
       }
       .saving {
         display: inline-flex;
@@ -102,14 +109,12 @@
           <p>Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.</p>
           <div class="card" style="max-width: 620px">
             <div class="field-row">
-              <div class="meta">
-                <h3>Idioma da interface</h3>
-                <p class="small muted">Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.</p>
-              </div>
+              <h3>Idioma</h3>
               <select class="select" id="lang">
                 <option value="pt-BR" selected>Português (Brasil)</option>
                 <option value="en-US">English (US)</option>
               </select>
+              <p class="small muted row-note">Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.</p>
             </div>
           </div>
 
@@ -121,13 +126,11 @@
               <h3>Gravando</h3>
               <div class="card" style="max-width: 320px">
                 <div class="field-row">
-                  <div class="meta">
-                    <h3>Idioma da interface</h3>
-                    <span class="saving"><span class="dot"></span> Salvando…</span>
-                  </div>
+                  <h3>Idioma</h3>
                   <select class="select" disabled>
                     <option selected>English (US)</option>
                   </select>
+                  <span class="saving"><span class="dot"></span> Salvando…</span>
                 </div>
               </div>
             </div>
@@ -144,14 +147,12 @@
               <h3>Falhou — reverte e explica</h3>
               <div class="card" style="max-width: 320px">
                 <div class="field-row">
-                  <div class="meta">
-                    <h3>Idioma da interface</h3>
-                    <p class="small" style="color: var(--expense)">Não foi possível salvar. O idioma voltou para Português (Brasil).</p>
-                  </div>
+                  <h3>Idioma</h3>
                   <select class="select">
                     <option selected>Português (Brasil)</option>
                     <option>English (US)</option>
                   </select>
+                  <p class="small row-error" style="color: var(--expense)">Não foi possível salvar. O idioma voltou para Português (Brasil).</p>
                 </div>
               </div>
             </div>
