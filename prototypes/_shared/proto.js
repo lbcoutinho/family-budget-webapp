@@ -35,6 +35,9 @@ const ICONS = {
   menu: '<path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   logout: '<path d="M15 4.5h4.5v15H15M11 12h9M14.5 8.5L11 12l3.5 3.5M9 4.5H4.5v15H9"/>',
+  /* Idioma: o globo, não a bandeira — uma bandeira escolhe um país, e o
+     seletor escolhe um idioma que nenhum país sozinho é dono. */
+  globe: '<circle cx="12" cy="12" r="9.2"/><path d="M2.8 12h18.4M12 2.8a14 14 0 0 1 0 18.4M12 2.8a14 14 0 0 0 0 18.4"/>',
 };
 
 function icon(name, cls) {
@@ -70,6 +73,7 @@ const NAV = [
 ];
 
 const NAV_SETTINGS = [
+  { id: 'general', label: 'Geral', icon: 'globe', href: '14-settings-general.html' },
   { id: 'accounts', label: 'Contas', icon: 'wallet', href: '03-accounts.html' },
   { id: 'categories', label: 'Categorias', icon: 'tags', href: '04-categories.html' },
 ];
@@ -80,7 +84,7 @@ const SOON = 'Sem protótipo ainda — chega com as telas restantes';
    to know which side of that boundary each end is on. Keeping the list here
    means a file that gets approved is a one-line change, not a sweep through
    every page's navigation. */
-const APPROVED = new Set(['00-design-system.html', '01-login.html', '02-app-shell.html', '06-month.html']);
+const APPROVED = new Set(['00-design-system.html', '01-login.html', '02-app-shell.html', '06-month.html', '14-settings-general.html']);
 
 function protoHref(file) {
   const here = location.pathname.includes('/approved/');
