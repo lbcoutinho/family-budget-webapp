@@ -60,7 +60,7 @@ export class AuthService {
 
     // Rebuilt field by field rather than spread-and-delete: a column added to `User` later
     // cannot leak into a response by accident.
-    return { id: user.id, email: user.email, name: user.name };
+    return { id: user.id, email: user.email, name: user.name, locale: user.locale };
   }
 
   /** Mint the access token and the account payload that go into the response body. */
@@ -98,7 +98,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid session');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, email: true, name: true } });
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, email: true, name: true, locale: true } });
 
     if (user === null) {
       throw new UnauthorizedException('Invalid session');

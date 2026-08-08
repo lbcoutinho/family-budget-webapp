@@ -16,7 +16,7 @@ beforeEach(() => {
   server.use(http.get('/api/accounts', () => HttpResponse.json([])));
 });
 
-const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho' };
+const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' as const };
 
 /** The desktop answer is the default from `test/setup.ts`, so only the phone needs saying. */
 function useCompactViewport() {

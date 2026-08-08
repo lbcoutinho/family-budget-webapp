@@ -75,7 +75,7 @@ describe('Auth (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(typeof session.accessToken).toBe('string');
-      expect(session.user).toEqual({ id: expect.any(String) as string, email, name: 'Auth E2E' });
+      expect(session.user).toEqual({ id: expect.any(String) as string, email, name: 'Auth E2E', locale: 'pt-BR' });
       expect(session.user).not.toHaveProperty('passwordHash');
       expect(JSON.stringify(response.body)).not.toContain(password);
     });
@@ -119,6 +119,7 @@ describe('Auth (e2e)', () => {
       expect(response.status).toBe(200);
       expect(typeof session.accessToken).toBe('string');
       expect(session.user.email).toBe(email);
+      expect(session.user.locale).toBe('pt-BR');
       // The cookie slides forward on every refresh, so an active session never expires mid-use.
       expect(refreshCookieFrom(response.headers)).toContain('HttpOnly');
     });

@@ -1,9 +1,8 @@
 ---
 name: create-pr
 description: Create a pull request following the project's standard PR format. Use this whenever opening a pull request in this repository, or when asked to draft/write/open a PR.
-model: sonnet
+model: haiku
 effort: medium
-disable-model-invocation: true
 allowed-tools:
   - Bash(git push *)
   - Bash(gh pr create *)

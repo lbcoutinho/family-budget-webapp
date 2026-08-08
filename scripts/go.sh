@@ -10,7 +10,11 @@ fi
 
 pnpm install
 
-docker compose up -d postgres
+if docker container inspect family-budget-postgres >/dev/null 2>&1; then
+  echo "Postgres container already exists."
+else
+  docker compose up -d postgres
+fi
 
 echo "Waiting for postgres..."
 until docker compose exec -T postgres pg_isready -U "${POSTGRES_USER:-budget}" -d "${POSTGRES_DB:-budget}" >/dev/null 2>&1; do

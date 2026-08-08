@@ -20,8 +20,12 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: SupportedLocale = 'pt-BR';
 
-/** Where the choice survives a reload until `User.locale` fronts it (M3-T12). */
+/** Where the choice survives a reload; `User.locale` fronts it on login/refresh (M3-T12). */
 const STORAGE_KEY = 'locale';
+
+export function isSupportedLocale(value: string): value is SupportedLocale {
+  return (SUPPORTED_LOCALES as readonly string[]).includes(value);
+}
 
 /**
  * Stored choice → browser language → pt-BR. A language-detector dependency expresses exactly this

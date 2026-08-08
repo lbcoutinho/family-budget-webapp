@@ -17,11 +17,13 @@ stable API error codes all shipped; Accounts and Categories screens (M3-T07, M3-
 
 ## Ticket workflow (follow for every task)
 
-- **Create GitHub Issue immediately before starting ticket**, so GitHub never drifts from plan docs. Run `.claude/skills/github-mirroring/` skill when starting
-  milestone — drive automatically, unasked — and before starting any individual ticket.
+- Don't create issues in Github without explicit ask
 - **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues**
   to match.
 - **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.
+- **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
+- **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
+  beforehand.
 - **When milestone completed, review this `CLAUDE.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
   shifted conventions/gotchas).
 - **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm,
@@ -73,12 +75,9 @@ the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim con
 
 ## Conventions
 
-- **Branch-per-implementation.** All implementation on branch off `main` — never commit directly to `main`. Commit + push to feature branch, open pull request
-  to `main`.
-- **Never merge to `main`** — user reviews and merges.
+- **Branch-per-implementation** — never commit directly to `main`. Commit + push to feature branch, open pull request to `main`.
+- **Never merge PRs** — user reviews and merges.
 - **English (en-US) everywhere** — code, comments, commit messages, identifiers.
-- **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Use skill `create-commit`.
-- **One task = one small PR**; split if diff exceeds ~400 lines. Use skill `create-pr`.
 - **One migration per schema-changing task**; never edited after commit.
-- Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`. ESLint flat config; **`@typescript-eslint/no-floating-promises`
-  enabled + critical for NestJS** — always await or explicitly void promises.
+- Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`.
+- **`@typescript-eslint/no-floating-promises` enabled + critical for NestJS** — always await or explicitly void promises.

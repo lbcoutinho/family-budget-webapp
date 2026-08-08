@@ -4,6 +4,8 @@ import { Loader2Icon } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import i18n, { isSupportedLocale } from '../../i18n';
+
 import { AuthCard } from './auth-card';
 import { AuthContext, type AuthContextValue } from './auth-context';
 
@@ -67,6 +69,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSessionExpiredHandler(null);
     };
   }, [queryClient]);
+
+  // The session's locale wins over the pre-login guess (`resolveLocale()`'s `navigator.language`
+  // fallback), so a second device wakes up in the account's language rather than the browser's.
+  // Depends on `user?.locale` only, not `user`: swapping any other field must not re-trigger this.
+  useEffect(() => {
+    if (user && user.locale !== i18n.language && isSupportedLocale(user.locale)) {
+      void i18n.changeLanguage(user.locale);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.locale]);
 
   const logout = useCallback(async () => {
     try {
