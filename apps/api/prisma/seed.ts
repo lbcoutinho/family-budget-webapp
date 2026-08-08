@@ -107,6 +107,7 @@ export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentia
   // Demo only. The owner's database holds real money; sample rows never go into it.
   await seedAccounts(prisma, demo.id);
   await seedCategories(prisma, demo.id);
+  await seedCashboxes(prisma, demo.id);
 
   return { owner, demo };
 }
@@ -129,6 +130,32 @@ export async function seedAccounts(prisma: PrismaClient, userId: string): Promis
     await prisma.account.upsert({
       where: { userId_name: { userId, name: account.name } },
       create: { userId, ...account },
+      update: {},
+    });
+  }
+}
+
+/**
+ * The sample cashboxes the demo user starts with (M3-T09). Same names the prototype uses
+ * (`prototypes/approved/05-cashboxes.html`). `targetAmount` is in cents; `null` means the
+ * cashbox simply accumulates with no goal. No balance field — balances are always computed,
+ * never stored on this model.
+ */
+const SAMPLE_CASHBOXES = [
+  { name: 'Férias 2027', description: 'Duas semanas na Grécia, em julho', targetAmount: 500_000, isActive: true, sortOrder: 1 },
+  { name: 'Obras', description: 'Cozinha e casa de banho', targetAmount: null, isActive: true, sortOrder: 2 },
+  { name: 'Carro novo', description: 'Encerrada — o carro foi comprado em maio', targetAmount: null, isActive: false, sortOrder: 3 },
+] as const;
+
+/**
+ * Give a user the sample cashboxes. Idempotent through the `(userId, name)` unique constraint,
+ * and `update: {}` so a second run never resets a row the user has since edited.
+ */
+export async function seedCashboxes(prisma: PrismaClient, userId: string): Promise<void> {
+  for (const cashbox of SAMPLE_CASHBOXES) {
+    await prisma.cashbox.upsert({
+      where: { userId_name: { userId, name: cashbox.name } },
+      create: { userId, ...cashbox },
       update: {},
     });
   }
