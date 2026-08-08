@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { SUPPORTED_LOCALES } from '../../users/dto/update-user.dto';
+
 /**
  * The authenticated account as the API hands it out. Deliberately not the Prisma `User`: that
  * one carries `passwordHash`, and the surest way never to leak it is to have no type in the
@@ -14,4 +16,7 @@ export class AuthUserDto {
 
   @ApiProperty({ type: String, example: 'person', description: 'Display name.' })
   name!: string;
+
+  @ApiProperty({ type: String, enum: SUPPORTED_LOCALES, example: 'pt-BR' })
+  locale!: string;
 }

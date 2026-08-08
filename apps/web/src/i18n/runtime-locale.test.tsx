@@ -9,7 +9,7 @@ import { AuthContext } from '@/features/auth/auth-context';
 import { formatMonth } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
-const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho' };
+const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' as const };
 
 /** The real route table, so the assertion covers strings the application actually renders. */
 function renderShell() {

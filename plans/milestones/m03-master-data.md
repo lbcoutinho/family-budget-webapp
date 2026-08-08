@@ -373,9 +373,9 @@ The language must be a user preference that follows the account, not a browser s
   `navigator.language` → `pt-BR`
 
 ### Acceptance criteria
-- [ ] An unsupported locale is rejected with 400
-- [ ] The session response carries the locale
-- [ ] A reload keeps the chosen language, on any device
+- [x] An unsupported locale is rejected with 400
+- [x] The session response carries the locale
+- [x] A reload keeps the chosen language, on any device
 
 ### Tests
 - e2e: patch and read back; unsupported value rejected

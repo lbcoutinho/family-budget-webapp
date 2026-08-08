@@ -19,6 +19,7 @@ const STORED_USER = {
   id: '11111111-2222-3333-4444-555555555555',
   email: 'person@example.com',
   name: 'person',
+  locale: 'pt-BR',
   passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$c2FsdA$aGFzaA',
   createdAt: new Date('2026-07-01T00:00:00.000Z'),
   updatedAt: new Date('2026-07-01T00:00:00.000Z'),
@@ -59,7 +60,7 @@ describe('AuthService', () => {
 
       const user = await service.validateUser('person@example.com', 'correct');
 
-      expect(user).toEqual({ id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name });
+      expect(user).toEqual({ id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name, locale: STORED_USER.locale });
       expect(user).not.toHaveProperty('passwordHash');
     });
 
@@ -97,7 +98,7 @@ describe('AuthService', () => {
   });
 
   describe('issueSession', () => {
-    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name };
+    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name, locale: STORED_USER.locale };
 
     it('signs an access token carrying the account id as `sub`', () => {
       const session = service.issueSession(user);
@@ -119,7 +120,7 @@ describe('AuthService', () => {
   });
 
   describe('issueRefreshToken', () => {
-    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name };
+    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name, locale: STORED_USER.locale };
 
     it('signs with the refresh secret and reports the expiry from the token itself', () => {
       const { token, expiresAt } = service.issueRefreshToken(user);
@@ -134,7 +135,7 @@ describe('AuthService', () => {
   });
 
   describe('refreshSession', () => {
-    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name };
+    const user = { id: STORED_USER.id, email: STORED_USER.email, name: STORED_USER.name, locale: STORED_USER.locale };
 
     it('issues a new session for the account named by a valid token', async () => {
       findUnique.mockResolvedValue(user);

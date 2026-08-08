@@ -5,10 +5,12 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { AuthUserDtoLocale } from './authUserDtoLocale';
 
 export interface AuthUserDto {
   id: string;
   email: string;
   /** Display name. */
   name: string;
+  locale: AuthUserDtoLocale;
 }

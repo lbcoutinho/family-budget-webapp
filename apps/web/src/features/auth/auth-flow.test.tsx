@@ -4,14 +4,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, delay, http } from 'msw';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthProvider } from './auth-provider';
 
 import { routes } from '@/app/router';
+import i18n from '@/i18n';
 import { server } from '@/test/server';
 
-const SESSION = { accessToken: 'access-token', user: { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís' } };
+const SESSION = { accessToken: 'access-token', user: { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís', locale: 'pt-BR' as const } };
 
 /** The real route table on a memory history, wrapped in the real provider. */
 function renderApp(initialEntry: string) {
@@ -85,6 +86,16 @@ describe('authentication flow', () => {
     await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
     expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+  });
+
+  it("wins over the browser's language: a pt-BR session renders even when navigator.language is en-US", async () => {
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('en-US');
+    server.use(restoredSession());
+
+    renderApp('/');
+
+    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+    expect(i18n.language).toBe('pt-BR');
   });
 
   it('clears the session on logout and returns to the login screen', async () => {
