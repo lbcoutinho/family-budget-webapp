@@ -182,5 +182,62 @@
       "title": "Não foi possível carregar as categorias",
       "description": "Verifique a conexão e tente de novo."
     }
+  },
+  "cashboxes": {
+    "new": "Nova caixinha",
+    "showInactive": "Mostrar inativas",
+    "inactiveBadge": "inativa",
+    "actions": {
+      "edit": "Editar",
+      "deactivate": "Desativar",
+      "activate": "Reativar",
+      "delete": "Apagar"
+    },
+    "balancePending": "Saldo ainda não calculado",
+    "goal": {
+      "target": "meta {{amount}}",
+      "progress": "{{percent}}% da meta",
+      "reached": "Meta atingida"
+    },
+    "form": {
+      "createTitle": "Nova caixinha",
+      "editTitle": "Editar caixinha",
+      "name": "Nome",
+      "namePlaceholder": "Férias 2027",
+      "nameRequired": "Informe o nome da caixinha.",
+      "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Duas semanas na Grécia, em julho",
+      "descriptionTooLong": "A descrição pode ter no máximo 500 caracteres.",
+      "target": "Meta",
+      "targetPlaceholder": "5.000,00",
+      "targetHint": "Sem meta, o cartão mostra só o saldo. Atingir a meta não bloqueia depósito.",
+      "targetInvalid": "Informe um valor válido."
+    },
+    "deactivate": {
+      "title": "Desativar \"{{name}}\"?",
+      "description": "O saldo guardado continua a contar no total e o histórico fica — o que ela deixa de aceitar é depósito e resgate novos. Se a ideia era encerrá-la, resgate o saldo antes.",
+      "confirm": "Desativar"
+    },
+    "activate": {
+      "title": "Reativar \"{{name}}\"?",
+      "description": "A caixinha volta a aceitar depósito e resgate. O saldo e o histórico não mudam.",
+      "confirm": "Reativar"
+    },
+    "delete": {
+      "title": "Apagar \"{{name}}\"?",
+      "description": "Esta ação não pode ser desfeita.",
+      "confirm": "Apagar",
+      "blockedTitle": "Não é possível apagar",
+      "blockedDescription": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo."
+    },
+    "empty": {
+      "title": "Nenhuma caixinha ainda",
+      "description": "Uma caixinha separa dinheiro que está numa conta mas já tem destino — férias, obras, emergência. Guardar não é gastar, então nada disso entra como despesa."
+    },
+    "error": {
+      "title": "Não foi possível carregar as caixinhas",
+      "description": "Verifique a conexão e tente de novo."
+    }
   }
 }

@@ -50,6 +50,7 @@ describe('Database seed (e2e)', () => {
     const owner = { user: { email: { in: emails } } };
 
     await prisma.account.deleteMany({ where: owner });
+    await prisma.cashbox.deleteMany({ where: owner });
     await prisma.category.deleteMany({ where: { ...owner, parentId: { not: null } } });
     await prisma.category.deleteMany({ where: owner });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
@@ -99,6 +100,14 @@ describe('Database seed (e2e)', () => {
     await expect(prisma.account.count({ where: { userId: owner.id } })).resolves.toBe(0);
   });
 
+  it('gives the demo user the three sample cashboxes, and the owner none (M3-T09)', async () => {
+    const { owner, demo } = await seedUsers(prisma, credentials);
+
+    await expect(prisma.cashbox.count({ where: { userId: demo.id } })).resolves.toBe(3);
+    // The owner's database is real data: the seed must never put sample rows in it.
+    await expect(prisma.cashbox.count({ where: { userId: owner.id } })).resolves.toBe(0);
+  });
+
   it('gives the demo user the sample category tree, and the owner none (M3-T03)', async () => {
     const { owner, demo } = await seedUsers(prisma, credentials);
 
@@ -135,6 +144,8 @@ describe('Database seed (e2e)', () => {
     await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(2);
     // Same for the category tree: six roots and eight subcategories, once.
     await expect(prisma.category.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(14);
+    // Same for the cashboxes, once.
+    await expect(prisma.cashbox.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(3);
   });
 
   it('re-derives the hash on every run, so the stored value changes while the password still verifies', async () => {
