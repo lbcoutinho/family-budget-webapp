@@ -25,8 +25,7 @@ added.
 
 **M6-T03 — applied.** CSV export is gone from its implementation notes, its acceptance criteria
 and its tests, and the notes now state the rule is system-wide. Safe to edit directly because M6
-has not been mirrored to GitHub yet (`plans/MEMORY.md` shows only M1 and M2 created), so no Issue
-fell out of sync.
+has no GitHub issue yet, so no Issue fell out of sync.
 
 **M6-T01 — applied.** It now returns a rolling monthly average per category, with acceptance
 criteria for the divisor, for a window that crosses the year boundary, and for a category with a

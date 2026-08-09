@@ -1,6 +1,5 @@
 # Plan 0001 — Project Overview
 
-**Status:** Awaiting approval
 **Repository:** https://github.com/lbcoutinho/family-budget-webapp
 **Last updated:** 2026-07-22
 
@@ -8,13 +7,13 @@
 
 ## 1. Application context
 
-A personal web application for **family budget management and expense tracking**. It replaces the spreadsheet-based process currently in use, providing structured recording of income and expenses, a consolidated view by category, and a mechanism for setting money aside.
+Personal web app for **family budget management and expense tracking**. Replaces the current spreadsheet: structured recording of income/expenses, consolidated view by category, mechanism for setting money aside.
 
-The application is **single-user**, but every domain entity carries `userId` so that a future move to multi-user requires no structural migration.
+**Single-user**, but every domain entity carries `userId` so a future multi-user move needs no structural migration.
 
 ### 1.1 Domain
 
-The system revolves around four concepts:
+Four core concepts:
 
 | Concept | Description |
 |---|---|
@@ -25,22 +24,22 @@ The system revolves around four concepts:
 
 ### 1.2 Cashbox mechanics
 
-This is the non-trivial part of the domain. A cashbox is a pot of reserved money.
+The non-trivial part of the domain. A cashbox is a pot of reserved money.
 
-1. **Deposit** (`CASHBOX_IN`): money leaves an account and enters a cashbox. **Not an expense.**
-2. **Cashbox transfer** (`CASHBOX_TRANSFER`): moves money between pots. Touches no account and does not appear on the bank statement.
-3. **Withdrawal** (`CASHBOX_OUT`): money returns from the cashbox to an account.
-4. **Spend** (`EXPENSE`): only here does the money become an expense and enter reports.
+1. **Deposit** (`CASHBOX_IN`): money leaves an account, enters a cashbox. **Not an expense.**
+2. **Cashbox transfer** (`CASHBOX_TRANSFER`): moves money between pots. Touches no account, doesn't appear on the bank statement.
+3. **Withdrawal** (`CASHBOX_OUT`): money returns from cashbox to account.
+4. **Spend** (`EXPENSE`): only here does money become an expense and enter reports.
 
-There is no tracing between a withdrawal and the expenses it funded. A €500 withdrawal may fund six independent purchases, and there is no real way to know which euro paid for what. A cashbox is simply a pot with its own balance.
+No tracing between a withdrawal and the expenses it funded — a €500 withdrawal may fund six independent purchases, no way to know which euro paid for what. A cashbox is just a pot with its own balance.
 
-A cashbox is expected to end: renaming it never rewrites past entries (each transaction snapshots the cashbox name at the time), and once its balance is zero it may be deleted outright, even with transaction history (ADR-0019).
+A cashbox is expected to end: renaming never rewrites past entries (each transaction snapshots the cashbox name at the time); once balance is zero it may be deleted outright, even with transaction history (ADR-0019).
 
 ### 1.3 Cash basis and credit cards
 
-The user works on a **cash basis**: an expense is recorded in the month the money actually leaves the account. Credit card purchases are recorded in the month the statement is paid, while preserving the original purchase date.
+**Cash basis**: expense recorded in the month the money actually leaves the account. Credit card purchases recorded in the month the statement is paid, preserving the original purchase date.
 
-This requires **two dates** on every transaction:
+Requires **two dates** on every transaction:
 
 - `date` — when the purchase happened (March 5)
 - `referenceMonth` — which month it belongs to in reports (April 1)
@@ -49,7 +48,7 @@ All reports and the monthly tab group by `referenceMonth`.
 
 ### 1.4 Voice entry
 
-The user reads their bank statement aloud and the system extracts the entries. Transactions created by voice are saved with `status = DRAFT` and affect balances and reports only after manual approval.
+User reads their bank statement aloud, system extracts the entries. Voice-created transactions save as `status = DRAFT`, affect balances/reports only after manual approval.
 
 ---
 
@@ -182,15 +181,15 @@ family-budget-webapp/
 └── package.json
 ```
 
-**Frontend convention:** organize by *feature*, not by file type. Each folder under `features/` holds its own components, hooks and types.
+**Frontend convention:** organize by *feature*, not file type. Each folder under `features/` holds its own components, hooks and types.
 
 ---
 
 ## 4. Architecture decisions
 
-All architectural decisions, including the alternatives that were considered and rejected, are recorded as ADRs in [`docs/adr/`](../docs/adr/README.md).
+All architectural decisions, including alternatives considered and rejected, recorded as ADRs in [`docs/adr/`](../docs/adr/AGENTS.md).
 
-Decisions are not repeated here. When a decision changes, a new ADR supersedes the previous one and this plan is updated only where the change affects scope or sequencing.
+Not repeated here. When a decision changes, a new ADR supersedes the previous one; this plan updates only where the change affects scope or sequencing.
 
 ---
 
@@ -218,7 +217,7 @@ Frequency         : MONTHLY | YEARLY
 | `CASHBOX_TRANSFER` | — | — | source | destination | — | — |
 
 `CASHBOX_IN`, `CASHBOX_OUT` and `CASHBOX_TRANSFER` also snapshot `cashboxLabel` and, where
-applicable, `destinationCashboxLabel` — the cashbox name at the moment the entry is written, set by
+applicable, `destinationCashboxLabel` — cashbox name at the moment the entry is written, set by
 the server, not user input (ADR-0019).
 
 ### 5.3 Invariants
@@ -274,11 +273,11 @@ Cashbox = CASHBOX_IN − CASHBOX_OUT
 | M7 | Recurrence | Fixed expenses and installments | [m07](milestones/m07-recurrence.md) |
 | M8 | Voice entry | Capture, parsing and approval | [m08](milestones/m08-voice-entry.md) |
 
-Every screen inside those milestones is covered by [plan 0002](0002-screens.md), which lists the screens, the actions each one offers, and the prototype that has to be approved before it is implemented.
+Every screen inside those milestones is covered by [plans/screens/](screens/AGENTS.md): screens, actions each offers, prototype that must be approved before implementation.
 
-The first milestone that delivers real value is the end of **M5**: from that point the application replaces the spreadsheet.
+First milestone delivering real value: end of **M5** — from that point the application replaces the spreadsheet.
 
-M7 and M8 both depend only on M5, not on each other, and may be built in either order or in parallel.
+M7 and M8 both depend only on M5, not on each other; may be built in either order or in parallel.
 
 ---
 
@@ -286,17 +285,17 @@ M7 and M8 both depend only on M5, not on each other, and may be built in either 
 
 ### 7.1 Language
 
-All documentation, code, comments, commit messages and identifiers are written in **English (en-US)**. Only user-facing interface strings are localized.
+All documentation, code, comments, commit messages and identifiers in **English (en-US)**. Only user-facing interface strings are localized.
 
 ### 7.2 Tasks and pull requests
 
-- Each task becomes a **GitHub issue**, with the body copied from the milestone file
-- Each task is **one small pull request**; if the diff exceeds roughly 400 lines, split it
-- A pull request merges only with a green CI (lint + typecheck + tests)
+- Each task becomes a **GitHub issue**; the plan (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`) is written directly into the issue body at execution time — never copied from a `plans/milestones/*.md` file
+- Each task is **one small pull request**; split if the diff exceeds roughly 400 lines
+- A pull request merges only with green CI (lint + typecheck + tests)
 
 ### 7.3 Testing
 
-Every task includes tests. By layer:
+Every task includes tests, by layer:
 
 | Layer | Type | Tooling |
 |---|---|---|
@@ -305,12 +304,12 @@ Every task includes tests. By layer:
 | React components | Unit | Vitest + Testing Library |
 | Data-driven screens | Integration | Vitest + MSW |
 
-API integration tests run against a real, ephemeral PostgreSQL database with migrations applied and each test wrapped in a rolled-back transaction.
+API integration tests run against a real, ephemeral PostgreSQL database, migrations applied, each test wrapped in a rolled-back transaction.
 
 ### 7.4 ADRs
 
-Every significant architectural decision produces an ADR in `docs/adr/`, numbered sequentially, using the template at `docs/adr/template.md`. Accepted ADRs are never edited — they are replaced by a new ADR that supersedes them.
+Every significant architectural decision produces an ADR in `docs/adr/`, numbered sequentially, using the template at `docs/adr/template.md`. Accepted ADRs never edited — replaced by a new ADR that supersedes them.
 
 ### 7.5 Migrations
 
-One migration per schema-changing task. Migrations are never edited after being committed.
+One migration per schema-changing task. Never edited after commit.

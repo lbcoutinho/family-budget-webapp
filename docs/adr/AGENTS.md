@@ -1,12 +1,12 @@
 # Architecture Decision Records
 
-A record of the project's architectural decisions and the reasoning behind them.
+Project's architectural decisions and the reasoning behind them.
 
 ## Conventions
 
 - Sequential numbering, zero-padded to four digits
 - One file per decision, named `NNNN-title-in-kebab-case.md`
-- An accepted ADR is **never edited**. To change a decision, add a new ADR with status `Accepted` and mark the previous one as `Superseded by ADR-XXXX`
+- Accepted ADR **never edited**. To change a decision, add a new ADR with status `Accepted`, mark the previous one `Superseded by ADR-XXXX`
 - Use the [template](template.md) for new records
 
 ## Statuses
