@@ -12,36 +12,7 @@
 
 ## M4-T01 — `Transaction` model, enums and migration
 
-### Why this is needed
-The central table of the system. Keeping the migration separate from business logic allows reviewing the schema without noise.
-
-### Implementation notes
-- Enums: `TransactionType`, `TransactionStatus`, `TransactionSource`
-- Fields as defined in section 5 of the overview plan, including `isCreditCard`
-- **No** `externalHash` (see ADR-0013)
-- **No** `fundedByTransactionId` (see ADR-0008)
-- All account/cashbox/category foreign keys are nullable — requirements are enforced per type in the service layer
-- `cashboxId` and `destinationCashboxId` use `onDelete: SetNull` — deleting a zero-balance cashbox
-  (ADR-0019) nulls these on its transactions instead of failing the delete
-- `cashboxLabel` and `destinationCashboxLabel` (String, nullable): the cashbox name snapshotted at
-  write time, alongside the id columns. The migration backfills both from the referenced cashbox
-  (ADR-0019)
-- `date` and `referenceMonth` typed as `@db.Date` (no timezone)
-- Indexes: `[userId, referenceMonth, status]`, `[userId, type, referenceMonth]`, `[userId, categoryId, referenceMonth]`, `[userId, cashboxId]`
-- CHECK constraint via raw SQL: `amount > 0`
-- CHECK constraint via raw SQL: `EXTRACT(DAY FROM reference_month) = 1`
-
-### Implementation plan
-
-TODO: add plan
-
-### Acceptance criteria
-
-TODO: add acceptance criteria
-
-### Tests
-
-TODO: add tests to validate
+Done — see #94.
 
 ---
 
@@ -246,66 +217,10 @@ The foundation of the frontend's monthly tab. Without pagination the screen degr
 
 ## M4-T09 — Cashbox deletion by zero balance
 
-**Last task of the milestone.** Follow-up to the already-shipped M3-T05, moved here because it
-needs the `Transaction` model (M4-T01) and the balance formula (M4-T07), both delivered earlier in
-this milestone.
-
-### Why this is needed
-ADR-0019 narrows ADR-0015 for `Cashbox` only: a finished cashbox has a zero balance and should be
-removable even with entries, instead of staying deactivated forever with its name taken.
-
-### Implementation notes
-- Change the cashboxes service delete rule from "blocked when transactions exist" to "blocked when
-  the balance is not zero" — 409 otherwise (ADR-0019)
-- The balance uses the same formula as `GET /cashboxes/balances`, recomputed inside the delete
-  database transaction rather than read beforehand, so a concurrent entry cannot slip past the check
-- The `onDelete: SetNull` change on the `Transaction` cashbox relations (`cashboxId`,
-  `destinationCashboxId`) belongs to M4-T01, not here
-
-### Acceptance criteria
-- [ ] Deleting a zero-balance cashbox with transactions succeeds
-- [ ] Deleting a non-zero-balance cashbox returns 409
-- [ ] Deleting an untouched cashbox still succeeds
-
-### Tests
-- Integration: deleting a zero-balance cashbox with transactions succeeds
-- Integration: deleting a non-zero-balance cashbox returns 409 with the current balance
-- Integration: deleting an untouched cashbox still succeeds
+Done — see #84.
 
 ---
 
 ## M4-T10 — Cashboxes summary cards
 
-### Why this is needed
-The cashboxes screen (`prototypes/approved/05-cashboxes.html`) ships with four summary cards at
-the top: active cashbox count, deposits this month, withdrawals this month, and total saved. These
-cards are the primary summary of the screen and require data from the `GET /cashboxes/balances`
-endpoint plus monthly transaction flow.
-
-### Implementation notes
-- Displays four summary cards in order: "Caixinhas ativas", "Depositado em [month]", "Resgatado
-  em [month]", "Total guardado"
-- Caixinhas ativas: count of active cashboxes (status = ACTIVE)
-- Depositado em [month]: sum of `CASHBOX_IN` transactions for the current month, formatted with
-  currency and the month name in the label (ADR-0019 review; see `prototypes/memory/05-cashboxes.md`
-  for the wording decision)
-- Resgatado em [month]: sum of `CASHBOX_OUT` transactions for the current month, formatted with
-  currency and the month name in the label
-- Total guardado: total balance from `GET /cashboxes/balances` (sum of all active cashbox balances)
-- Uses `GET /cashboxes/balances` (M4-T07) and `GET /transactions` filtered by `referenceMonth` and
-  type (M4-T08)
-- Month name is localized from `new Date()` to the current viewing month (or as navigated)
-
-### Acceptance criteria
-- [ ] The active cashbox count matches the number of ACTIVE cashboxes
-- [ ] Deposited amount sums `CASHBOX_IN` transactions for the reference month only
-- [ ] Withdrawn amount sums `CASHBOX_OUT` transactions for the reference month only
-- [ ] Total saved matches the sum from `GET /cashboxes/balances`
-- [ ] All values update when the month changes
-- [ ] Navigating to a past month shows the historical monthly deposits/withdrawals for that month
-- [ ] The month name appears in the "Depositado" and "Resgatado" labels
-
-### Tests
-- Integration: four cards render with correct values after loading balances and transactions
-- Integration: values update correctly when month changes
-- Unit (if applicable): any pure calculation function for aggregating monthly flow
+Done — see #89.
