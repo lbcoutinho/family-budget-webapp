@@ -9,7 +9,7 @@
 - Lifecycle: `prototypes/*.html` (under review) → `approved/` (implementation may start) → or `discarded/` (rejected, kept as record) → or `archives/`
   (exploration that did its job, kept as the record of a choice — not a rejection). A whole generation moves to `discarded/vN-<name>/` or `archives/vN-<name>/`,
   carrying `_shared/` and the index so it still renders. Moving a file also updates the status table in `prototypes/index.html` and §4 of
-  `plans/0002-screens.md`, same commit.
+  `plans/screens/`, same commit.
 - **State right now: `00-design-system.html`, `01-login.html`, `02-app-shell.html`, `06-month.html` and
   `14-settings-general.html` are approved**
   and live in `approved/` (so M2-T06, M3-T06, the M5 month tickets and M3-T13 are unblocked on the UI side);

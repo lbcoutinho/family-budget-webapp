@@ -14,7 +14,7 @@ Status: **approved**, in `approved/14-settings-general.html`. Ticket M3-T13, iss
 ## Numbering deviation
 
 The issue names the file `prototypes/07-settings-general.html`. 07 is already taken —
-`07-transaction-form.html`, the entry-form dialog (`plans/0002-screens.md` §4). Drawn as
+`07-transaction-form.html`, the entry-form dialog (`plans/screens/07-entry-form.md`). Drawn as
 `14-settings-general.html` instead, the next free number after the original thirteen-screen
 inventory. Flagged as a comment on issue #73 rather than silently reusing 07.
 

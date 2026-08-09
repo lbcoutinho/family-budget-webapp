@@ -5,7 +5,7 @@ animation **before** any React code exists.
 
 **Rule: no screen is implemented without an approved prototype.** This is recorded in
 `AGENTS.md`; the screen inventory and the actions each screen supports live in
-`plans/0002-screens.md`.
+`plans/screens/`, indexed by `plans/screens/AGENTS.md`.
 
 ## Layout
 
@@ -66,7 +66,7 @@ view at all.
 1. Read the screen, and the **"Decisões a aprovar"** block at the bottom of each page — the open
    questions are listed there deliberately.
 2. Approve, or say what changes. Approving moves the file into `approved/`; the status table in
-   `index.html` and the checklist in `plans/0002-screens.md` are updated in the same commit.
+   `index.html` and the relevant file in `plans/screens/` are updated in the same commit.
 3. Only then does the screen become an implementation ticket.
 4. A rejected prototype moves to `discarded/` rather than being deleted. One prototype rejected
    moves one file; a whole generation rejected moves into its own `discarded/vN-<name>/` folder,

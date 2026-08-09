@@ -76,7 +76,7 @@ the specific palette and type choices live in design docs, not here.
 ## Evidence on Hand
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
-- `plans/0002-screens.md` — screen inventory and per-screen actions.
+- `plans/screens/AGENTS.md` — screen inventory and per-screen actions.
 - `plans/milestones/` — eight milestones (M1 Foundation → M8 Voice entry).
 - `docs/adr/` — 15 accepted ADRs (source of truth; accepted ADRs are never edited, only superseded).
 - `prototypes/` — throwaway HTML prototypes; `prototypes/MEMORY.md` records every settled UI
