@@ -187,7 +187,7 @@ family-budget-webapp/
 
 ## 4. Architecture decisions
 
-All architectural decisions, including alternatives considered and rejected, recorded as ADRs in [`docs/adr/`](../docs/adr/CLAUDE.md).
+All architectural decisions, including alternatives considered and rejected, recorded as ADRs in [`docs/adr/`](../docs/adr/AGENTS.md).
 
 Not repeated here. When a decision changes, a new ADR supersedes the previous one; this plan updates only where the change affects scope or sequencing.
 

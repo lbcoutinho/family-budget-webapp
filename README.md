@@ -214,7 +214,7 @@ export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
 
 - [`plans/0001-overview.md`](plans/0001-overview.md) — architecture, domain model, formulas
 - [`plans/milestones/`](plans/milestones/) — the 8 milestones and their tasks
-- [`docs/adr/`](docs/adr/CLAUDE.md) — architecture decision records
+- [`docs/adr/`](docs/adr/AGENTS.md) — architecture decision records
 - [`AGENTS.md`](AGENTS.md) — working conventions for this repository
 
 ## Conventions
