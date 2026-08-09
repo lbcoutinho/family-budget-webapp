@@ -27,6 +27,20 @@ export const ERROR_CODES = [
   'CATEGORY_SUBCATEGORY_KIND_MISMATCH',
   'CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED',
   'CATEGORY_LAST_ACTIVE_SUBCATEGORY',
+  /** Required for this transaction type, but absent (M4-T02). */
+  'TRANSACTION_FIELD_REQUIRED',
+  /** Forbidden for this transaction type, but present (M4-T02). */
+  'TRANSACTION_FIELD_NOT_ALLOWED',
+  /** `destinationAccountId === accountId` on a `TRANSFER`. */
+  'TRANSACTION_SAME_ACCOUNT',
+  /** `destinationCashboxId === cashboxId` on a `CASHBOX_TRANSFER`. */
+  'TRANSACTION_SAME_CASHBOX',
+  /** A referenced account, category, subcategory or cashbox is deactivated (ADR-0015). */
+  'TRANSACTION_REFERENCE_INACTIVE',
+  /** `category.kind` incompatible with the transaction type. */
+  'TRANSACTION_CATEGORY_KIND_MISMATCH',
+  /** `subcategory.parentId !== categoryId`. */
+  'TRANSACTION_SUBCATEGORY_PARENT_MISMATCH',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
