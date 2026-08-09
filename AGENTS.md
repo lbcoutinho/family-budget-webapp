@@ -28,6 +28,7 @@ implementation would deviate, **stop and flag** rather than improvise.
 - **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
 - **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
   beforehand.
+- Tick the "Acceptance criteria" checkboxes in Github issue when PR pushed and implementation validated.
 - **ADRs and plans may sacrifice prose grammar for token economy**
 - **When milestone completed, review this `AGENTS.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
   shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to
