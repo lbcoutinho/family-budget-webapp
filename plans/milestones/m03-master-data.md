@@ -311,13 +311,13 @@ add thirty more literals each. See `docs/superpowers/specs/2026-08-04-i18n-desig
 - ESLint `i18next/no-literal-string` over `features/**` and `components/**` `.tsx`, with an
   allowlist — without it the structure decays within two screens
 - Record **ADR-0018 — Internationalization**, and update the "UI strings pt-BR" convention in
-  `CLAUDE.md`
+  `AGENTS.md`
 
 ### Acceptance criteria
 - [ ] No user-facing literal remains in `components/` or `features/`; the ESLint rule proves it
 - [ ] Both locale files hold the same key set
 - [ ] Switching the locale at runtime re-renders every string, including dates and money
-- [ ] ADR-0018 is written and `CLAUDE.md` updated
+- [ ] ADR-0018 is written and `AGENTS.md` updated
 
 ### Tests
 - Existing tests resolve accessible names through the real `i18n` instance initialised to pt-BR in

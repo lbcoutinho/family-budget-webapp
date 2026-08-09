@@ -20,7 +20,7 @@ Two things follow, and both are work rather than wording:
   card grid rather than a table.
 - **An inactive card must not offer a working deposit or withdraw button.** The two answers meet
   here: buttons live on every card, and inactive entities cannot be used in new entries
-  (`CLAUDE.md`, domain rules). So those cards keep their balance — the history behind it is real —
+  (`AGENTS.md`, domain rules). So those cards keep their balance — the history behind it is real —
   but their actions are disabled, not merely inert.
 
 ## Review of the v2 draw, 2026-08-06

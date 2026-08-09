@@ -1,4 +1,4 @@
-# CLAUDE.md — prototypes
+# Prototypes
 
 - **`prototypes/MEMORY.md` records every UI decision the user has already made — split by topic, with `MEMORY.md` itself as the index.** It holds only the
   status-per-screen table plus links; `prototypes/memory/global-rules.md` holds cross-cutting settled rules (no dark mode, no CSV, the monthly-average

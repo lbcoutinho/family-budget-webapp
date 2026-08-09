@@ -73,5 +73,5 @@ The mirror has to follow, or the two drift apart:
 - A ticket's text changed in the plan → update the Issue body to match, and add a comment
   explaining why, so the edit is not silent history rewriting.
 - A decision deviates from the ticket → comment on the Issue rather than editing the plan into
-  agreement with what you happened to do (`CLAUDE.md`, ticket workflow).
+  agreement with what you happened to do (`AGENTS.md`, ticket workflow).
 - A new ADR affects future tickets → update those tickets in the plan *and* their Issues.

@@ -33,7 +33,7 @@ look alike are not a pattern yet — extract only if a fourth appears.
 ### 3.0 Blocked — do not cut this branch yet
 
 `prototypes/05-cashboxes.html` is **not** in `prototypes/approved/`. `plans/0002-screens.md` §4 and
-`prototypes/MEMORY.md` both read "v2 — under review". Per `CLAUDE.md`, no screen is written in React
+`prototypes/MEMORY.md` both read "v2 — under review". Per `AGENTS.md`, no screen is written in React
 without an approved prototype.
 
 To unblock, in one commit: the user design-approves 05 (the five "Decisões a aprovar" at the bottom
@@ -169,7 +169,7 @@ that fails when M4-T07 swaps the hook, which is exactly when it should be rewrit
 - The three deferrals must be recorded in `prototypes/memory/05-cashboxes.md` at approval time, not discovered in
   review — the 03-accounts balance column is the precedent for how to word them.
 - `prototypes/index.html` has a prose line listing which tickets each approval unblocks; it is easy
-  to move the file and forget the sentence. Same commit, per `CLAUDE.md`.
+  to move the file and forget the sentence. Same commit, per `AGENTS.md`.
 
 ---
 
