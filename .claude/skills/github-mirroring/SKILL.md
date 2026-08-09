@@ -1,31 +1,37 @@
 ---
 name: github-mirroring
-description: Mirror this project's plan documents onto GitHub — create the Milestone for a plan milestone, open one Issue per task with the plan text copied verbatim, apply the label families, and update plans/MEMORY.md. Use this when starting a milestone (M1, M2, …), when creating the Issue for a ticket before implementing it, when the user asks to create issues/milestones from the plans, or whenever GitHub looks out of sync with plans/milestones/. Drive it automatically at the start of a milestone rather than waiting to be asked.
+description: Mirror a single ticket from this project's plan documents onto GitHub — open the Issue for one task, seeded with its plan text, with the label families applied. Use this when creating the Issue for a ticket immediately before implementing it, or when starting a new milestone (which only creates the Milestone container). Issues are created one at a time, on request — never a whole milestone's worth in one pass.
 ---
 
-# GitHub milestone/issue mirroring
+# GitHub issue mirroring
 
-`plans/milestones/*.md` is the source of truth; GitHub is a mirror of it. The mirror exists so
-progress is visible and each ticket has a stable place for deviations and review comments — it
-carries no information of its own. That is why issue bodies are copied verbatim: if the two ever
-disagree, the plan wins, and any wording drift makes it harder to tell which side is stale.
+`plans/milestones/*.md` (or the relevant spec file) is the source of truth for a ticket's intent;
+the GitHub Issue is where the ticket is actually tracked. GitHub itself is now authoritative for
+ticketed work — there is no local tracking file to keep in sync. The plan supplies the seed text
+for a new issue; once the issue exists, it is worked and updated on GitHub directly.
 
 Two situations bring you here, and they differ in scope:
 
-- **Starting a milestone** — create the GitHub Milestone and every Issue in it, in one pass.
-- **Starting a single ticket** — the Issue for that one task, created *immediately before*
+- **Starting a milestone** — create only the GitHub Milestone container. Issues under it are
+  created one at a time, on demand, via the flow below — not all at once.
+- **Mirroring a single ticket** — the Issue for one task, created *immediately before*
   implementing it, so GitHub never lags behind the work.
 
-## Before creating anything
+## Mirroring one ticket
 
-Read `plans/MEMORY.md`. It tracks what has already been mirrored, and its progress table tells
-you whether a milestone's issues exist and which numbers they got. Creating a duplicate
-milestone or a second issue for the same task is the main failure mode here, and it is annoying
-to unwind — GitHub issues cannot be deleted, only closed.
-
-This repository has no `gh` CLI. Use the GitHub MCP tools (`mcp__github__*`): `list_issues` and
-`search_issues` to check what exists, `issue_write` to create or update, `list_issue_fields` /
-`get_label` when you need to confirm a label is there.
+1. Grep `plans/milestones/*.md` (or the relevant spec file) for the given task heading
+   (`## M<N>-T<NN> — <title>`).
+2. Extract only the task's `### Why this is needed` and `### Implementation notes` subsections —
+   nothing else from the task body.
+3. Confirm the ticket doesn't already exist on GitHub. This repository has no `gh` CLI; use the
+   GitHub MCP tools (`mcp__github__*`) — `list_issues` and `search_issues` — to check. There is no
+   local tracking file to consult; GitHub is queried directly, every time.
+4. Create the issue with `issue_write`:
+   - **Title**: `M<N>-T<NN> — <title>` (em dash, as in the heading).
+   - **Body**: the two extracted sections, verbatim, followed by three empty placeholder headers:
+     `## Implementation Plan`, `## Acceptance Criteria`, `## Tests`.
+   - Assigned to the task's Milestone.
+   - Labelled with the milestone label plus `backend`/`frontend` as applicable (see below).
 
 ## Mapping
 
@@ -33,10 +39,11 @@ This repository has no `gh` CLI. Use the GitHub MCP tools (`mcp__github__*`): `l
 |---|---|
 | `# M<N> — <Name>` heading in the milestone file | Milestone titled `M<N> - <Name>` (hyphen, not em dash), described by the milestone's **Goal** and **Definition of done** |
 | `## M<N>-T<NN> — <title>` section | Issue titled `M<N>-T<NN> — <title>` (em dash, as in the heading) |
-| The task's body — *Why this is needed*, *Implementation notes*, *Acceptance criteria*, *Tests* | Issue body, copied **verbatim**, assigned to that Milestone |
+| The task's `### Why this is needed` + `### Implementation notes` | Issue body, copied **verbatim**, followed by empty `## Implementation Plan`, `## Acceptance Criteria`, `## Tests` headers, assigned to that Milestone |
 
-Keep the acceptance criteria as unchecked boxes. They are the ticket's definition of done, and
-checking them off as the work lands is how the issue stays useful during review.
+Fill in `## Acceptance Criteria` and `## Tests` as unchecked boxes once the implementation plan
+is known. They are the ticket's definition of done, and checking them off as the work lands is
+how the issue stays useful during review.
 
 ## Labels
 
@@ -49,22 +56,6 @@ Two families, both applied to every issue:
   for pure docs — neither.
 
 Reuse the same colors for every new milestone so the board stays readable.
-
-## After creating them
-
-Update `plans/MEMORY.md` in the same change:
-
-- the **progress log** row for that milestone — the GitHub Milestone link and
-  the status with the date;
-- a short per-milestone section listing each issue, its task and its labels, matching the shape
-  of the M1 section already there.
-- Keep in the **progress log** only the tracking of which milestones and issues where created and when.
-- Don't mention other tickets that were out of the plan, labels created, execution order or anything that is not the issue created and date.
-- In the Milestones table, keep "Milestone | GitHub Milestone | Status"
-- In the Issues table, keep a single table with "Issue | Task | Created Date"
-
-Without that update the next session cannot tell what is mirrored, and the check at the top of
-this skill stops working.
 
 ## When the plan changes after mirroring
 
