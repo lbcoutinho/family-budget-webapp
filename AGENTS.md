@@ -2,26 +2,36 @@
 
 **M1 Foundation and M2 Authentication complete.** M3 Master data underway: Account, Category and Cashbox models/APIs, base layout/nav, i18n foundation and
 stable API error codes all shipped; Accounts and Categories screens (M3-T07, M3-T08) are built. **M3-T09 (Cashboxes screen) is next** — its prototype
-(`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). `plans/` and
-`docs/adr/` remain **strict source of truth**. Before code, read relevant plan + ADR; if implementation would deviate, **stop and flag** rather than improvise.
+(`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). GitHub
+Issues are **strict source of truth** for ticketed work; `docs/adr/` for architectural decisions. Before code, read the issue + relevant ADR; if
+implementation would deviate, **stop and flag** rather than improvise.
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
-- `plans/0002-screens.md` — screen inventory, actions per screen, prototype workflow, open UI questions.
-- `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry), each list of small tasks. First user-visible value at end of M5.
-- `plans/MEMORY.md` — GitHub mirroring convention + progress tracker.
-- `docs/adr/` — 18 accepted ADRs. **Accepted ADRs never edited** — supersede with new one (sequential 4-digit, kebab-case, use `template.md`).
+- `plans/screens/AGENTS.md` — screen inventory, actions per screen, prototype workflow.
+- `plans/milestones/` — 8 milestones (M1 Foundation → M8 Voice entry). A task collapses to `Done — see #<N>.` once it has a GitHub issue; only not-yet-ticketed
+  tasks keep full Why/Implementation notes.
+- `docs/adr/` — accepted ADRs, indexed in `docs/adr/CLAUDE.md`. **Accepted ADRs never edited** — supersede with new one (sequential 4-digit, kebab-case, use
+  `template.md`).
+- **GitHub Issues/Milestones are the source of truth for anything already ticketed** — local files above only cover what isn't ticketed yet.
 
 ## Ticket workflow (follow for every task)
 
 - Don't create issues in Github without explicit ask
+- **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file —
+  this overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`. Use the `github-mirroring` skill to open the issue for one
+  ticket at a time, immediately before implementing it.
+- **A milestone file's task collapses to `Done — see #<N>.`** once that task has a GitHub issue — the issue body is authoritative from then on, not the
+  milestone file.
 - **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues**
   to match.
 - **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.
 - **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
 - **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
   beforehand.
+- **ADRs and plans may sacrifice prose grammar for token economy** — meaning and technical content must stay exact, sentence polish doesn't matter.
 - **When milestone completed, review this `AGENTS.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
-  shifted conventions/gotchas).
+  shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to
+  delete the spec — no automated tracker, a manual check each time.
 - **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm,
   Docker images, Actions — moves to latest release proven compatible with rest of stack.
 
