@@ -87,7 +87,7 @@ same commit.
 - **Changing an approved prototype is allowed** when implementation reveals a problem; edit it in
   place and say so in the pull request. What is not allowed is a built screen quietly diverging.
 - A decision that turns out to be architectural — not merely visual — still produces an ADR, per
-  `CLAUDE.md`.
+  `AGENTS.md`.
 
 ### 2.4 Order of approval
 

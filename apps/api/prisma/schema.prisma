@@ -82,7 +82,7 @@ model Account {
 }
 
 /// What a transaction is *for*. Income and expense are the only two sides that need classifying:
-/// cashbox movements and transfers are transaction types, not categories (`CLAUDE.md`, domain
+/// cashbox movements and transfers are transaction types, not categories (`AGENTS.md`, domain
 /// rules), so they never carry one.
 enum CategoryKind {
   EXPENSE
@@ -135,7 +135,7 @@ model Category {
 }
 
 /// Money set aside for a purpose: an emergency fund, a holiday, the next car. A cashbox is a
-/// *transaction type* rather than a category (`CLAUDE.md`, domain rules) — money moves in and out
+/// *transaction type* rather than a category (`AGENTS.md`, domain rules) — money moves in and out
 /// of it with `CASHBOX_IN` / `CASHBOX_OUT` / `CASHBOX_TRANSFER`, and none of those count as an
 /// expense in the reports.
 ///

@@ -31,16 +31,17 @@ The central table of the system. Keeping the migration separate from business lo
 - CHECK constraint via raw SQL: `amount > 0`
 - CHECK constraint via raw SQL: `EXTRACT(DAY FROM reference_month) = 1`
 
+### Implementation plan
+
+TODO: add plan
+
 ### Acceptance criteria
-- [ ] Migration applies cleanly
-- [ ] A negative `amount` is rejected by the database
-- [ ] A `referenceMonth` not on the first of the month is rejected by the database
-- [ ] Dates are written and read back without timezone drift
-- [ ] Deleting a cashbox sets `cashboxId`/`destinationCashboxId` to `NULL` on its transactions
-  without deleting them
+
+TODO: add acceptance criteria
 
 ### Tests
-- Integration: valid insert; rejection of negative `amount`; rejection of invalid `referenceMonth`; date round-trip preserving the day
+
+TODO: add tests to validate
 
 ---
 

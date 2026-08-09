@@ -22,7 +22,7 @@ apps/api/prisma/migrations/
 apps/api/src/generated/
 
 # Source-of-truth documents, deliberately left untouched:
-#   - accepted ADRs are never edited (see CLAUDE.md), and reflowing one is an edit;
+#   - accepted ADRs are never edited (see AGENTS.md), and reflowing one is an edit;
 #   - plan text is copied verbatim into GitHub Issues, so reflowing it desyncs the mirror.
 docs/adr/
 plans/

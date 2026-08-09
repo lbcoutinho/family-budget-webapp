@@ -15,7 +15,7 @@ export enum NodeEnv {
 /**
  * Schema of every environment variable the API reads at boot. Validation is fail-fast: the
  * application must refuse to start when a required variable is missing or malformed rather than
- * crash later on the first query. See CLAUDE.md — "Env vars are validated at boot".
+ * crash later on the first query. See AGENTS.md — "Env vars are validated at boot".
  */
 export class EnvironmentVariables {
   @IsEnum(NodeEnv)

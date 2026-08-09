@@ -74,7 +74,7 @@ Some numbers are decisions, not lag. Leave them alone unless the decision itself
 - Anything else an ADR fixes.
 
 Changing one of these is an architectural decision: it needs a **new ADR** (never edit an
-accepted one), plus the updates the ticket workflow in `CLAUDE.md` requires.
+accepted one), plus the updates the ticket workflow in `AGENTS.md` requires.
 
 ## 4. Land it
 

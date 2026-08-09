@@ -46,7 +46,7 @@ new ADR.
 
 ### Negative
 - Contributors on Node 22 must upgrade before they can install
-- `plans/milestones/m01-foundation.md` and `CLAUDE.md` no longer match their original text and had
+- `plans/milestones/m01-foundation.md` and `AGENTS.md` no longer match their original text and had
   to be corrected
 
 ### Risks and mitigations

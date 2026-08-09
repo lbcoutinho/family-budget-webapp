@@ -4,7 +4,7 @@ Throwaway HTML mock-ups of every screen, built to settle concept, colour, typogr
 animation **before** any React code exists.
 
 **Rule: no screen is implemented without an approved prototype.** This is recorded in
-`CLAUDE.md`; the screen inventory and the actions each screen supports live in
+`AGENTS.md`; the screen inventory and the actions each screen supports live in
 `plans/0002-screens.md`.
 
 ## Layout
