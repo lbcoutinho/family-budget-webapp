@@ -19,7 +19,7 @@ implementation would deviate, **stop and flag** rather than improvise.
 - Don't create issues in Github without explicit ask
 - **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file —
   this overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`.
-- Use the `github-mirroring` skill to open the issue for one ticket at a time.
+- Use the `create-issue` skill to open the issue for one ticket at a time.
 - **A milestone file's task collapses to `Done — see #<N>.`** once that task has a GitHub issue — the issue body is authoritative from then on, not the
   milestone file.
 - **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues**
@@ -28,7 +28,6 @@ implementation would deviate, **stop and flag** rather than improvise.
 - **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
 - **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
   beforehand.
-- Tick the "Acceptance criteria" checkboxes in Github issue when PR pushed and implementation validated.
 - **ADRs and plans may sacrifice prose grammar for token economy**
 - **When milestone completed, review this `AGENTS.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
   shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to

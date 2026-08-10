@@ -100,9 +100,3 @@ Done — see #72.
 ## M3-T13 — Settings › General screen
 
 Done — see #73.
-
----
-
-## M3-T14 — Deploy to Vercel
-
-Done — see #74.
