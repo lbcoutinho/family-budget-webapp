@@ -34,8 +34,6 @@ deviate, **stop and flag** rather than improvise.
 - **When milestone completed, review this `AGENTS.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
   shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to delete
   the spec — no automated tracker, a manual check each time.
-- **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm,
-  Docker images, Actions — moves to latest release proven compatible with rest of stack.
 
 ## Impeccable (design tooling)
 
