@@ -10,6 +10,7 @@ const userId = '11111111-1111-1111-1111-111111111111';
 const otherUserId = '22222222-2222-2222-2222-222222222222';
 const transactionId = '33333333-3333-3333-3333-333333333333';
 const accountId = '44444444-4444-4444-4444-444444444444';
+const destinationAccountId = '99999999-9999-9999-9999-999999999999';
 const categoryId = '55555555-5555-5555-5555-555555555555';
 const subcategoryId = '66666666-6666-6666-6666-666666666666';
 const cashboxId = '77777777-7777-7777-7777-777777777777';
@@ -132,6 +133,19 @@ describe('TransactionsService', () => {
       });
     });
 
+    it('creates a TRANSFER with destinationAccountId and no cashbox — no groupBy query', async () => {
+      doubled.transaction.create.mockResolvedValue(row({ type: 'TRANSFER', accountId, destinationAccountId, categoryId: null, subcategoryId: null }));
+
+      const dto = { type: 'TRANSFER' as const, amount: 1_000, date: new Date('2026-03-15'), description: 'Move', accountId, destinationAccountId };
+
+      await service.create(userId, dto);
+
+      expect(doubled.transaction.create).toHaveBeenCalledWith({
+        data: { ...dto, userId, referenceMonth: new Date('2026-03-01'), cashboxLabel: null, destinationCashboxLabel: null },
+      });
+      expect(doubled.transaction.groupBy).not.toHaveBeenCalled();
+    });
+
     it('raises 409 CASHBOX_INSUFFICIENT_FUNDS, naming the pre-write balance, when the write would go negative', async () => {
       doubled.validate.mockResolvedValue({ ...NO_REFS, cashbox: { id: cashboxId, name: 'Carro' } });
       doubled.transaction.groupBy.mockResolvedValue([{ type: 'CASHBOX_OUT', cashboxId, destinationCashboxId: null, _sum: { amount: 6_000 } }]);
@@ -174,6 +188,27 @@ describe('TransactionsService', () => {
       expect(doubled.validate).toHaveBeenCalledWith(
         userId,
         { type: 'EXPENSE', accountId, categoryId: 'new-category-id', subcategoryId, cashboxId: undefined, destinationCashboxId: undefined },
+        { requireActive: true },
+      );
+    });
+
+    it('re-validates when only destinationAccountId is in the patch, merging the current TRANSFER refs', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ type: 'TRANSFER', accountId, destinationAccountId, categoryId: null, subcategoryId: null }));
+      doubled.transaction.update.mockResolvedValue(row({ type: 'TRANSFER', accountId, destinationAccountId: 'new-destination-id' }));
+
+      await service.update(userId, transactionId, { destinationAccountId: 'new-destination-id' });
+
+      expect(doubled.validate).toHaveBeenCalledWith(
+        userId,
+        {
+          type: 'TRANSFER',
+          accountId,
+          destinationAccountId: 'new-destination-id',
+          categoryId: undefined,
+          subcategoryId: undefined,
+          cashboxId: undefined,
+          destinationCashboxId: undefined,
+        },
         { requireActive: true },
       );
     });

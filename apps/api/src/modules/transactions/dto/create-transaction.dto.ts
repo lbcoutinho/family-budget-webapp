@@ -19,8 +19,8 @@ const toDateOnly = ({ value }: { value: unknown }): unknown =>
  * from a client — the schema defaults (`CONFIRMED` / `MANUAL`) apply; `DRAFT` arrives with voice
  * entry (M8).
  *
- * `type` accepts `INCOME`/`EXPENSE` (M4-T04) and `CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER`
- * (M4-T05, #102). `TRANSFER` remains rejected with the framework's generic 400 until #103 lands.
+ * `type` accepts `INCOME`/`EXPENSE` (M4-T04), `CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER`
+ * (M4-T05, #102) and `TRANSFER` (M4-T06, #103).
  *
  * `accountId`/`categoryId`/`subcategoryId` are declared optional even though
  * `TransactionValidator.assertShape` requires all three for `INCOME`/`EXPENSE`: shape enforcement
@@ -30,11 +30,11 @@ const toDateOnly = ({ value }: { value: unknown }): unknown =>
 export class CreateTransactionDto {
   @ApiProperty({
     type: String,
-    enum: ['INCOME', 'EXPENSE', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'],
+    enum: ['INCOME', 'EXPENSE', 'TRANSFER', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'],
     enumName: 'CreateTransactionType',
   })
-  @IsIn(['INCOME', 'EXPENSE', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'])
-  type!: 'INCOME' | 'EXPENSE' | 'CASHBOX_IN' | 'CASHBOX_OUT' | 'CASHBOX_TRANSFER';
+  @IsIn(['INCOME', 'EXPENSE', 'TRANSFER', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'])
+  type!: 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'CASHBOX_IN' | 'CASHBOX_OUT' | 'CASHBOX_TRANSFER';
 
   @ApiProperty({ type: Number, example: 1_000, description: 'Always positive, in **cents** (ADR-0005) — sign is derived from `type`.' })
   @IsInt()
@@ -81,6 +81,11 @@ export class CreateTransactionDto {
   @IsOptional()
   @IsUUID()
   accountId?: string;
+
+  @ApiProperty({ type: String, format: 'uuid', required: false, description: 'TRANSFER destination account.' })
+  @IsOptional()
+  @IsUUID()
+  destinationAccountId?: string;
 
   @ApiProperty({ type: String, format: 'uuid', required: false })
   @IsOptional()
