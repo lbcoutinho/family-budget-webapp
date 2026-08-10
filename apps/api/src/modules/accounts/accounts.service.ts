@@ -3,7 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Account, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BalancesService } from '../transactions/balances.service';
 
+import { AccountBalanceDto } from './dto/account-balance.dto';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { ListAccountsQueryDto } from './dto/list-accounts-query.dto';
@@ -20,7 +22,10 @@ import { UpdateAccountDto } from './dto/update-account.dto';
  */
 @Injectable()
 export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly balances: BalancesService,
+  ) {}
 
   /**
    * The user's accounts, active ones only unless asked otherwise. Ordered by `sortOrder` and then
@@ -37,6 +42,26 @@ export class AccountsService {
 
   async findOne(userId: string, id: string): Promise<AccountDto> {
     return toDto(await this.load(userId, id));
+  }
+
+  /**
+   * `GET /accounts/balances` (M4-T07, #104). Every account, active or not — a retired account can
+   * still hold money, and hiding it would make the totals not add up. An account absent from the
+   * aggregated map (no confirmed transactions yet) reports its `initialBalance` unchanged.
+   */
+  async findBalances(userId: string, asOf?: Date): Promise<AccountBalanceDto[]> {
+    const [rows, sums] = await Promise.all([
+      this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.balances.sumByAccount(userId, asOf),
+    ]);
+
+    return rows.map((account) => ({
+      accountId: account.id,
+      name: account.name,
+      isActive: account.isActive,
+      initialBalance: account.initialBalance,
+      balance: account.initialBalance + (sums.get(account.id) ?? 0),
+    }));
   }
 
   async create(userId: string, dto: CreateAccountDto): Promise<AccountDto> {

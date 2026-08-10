@@ -13,10 +13,12 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiErrorDto } from '../../common/api-error';
+import { AsOfQueryDto } from '../../common/dto/as-of-query.dto';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CashboxesService } from './cashboxes.service';
+import { CashboxBalanceDto } from './dto/cashbox-balance.dto';
 import { CashboxDto } from './dto/cashbox.dto';
 import { CreateCashboxDto } from './dto/create-cashbox.dto';
 import { ListCashboxesQueryDto } from './dto/list-cashboxes-query.dto';
@@ -46,6 +48,16 @@ export class CashboxesController {
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListCashboxesQueryDto): Promise<CashboxDto[]> {
     return this.cashboxes.findAll(user.id, query);
+  }
+
+  // Declared before `:id` — Nest matches routes in declaration order, and `ParseUUIDPipe` on the
+  // route below would otherwise answer 400 for this path.
+  @ApiOperation({ operationId: 'listCashboxBalances', summary: "The user's cashbox balances" })
+  @ApiQuery({ name: 'asOf', type: String, format: 'date', required: false, description: 'Balance as of the end of this day (YYYY-MM-DD).' })
+  @ApiOkResponse({ type: [CashboxBalanceDto], description: 'Every cashbox, active or not, ordered by sort order and then name.' })
+  @Get('balances')
+  findBalances(@CurrentUser() user: AuthenticatedUser, @Query() query: AsOfQueryDto): Promise<CashboxBalanceDto[]> {
+    return this.cashboxes.findBalances(user.id, query.asOf);
   }
 
   @ApiOperation({ operationId: 'getCashbox', summary: 'Read one cashbox' })
