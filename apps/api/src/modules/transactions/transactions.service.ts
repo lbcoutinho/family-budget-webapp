@@ -13,12 +13,12 @@ import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate } from './
 import { type ResolvedTransactionRefs, type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
 
 /**
- * `INCOME`/`EXPENSE`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05) — the
- * first real consumer of `TransactionValidator` (M4-T02), the `referenceMonth` rules (M4-T03) and
- * `cashboxBalances` (M4-T05). Follows the shape `CashboxesService` set: every query `userId`-scoped,
- * `assertOwnership` for 404-on-not-yours (ADR-0006), no HTTP decisions here.
+ * `INCOME`/`EXPENSE`/`TRANSFER`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05,
+ * M4-T06) — the first real consumer of `TransactionValidator` (M4-T02), the `referenceMonth` rules
+ * (M4-T03) and `cashboxBalances` (M4-T05). Follows the shape `CashboxesService` set: every query
+ * `userId`-scoped, `assertOwnership` for 404-on-not-yours (ADR-0006), no HTTP decisions here.
  *
- * `TRANSFER` is out of scope — #103. So is `GET /transactions` (a list) — #105.
+ * `GET /transactions` (a list) is out of scope — #105.
  *
  * A write that can move money in or out of a cashbox runs inside `$transaction({ isolationLevel:
  * 'Serializable' })`: the balance guard reads and the row write must be atomic, or a concurrent
@@ -79,6 +79,7 @@ export class TransactionsService {
 
     if (
       dto.accountId !== undefined ||
+      dto.destinationAccountId !== undefined ||
       dto.categoryId !== undefined ||
       dto.subcategoryId !== undefined ||
       dto.cashboxId !== undefined ||
@@ -87,6 +88,7 @@ export class TransactionsService {
       const mergedRefs: TransactionRefInput = {
         type: current.type,
         accountId: dto.accountId ?? current.accountId ?? undefined,
+        destinationAccountId: dto.destinationAccountId ?? current.destinationAccountId ?? undefined,
         categoryId: dto.categoryId ?? current.categoryId ?? undefined,
         subcategoryId: dto.subcategoryId ?? current.subcategoryId ?? undefined,
         cashboxId: dto.cashboxId ?? current.cashboxId ?? undefined,

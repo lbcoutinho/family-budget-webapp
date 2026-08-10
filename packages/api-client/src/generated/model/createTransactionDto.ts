@@ -25,6 +25,8 @@ export interface CreateTransactionDto {
   /** Drives whether editing `date` recomputes `referenceMonth` (ADR-0009). */
   isCreditCard?: boolean;
   accountId?: string;
+  /** TRANSFER destination account. */
+  destinationAccountId?: string;
   categoryId?: string;
   subcategoryId?: string;
   cashboxId?: string;

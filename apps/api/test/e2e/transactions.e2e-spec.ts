@@ -12,9 +12,9 @@ import { type TransactionDto } from '../../src/modules/transactions/dto/transact
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /**
- * Transaction CRUD over the real request pipeline and a real database (M4-T04, M4-T05):
- * `INCOME`/`EXPENSE`, plus `CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER`. Requires the migrations to
- * have been applied (`docker compose up -d postgres` then `pnpm --filter api db:migrate`).
+ * Transaction CRUD over the real request pipeline and a real database (M4-T04, M4-T05, M4-T06):
+ * `INCOME`/`EXPENSE`, `TRANSFER`, plus `CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER`. Requires the
+ * migrations to have been applied (`docker compose up -d postgres` then `pnpm --filter api db:migrate`).
  *
  * Two accounts sign in, following `cashboxes.e2e-spec.ts`'s isolation pattern: half of what these
  * routes have to get right is that neither user can see or touch the other's transactions.
@@ -27,6 +27,8 @@ describe('Transactions API (e2e)', () => {
   let token: string;
   let otherToken: string;
   let accountId: string;
+  let destinationAccountId: string;
+  let inactiveAccountId: string;
   let categoryId: string;
   let subcategoryId: string;
   let incomeCategoryId: string;
@@ -95,16 +97,21 @@ describe('Transactions API (e2e)', () => {
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
 
-    const [account, category, incomeCategory, inactiveCategory, cashbox, destinationCashbox, inactiveCashbox] = await Promise.all([
-      prisma.account.create({ data: { userId: user.id, name: 'Millennium' }, select: { id: true } }),
-      prisma.category.create({ data: { userId: user.id, name: 'Alimentação', kind: 'EXPENSE' }, select: { id: true } }),
-      prisma.category.create({ data: { userId: user.id, name: 'Salário', kind: 'INCOME' }, select: { id: true } }),
-      prisma.category.create({ data: { userId: user.id, name: 'Retirado', kind: 'EXPENSE', isActive: false }, select: { id: true } }),
-      prisma.cashbox.create({ data: { userId: user.id, name: 'Carro' }, select: { id: true } }),
-      prisma.cashbox.create({ data: { userId: user.id, name: 'Férias' }, select: { id: true } }),
-      prisma.cashbox.create({ data: { userId: user.id, name: 'Aposentado', isActive: false }, select: { id: true } }),
-    ]);
+    const [account, destinationAccount, inactiveAccount, category, incomeCategory, inactiveCategory, cashbox, destinationCashbox, inactiveCashbox] =
+      await Promise.all([
+        prisma.account.create({ data: { userId: user.id, name: 'Millennium' }, select: { id: true } }),
+        prisma.account.create({ data: { userId: user.id, name: 'Poupança' }, select: { id: true } }),
+        prisma.account.create({ data: { userId: user.id, name: 'Encerrada', isActive: false }, select: { id: true } }),
+        prisma.category.create({ data: { userId: user.id, name: 'Alimentação', kind: 'EXPENSE' }, select: { id: true } }),
+        prisma.category.create({ data: { userId: user.id, name: 'Salário', kind: 'INCOME' }, select: { id: true } }),
+        prisma.category.create({ data: { userId: user.id, name: 'Retirado', kind: 'EXPENSE', isActive: false }, select: { id: true } }),
+        prisma.cashbox.create({ data: { userId: user.id, name: 'Carro' }, select: { id: true } }),
+        prisma.cashbox.create({ data: { userId: user.id, name: 'Férias' }, select: { id: true } }),
+        prisma.cashbox.create({ data: { userId: user.id, name: 'Aposentado', isActive: false }, select: { id: true } }),
+      ]);
     accountId = account.id;
+    destinationAccountId = destinationAccount.id;
+    inactiveAccountId = inactiveAccount.id;
     categoryId = category.id;
     incomeCategoryId = incomeCategory.id;
     inactiveCategoryId = inactiveCategory.id;
@@ -155,9 +162,9 @@ describe('Transactions API (e2e)', () => {
       expect(created.referenceMonth).toBe('2026-04-01');
     });
 
-    it('rejects a type other than INCOME/EXPENSE with 400', async () => {
+    it('rejects an unknown type with 400', async () => {
       await authed('post', '/transactions')
-        .send(minimalBody({ type: 'TRANSFER' }))
+        .send(minimalBody({ type: 'BOGUS' }))
         .expect(400);
     });
 
@@ -282,6 +289,74 @@ describe('Transactions API (e2e)', () => {
       await authed('patch', `/transactions/${created.id}`, otherToken).send({ description: 'Hijacked' }).expect(404);
 
       await expect(authed('get', `/transactions/${created.id}`).expect(200)).resolves.toMatchObject({ body: { description: 'Coffee' } });
+    });
+  });
+
+  describe('account-to-account transfer (M4-T06)', () => {
+    const transferBody = (overrides: Record<string, unknown> = {}): Record<string, unknown> =>
+      minimalBody({ type: 'TRANSFER', accountId, destinationAccountId, categoryId: undefined, subcategoryId: undefined, ...overrides });
+
+    it('creates a TRANSFER with both account ids and reads it back', async () => {
+      const created = await createTransaction(transferBody());
+
+      expect(created).toMatchObject({ type: 'TRANSFER', accountId, destinationAccountId });
+
+      const reread = (await authed('get', `/transactions/${created.id}`).expect(200)).body as TransactionDto;
+      expect(reread).toMatchObject({ accountId, destinationAccountId });
+    });
+
+    it.each(['categoryId', 'subcategoryId', 'cashboxId', 'destinationCashboxId'] as const)(
+      'rejects %s on a TRANSFER with 400 TRANSACTION_FIELD_NOT_ALLOWED',
+      async (field) => {
+        const response = await authed('post', '/transactions')
+          .send(transferBody({ [field]: field.toLowerCase().includes('cashbox') ? cashboxId : categoryId }))
+          .expect(400);
+        expect(response.body).toMatchObject({ code: 'TRANSACTION_FIELD_NOT_ALLOWED' });
+      },
+    );
+
+    it.each(['accountId', 'destinationAccountId'] as const)('rejects a missing %s with 400 TRANSACTION_FIELD_REQUIRED', async (field) => {
+      const response = await authed('post', '/transactions')
+        .send(transferBody({ [field]: undefined }))
+        .expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_FIELD_REQUIRED' });
+    });
+
+    it('rejects destinationAccountId equal to accountId with 400 TRANSACTION_SAME_ACCOUNT', async () => {
+      const response = await authed('post', '/transactions')
+        .send(transferBody({ destinationAccountId: accountId }))
+        .expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_SAME_ACCOUNT' });
+    });
+
+    it('answers 404 when either account belongs to another user', async () => {
+      await authed('post', '/transactions', otherToken).send(transferBody()).expect(404);
+    });
+
+    it('rejects an inactive account with 400 TRANSACTION_REFERENCE_INACTIVE', async () => {
+      const response = await authed('post', '/transactions')
+        .send(transferBody({ destinationAccountId: inactiveAccountId }))
+        .expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_REFERENCE_INACTIVE' });
+    });
+
+    it('accepts a transfer that would leave the source account negative — no balance check', async () => {
+      const created = await createTransaction(transferBody({ amount: 1_000_000 }));
+      expect(created.amount).toBe(1_000_000);
+    });
+
+    it('rejects an attempt to change type away from TRANSFER with 400 TRANSACTION_TYPE_IMMUTABLE', async () => {
+      const created = await createTransaction(transferBody());
+
+      const response = await authed('patch', `/transactions/${created.id}`).send({ type: 'EXPENSE' }).expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_TYPE_IMMUTABLE' });
+    });
+
+    it('re-validates and rejects when a patch points destinationAccountId at an inactive account', async () => {
+      const created = await createTransaction(transferBody());
+
+      const response = await authed('patch', `/transactions/${created.id}`).send({ destinationAccountId: inactiveAccountId }).expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_REFERENCE_INACTIVE' });
     });
   });
 

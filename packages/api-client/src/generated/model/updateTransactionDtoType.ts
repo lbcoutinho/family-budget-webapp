@@ -15,6 +15,7 @@ export type UpdateTransactionDtoType = typeof UpdateTransactionDtoType[keyof typ
 export const UpdateTransactionDtoType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE',
+  TRANSFER: 'TRANSFER',
   CASHBOX_IN: 'CASHBOX_IN',
   CASHBOX_OUT: 'CASHBOX_OUT',
   CASHBOX_TRANSFER: 'CASHBOX_TRANSFER',
