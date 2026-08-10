@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -17,24 +17,31 @@ import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
+import { TransactionListDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionsService } from './transactions.service';
 
 /**
- * HTTP for transactions (M4-T04, M4-T05). No `@Public()` anywhere: the global
+ * HTTP for transactions (M4-T04, M4-T05, M4-T08). No `@Public()` anywhere: the global
  * `JwtAuthGuard` protects every route, and `@CurrentUser()` scopes each one to its owner.
  *
  * The 404 documented on every by-id route covers both "no such transaction" and "not yours" —
  * telling them apart would confirm the id exists to whoever asked.
- *
- * No `GET /transactions` (a list) here — that is #105.
  */
 @ApiTags('transactions')
 @ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such transaction — or it belongs to another user.' })
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactions: TransactionsService) {}
+
+  @ApiOperation({ operationId: 'listTransactions', summary: 'List transactions with filters and pagination' })
+  @ApiOkResponse({ type: TransactionListDto })
+  @Get()
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListTransactionsQueryDto): Promise<TransactionListDto> {
+    return this.transactions.findAll(user.id, query);
+  }
 
   @ApiOperation({ operationId: 'getTransaction', summary: 'Read one transaction' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })

@@ -502,4 +502,168 @@ describe('Transactions API (e2e)', () => {
       expect(response.body).toMatchObject({ code: 'CASHBOX_INSUFFICIENT_FUNDS' });
     });
   });
+
+  describe('list (M4-T08)', () => {
+    let coffeeId: string;
+    let salaryId: string;
+    let aprilId: string;
+    let firstOfPairId: string;
+    let secondOfPairId: string;
+    let creditCardId: string;
+    let deletedCashboxTxId: string;
+    let draftId: string;
+
+    beforeEach(async () => {
+      coffeeId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 1_000, date: '2026-03-15', description: 'Coffee' }))).id;
+
+      salaryId = (
+        await createTransaction(
+          minimalBody({
+            type: 'INCOME',
+            amount: 5_000,
+            date: '2026-03-10',
+            description: 'Salary',
+            categoryId: incomeCategoryId,
+            subcategoryId: incomeSubcategoryId,
+          }),
+        )
+      ).id;
+
+      aprilId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 2_000, date: '2026-04-01', description: 'Rent', notes: 'Apartment' }))).id;
+
+      firstOfPairId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 100, date: '2026-03-20', description: 'Same day A' }))).id;
+      secondOfPairId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 200, date: '2026-03-20', description: 'Same day B' }))).id;
+
+      creditCardId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 300, date: '2026-03-05', description: 'Card', isCreditCard: true }))).id;
+
+      deletedCashboxTxId = (
+        await createTransaction(
+          minimalBody({
+            type: 'CASHBOX_IN',
+            amount: 4_000,
+            date: '2026-03-12',
+            description: 'Deposit',
+            categoryId: undefined,
+            subcategoryId: undefined,
+            cashboxId,
+          }),
+        )
+      ).id;
+      // Bypasses `CashboxesService` entirely, same technique as `transaction.e2e-spec.ts`: the point
+      // is the transaction row surviving with a null FK and its label snapshot intact (ADR-0019).
+      await prisma.cashbox.delete({ where: { id: cashboxId } });
+
+      const owner = (await prisma.account.findUniqueOrThrow({ where: { id: accountId } })).userId;
+      draftId = (
+        await prisma.transaction.create({
+          data: {
+            userId: owner,
+            type: 'EXPENSE',
+            status: 'DRAFT',
+            amount: 500,
+            date: new Date('2026-03-01'),
+            referenceMonth: new Date('2026-03-01'),
+            description: 'Voice draft',
+            accountId,
+            categoryId,
+            subcategoryId,
+          },
+        })
+      ).id;
+    });
+
+    it('unfiltered list hides the DRAFT; ?status=DRAFT shows only it', async () => {
+      const unfiltered = (await authed('get', '/transactions').expect(200)).body as { items: { id: string }[] };
+      expect(unfiltered.items.map((i) => i.id)).not.toContain(draftId);
+
+      const draftsOnly = (await authed('get', '/transactions?status=DRAFT').expect(200)).body as { items: { id: string }[] };
+      expect(draftsOnly.items.map((i) => i.id)).toEqual([draftId]);
+    });
+
+    it('narrows by a single filter, and composes two filters', async () => {
+      const byType = (await authed('get', '/transactions?type=INCOME').expect(200)).body as { items: { id: string }[] };
+      expect(byType.items.map((i) => i.id)).toEqual([salaryId]);
+
+      const composed = (await authed('get', '/transactions?referenceMonth=2026-03-01&type=EXPENSE&isCreditCard=true').expect(200)).body as {
+        items: { id: string }[];
+      };
+      expect(composed.items.map((i) => i.id)).toEqual([creditCardId]);
+    });
+
+    it('search is case-insensitive and matches description or notes', async () => {
+      const byDescription = (await authed('get', '/transactions?search=COFFEE').expect(200)).body as { items: { id: string }[] };
+      expect(byDescription.items.map((i) => i.id)).toEqual([coffeeId]);
+
+      const byNotes = (await authed('get', '/transactions?search=apartment').expect(200)).body as { items: { id: string }[] };
+      expect(byNotes.items.map((i) => i.id)).toEqual([aprilId]);
+    });
+
+    it('orders by date desc, falling back to createdAt desc on a same-date tie', async () => {
+      const listed = (await authed('get', '/transactions?dateFrom=2026-03-20&dateTo=2026-03-20').expect(200)).body as { items: { id: string }[] };
+      expect(listed.items.map((i) => i.id)).toEqual([secondOfPairId, firstOfPairId]);
+    });
+
+    it('walks the whole set via nextCursor with limit=2, with no duplicates, and terminates', async () => {
+      const seen: string[] = [];
+      let cursor: string | undefined;
+
+      for (let page = 0; page < 10; page += 1) {
+        const response = (await authed('get', `/transactions?limit=2${cursor ? `&cursor=${cursor}` : ''}`).expect(200)).body as {
+          items: { id: string }[];
+          nextCursor: string | null;
+        };
+        seen.push(...response.items.map((i) => i.id));
+        if (response.nextCursor === null) break;
+        cursor = response.nextCursor;
+      }
+
+      expect(new Set(seen).size).toBe(seen.length);
+      expect(seen).toEqual(expect.arrayContaining([coffeeId, salaryId, aprilId, firstOfPairId, secondOfPairId, creditCardId, deletedCashboxTxId]));
+    });
+
+    it('aggregates cover the whole filtered set and ignore limit', async () => {
+      const body = (await authed('get', '/transactions?limit=1').expect(200)).body as { total: number; incomeTotal: number; expenseTotal: number };
+
+      expect(body.total).toBe(7);
+      expect(body.incomeTotal).toBe(5_000);
+      expect(body.expenseTotal).toBe(1_000 + 2_000 + 100 + 200 + 300);
+    });
+
+    it('expands account/category/subcategory on the row, null where the FK is null', async () => {
+      const body = (await authed('get', '/transactions').expect(200)).body as {
+        items: {
+          id: string;
+          account: { id: string; name: string } | null;
+          category: { id: string; name: string; color: string | null } | null;
+          subcategory: { id: string; name: string; color: string | null } | null;
+        }[];
+      };
+
+      const coffee = body.items.find((i) => i.id === coffeeId)!;
+      expect(coffee.account).toMatchObject({ id: accountId, name: 'Millennium' });
+      expect(coffee.category).toMatchObject({ id: categoryId, name: 'Alimentação' });
+      expect(coffee.subcategory).toMatchObject({ id: subcategoryId, name: 'Restaurante' });
+
+      const deposit = body.items.find((i) => i.id === deletedCashboxTxId)!;
+      expect(deposit.category).toBeNull();
+      expect(deposit.subcategory).toBeNull();
+    });
+
+    it('excludes a row whose cashbox was deleted from ?cashboxId=, while cashboxLabel is still present unfiltered', async () => {
+      const filtered = (await authed('get', `/transactions?cashboxId=${cashboxId}`).expect(200)).body as { items: { id: string }[] };
+      expect(filtered.items.map((i) => i.id)).not.toContain(deletedCashboxTxId);
+
+      const unfiltered = (await authed('get', '/transactions').expect(200)).body as { items: { id: string; cashboxLabel: string | null }[] };
+      const deposit = unfiltered.items.find((i) => i.id === deletedCashboxTxId)!;
+      expect(deposit.cashboxLabel).toBe('Carro');
+    });
+
+    it("does not show another user's rows, and rejects limit=0 or limit=201 with 400", async () => {
+      const otherList = (await authed('get', '/transactions', otherToken).expect(200)).body as { items: { id: string }[] };
+      expect(otherList.items.map((i) => i.id)).not.toContain(coffeeId);
+
+      await authed('get', '/transactions?limit=0').expect(400);
+      await authed('get', '/transactions?limit=201').expect(400);
+    });
+  });
 });

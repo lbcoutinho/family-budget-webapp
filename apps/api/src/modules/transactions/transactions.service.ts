@@ -7,18 +7,27 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { cashboxBalances } from '../cashboxes/cashbox-balance';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
+import { TransactionListDto, type TransactionListItemDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate } from './reference-month';
+import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, startOfMonthUtc } from './reference-month';
 import { type ResolvedTransactionRefs, type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
+
+const LIST_INCLUDE = {
+  account: { select: { id: true, name: true } },
+  category: { select: { id: true, name: true, color: true } },
+  subcategory: { select: { id: true, name: true, color: true } },
+} satisfies Prisma.TransactionInclude;
+
+type ListedTransaction = Prisma.TransactionGetPayload<{ include: typeof LIST_INCLUDE }>;
 
 /**
  * `INCOME`/`EXPENSE`/`TRANSFER`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05,
- * M4-T06) — the first real consumer of `TransactionValidator` (M4-T02), the `referenceMonth` rules
- * (M4-T03) and `cashboxBalances` (M4-T05). Follows the shape `CashboxesService` set: every query
- * `userId`-scoped, `assertOwnership` for 404-on-not-yours (ADR-0006), no HTTP decisions here.
- *
- * `GET /transactions` (a list) is out of scope — #105.
+ * M4-T06) plus the filtered, paginated list (M4-T08) — the first real consumer of
+ * `TransactionValidator` (M4-T02), the `referenceMonth` rules (M4-T03) and `cashboxBalances`
+ * (M4-T05). Follows the shape `CashboxesService` set: every query `userId`-scoped, `assertOwnership`
+ * for 404-on-not-yours (ADR-0006), no HTTP decisions here.
  *
  * A write that can move money in or out of a cashbox runs inside `$transaction({ isolationLevel:
  * 'Serializable' })`: the balance guard reads and the row write must be atomic, or a concurrent
@@ -31,6 +40,39 @@ export class TransactionsService {
     private readonly prisma: PrismaService,
     private readonly validator: TransactionValidator,
   ) {}
+
+  /**
+   * Two queries in one `prisma.$transaction([...])` so the page and its aggregates read the same
+   * snapshot. `id desc` is appended to the ordering because cursor pagination needs a fully
+   * deterministic sort — otherwise a `date`/`createdAt` tie could skip or repeat a row across pages.
+   * `limit + 1` rows are fetched so `nextCursor` is known without a second round-trip: if the extra
+   * row came back, it is dropped and its predecessor's id becomes `nextCursor`.
+   */
+  async findAll(userId: string, query: ListTransactionsQueryDto): Promise<TransactionListDto> {
+    const where = this.buildWhere(userId, query);
+
+    const [rows, totals] = await this.prisma.$transaction([
+      this.prisma.transaction.findMany({
+        where,
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+        take: query.limit + 1,
+        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+        include: LIST_INCLUDE,
+      }),
+      this.prisma.transaction.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: { _all: true } }),
+    ]);
+
+    const hasNextPage = rows.length > query.limit;
+    const items = rows.slice(0, query.limit).map(toListItemDto);
+
+    return {
+      items,
+      total: totals.reduce((sum, t) => sum + t._count._all, 0),
+      incomeTotal: totals.find((t) => t.type === 'INCOME')?._sum.amount ?? 0,
+      expenseTotal: totals.find((t) => t.type === 'EXPENSE')?._sum.amount ?? 0,
+      nextCursor: hasNextPage ? (items[items.length - 1]?.id ?? null) : null,
+    };
+  }
 
   async findOne(userId: string, id: string): Promise<TransactionDto> {
     return toDto(await this.load(userId, id));
@@ -167,6 +209,26 @@ export class TransactionsService {
       }
     }
   }
+
+  private buildWhere(userId: string, query: ListTransactionsQueryDto): Prisma.TransactionWhereInput {
+    return {
+      userId,
+      status: query.status ?? 'CONFIRMED',
+      ...(query.referenceMonth ? { referenceMonth: startOfMonthUtc(query.referenceMonth) } : {}),
+      ...(query.dateFrom !== undefined || query.dateTo !== undefined
+        ? { date: { ...(query.dateFrom !== undefined ? { gte: query.dateFrom } : {}), ...(query.dateTo !== undefined ? { lte: query.dateTo } : {}) } }
+        : {}),
+      ...(query.type ? { type: { in: query.type } } : {}),
+      ...(query.accountId ? { accountId: query.accountId } : {}),
+      ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...(query.subcategoryId ? { subcategoryId: query.subcategoryId } : {}),
+      ...(query.cashboxId ? { cashboxId: query.cashboxId } : {}),
+      ...(query.isCreditCard !== undefined ? { isCreditCard: query.isCreditCard } : {}),
+      ...(query.search
+        ? { OR: [{ description: { contains: query.search, mode: 'insensitive' } }, { notes: { contains: query.search, mode: 'insensitive' } }] }
+        : {}),
+    };
+  }
 }
 
 const SERIALIZABLE = { isolationLevel: 'Serializable' as const };
@@ -200,4 +262,9 @@ function toDto(transaction: Transaction): TransactionDto {
     createdAt: transaction.createdAt.toISOString(),
     updatedAt: transaction.updatedAt.toISOString(),
   };
+}
+
+/** `toDto` plus the three expanded relations a list row carries. */
+function toListItemDto(transaction: ListedTransaction): TransactionListItemDto {
+  return { ...toDto(transaction), account: transaction.account, category: transaction.category, subcategory: transaction.subcategory };
 }
