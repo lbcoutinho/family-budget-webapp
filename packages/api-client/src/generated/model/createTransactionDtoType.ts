@@ -12,4 +12,7 @@ export type CreateTransactionDtoType = typeof CreateTransactionDtoType[keyof typ
 export const CreateTransactionDtoType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE',
+  CASHBOX_IN: 'CASHBOX_IN',
+  CASHBOX_OUT: 'CASHBOX_OUT',
+  CASHBOX_TRANSFER: 'CASHBOX_TRANSFER',
 } as const;

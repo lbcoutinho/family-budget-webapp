@@ -12,9 +12,9 @@ import { type TransactionDto } from '../../src/modules/transactions/dto/transact
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /**
- * `INCOME`/`EXPENSE` transaction CRUD over the real request pipeline and a real database
- * (M4-T04). Requires the migrations to have been applied (`docker compose up -d postgres` then
- * `pnpm --filter api db:migrate`).
+ * Transaction CRUD over the real request pipeline and a real database (M4-T04, M4-T05):
+ * `INCOME`/`EXPENSE`, plus `CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER`. Requires the migrations to
+ * have been applied (`docker compose up -d postgres` then `pnpm --filter api db:migrate`).
  *
  * Two accounts sign in, following `cashboxes.e2e-spec.ts`'s isolation pattern: half of what these
  * routes have to get right is that neither user can see or touch the other's transactions.
@@ -32,6 +32,9 @@ describe('Transactions API (e2e)', () => {
   let incomeCategoryId: string;
   let incomeSubcategoryId: string;
   let inactiveCategoryId: string;
+  let cashboxId: string;
+  let destinationCashboxId: string;
+  let inactiveCashboxId: string;
 
   const password = 'correct horse battery staple';
   const emails = ['transactions.api.e2e@family-budget.test', 'transactions.api.e2e.other@family-budget.test'];
@@ -88,19 +91,26 @@ describe('Transactions API (e2e)', () => {
     await removeFixtures();
     await prisma.account.deleteMany({ where: { user: { email: emails[0] } } });
     await prisma.category.deleteMany({ where: { user: { email: emails[0] } } });
+    await prisma.cashbox.deleteMany({ where: { user: { email: emails[0] } } });
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
 
-    const [account, category, incomeCategory, inactiveCategory] = await Promise.all([
+    const [account, category, incomeCategory, inactiveCategory, cashbox, destinationCashbox, inactiveCashbox] = await Promise.all([
       prisma.account.create({ data: { userId: user.id, name: 'Millennium' }, select: { id: true } }),
       prisma.category.create({ data: { userId: user.id, name: 'Alimentação', kind: 'EXPENSE' }, select: { id: true } }),
       prisma.category.create({ data: { userId: user.id, name: 'Salário', kind: 'INCOME' }, select: { id: true } }),
       prisma.category.create({ data: { userId: user.id, name: 'Retirado', kind: 'EXPENSE', isActive: false }, select: { id: true } }),
+      prisma.cashbox.create({ data: { userId: user.id, name: 'Carro' }, select: { id: true } }),
+      prisma.cashbox.create({ data: { userId: user.id, name: 'Férias' }, select: { id: true } }),
+      prisma.cashbox.create({ data: { userId: user.id, name: 'Aposentado', isActive: false }, select: { id: true } }),
     ]);
     accountId = account.id;
     categoryId = category.id;
     incomeCategoryId = incomeCategory.id;
     inactiveCategoryId = inactiveCategory.id;
+    cashboxId = cashbox.id;
+    destinationCashboxId = destinationCashbox.id;
+    inactiveCashboxId = inactiveCashbox.id;
 
     const [subcategory, incomeSubcategory] = await Promise.all([
       prisma.category.create({ data: { userId: user.id, parentId: categoryId, name: 'Restaurante', kind: 'EXPENSE' }, select: { id: true } }),
@@ -114,6 +124,7 @@ describe('Transactions API (e2e)', () => {
     await removeFixtures();
     await prisma.account.deleteMany({ where: { user: { email: emails[0] } } });
     await prisma.category.deleteMany({ where: { user: { email: emails[0] } } });
+    await prisma.cashbox.deleteMany({ where: { user: { email: emails[0] } } });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await app.close();
   });
@@ -271,6 +282,149 @@ describe('Transactions API (e2e)', () => {
       await authed('patch', `/transactions/${created.id}`, otherToken).send({ description: 'Hijacked' }).expect(404);
 
       await expect(authed('get', `/transactions/${created.id}`).expect(200)).resolves.toMatchObject({ body: { description: 'Coffee' } });
+    });
+  });
+
+  describe('cashbox operations (M4-T05)', () => {
+    it('deposits, withdraws and transfers between cashboxes', async () => {
+      const deposit = await createTransaction(
+        minimalBody({
+          type: 'CASHBOX_IN',
+          amount: 10_000,
+          description: 'Save for the car',
+          accountId,
+          categoryId: undefined,
+          subcategoryId: undefined,
+          cashboxId,
+        }),
+      );
+      expect(deposit).toMatchObject({ type: 'CASHBOX_IN', cashboxLabel: 'Carro' });
+
+      const withdrawal = await createTransaction(
+        minimalBody({
+          type: 'CASHBOX_OUT',
+          amount: 4_000,
+          description: 'Bought the car',
+          accountId,
+          categoryId: undefined,
+          subcategoryId: undefined,
+          cashboxId,
+        }),
+      );
+      expect(withdrawal).toMatchObject({ type: 'CASHBOX_OUT', cashboxLabel: 'Carro' });
+
+      const transfer = await createTransaction(
+        minimalBody({
+          type: 'CASHBOX_TRANSFER',
+          amount: 5_000,
+          description: 'Move leftovers to vacations',
+          accountId: undefined,
+          categoryId: undefined,
+          subcategoryId: undefined,
+          cashboxId,
+          destinationCashboxId,
+        }),
+      );
+      expect(transfer).toMatchObject({ type: 'CASHBOX_TRANSFER', cashboxLabel: 'Carro', destinationCashboxLabel: 'Férias' });
+    });
+
+    it('rejects a withdrawal past the available balance with 409 CASHBOX_INSUFFICIENT_FUNDS, writing nothing', async () => {
+      await createTransaction(
+        minimalBody({ type: 'CASHBOX_IN', amount: 1_000, description: 'Fund it', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+
+      const response = await authed('post', '/transactions')
+        .send(
+          minimalBody({ type: 'CASHBOX_OUT', amount: 2_000, description: 'Too much', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+        )
+        .expect(409);
+      expect(response.body).toMatchObject({ code: 'CASHBOX_INSUFFICIENT_FUNDS' });
+
+      const list = await prisma.transaction.findMany({ where: { cashboxId }, select: { type: true } });
+      expect(list).toEqual([{ type: 'CASHBOX_IN' }]);
+    });
+
+    it('rejects CASHBOX_TRANSFER with accountId set with 400', async () => {
+      await authed('post', '/transactions')
+        .send(
+          minimalBody({
+            type: 'CASHBOX_TRANSFER',
+            description: 'Bad',
+            categoryId: undefined,
+            subcategoryId: undefined,
+            cashboxId,
+            destinationCashboxId,
+          }),
+        )
+        .expect(400);
+    });
+
+    it('rejects the same cashbox on both sides of a transfer with 400 TRANSACTION_SAME_CASHBOX', async () => {
+      const response = await authed('post', '/transactions')
+        .send(
+          minimalBody({
+            type: 'CASHBOX_TRANSFER',
+            description: 'Same pot',
+            accountId: undefined,
+            categoryId: undefined,
+            subcategoryId: undefined,
+            cashboxId,
+            destinationCashboxId: cashboxId,
+          }),
+        )
+        .expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_SAME_CASHBOX' });
+    });
+
+    it('rejects an inactive cashbox with 400 TRANSACTION_REFERENCE_INACTIVE', async () => {
+      const response = await authed('post', '/transactions')
+        .send(
+          minimalBody({
+            type: 'CASHBOX_IN',
+            description: 'Into a retired pot',
+            accountId,
+            categoryId: undefined,
+            subcategoryId: undefined,
+            cashboxId: inactiveCashboxId,
+          }),
+        )
+        .expect(400);
+      expect(response.body).toMatchObject({ code: 'TRANSACTION_REFERENCE_INACTIVE' });
+    });
+
+    it('keeps an old transaction label unchanged after the cashbox is renamed', async () => {
+      const deposit = await createTransaction(
+        minimalBody({ type: 'CASHBOX_IN', amount: 1_000, description: 'Save', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+
+      await authed('patch', `/cashboxes/${cashboxId}`).send({ name: 'Renamed pot' }).expect(200);
+
+      const reread = (await authed('get', `/transactions/${deposit.id}`).expect(200)).body as TransactionDto;
+      expect(reread.cashboxLabel).toBe('Carro');
+    });
+
+    it('rejects raising a withdrawal past the available balance on update with 409 CASHBOX_INSUFFICIENT_FUNDS', async () => {
+      await createTransaction(
+        minimalBody({ type: 'CASHBOX_IN', amount: 5_000, description: 'Fund it', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+      const withdrawal = await createTransaction(
+        minimalBody({ type: 'CASHBOX_OUT', amount: 1_000, description: 'Withdraw', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+
+      const response = await authed('patch', `/transactions/${withdrawal.id}`).send({ amount: 6_000 }).expect(409);
+      expect(response.body).toMatchObject({ code: 'CASHBOX_INSUFFICIENT_FUNDS' });
+    });
+
+    it('rejects deleting a CASHBOX_IN that already funded a withdrawal, with 409 CASHBOX_INSUFFICIENT_FUNDS', async () => {
+      const deposit = await createTransaction(
+        minimalBody({ type: 'CASHBOX_IN', amount: 5_000, description: 'Fund it', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+      await createTransaction(
+        minimalBody({ type: 'CASHBOX_OUT', amount: 1_000, description: 'Withdraw', accountId, categoryId: undefined, subcategoryId: undefined, cashboxId }),
+      );
+
+      const response = await authed('delete', `/transactions/${deposit.id}`).expect(409);
+      expect(response.body).toMatchObject({ code: 'CASHBOX_INSUFFICIENT_FUNDS' });
     });
   });
 });

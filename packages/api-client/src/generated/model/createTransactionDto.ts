@@ -27,4 +27,6 @@ export interface CreateTransactionDto {
   accountId?: string;
   categoryId?: string;
   subcategoryId?: string;
+  cashboxId?: string;
+  destinationCashboxId?: string;
 }
