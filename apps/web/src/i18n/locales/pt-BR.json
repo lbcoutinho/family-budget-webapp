@@ -9,6 +9,7 @@
     "voice": "Lançar por voz",
     "recurrences": "Recorrências",
     "settings": "Configurações",
+    "settingsGeneral": "Geral",
     "accounts": "Contas",
     "categories": "Categorias",
     "mainNav": "Navegação principal",
@@ -238,6 +239,21 @@
     "error": {
       "title": "Não foi possível carregar as caixinhas",
       "description": "Verifique a conexão e tente de novo."
+    }
+  },
+  "settingsGeneral": {
+    "language": {
+      "heading": "Idioma",
+      "description": "Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.",
+      "label": "Idioma",
+      "note": "Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.",
+      "saving": "Salvando…",
+      "success": "Idioma atualizado para {{locale}}.",
+      "error": "Não foi possível salvar. O idioma voltou para {{locale}}.",
+      "options": {
+        "pt-BR": "Português (Brasil)",
+        "en-US": "English (US)"
+      }
     }
   }
 }

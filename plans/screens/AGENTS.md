@@ -55,7 +55,6 @@ that implements each screen is named in its own file.
 | --- | --- |
 | Dashboard / home | The monthly tab is the home; a separate one would repeat the balance panel |
 | Sign-up, password reset | Single user, seeded; there is no self-service account |
-| User settings screen | Nothing to configure yet — single currency, single locale, single user |
 | Budget/limit per category | Not in the domain model; would be a new plan |
 | Attachments on entries | Not in the domain model |
 | Global search across months | The monthly filter covers the real use; revisit if it does not |
