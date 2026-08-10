@@ -62,3 +62,4 @@ Closes #<issue-number>.
 - Keep "Verification" honest: if nothing was actually run, say so instead of listing commands that weren't executed.
 - Link Milestones to PRs.
 - Add labels to indicate what kind of work was done: backend, frontend, bug, documentation, prototyping
+- After push check "Acceptance criteria" in issue body and mark the checkboxes for validations done.
