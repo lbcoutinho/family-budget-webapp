@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 
 import { type Cashbox } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
+import { type BalancesService } from '../transactions/balances.service';
 
 import { CashboxesService } from './cashboxes.service';
 
@@ -38,12 +39,14 @@ const prismaDouble = (): { prisma: PrismaService; cashbox: Record<'findMany' | '
 describe('CashboxesService', () => {
   let service: CashboxesService;
   let cashbox: ReturnType<typeof prismaDouble>['cashbox'];
+  let sumByCashbox: jest.Mock;
 
   beforeEach(() => {
     const double = prismaDouble();
 
     cashbox = double.cashbox;
-    service = new CashboxesService(double.prisma);
+    sumByCashbox = jest.fn().mockResolvedValue(new Map<string, number>());
+    service = new CashboxesService(double.prisma, { sumByCashbox } as unknown as BalancesService);
   });
 
   describe('findAll', () => {
@@ -99,6 +102,29 @@ describe('CashboxesService', () => {
       await service.findAll(userId, { includeInactive: false, includeId: undefined });
 
       expect(cashbox.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId, OR: [{ isActive: true }] } }));
+    });
+  });
+
+  describe('findBalances', () => {
+    it('reports 0 for a cashbox with no confirmed transactions and includes inactive ones', async () => {
+      const untouchedId = '44444444-4444-4444-4444-444444444444';
+      cashbox.findMany.mockResolvedValue([row(), row({ id: untouchedId, isActive: false, targetAmount: null })]);
+      sumByCashbox.mockResolvedValue(new Map([[cashboxId, 6_000]]));
+
+      await expect(service.findBalances(userId)).resolves.toEqual([
+        { cashboxId, name: 'Fundo de emergência', isActive: true, targetAmount: 500_000, balance: 6_000 },
+        { cashboxId: untouchedId, name: 'Fundo de emergência', isActive: false, targetAmount: null, balance: 0 },
+      ]);
+      expect(cashbox.findMany).toHaveBeenCalledWith({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] });
+    });
+
+    it('passes asOf through to the aggregation', async () => {
+      const asOf = new Date('2026-08-31T00:00:00.000Z');
+      cashbox.findMany.mockResolvedValue([]);
+
+      await service.findBalances(userId, asOf);
+
+      expect(sumByCashbox).toHaveBeenCalledWith(userId, asOf);
     });
   });
 

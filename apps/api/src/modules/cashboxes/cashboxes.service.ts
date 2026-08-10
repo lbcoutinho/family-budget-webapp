@@ -3,7 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Cashbox, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BalancesService } from '../transactions/balances.service';
 
+import { CashboxBalanceDto } from './dto/cashbox-balance.dto';
 import { CashboxDto } from './dto/cashbox.dto';
 import { CreateCashboxDto } from './dto/create-cashbox.dto';
 import { ListCashboxesQueryDto } from './dto/list-cashboxes-query.dto';
@@ -20,7 +22,10 @@ import { UpdateCashboxDto } from './dto/update-cashbox.dto';
  */
 @Injectable()
 export class CashboxesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly balances: BalancesService,
+  ) {}
 
   /**
    * The user's cashboxes, active ones only unless asked otherwise. Ordered by `sortOrder` and then
@@ -37,6 +42,26 @@ export class CashboxesService {
 
   async findOne(userId: string, id: string): Promise<CashboxDto> {
     return toDto(await this.load(userId, id));
+  }
+
+  /**
+   * `GET /cashboxes/balances` (M4-T07, #104). Every cashbox, active or not — same reasoning as
+   * `AccountsService.findBalances`. A cashbox absent from the aggregated map (no confirmed
+   * transactions yet) reports `0`.
+   */
+  async findBalances(userId: string, asOf?: Date): Promise<CashboxBalanceDto[]> {
+    const [rows, sums] = await Promise.all([
+      this.prisma.cashbox.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.balances.sumByCashbox(userId, asOf),
+    ]);
+
+    return rows.map((cashbox) => ({
+      cashboxId: cashbox.id,
+      name: cashbox.name,
+      isActive: cashbox.isActive,
+      targetAmount: cashbox.targetAmount,
+      balance: sums.get(cashbox.id) ?? 0,
+    }));
   }
 
   async create(userId: string, dto: CreateCashboxDto): Promise<CashboxDto> {

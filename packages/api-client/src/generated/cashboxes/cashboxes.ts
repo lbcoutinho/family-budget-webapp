@@ -26,8 +26,10 @@ import type {
 
 import type {
   ApiErrorDto,
+  CashboxBalanceDto,
   CashboxDto,
   CreateCashboxDto,
+  ListCashboxBalancesParams,
   ListCashboxesParams,
   UpdateCashboxDto
 } from '../model';
@@ -211,6 +213,99 @@ export const useCreateCashbox = <TError = ErrorType<ApiErrorDto>,
       return useMutation(getCreateCashboxMutationOptions(options), queryClient);
     }
     /**
+ * @summary The user's cashbox balances
+ */
+export const listCashboxBalances = (
+    params?: ListCashboxBalancesParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CashboxBalanceDto[]>(
+      {url: `/cashboxes/balances`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getListCashboxBalancesQueryKey = (params?: ListCashboxBalancesParams,) => {
+    return [
+    `/cashboxes/balances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCashboxBalancesQueryOptions = <TData = Awaited<ReturnType<typeof listCashboxBalances>>, TError = ErrorType<ApiErrorDto>>(params?: ListCashboxBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCashboxBalancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCashboxBalances>>> = ({ signal }) => listCashboxBalances(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCashboxBalancesQueryResult = NonNullable<Awaited<ReturnType<typeof listCashboxBalances>>>
+export type ListCashboxBalancesQueryError = ErrorType<ApiErrorDto>
+
+
+export function useListCashboxBalances<TData = Awaited<ReturnType<typeof listCashboxBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params: undefined |  ListCashboxBalancesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCashboxBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listCashboxBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCashboxBalances<TData = Awaited<ReturnType<typeof listCashboxBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListCashboxBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCashboxBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listCashboxBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCashboxBalances<TData = Awaited<ReturnType<typeof listCashboxBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListCashboxBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The user's cashbox balances
+ */
+
+export function useListCashboxBalances<TData = Awaited<ReturnType<typeof listCashboxBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListCashboxBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashboxBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCashboxBalancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
  * @summary Read one cashbox
  */
 export const getCashbox = (
