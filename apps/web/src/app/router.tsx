@@ -7,6 +7,7 @@ import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
 import { CashboxesPage } from '@/features/cashboxes/cashboxes-page';
 import { CategoriesPage } from '@/features/categories/categories-page';
+import { GeneralSettingsPage } from '@/features/settings/general-settings-page';
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -39,6 +40,7 @@ export const routes = [
       { path: 'recurrences', element: <RoutePlaceholder titleKey="nav.recurrences" ticket="M7-T06" /> },
       { path: 'accounts', element: <AccountsPage /> },
       { path: 'categories', element: <CategoriesPage /> },
+      { path: 'settings/general', element: <GeneralSettingsPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },

@@ -41,6 +41,10 @@ export const ERROR_CODES = [
   'TRANSACTION_CATEGORY_KIND_MISMATCH',
   /** `subcategory.parentId !== categoryId`. */
   'TRANSACTION_SUBCATEGORY_PARENT_MISMATCH',
+  /** `PATCH` tried to change `type` (M4-T04) — not supported, `type` is fixed at creation. */
+  'TRANSACTION_TYPE_IMMUTABLE',
+  /** `CASHBOX_OUT`/`CASHBOX_TRANSFER` would drive a cashbox balance negative (M4-T05). */
+  'CASHBOX_INSUFFICIENT_FUNDS',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

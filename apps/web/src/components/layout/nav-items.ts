@@ -1,4 +1,4 @@
-import { CalendarIcon, ChartColumnIcon, type LucideIcon, MicIcon, PiggyBankIcon, RepeatIcon, TagsIcon, WalletIcon } from 'lucide-react';
+import { CalendarIcon, ChartColumnIcon, type LucideIcon, MicIcon, PiggyBankIcon, RepeatIcon, TagsIcon, UserRoundCogIcon, WalletIcon } from 'lucide-react';
 
 import { type TranslationKey } from '@/i18n';
 
@@ -21,8 +21,10 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/recurrences', labelKey: 'nav.recurrences', icon: RepeatIcon },
 ];
 
-/** The two registries. Set up rarely, so they live one level down, behind Configurações. */
+/** Geral first: it is where every future account-wide preference (theme, date format) lands, so it
+ * sits above the two registries rather than joining them alphabetically. */
 export const SETTINGS_NAV_ITEMS: NavItem[] = [
+  { to: '/settings/general', labelKey: 'nav.settingsGeneral', icon: UserRoundCogIcon },
   { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
   { to: '/categories', labelKey: 'nav.categories', icon: TagsIcon },
 ];

@@ -2,9 +2,9 @@
 
 **M1 Foundation and M2 Authentication complete.** M3 Master data underway: Account, Category and Cashbox models/APIs, base layout/nav, i18n foundation and
 stable API error codes all shipped; Accounts and Categories screens (M3-T07, M3-T08) are built. **M3-T09 (Cashboxes screen) is next** — its prototype
-(`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). GitHub
-Issues are **strict source of truth** for ticketed work; `docs/adr/` for architectural decisions. Before code, read the issue + relevant ADR; if
-implementation would deviate, **stop and flag** rather than improvise.
+(`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). GitHub Issues
+are **strict source of truth** for ticketed work; `docs/adr/` for architectural decisions. Before code, read the issue + relevant ADR; if implementation would
+deviate, **stop and flag** rather than improvise.
 
 - `plans/0001-overview.md` — architecture, domain model, balance/report formulas (§5.4).
 - `plans/screens/AGENTS.md` — screen inventory, actions per screen, prototype workflow.
@@ -17,22 +17,23 @@ implementation would deviate, **stop and flag** rather than improvise.
 ## Ticket workflow (follow for every task)
 
 - Don't create issues in Github without explicit ask
-- **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file —
-  this overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`.
-- Use the `github-mirroring` skill to open the issue for one ticket at a time.
+- **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file — this
+  overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`.
+- Use the `create-issue` skill to open the issue for one ticket at a time.
 - **A milestone file's task collapses to `Done — see #<N>.`** once that task has a GitHub issue — the issue body is authoritative from then on, not the
   milestone file.
 - **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues**
   to match.
 - **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.
 - **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
+- Never execute lint, format, typecheck, unit tests, e2e test, API client regenerate or any command that user can quickly run manually after coding is done.
+  Commit the changes and print the commands the user needs to run in order.
 - **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
   beforehand.
-- Tick the "Acceptance criteria" checkboxes in Github issue when PR pushed and implementation validated.
 - **ADRs and plans may sacrifice prose grammar for token economy**
 - **When milestone completed, review this `AGENTS.md` and update** if anything changed (e.g. once code exists, mark planned commands/layout real; refresh
-  shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to
-  delete the spec — no automated tracker, a manual check each time.
+  shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to delete
+  the spec — no automated tracker, a manual check each time.
 - **When milestone completed, run `dependency-review` skill** (`.claude/skills/dependency-review/`): every pinned version — libraries, `@types/*`, Node, pnpm,
   Docker images, Actions — moves to latest release proven compatible with rest of stack.
 

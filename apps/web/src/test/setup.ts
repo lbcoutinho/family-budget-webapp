@@ -28,6 +28,17 @@ class StubResizeObserver {
 }
 globalThis.ResizeObserver ??= StubResizeObserver as unknown as typeof ResizeObserver;
 
+// Radix's Select primitive calls these on pointer interaction; jsdom implements neither.
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = () => undefined;
+}
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => undefined;
+}
+
 // Testing Library does not auto-clean between tests under Vitest's globals, so unmount and
 // clear the DOM after each one to keep tests isolated. Request handlers are per-test for the
 // same reason.
