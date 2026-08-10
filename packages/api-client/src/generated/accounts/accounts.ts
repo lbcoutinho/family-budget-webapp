@@ -25,9 +25,11 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountBalanceDto,
   AccountDto,
   ApiErrorDto,
   CreateAccountDto,
+  ListAccountBalancesParams,
   ListAccountsParams,
   UpdateAccountDto
 } from '../model';
@@ -211,6 +213,99 @@ export const useCreateAccount = <TError = ErrorType<ApiErrorDto>,
       return useMutation(getCreateAccountMutationOptions(options), queryClient);
     }
     /**
+ * @summary The user's account balances
+ */
+export const listAccountBalances = (
+    params?: ListAccountBalancesParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<AccountBalanceDto[]>(
+      {url: `/accounts/balances`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getListAccountBalancesQueryKey = (params?: ListAccountBalancesParams,) => {
+    return [
+    `/accounts/balances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAccountBalancesQueryOptions = <TData = Awaited<ReturnType<typeof listAccountBalances>>, TError = ErrorType<ApiErrorDto>>(params?: ListAccountBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAccountBalancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAccountBalances>>> = ({ signal }) => listAccountBalances(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAccountBalancesQueryResult = NonNullable<Awaited<ReturnType<typeof listAccountBalances>>>
+export type ListAccountBalancesQueryError = ErrorType<ApiErrorDto>
+
+
+export function useListAccountBalances<TData = Awaited<ReturnType<typeof listAccountBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params: undefined |  ListAccountBalancesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccountBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listAccountBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccountBalances<TData = Awaited<ReturnType<typeof listAccountBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccountBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listAccountBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccountBalances<TData = Awaited<ReturnType<typeof listAccountBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The user's account balances
+ */
+
+export function useListAccountBalances<TData = Awaited<ReturnType<typeof listAccountBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAccountBalancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
  * @summary Read one account
  */
 export const getAccount = (
