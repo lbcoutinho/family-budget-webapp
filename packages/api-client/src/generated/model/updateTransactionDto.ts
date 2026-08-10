@@ -26,6 +26,8 @@ export interface UpdateTransactionDto {
   accountId?: string;
   categoryId?: string;
   subcategoryId?: string;
+  cashboxId?: string;
+  destinationCashboxId?: string;
   /** Rejected: `type` is immutable after creation. */
   type?: UpdateTransactionDtoType;
 }

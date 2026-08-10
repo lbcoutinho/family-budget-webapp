@@ -272,7 +272,7 @@ export const useDeleteTransaction = <TError = ErrorType<ApiErrorDto>,
       return useMutation(getDeleteTransactionMutationOptions(options), queryClient);
     }
     /**
- * @summary Create an income or expense transaction
+ * @summary Create a transaction
  */
 export const createTransaction = (
     createTransactionDto: BodyType<CreateTransactionDto>,
@@ -323,7 +323,7 @@ const {mutation: mutationOptions} = options ?
     export type CreateTransactionMutationError = ErrorType<ApiErrorDto>
 
     /**
- * @summary Create an income or expense transaction
+ * @summary Create a transaction
  */
 export const useCreateTransaction = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }

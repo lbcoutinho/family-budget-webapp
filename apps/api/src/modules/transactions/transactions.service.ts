@@ -1,23 +1,29 @@
 import { Injectable } from '@nestjs/common';
 
-import { badRequest } from '../../common/api-error';
+import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
-import { type Transaction } from '../../generated/prisma/client';
+import { type Prisma, type Transaction } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { cashboxBalances } from '../cashboxes/cashbox-balance';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate } from './reference-month';
-import { type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
+import { type ResolvedTransactionRefs, type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
 
 /**
- * `INCOME`/`EXPENSE` CRUD (M4-T04) — the first real consumer of `TransactionValidator` (M4-T02)
- * and the `referenceMonth` rules (M4-T03). Follows the shape `CashboxesService` set: every query
- * `userId`-scoped, `assertOwnership` for 404-on-not-yours (ADR-0006), no HTTP decisions here.
+ * `INCOME`/`EXPENSE`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05) — the
+ * first real consumer of `TransactionValidator` (M4-T02), the `referenceMonth` rules (M4-T03) and
+ * `cashboxBalances` (M4-T05). Follows the shape `CashboxesService` set: every query `userId`-scoped,
+ * `assertOwnership` for 404-on-not-yours (ADR-0006), no HTTP decisions here.
  *
- * `GET /transactions` (a list) is out of scope — #105. So is every type beyond `INCOME`/`EXPENSE`
- * — #102/#103.
+ * `TRANSFER` is out of scope — #103. So is `GET /transactions` (a list) — #105.
+ *
+ * A write that can move money in or out of a cashbox runs inside `$transaction({ isolationLevel:
+ * 'Serializable' })`: the balance guard reads and the row write must be atomic, or a concurrent
+ * withdrawal could slip past it. Single-user app, so a serialization failure (P2034) is left
+ * unhandled rather than retried — ponytail: add retry-on-P2034 if this ever becomes multi-user.
  */
 @Injectable()
 export class TransactionsService {
@@ -31,11 +37,30 @@ export class TransactionsService {
   }
 
   async create(userId: string, dto: CreateTransactionDto): Promise<TransactionDto> {
-    await this.validator.validate(userId, dto, { requireActive: true });
+    const refs = await this.validator.validate(userId, dto, { requireActive: true });
 
     const referenceMonth = resolveReferenceMonthOnCreate({ date: dto.date, referenceMonth: dto.referenceMonth });
+    const cashboxIds = collectCashboxIds(refs.cashbox?.id, refs.destinationCashbox?.id);
 
-    const created = await this.prisma.transaction.create({ data: { ...dto, userId, referenceMonth } });
+    const created = await this.prisma.$transaction(async (tx) => {
+      const before = cashboxIds.length === 0 ? null : await cashboxBalances(tx, userId, cashboxIds);
+
+      const row = await tx.transaction.create({
+        data: {
+          ...dto,
+          userId,
+          referenceMonth,
+          cashboxLabel: refs.cashbox?.name ?? null,
+          destinationCashboxLabel: refs.destinationCashbox?.name ?? null,
+        },
+      });
+
+      if (before !== null) {
+        await this.assertNonNegative(tx, userId, cashboxIds, before);
+      }
+
+      return row;
+    }, SERIALIZABLE);
 
     return toDto(created);
   }
@@ -48,17 +73,27 @@ export class TransactionsService {
     }
 
     // The validator only runs when the patch actually touches a ref field — editing the
-    // description of an old transaction must not fail because its category was since retired
-    // (ADR-0015).
-    if (dto.accountId !== undefined || dto.categoryId !== undefined || dto.subcategoryId !== undefined) {
+    // description of an old transaction must not fail because its category (or cashbox) was since
+    // retired (ADR-0015).
+    let refs: ResolvedTransactionRefs | undefined;
+
+    if (
+      dto.accountId !== undefined ||
+      dto.categoryId !== undefined ||
+      dto.subcategoryId !== undefined ||
+      dto.cashboxId !== undefined ||
+      dto.destinationCashboxId !== undefined
+    ) {
       const mergedRefs: TransactionRefInput = {
         type: current.type,
         accountId: dto.accountId ?? current.accountId ?? undefined,
         categoryId: dto.categoryId ?? current.categoryId ?? undefined,
         subcategoryId: dto.subcategoryId ?? current.subcategoryId ?? undefined,
+        cashboxId: dto.cashboxId ?? current.cashboxId ?? undefined,
+        destinationCashboxId: dto.destinationCashboxId ?? current.destinationCashboxId ?? undefined,
       };
 
-      await this.validator.validate(userId, mergedRefs, { requireActive: true });
+      refs = await this.validator.validate(userId, mergedRefs, { requireActive: true });
     }
 
     const referenceMonth = resolveReferenceMonthOnUpdate(
@@ -66,20 +101,77 @@ export class TransactionsService {
       { date: dto.date, referenceMonth: dto.referenceMonth, isCreditCard: dto.isCreditCard },
     );
 
-    const updated = await this.prisma.transaction.update({ where: { id }, data: { ...dto, referenceMonth } });
+    // Re-snapshotting the label only when the id field itself was patched — not merely because the
+    // validator ran for some other reason — is what ADR-0019 means by "kept in sync ... never
+    // touched otherwise".
+    const cashboxIds = collectCashboxIds(current.cashboxId, current.destinationCashboxId, dto.cashboxId, dto.destinationCashboxId);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const before = cashboxIds.length === 0 ? null : await cashboxBalances(tx, userId, cashboxIds);
+
+      const row = await tx.transaction.update({
+        where: { id },
+        data: {
+          ...dto,
+          referenceMonth,
+          ...(dto.cashboxId !== undefined ? { cashboxLabel: refs?.cashbox?.name ?? null } : {}),
+          ...(dto.destinationCashboxId !== undefined ? { destinationCashboxLabel: refs?.destinationCashbox?.name ?? null } : {}),
+        },
+      });
+
+      if (before !== null) {
+        await this.assertNonNegative(tx, userId, cashboxIds, before);
+      }
+
+      return row;
+    }, SERIALIZABLE);
 
     return toDto(updated);
   }
 
   /** Permanent — a transaction has no history worth preserving. */
   async remove(userId: string, id: string): Promise<void> {
-    await this.load(userId, id);
-    await this.prisma.transaction.delete({ where: { id } });
+    const current = await this.load(userId, id);
+    const cashboxIds = collectCashboxIds(current.cashboxId, current.destinationCashboxId);
+
+    await this.prisma.$transaction(async (tx) => {
+      const before = cashboxIds.length === 0 ? null : await cashboxBalances(tx, userId, cashboxIds);
+
+      await tx.transaction.delete({ where: { id } });
+
+      if (before !== null) {
+        await this.assertNonNegative(tx, userId, cashboxIds, before);
+      }
+    }, SERIALIZABLE);
   }
 
   private async load(userId: string, id: string): Promise<Transaction> {
     return assertOwnership(await this.prisma.transaction.findUnique({ where: { id } }), userId);
   }
+
+  /**
+   * Recomputes every affected cashbox's balance after the write and rejects if any went negative —
+   * one guard covering create, an amount raised on an existing withdrawal, a withdrawal moved to a
+   * different cashbox, a transfer's destination changed, and a funding `CASHBOX_IN` deleted out from
+   * under an already-spent balance. `before` only feeds the error message: the pass/fail check is
+   * always against the post-write balance.
+   */
+  private async assertNonNegative(tx: Prisma.TransactionClient, userId: string, ids: string[], before: Map<string, number>): Promise<void> {
+    const after = await cashboxBalances(tx, userId, ids);
+
+    for (const id of ids) {
+      if ((after.get(id) ?? 0) < 0) {
+        throw conflict('CASHBOX_INSUFFICIENT_FUNDS', `This would leave a cashbox balance negative — available balance: ${before.get(id) ?? 0} cents.`);
+      }
+    }
+  }
+}
+
+const SERIALIZABLE = { isolationLevel: 'Serializable' as const };
+
+/** Every distinct, non-null cashbox id among the arguments — the set a balance guard must check. */
+function collectCashboxIds(...ids: (string | null | undefined)[]): string[] {
+  return [...new Set(ids.filter((id): id is string => id !== null && id !== undefined))];
 }
 
 /** Prisma row → response body. `date`/`referenceMonth` become plain `YYYY-MM-DD`, `userId` is dropped. */

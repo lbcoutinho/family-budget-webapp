@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPi
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -21,7 +22,7 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionsService } from './transactions.service';
 
 /**
- * HTTP for `INCOME`/`EXPENSE` transactions (M4-T04). No `@Public()` anywhere: the global
+ * HTTP for transactions (M4-T04, M4-T05). No `@Public()` anywhere: the global
  * `JwtAuthGuard` protects every route, and `@CurrentUser()` scopes each one to its owner.
  *
  * The 404 documented on every by-id route covers both "no such transaction" and "not yours" —
@@ -43,10 +44,11 @@ export class TransactionsController {
     return this.transactions.findOne(user.id, id);
   }
 
-  @ApiOperation({ operationId: 'createTransaction', summary: 'Create an income or expense transaction' })
+  @ApiOperation({ operationId: 'createTransaction', summary: 'Create a transaction' })
   @ApiBody({ type: CreateTransactionDto })
   @ApiCreatedResponse({ type: TransactionDto })
   @ApiBadRequestResponse({ type: ApiErrorDto, description: 'Invalid fields for the transaction type, or a deactivated reference.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'CASHBOX_OUT or CASHBOX_TRANSFER would drive a cashbox balance negative.' })
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateTransactionDto): Promise<TransactionDto> {
     return this.transactions.create(user.id, dto);
@@ -60,6 +62,7 @@ export class TransactionsController {
     type: ApiErrorDto,
     description: 'Invalid fields for the transaction type, a deactivated reference, or an attempt to change `type`.',
   })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'CASHBOX_OUT or CASHBOX_TRANSFER would drive a cashbox balance negative.' })
   @Patch(':id')
   update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTransactionDto): Promise<TransactionDto> {
     return this.transactions.update(user.id, id, dto);

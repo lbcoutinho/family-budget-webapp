@@ -13,12 +13,12 @@ import { CreateTransactionDto } from './create-transaction.dto';
 export class UpdateTransactionDto extends PartialType(OmitType(CreateTransactionDto, ['type'])) {
   @ApiProperty({
     type: String,
-    enum: ['INCOME', 'EXPENSE'],
+    enum: ['INCOME', 'EXPENSE', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'],
     enumName: 'CreateTransactionType',
     required: false,
     description: 'Rejected: `type` is immutable after creation.',
   })
   @IsOptional()
-  @IsIn(['INCOME', 'EXPENSE'])
-  type?: 'INCOME' | 'EXPENSE';
+  @IsIn(['INCOME', 'EXPENSE', 'CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'])
+  type?: 'INCOME' | 'EXPENSE' | 'CASHBOX_IN' | 'CASHBOX_OUT' | 'CASHBOX_TRANSFER';
 }
