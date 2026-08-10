@@ -28,6 +28,7 @@ import type {
   ApiErrorDto,
   CreateTransactionDto,
   TransactionDto,
+  TransactionListDto,
   UpdateTransactionDto
 } from '../model';
 
@@ -53,6 +54,162 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 /**
+ * @summary List transactions with filters and pagination
+ */
+export const listTransactions = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransactionListDto>(
+      {url: `/transactions`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getListTransactionsQueryKey = () => {
+    return [
+    `/transactions`
+    ] as const;
+    }
+
+
+export const getListTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTransactionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTransactions>>> = ({ signal }) => listTransactions(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTransactionsQueryResult = NonNullable<Awaited<ReturnType<typeof listTransactions>>>
+export type ListTransactionsQueryError = ErrorType<ApiErrorDto>
+
+
+export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTransactions>>,
+          TError,
+          Awaited<ReturnType<typeof listTransactions>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTransactions>>,
+          TError,
+          Awaited<ReturnType<typeof listTransactions>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List transactions with filters and pagination
+ */
+
+export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTransactionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Create a transaction
+ */
+export const createTransaction = (
+    createTransactionDto: BodyType<CreateTransactionDto>,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransactionDto>(
+      {url: `/transactions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createTransactionDto, signal
+    },
+      );
+    }
+
+
+
+
+export const getCreateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext> => {
+
+const mutationKey = ['createTransaction'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransaction>>, {data: BodyType<CreateTransactionDto>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTransaction(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof createTransaction>>>
+    export type CreateTransactionMutationBody = BodyType<CreateTransactionDto>
+    export type CreateTransactionMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Create a transaction
+ */
+export const useCreateTransaction = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createTransaction>>,
+        TError,
+        {data: BodyType<CreateTransactionDto>},
+        TContext
+      > => {
+      return useMutation(getCreateTransactionMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Read one transaction
  */
 export const getTransaction = (
@@ -270,68 +427,4 @@ export const useDeleteTransaction = <TError = ErrorType<ApiErrorDto>,
         TContext
       > => {
       return useMutation(getDeleteTransactionMutationOptions(options), queryClient);
-    }
-    /**
- * @summary Create a transaction
- */
-export const createTransaction = (
-    createTransactionDto: BodyType<CreateTransactionDto>,
- signal?: AbortSignal
-) => {
-
-
-      return customInstance<TransactionDto>(
-      {url: `/transactions`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createTransactionDto, signal
-    },
-      );
-    }
-
-
-
-
-export const getCreateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext> => {
-
-const mutationKey = ['createTransaction'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransaction>>, {data: BodyType<CreateTransactionDto>}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createTransaction(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof createTransaction>>>
-    export type CreateTransactionMutationBody = BodyType<CreateTransactionDto>
-    export type CreateTransactionMutationError = ErrorType<ApiErrorDto>
-
-    /**
- * @summary Create a transaction
- */
-export const useCreateTransaction = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createTransaction>>,
-        TError,
-        {data: BodyType<CreateTransactionDto>},
-        TContext
-      > => {
-      return useMutation(getCreateTransactionMutationOptions(options), queryClient);
     }

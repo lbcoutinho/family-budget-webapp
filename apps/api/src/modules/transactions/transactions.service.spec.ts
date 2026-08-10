@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { TransactionStatus, TransactionSource, type Transaction } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
 
+import { type ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
 import { TransactionsService } from './transactions.service';
 import { type ResolvedTransactionRefs, type TransactionValidator } from './validators/transaction-validator';
 
@@ -58,11 +59,22 @@ const row = (overrides: Partial<Transaction> = {}): Transaction => ({
 const doubles = (): {
   prisma: PrismaService;
   validator: TransactionValidator;
-  transaction: Record<'findUnique' | 'create' | 'update' | 'delete' | 'groupBy', jest.Mock>;
+  transaction: Record<'findUnique' | 'findMany' | 'create' | 'update' | 'delete' | 'groupBy', jest.Mock>;
   validate: jest.Mock;
 } => {
-  const transaction = { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), groupBy: jest.fn().mockResolvedValue([]) };
-  const $transaction = jest.fn((fn: (tx: { transaction: typeof transaction }) => unknown) => fn({ transaction }));
+  const transaction = {
+    findUnique: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    groupBy: jest.fn().mockResolvedValue([]),
+  };
+  // `$transaction` doubles for both call shapes the service uses: a callback (create/update/remove)
+  // and an array of already-issued promises (findAll's `[findMany, groupBy]`).
+  const $transaction = jest.fn((arg: ((tx: { transaction: typeof transaction }) => unknown) | unknown[]) =>
+    Array.isArray(arg) ? Promise.all(arg) : arg({ transaction }),
+  );
   const validate = jest.fn().mockResolvedValue(NO_REFS);
 
   return {
@@ -159,6 +171,124 @@ describe('TransactionsService', () => {
       await expect(service.create(userId, dto)).rejects.toMatchObject({
         response: { code: 'CASHBOX_INSUFFICIENT_FUNDS', message: expect.stringContaining('0 cents') as unknown },
       });
+    });
+  });
+
+  describe('findAll', () => {
+    const listQuery = (overrides: Partial<ListTransactionsQueryDto> = {}): ListTransactionsQueryDto => ({ limit: 50, ...overrides });
+
+    it('defaults status to CONFIRMED when the query omits it, and passes the explicit value when it does not', async () => {
+      await service.findAll(userId, listQuery());
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ status: 'CONFIRMED' }) as unknown }),
+      );
+
+      await service.findAll(userId, listQuery({ status: TransactionStatus.DRAFT }));
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ status: 'DRAFT' }) as unknown }));
+    });
+
+    it('normalizes referenceMonth to the 1st in the where clause', async () => {
+      await service.findAll(userId, listQuery({ referenceMonth: new Date('2026-03-17') }));
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ referenceMonth: new Date('2026-03-01') }) as unknown }),
+      );
+    });
+
+    it('maps dateFrom/dateTo to date: { gte, lte }, only the supplied bound present', async () => {
+      await service.findAll(userId, listQuery({ dateFrom: new Date('2026-03-01') }));
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ date: { gte: new Date('2026-03-01') } }) as unknown }),
+      );
+
+      await service.findAll(userId, listQuery({ dateTo: new Date('2026-03-31') }));
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ date: { lte: new Date('2026-03-31') } }) as unknown }),
+      );
+    });
+
+    it('maps type to type: { in: [...] }', async () => {
+      await service.findAll(userId, listQuery({ type: ['INCOME', 'EXPENSE'] }));
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ type: { in: ['INCOME', 'EXPENSE'] } }) as unknown }),
+      );
+    });
+
+    it('maps search to an OR over description/notes, case-insensitive', async () => {
+      await service.findAll(userId, listQuery({ search: 'coffee' }));
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: [{ description: { contains: 'coffee', mode: 'insensitive' } }, { notes: { contains: 'coffee', mode: 'insensitive' } }],
+          }) as unknown,
+        }),
+      );
+    });
+
+    it('orders by date desc, createdAt desc, id desc, and requests limit + 1 rows', async () => {
+      await service.findAll(userId, listQuery({ limit: 20 }));
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }], take: 21 }),
+      );
+    });
+
+    it('passes cursor/skip only when a cursor is supplied', async () => {
+      await service.findAll(userId, listQuery({ cursor: transactionId }));
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(expect.objectContaining({ cursor: { id: transactionId }, skip: 1 }));
+
+      await service.findAll(userId, listQuery());
+      expect(doubled.transaction.findMany).toHaveBeenLastCalledWith(expect.not.objectContaining({ cursor: expect.anything() as unknown }));
+    });
+
+    it('returns exactly limit items and the last item id as nextCursor when the extra row comes back', async () => {
+      doubled.transaction.findMany.mockResolvedValue([row({ id: 'a' }), row({ id: 'b' }), row({ id: 'c' })]);
+
+      const result = await service.findAll(userId, listQuery({ limit: 2 }));
+
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).toBe('b');
+    });
+
+    it('returns nextCursor: null when exactly limit rows come back', async () => {
+      doubled.transaction.findMany.mockResolvedValue([row({ id: 'a' }), row({ id: 'b' })]);
+
+      const result = await service.findAll(userId, listQuery({ limit: 2 }));
+
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it('derives total/incomeTotal/expenseTotal from the groupBy result, defaulting an absent type to 0', async () => {
+      doubled.transaction.groupBy.mockResolvedValue([
+        { type: 'INCOME', _sum: { amount: 5_000 }, _count: { _all: 2 } },
+        { type: 'EXPENSE', _sum: { amount: 1_500 }, _count: { _all: 3 } },
+      ]);
+
+      const result = await service.findAll(userId, listQuery());
+
+      expect(result.total).toBe(5);
+      expect(result.incomeTotal).toBe(5_000);
+      expect(result.expenseTotal).toBe(1_500);
+    });
+
+    it('defaults incomeTotal/expenseTotal to 0 when a type is absent from the groupBy result', async () => {
+      doubled.transaction.groupBy.mockResolvedValue([{ type: 'TRANSFER', _sum: { amount: 9_000 }, _count: { _all: 1 } }]);
+
+      const result = await service.findAll(userId, listQuery());
+
+      expect(result.total).toBe(1);
+      expect(result.incomeTotal).toBe(0);
+      expect(result.expenseTotal).toBe(0);
+    });
+
+    it('scopes both findMany and groupBy to userId', async () => {
+      await service.findAll(userId, listQuery());
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId }) as unknown }));
+      expect(doubled.transaction.groupBy).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId }) as unknown }));
     });
   });
 

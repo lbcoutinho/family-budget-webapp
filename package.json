@@ -20,6 +20,7 @@
     "typecheck": "pnpm -r typecheck",
     "gen": "pnpm --filter api openapi:export && pnpm --filter web gen:client",
     "go": "bash scripts/go.sh",
+    "verify": "bash scripts/verify.sh",
     "prepare": "husky"
   },
   "devDependencies": {
