@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 
 import { type Account } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
+import { type BalancesService } from '../transactions/balances.service';
 
 import { AccountsService } from './accounts.service';
 
@@ -37,12 +38,14 @@ const prismaDouble = (): { prisma: PrismaService; account: Record<'findMany' | '
 describe('AccountsService', () => {
   let service: AccountsService;
   let account: ReturnType<typeof prismaDouble>['account'];
+  let sumByAccount: jest.Mock;
 
   beforeEach(() => {
     const double = prismaDouble();
 
     account = double.account;
-    service = new AccountsService(double.prisma);
+    sumByAccount = jest.fn().mockResolvedValue(new Map<string, number>());
+    service = new AccountsService(double.prisma, { sumByAccount } as unknown as BalancesService);
   });
 
   describe('findAll', () => {
@@ -91,6 +94,29 @@ describe('AccountsService', () => {
       await service.findAll(userId, { includeInactive: false, includeId: undefined });
 
       expect(account.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId, OR: [{ isActive: true }] } }));
+    });
+  });
+
+  describe('findBalances', () => {
+    it('adds initialBalance to the aggregated sum, including inactive accounts and accounts with no transactions', async () => {
+      const untouchedId = '44444444-4444-4444-4444-444444444444';
+      account.findMany.mockResolvedValue([row(), row({ id: untouchedId, isActive: false, initialBalance: 0 })]);
+      sumByAccount.mockResolvedValue(new Map([[accountId, 32_400]]));
+
+      await expect(service.findBalances(userId)).resolves.toEqual([
+        { accountId, name: 'Millennium', isActive: true, initialBalance: 150_000, balance: 182_400 },
+        { accountId: untouchedId, name: 'Millennium', isActive: false, initialBalance: 0, balance: 0 },
+      ]);
+      expect(account.findMany).toHaveBeenCalledWith({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] });
+    });
+
+    it('passes asOf through to the aggregation', async () => {
+      const asOf = new Date('2026-08-31T00:00:00.000Z');
+      account.findMany.mockResolvedValue([]);
+
+      await service.findBalances(userId, asOf);
+
+      expect(sumByAccount).toHaveBeenCalledWith(userId, asOf);
     });
   });
 

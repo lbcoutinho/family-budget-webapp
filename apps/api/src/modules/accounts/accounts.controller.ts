@@ -13,10 +13,12 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiErrorDto } from '../../common/api-error';
+import { AsOfQueryDto } from '../../common/dto/as-of-query.dto';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { AccountsService } from './accounts.service';
+import { AccountBalanceDto } from './dto/account-balance.dto';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { ListAccountsQueryDto } from './dto/list-accounts-query.dto';
@@ -46,6 +48,16 @@ export class AccountsController {
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListAccountsQueryDto): Promise<AccountDto[]> {
     return this.accounts.findAll(user.id, query);
+  }
+
+  // Declared before `:id` — Nest matches routes in declaration order, and `ParseUUIDPipe` on the
+  // route below would otherwise answer 400 for this path.
+  @ApiOperation({ operationId: 'listAccountBalances', summary: "The user's account balances" })
+  @ApiQuery({ name: 'asOf', type: String, format: 'date', required: false, description: 'Balance as of the end of this day (YYYY-MM-DD).' })
+  @ApiOkResponse({ type: [AccountBalanceDto], description: 'Every account, active or not, ordered by sort order and then name.' })
+  @Get('balances')
+  findBalances(@CurrentUser() user: AuthenticatedUser, @Query() query: AsOfQueryDto): Promise<AccountBalanceDto[]> {
+    return this.accounts.findBalances(user.id, query.asOf);
   }
 
   @ApiOperation({ operationId: 'getAccount', summary: 'Read one account' })
