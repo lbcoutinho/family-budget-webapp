@@ -18,7 +18,7 @@ deviate, **stop and flag** rather than improvise.
 
 ## Commands
 
--- TODO create bullet list and improve description - create commands per area of project
+-- TODO Leandro: create bullet list and improve description - create commands per area of project
 Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI
 export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test). **`prisma migrate reset` is user-run:**
 the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim consent in `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`.
