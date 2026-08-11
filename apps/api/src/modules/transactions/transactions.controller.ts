@@ -9,10 +9,12 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
 import { ApiErrorDto } from '../../common/api-error';
+import { TransactionStatus, TransactionType } from '../../generated/prisma/client';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -29,6 +31,10 @@ import { TransactionsService } from './transactions.service';
  *
  * The 404 documented on every by-id route covers both "no such transaction" and "not yours" —
  * telling them apart would confirm the id exists to whoever asked.
+ *
+ * The list route's filters are declared with `@ApiQuery` even though `ListTransactionsQueryDto`
+ * already says so: the swagger CLI plugin is not enabled, so a parameter Nest cannot see ends up
+ * missing from `openapi.json` — and therefore from the generated client's signature, silently.
  */
 @ApiTags('transactions')
 @ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such transaction — or it belongs to another user.' })
@@ -37,6 +43,43 @@ export class TransactionsController {
   constructor(private readonly transactions: TransactionsService) {}
 
   @ApiOperation({ operationId: 'listTransactions', summary: 'List transactions with filters and pagination' })
+  @ApiQuery({ name: 'referenceMonth', type: String, format: 'date', required: false, description: 'Normalized to the 1st before matching.' })
+  @ApiQuery({ name: 'dateFrom', type: String, format: 'date', required: false, description: 'Inclusive lower bound on `date`.' })
+  @ApiQuery({ name: 'dateTo', type: String, format: 'date', required: false, description: 'Inclusive upper bound on `date`.' })
+  @ApiQuery({ name: 'type', enum: TransactionType, enumName: 'TransactionType', isArray: true, required: false })
+  @ApiQuery({
+    name: 'status',
+    enum: TransactionStatus,
+    enumName: 'TransactionStatus',
+    required: false,
+    description: 'Omitted ⇒ `CONFIRMED` only (ADR-0012) — balances and reports never see a `DRAFT`.',
+  })
+  @ApiQuery({
+    name: 'accountId',
+    type: String,
+    format: 'uuid',
+    required: false,
+    description: 'Matches the source `accountId` only — a TRANSFER shows up under it.',
+  })
+  @ApiQuery({ name: 'categoryId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'subcategoryId', type: String, format: 'uuid', required: false })
+  @ApiQuery({
+    name: 'cashboxId',
+    type: String,
+    format: 'uuid',
+    required: false,
+    description: 'Matches the live foreign key only — a row whose cashbox was since deleted is excluded (ADR-0019).',
+  })
+  @ApiQuery({ name: 'isCreditCard', type: Boolean, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false, description: 'Case-insensitive, matches `description` or `notes`.' })
+  @ApiQuery({
+    name: 'cursor',
+    type: String,
+    format: 'uuid',
+    required: false,
+    description: 'Opaque to the client — the id of the last row of the previous page.',
+  })
+  @ApiQuery({ name: 'limit', type: Number, required: false, schema: { default: 50, minimum: 1, maximum: 200 } })
   @ApiOkResponse({ type: TransactionListDto })
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListTransactionsQueryDto): Promise<TransactionListDto> {

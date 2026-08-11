@@ -189,6 +189,12 @@
     "new": "New cashbox",
     "showInactive": "Show inactive",
     "inactiveBadge": "inactive",
+    "summary": {
+      "activeCount": "Active cashboxes",
+      "depositedIn": "Deposited in {{month}}",
+      "withdrawnIn": "Withdrawn in {{month}}",
+      "totalSaved": "Total saved"
+    },
     "actions": {
       "edit": "Edit",
       "deactivate": "Deactivate",

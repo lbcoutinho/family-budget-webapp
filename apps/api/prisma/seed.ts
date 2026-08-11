@@ -108,6 +108,7 @@ export async function seedUsers(prisma: PrismaClient, credentials: SeedCredentia
   await seedAccounts(prisma, demo.id);
   await seedCategories(prisma, demo.id);
   await seedCashboxes(prisma, demo.id);
+  await seedTransactions(prisma, demo.id);
 
   return { owner, demo };
 }
@@ -180,8 +181,10 @@ const SAMPLE_CATEGORIES = [
   { name: 'Saúde', kind: CategoryKind.EXPENSE, color: '#a32c3d', children: [] },
   { name: 'Lazer', kind: CategoryKind.EXPENSE, color: '#7a45b5', children: ['Espetáculos'] },
   // Left without a colour on purpose: it is a normal state, and the income side of the reports
-  // does not draw a category donut.
-  { name: 'Salário', kind: CategoryKind.INCOME, color: null, children: [] },
+  // does not draw a category donut. `Outros` here (rather than an empty list) is what
+  // `POST /categories` gives every new root automatically — hand-added since this script writes
+  // categories directly and skips that service, and an INCOME transaction needs a subcategory.
+  { name: 'Salário', kind: CategoryKind.INCOME, color: null, children: ['Outros'] },
 ] as const;
 
 /**
@@ -228,6 +231,119 @@ export async function seedCategories(prisma: PrismaClient, userId: string): Prom
       // A subcategory inherits its parent's kind: nothing under "Alimentação" is income.
       await findOrCreateCategory(prisma, { userId, parentId, name, kind: category.kind, sortOrder: childIndex + 1 });
     }
+  }
+}
+
+/**
+ * Sample transactions the demo user starts with (M4). Amounts are in cents. `account`/`category`/
+ * `subcategory`/`cashbox` are the sample rows' names, resolved to ids at seed time rather than
+ * hard-coded — the ids above are only stable within a single run.
+ *
+ * The two cashboxes tell different stories on purpose: `Férias 2027` only ever receives money, so
+ * it ends the seed with a balance; `Obras` receives and then gives back the same total, so it ends
+ * at zero — the two states M4-T10's summary cards need to be exercised against.
+ */
+const SAMPLE_TRANSACTIONS = [
+  { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 320_000, date: '2026-08-01', description: 'Salário' },
+  { type: 'INCOME', account: 'Revolut', category: 'Salário', subcategory: 'Outros', amount: 45_000, date: '2026-08-05', description: 'Trabalho extra' },
+
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Renda', amount: 90_000, date: '2026-08-01', description: 'Renda de agosto' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Água, luz e gás', amount: 8_500, date: '2026-08-03', description: 'Fatura EDP' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Transporte', subcategory: 'Combustível', amount: 6_000, date: '2026-08-04', description: 'Gasolina' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Transporte', subcategory: 'Seguro', amount: 4_200, date: '2026-08-05', description: 'Seguro do carro' },
+  {
+    type: 'EXPENSE',
+    account: 'Revolut',
+    category: 'Transporte',
+    subcategory: 'Estacionamento',
+    amount: 1_500,
+    date: '2026-08-06',
+    description: 'Parque do centro',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 12_000,
+    date: '2026-08-02',
+    description: 'Compras da semana',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 9_800,
+    date: '2026-08-09',
+    description: 'Compras da semana',
+  },
+  { type: 'EXPENSE', account: 'Revolut', category: 'Alimentação', subcategory: 'Restaurante', amount: 3_500, date: '2026-08-07', description: 'Jantar fora' },
+  { type: 'EXPENSE', account: 'Revolut', category: 'Lazer', subcategory: 'Espetáculos', amount: 5_000, date: '2026-08-08', description: 'Cinema' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Lazer', subcategory: 'Espetáculos', amount: 2_200, date: '2026-08-10', description: 'Concerto' },
+
+  { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Férias 2027', amount: 40_000, date: '2026-08-01', description: 'Poupança de agosto' },
+  { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Férias 2027', amount: 25_000, date: '2026-08-08', description: 'Bónus de férias' },
+  { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-02', description: 'Depósito para a obra' },
+  { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-09', description: 'Reforço da obra' },
+  { type: 'CASHBOX_OUT', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-05', description: 'Pagamento ao empreiteiro' },
+  { type: 'CASHBOX_OUT', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-11', description: 'Compra de material' },
+] as const;
+
+/**
+ * Give a user the sample transactions. Skipped entirely once the user has any transaction — unlike
+ * accounts/categories/cashboxes there is no natural per-row unique key to upsert on, so re-running
+ * against a demo database that already has activity would just pile up duplicates.
+ */
+export async function seedTransactions(prisma: PrismaClient, userId: string): Promise<void> {
+  const existing = await prisma.transaction.findFirst({ where: { userId }, select: { id: true } });
+
+  if (existing !== null) {
+    return;
+  }
+
+  const [accounts, cashboxes, categories] = await Promise.all([
+    prisma.account.findMany({ where: { userId } }),
+    prisma.cashbox.findMany({ where: { userId } }),
+    prisma.category.findMany({ where: { userId } }),
+  ]);
+
+  const accountId = (name: string): string => {
+    const account = accounts.find((row) => row.name === name);
+    if (account === undefined) throw new Error(`Seed transactions: unknown account "${name}"`);
+    return account.id;
+  };
+  const cashboxId = (name: string): string => {
+    const cashbox = cashboxes.find((row) => row.name === name);
+    if (cashbox === undefined) throw new Error(`Seed transactions: unknown cashbox "${name}"`);
+    return cashbox.id;
+  };
+  const categoryId = (name: string, parentId: string | null): string => {
+    const category = categories.find((row) => row.name === name && row.parentId === parentId);
+    if (category === undefined) throw new Error(`Seed transactions: unknown category "${name}"`);
+    return category.id;
+  };
+
+  for (const transaction of SAMPLE_TRANSACTIONS) {
+    const date = new Date(`${transaction.date}T00:00:00.000Z`);
+    const referenceMonth = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
+    const category = 'category' in transaction ? categoryId(transaction.category, null) : null;
+
+    await prisma.transaction.create({
+      data: {
+        userId,
+        type: transaction.type,
+        amount: transaction.amount,
+        date,
+        referenceMonth,
+        description: transaction.description,
+        accountId: accountId(transaction.account),
+        categoryId: category,
+        subcategoryId: 'subcategory' in transaction ? categoryId(transaction.subcategory, category) : null,
+        cashboxId: 'cashbox' in transaction ? cashboxId(transaction.cashbox) : null,
+      },
+    });
   }
 }
 

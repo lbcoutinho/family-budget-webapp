@@ -31,6 +31,7 @@ export * from './listCashboxesParams';
 export * from './listCategoriesParams';
 export * from './listCategoryRefDto';
 export * from './listRelationRefDto';
+export * from './listTransactionsParams';
 export * from './loginDto';
 export * from './sessionDto';
 export * from './transactionDto';

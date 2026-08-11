@@ -44,20 +44,36 @@ deviate, **stop and flag** rather than improvise.
 
 - `docker compose up -d` — Postgres on 5432 (main) + 5433 (test).
 
-## Rules
+## Ticket workflow (follow for every task)
 
+- Don't create issues in Github without explicit ask
+- Never work on the main worktree, unless explicitly asked. Always create separate worktree for any work.
 - **GitHub Issues/Milestones are the source of truth for anything already ticketed** — local files above only cover what isn't ticketed yet.
-- **When implementation reveals new architectural decision, record new ADR in `docs/adr/`** (never edit accepted) and update affected future tickets/issues to match.
-- **A milestone file's task collapses to `Done — see #<N>.`. Once that task has a GitHub issue** — the issue body is authoritative from then on, not the milestone file.
-- **When milestone completed, review all `AGENTS.md` + `README.md` and update**. If anything changed (e.g. once code exists, mark planned commands/layout real; refresh shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to delete the spec — no automated tracker, a manual check each time.
+- **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file — this
+  overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`.
+- Use the `create-issue` skill to open the issue for one ticket at a time.
+- **A milestone file's task collapses to `Done — see #<N>.`** once that task has a GitHub issue — the issue body is authoritative from then on, not the
+  milestone file.
+- **When implementation reveals new architectural decision, record new ADR** in `docs/adr/` (never edit accepted) and **update affected future tickets/issues**
+  to match.
+- **When decision deviates from ticket's original plan, add comment to that Issue** explaining deviation.
+- **Do regular commits** - commit on every step finished when implementing a plan or doing code changes. Always use skill `create-commit` for commits.
+- Never execute lint, format, typecheck, unit tests, e2e test, API client regenerate or any command that user can quickly run manually after coding is done.
+  Commit the changes and print the commands the user needs to run in order.
+- **When opening a PR, always use the `create-pr` skill** — never the PR format from the Superpowers plugin, even if another Superpowers workflow is triggered
+  beforehand.
+- **ADRs and plans may sacrifice prose grammar for token economy**
+- **When milestone completed, review all `AGENTS.md` + `README.md` and update**. If anything changed (e.g. once code exists, mark planned commands/layout real;
+  refresh shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to
+  delete the spec — no automated tracker, a manual check each time.
 
 ## Impeccable (design tooling)
 
-[Impeccable](https://github.com/pbakaus/impeccable) is vendored into `.claude/` — the `impeccable` skill (`/impeccable audit`, `critique`, `polish`,
+[Impeccable](https://github.com/pbakaus/impeccable) v3.5.0 is vendored into `.claude/` — the `impeccable` skill (`/impeccable audit`, `critique`, `polish`,
 `animate`, … as sub-commands), four `impeccable-*` agents, and a design hook wired into `.claude/settings.json` that runs its 59-rule detector after `Edit`/
 `Write`/`MultiEdit` on UI files and does a deeper pass on `Stop`. Apache 2.0; `npx impeccable detect <path>` runs the same detector standalone.
 
-- It advises, it does not decide. The prototype gate still wins: a detector finding never authorizes a screen without an approved prototype, and never
+- **It advises, it does not decide.** The prototype gate above still wins: a detector finding never authorizes a screen without an approved prototype, and never
   overrides a decision already settled in `prototypes/MEMORY.md` or `00-design-system.html`.
 
 ## Domain rules (get these wrong and reports break)
@@ -74,6 +90,16 @@ deviate, **stop and flag** rather than improvise.
 - Env vars validated at boot (fail-fast): `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_TOKEN_SECRET`,
   `REFRESH_TOKEN_EXPIRES_IN`, `CORS_ORIGIN`.
 
+## Agentic workflow
+
+- Use Opus model exclusively for thinking tasks like architecture analysis and decisions, writings ADRs and plans. If you're in a session with Opus selected and
+  need to write code or update docs then start a subagent with Haiku medium to do the work.
+- When implementing plans, use a subagent for each step. Analyze the plan and create a dependency tree to understand what can be done in parallel and what's
+  sequential. Use the main session to coordinate the subagents.
+
 ## Conventions
 
+- **Branch-per-implementation** — never commit directly to `main`. Commit + push to feature branch, open pull request to `main`.
+- **Never merge PRs** — user reviews and merges.
+- **English (en-US) everywhere** — code, comments, commit messages, identifiers.
 - Prettier differs from defaults: `singleQuote`, `trailingComma: "all"`, `printWidth: 160`.

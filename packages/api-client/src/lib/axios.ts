@@ -12,7 +12,10 @@ import { installAuthInterceptors } from './auth-interceptors';
 //
 // This file is hand-written and intentionally lives inside the generated package so the client is
 // self-contained: `apps/web` depends on `@family-budget/api-client`, never the reverse.
-export const axiosInstance = createAxios({ baseURL: '/api', withCredentials: true });
+// `paramsSerializer.indexes: null` serializes array params as repeated `key=a&key=b` instead of
+// axios's default `key[]=a&key[]=b` — Express's default query parser doesn't understand bracket
+// notation and would otherwise leave the literal key `"type[]"` unparsed.
+export const axiosInstance = createAxios({ baseURL: '/api', withCredentials: true, paramsSerializer: { indexes: null } });
 
 // Installed at module load rather than exposed as an `initAuth()` for the app to call: every
 // request goes through this instance, so authentication is not something a caller can forget.
