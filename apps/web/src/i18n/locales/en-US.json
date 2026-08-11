@@ -61,7 +61,8 @@
     "CATEGORY_TREE_TOO_DEEP": "A subcategory cannot hold subcategories: the tree is only two levels deep.",
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "A subcategory inherits the kind of its main category.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Only a main category carries a colour; a subcategory inherits its own.",
-    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead."
+    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead.",
+    "CASHBOX_NOT_EMPTY": "The cashbox still has a balance. Deleting is only allowed with a zero balance — deactivate it instead, or withdraw the balance and try again."
   },
   "accounts": {
     "new": "New account",

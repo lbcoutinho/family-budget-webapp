@@ -6,6 +6,7 @@ import request from 'supertest';
 
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
+import { type Prisma, type TransactionType } from '../../src/generated/prisma/client';
 import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
 import { type CashboxDto } from '../../src/modules/cashboxes/dto/cashbox.dto';
@@ -19,9 +20,9 @@ import { PrismaService } from '../../src/prisma/prisma.service';
  * Two accounts sign in, because half of what this endpoint has to get right is that neither can see
  * the other: the isolation claims are only worth anything against a second real token.
  *
- * The 409 on a blocked delete is not covered here: nothing references a `Cashbox` until the
- * `Transaction` model lands in M4. The P2003 → 409 mapping is unit-tested in
- * `prisma-exception.filter.spec.ts`.
+ * The zero-balance delete guard (M4-T09, ADR-0019) is covered here with transactions seeded through
+ * Prisma directly, as `balances.e2e-spec.ts` does — the point is the guard, not the create-side
+ * validation.
  */
 describe('Cashboxes API (e2e)', () => {
   let app: INestApplication;
@@ -30,6 +31,8 @@ describe('Cashboxes API (e2e)', () => {
 
   let token: string;
   let otherToken: string;
+  let userId: string;
+  let accountId: string;
 
   const password = 'correct horse battery staple';
   const emails = ['cashboxes.api.e2e@family-budget.test', 'cashboxes.api.e2e.other@family-budget.test'];
@@ -40,9 +43,25 @@ describe('Cashboxes API (e2e)', () => {
   const createCashbox = async (body: Record<string, unknown>, as = token): Promise<CashboxDto> =>
     (await authed('post', '/cashboxes', as).send(body).expect(201)).body as CashboxDto;
 
-  // Cashboxes hold a foreign key onto the user with `onDelete: Restrict`, so they come off first.
+  // Seeded through Prisma directly rather than through the transaction endpoint — the point of the
+  // delete-guard tests below is the balance check, not the create-side validation.
+  const seed = (
+    overrides: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number; cashboxId: string },
+  ): Promise<{
+    id: string;
+  }> =>
+    prisma.transaction.create({
+      data: { userId, accountId, date: new Date('2026-03-15'), referenceMonth: new Date('2026-03-01'), description: 'fixture', ...overrides },
+      select: { id: true },
+    });
+
+  // Transactions hold a foreign key onto the cashbox (`onDelete: SetNull`, but still a reference
+  // Postgres has to resolve first) and cashboxes hold one onto the user with `onDelete: Restrict`,
+  // so transactions come off, then cashboxes.
   const removeFixtures = async (): Promise<void> => {
+    await prisma.transaction.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.cashbox.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
   };
 
   beforeAll(async () => {
@@ -67,11 +86,16 @@ describe('Cashboxes API (e2e)', () => {
 
     token = session!.accessToken;
     otherToken = otherSession!.accessToken;
+    userId = (await prisma.user.findUniqueOrThrow({ where: { email: emails[0]! }, select: { id: true } })).id;
   });
 
   // The database is shared with local development, so the fixtures are removed on both sides of the
-  // suite: a run interrupted halfway never breaks the next one.
-  beforeEach(removeFixtures);
+  // suite: a run interrupted halfway never breaks the next one. The account only the seeded
+  // transactions below need is recreated right after.
+  beforeEach(async () => {
+    await removeFixtures();
+    accountId = (await prisma.account.create({ data: { userId, name: 'Conta', initialBalance: 0 }, select: { id: true } })).id;
+  });
 
   afterAll(async () => {
     await removeFixtures();
@@ -229,11 +253,45 @@ describe('Cashboxes API (e2e)', () => {
     });
   });
 
-  it('deletes a cashbox nothing references', async () => {
-    const created = await createCashbox({ name: 'Carro' });
+  describe('delete', () => {
+    it('deletes a cashbox nothing references', async () => {
+      const created = await createCashbox({ name: 'Carro' });
 
-    await authed('delete', `/cashboxes/${created.id}`).expect(204);
-    await authed('get', `/cashboxes/${created.id}`).expect(404);
+      await authed('delete', `/cashboxes/${created.id}`).expect(204);
+      await authed('get', `/cashboxes/${created.id}`).expect(404);
+    });
+
+    it('deletes a cashbox emptied back to zero, and its transactions survive with cashboxId cleared', async () => {
+      const created = await createCashbox({ name: 'Carro' });
+      const deposit = await seed({ type: 'CASHBOX_IN', amount: 5_000, cashboxId: created.id, cashboxLabel: created.name });
+      const withdrawal = await seed({ type: 'CASHBOX_OUT', amount: 5_000, cashboxId: created.id, cashboxLabel: created.name });
+
+      await authed('delete', `/cashboxes/${created.id}`).expect(204);
+      await authed('get', `/cashboxes/${created.id}`).expect(404);
+
+      for (const { id } of [deposit, withdrawal]) {
+        const row = await prisma.transaction.findUniqueOrThrow({ where: { id } });
+        expect(row.cashboxId).toBeNull();
+        expect(row.cashboxLabel).toBe('Carro');
+      }
+    });
+
+    it('refuses to delete a cashbox that still holds a balance, with 409 CASHBOX_NOT_EMPTY', async () => {
+      const created = await createCashbox({ name: 'Carro' });
+      await seed({ type: 'CASHBOX_IN', amount: 5_000, cashboxId: created.id });
+
+      const body = (await authed('delete', `/cashboxes/${created.id}`).expect(409)).body as { code: string };
+      expect(body.code).toBe('CASHBOX_NOT_EMPTY');
+
+      await authed('get', `/cashboxes/${created.id}`).expect(200);
+    });
+
+    it('ignores a DRAFT transaction when computing the balance', async () => {
+      const created = await createCashbox({ name: 'Carro' });
+      await seed({ type: 'CASHBOX_IN', amount: 5_000, cashboxId: created.id, status: 'DRAFT' });
+
+      await authed('delete', `/cashboxes/${created.id}`).expect(204);
+    });
   });
 
   // Every by-id route, proven one by one rather than for a representative sample: 404 and not 403,

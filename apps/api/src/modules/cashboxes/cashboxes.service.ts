@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import { conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Cashbox, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
+import { cashboxBalances } from './cashbox-balance';
 import { CashboxBalanceDto } from './dto/cashbox-balance.dto';
 import { CashboxDto } from './dto/cashbox.dto';
 import { CreateCashboxDto } from './dto/create-cashbox.dto';
@@ -16,9 +18,11 @@ import { UpdateCashboxDto } from './dto/update-cashbox.dto';
  * query is scoped by the `userId` off the token, a row that belongs to someone else is a 404 rather
  * than a 403 (`assertOwnership`), and nothing here decides HTTP — the controller does that.
  *
- * Two Prisma errors are deliberately left to `PrismaExceptionFilter` instead of being pre-empted
- * with a read: a duplicate name (P2002 → 409) and a delete blocked by a foreign key (P2003 → 409).
- * Checking first would be a race, and the database is the only place the answer is authoritative.
+ * A duplicate name (P2002 → 409) is deliberately left to `PrismaExceptionFilter` instead of being
+ * pre-empted with a read — checking first would be a race, and the database is the only place the
+ * answer is authoritative. Deleting no longer relies on a foreign key: `Transaction.cashboxId` /
+ * `destinationCashboxId` are `onDelete: SetNull` (M4-T01), so the zero-balance guard in `remove` is
+ * the only thing standing between a funded cashbox and the drain (ADR-0019).
  */
 @Injectable()
 export class CashboxesService {
@@ -82,13 +86,27 @@ export class CashboxesService {
   }
 
   /**
-   * A real delete, not a soft one — deactivation is the soft path and it already exists. Once
-   * transactions reference a cashbox (M4), the foreign key refuses and the filter answers 409, so
-   * the only cashboxes that can actually disappear are the ones nothing depends on.
+   * A real delete, not a soft one — deactivation is the soft path and it already exists. ADR-0019
+   * narrows ADR-0015 for cashboxes: a zero balance is enough to delete even with transactions
+   * pointing at it (`onDelete: SetNull` nulls `cashboxId`, and `cashboxLabel` keeps the history
+   * readable). The balance is recomputed inside the transaction to close the race against a
+   * concurrent write.
    */
   async remove(userId: string, id: string): Promise<void> {
     await this.load(userId, id);
-    await this.prisma.cashbox.delete({ where: { id } });
+
+    await this.prisma.$transaction(
+      async (tx) => {
+        const balance = (await cashboxBalances(tx, userId, [id])).get(id) ?? 0;
+
+        if (balance !== 0) {
+          throw conflict('CASHBOX_NOT_EMPTY', `Cashbox still holds ${balance} cents — empty it with a CASHBOX_OUT first.`);
+        }
+
+        await tx.cashbox.delete({ where: { id } });
+      },
+      { isolationLevel: 'Serializable' },
+    );
   }
 
   /** Read a row and prove it is the caller's, in one step. Every mutation starts here. */

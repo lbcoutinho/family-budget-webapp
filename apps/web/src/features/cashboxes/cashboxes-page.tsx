@@ -94,7 +94,7 @@ export function CashboxesPage() {
         setDeleteBlocked(false);
       },
       onError: (error) => {
-        if (apiErrorCode(error) === 'RECORD_IN_USE') {
+        if (apiErrorCode(error) === 'CASHBOX_NOT_EMPTY') {
           setDeleteBlocked(true);
 
           return;

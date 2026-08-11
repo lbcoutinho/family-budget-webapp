@@ -23,8 +23,16 @@ const row = (overrides: Partial<Cashbox> = {}): Cashbox => ({
   ...overrides,
 });
 
-/** Only the five delegate methods the service touches. */
-const prismaDouble = (): { prisma: PrismaService; cashbox: Record<'findMany' | 'findUnique' | 'create' | 'update' | 'delete', jest.Mock> } => {
+/**
+ * `$transaction` runs its callback against the same `cashbox`/`transaction` doubles, so `remove`'s
+ * zero-balance guard (which reads `transaction.groupBy` and writes `cashbox.delete` inside the
+ * callback) can be asserted on exactly like the calls it made outside one.
+ */
+const prismaDouble = (): {
+  prisma: PrismaService;
+  cashbox: Record<'findMany' | 'findUnique' | 'create' | 'update' | 'delete', jest.Mock>;
+  groupBy: jest.Mock;
+} => {
   const cashbox = {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -32,19 +40,25 @@ const prismaDouble = (): { prisma: PrismaService; cashbox: Record<'findMany' | '
     update: jest.fn(),
     delete: jest.fn(),
   };
+  const groupBy = jest.fn().mockResolvedValue([]);
+  const $transaction = jest.fn((fn: (tx: { cashbox: typeof cashbox; transaction: { groupBy: typeof groupBy } }) => unknown) =>
+    fn({ cashbox, transaction: { groupBy } }),
+  );
 
-  return { prisma: { cashbox } as unknown as PrismaService, cashbox };
+  return { prisma: { cashbox, $transaction } as unknown as PrismaService, cashbox, groupBy };
 };
 
 describe('CashboxesService', () => {
   let service: CashboxesService;
   let cashbox: ReturnType<typeof prismaDouble>['cashbox'];
+  let groupBy: jest.Mock;
   let sumByCashbox: jest.Mock;
 
   beforeEach(() => {
     const double = prismaDouble();
 
     cashbox = double.cashbox;
+    groupBy = double.groupBy;
     sumByCashbox = jest.fn().mockResolvedValue(new Map<string, number>());
     service = new CashboxesService(double.prisma, { sumByCashbox } as unknown as BalancesService);
   });
@@ -176,9 +190,10 @@ describe('CashboxesService', () => {
     expect(cashbox.update).toHaveBeenCalledWith({ where: { id: cashboxId }, data: { isActive } });
   });
 
-  it('deletes for real rather than soft-deleting', async () => {
+  it('deletes for real rather than soft-deleting, once the balance is confirmed zero', async () => {
     cashbox.findUnique.mockResolvedValue(row());
     cashbox.delete.mockResolvedValue(row());
+    groupBy.mockResolvedValue([]);
 
     await service.remove(userId, cashboxId);
 
@@ -187,14 +202,15 @@ describe('CashboxesService', () => {
     expect(cashbox.update).not.toHaveBeenCalled();
   });
 
-  // The database is the authority on "still referenced", so the service does not pre-check —
-  // it lets P2003 out for `PrismaExceptionFilter` to turn into the 409.
-  it('lets the foreign-key error from a blocked delete propagate untouched', async () => {
-    const blocked = Object.assign(new Error('foreign key constraint'), { code: 'P2003' });
-
+  // ADR-0019: a non-zero balance blocks the delete outright — the guard, not the foreign key
+  // (which no longer fires; `onDelete: SetNull` since M4-T01), is what stands in the way now.
+  it('refuses to delete a cashbox that still holds a balance', async () => {
     cashbox.findUnique.mockResolvedValue(row());
-    cashbox.delete.mockRejectedValue(blocked);
+    groupBy.mockResolvedValue([{ type: 'CASHBOX_IN', cashboxId, destinationCashboxId: null, _sum: { amount: 5_000 } }]);
 
-    await expect(service.remove(userId, cashboxId)).rejects.toBe(blocked);
+    await expect(service.remove(userId, cashboxId)).rejects.toMatchObject({
+      response: { code: 'CASHBOX_NOT_EMPTY' },
+    });
+    expect(cashbox.delete).not.toHaveBeenCalled();
   });
 });
