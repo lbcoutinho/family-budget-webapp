@@ -15,26 +15,18 @@ React 19 application using:
 
 Organize code by feature, not by file type.
 
-Prefer:
-
-src/
-features/
-accounts/
-categories/
-cashboxes/
-
-over:
-
-src/
-components/
-hooks/
-services/
+Prefer:src/features/accounts/categories/cashboxes/
+over: src/components/hooks/services/
 
 when code belongs to a specific domain feature.
 
-- Reusable components belong in `src/components`.
-- UI strings go through i18n keys (`apps/web/src/i18n/`, ADR-0018): pt-BR is the default locale and the source of truth for wording, en-US is kept at parity, `eslint-plugin-i18next` enforces it.
-- TODO Leandro: complete extra details
+`src/` layout, non-obvious folders only:
+
+- `app/` — app shell: router (`router.tsx`), providers (`providers.tsx`), `layout/` (nav, page chrome).
+- `components/ui/` — shadcn/ui primitives; `components/` root — shared components built on top of them (`page-header`, `confirm-dialog`, `empty-state`, …).
+- `lib/` — cross-feature utilities: `money.ts` (cents formatting), `date.ts`, `api-error.ts` (API error-code mapping), `utils.ts` (`cn` helper).
+- `i18n/` — i18next setup + `locales/` (pt-BR, en-US). pt-BR is the default locale and the source of truth for wording, en-US is kept at parity
+- `test/` — Vitest setup and MSW server (`setup.ts`, `server.ts`), not feature tests (those live next to their code under `features/`).
 
 ## API access
 

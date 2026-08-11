@@ -18,17 +18,38 @@ deviate, **stop and flag** rather than improvise.
 
 ## Commands
 
--- TODO Leandro: create bullet list and improve description - create commands per area of project
-Commands: `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint` / `pnpm format` / `pnpm -r typecheck`. Non-obvious: `pnpm gen` regenerates API client (OpenAPI
-export → Orval); CI fails if generated client stale. `docker compose up -d` runs Postgres on 5432 (main) + 5433 (test). **`prisma migrate reset` is user-run:**
-the Prisma 7 CLI detects an AI agent and refuses without the user's verbatim consent in `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION`.
+**Repo-wide** (run from root, cover both apps)
+
+- `pnpm dev` / `pnpm build` / `pnpm test`
+- `pnpm lint` / `pnpm lint:fix` / `pnpm format` / `pnpm format:check`
+- `pnpm -r typecheck`
+- `pnpm gen` — regenerates `@family-budget/api-client` (OpenAPI export → Orval)
+- `pnpm verify backend` / `pnpm verify frontend` — end-of-task checks
+- `pnpm go` — quick start dev app.
+
+**API** (`api:*`, proxies to `apps/api`)
+
+- `pnpm api:dev` / `api:build` / `api:start` / `api:typecheck` / `api:test` / `api:test:watch` / `api:test:e2e`.
+- `pnpm api:prisma:generate` — regenerate Prisma client into `src/generated/prisma`.
+- `pnpm api:db:migrate` / `api:db:seed` / `api:db:studio` — Prisma migrate deploy, seed script, Prisma Studio.
+- `pnpm api:db:reset` — not the same as `prisma migrate reset`; still **user-run**.
+- `pnpm api:openapi:export` — exports the OpenAPI contract used by `pnpm gen`.
+
+**Web** (`web:*`, proxies to `apps/web`)
+
+- `pnpm web:dev` / `web:build` / `web:preview` / `web:typecheck` / `web:test` / `web:test:watch`.
+- `pnpm web:gen:client` — Orval step of `pnpm gen`; run `pnpm gen` from root instead unless you already have a fresh OpenAPI export.
+
+**Infra**
+
+- `docker compose up -d` — Postgres on 5432 (main) + 5433 (test).
 
 ## Rules
 
-- GitHub Issues/Milestones are the source of truth for anything already ticketed — local files above only cover what isn't ticketed yet.
-- When implementation reveals new architectural decision, record new ADR in `docs/adr/` (never edit accepted) and update affected future tickets/issues to match.
-- A milestone file's task collapses to `Done — see #<N>.`. Once that task has a GitHub issue — the issue body is authoritative from then on, not the milestone file.
-- When milestone completed, review all `AGENTS.md` + `README.md` and update. If anything changed (e.g. once code exists, mark planned commands/layout real; refresh shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to delete the spec — no automated tracker, a manual check each time.
+- **GitHub Issues/Milestones are the source of truth for anything already ticketed** — local files above only cover what isn't ticketed yet.
+- **When implementation reveals new architectural decision, record new ADR in `docs/adr/`** (never edit accepted) and update affected future tickets/issues to match.
+- **A milestone file's task collapses to `Done — see #<N>.`. Once that task has a GitHub issue** — the issue body is authoritative from then on, not the milestone file.
+- **When milestone completed, review all `AGENTS.md` + `README.md` and update**. If anything changed (e.g. once code exists, mark planned commands/layout real; refresh shifted conventions/gotchas). Also scan `docs/superpowers/specs/` for specs whose referenced tickets are all closed on GitHub, and prompt the user to delete the spec — no automated tracker, a manual check each time.
 
 ## Impeccable (design tooling)
 
