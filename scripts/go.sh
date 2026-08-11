@@ -21,7 +21,7 @@ until docker compose exec -T postgres pg_isready -U "${POSTGRES_USER:-budget}" -
   sleep 1
 done
 
-pnpm --filter api db:migrate
-pnpm --filter api db:seed
+pnpm api:db:migrate
+pnpm api:db:seed
 
 pnpm dev
