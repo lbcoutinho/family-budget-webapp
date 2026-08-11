@@ -21,6 +21,8 @@
     "gen": "pnpm --filter api openapi:export && pnpm --filter web gen:client",
     "go": "bash scripts/go.sh",
     "verify": "bash scripts/verify.sh",
+    "verify:backend": "bash scripts/verify.sh backend",
+    "verify:frontend": "bash scripts/verify.sh frontend",
     "prepare": "husky",
     "api:build": "pnpm --filter api build",
     "api:dev": "pnpm --filter api dev",
