@@ -24,9 +24,4 @@ done
 pnpm --filter api db:migrate
 pnpm --filter api db:seed
 
-if command -v powershell.exe >/dev/null 2>&1; then
-  WINPWD="$(cygpath -w "$(pwd)" 2>/dev/null || pwd)"
-  powershell.exe -NoProfile -Command "Start-Process cmd -ArgumentList '/k','pnpm dev' -WorkingDirectory '$WINPWD'"
-else
-  pnpm dev &
-fi
+pnpm dev
