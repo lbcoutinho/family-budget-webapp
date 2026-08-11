@@ -43,7 +43,7 @@ export function CashboxesSummary({ month, activeCount }: CashboxesSummaryProps) 
   const withdrawn = movements.data ? -movements.data.cashboxOutTotal : undefined;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Stat label={t('cashboxes.summary.activeCount')} value={String(activeCount)} />
       <Stat
         label={t('cashboxes.summary.depositedIn', { month: monthName })}
