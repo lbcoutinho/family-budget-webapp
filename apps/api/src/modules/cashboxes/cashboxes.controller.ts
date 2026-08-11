@@ -105,8 +105,8 @@ export class CashboxesController {
 
   @ApiOperation({ operationId: 'deleteCashbox', summary: 'Delete a cashbox for good' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
-  @ApiNoContentResponse({ description: 'Deleted. Nothing referenced it.' })
-  @ApiConflictResponse({ type: ApiErrorDto, description: 'Records still reference this cashbox — deactivate it instead of deleting it.' })
+  @ApiNoContentResponse({ description: 'Deleted. Its balance was zero.' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The cashbox still holds a balance — deactivate it instead of deleting it.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<void> {

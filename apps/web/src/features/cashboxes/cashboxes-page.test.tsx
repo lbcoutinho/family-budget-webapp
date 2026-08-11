@@ -184,7 +184,7 @@ describe('CashboxesPage', () => {
     let deactivateCalls = 0;
     server.use(
       http.get('/api/cashboxes', () => HttpResponse.json([ACTIVE])),
-      http.delete('/api/cashboxes/:id', () => HttpResponse.json({ statusCode: 409, code: 'RECORD_IN_USE', message: 'in use' }, { status: 409 })),
+      http.delete('/api/cashboxes/:id', () => HttpResponse.json({ statusCode: 409, code: 'CASHBOX_NOT_EMPTY', message: 'not empty' }, { status: 409 })),
       http.patch('/api/cashboxes/:id/deactivate', () => {
         deactivateCalls += 1;
 
@@ -201,7 +201,11 @@ describe('CashboxesPage', () => {
     expect(within(dialog).getByText('Esta ação não pode ser desfeita.')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Apagar' }));
 
-    expect(await within(dialog).findByText('Outros registos ainda usam este. Desative-o em vez de o eliminar.')).toBeInTheDocument();
+    expect(
+      await within(dialog).findByText(
+        'A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo.',
+      ),
+    ).toBeInTheDocument();
     const deactivateOffer = within(dialog).getByRole('button', { name: 'Desativar' });
     await user.click(deactivateOffer);
 

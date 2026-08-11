@@ -61,7 +61,8 @@
     "CATEGORY_TREE_TOO_DEEP": "Uma subcategoria não pode conter subcategorias: a árvore tem só dois níveis.",
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "Uma subcategoria herda o tipo da categoria principal.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
-    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal."
+    "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal.",
+    "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo."
   },
   "accounts": {
     "new": "Nova conta",

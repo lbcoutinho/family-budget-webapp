@@ -45,6 +45,8 @@ export const ERROR_CODES = [
   'TRANSACTION_TYPE_IMMUTABLE',
   /** `CASHBOX_OUT`/`CASHBOX_TRANSFER` would drive a cashbox balance negative (M4-T05). */
   'CASHBOX_INSUFFICIENT_FUNDS',
+  /** Delete refused because the cashbox still holds money (M4-T09, ADR-0019). */
+  'CASHBOX_NOT_EMPTY',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
