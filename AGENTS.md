@@ -17,6 +17,7 @@ deviate, **stop and flag** rather than improvise.
 ## Ticket workflow (follow for every task)
 
 - Don't create issues in Github without explicit ask
+- Never work on the main worktree, unless explicitly asked. Always create separate worktree for any work.
 - **Plans are written directly into the GitHub issue body** (`## Implementation Plan`, `## Acceptance Criteria`, `## Tests`), never to a local plan file — this
   overrides `superpowers:writing-plans`'s default of saving to `docs/superpowers/plans/`.
 - Use the `create-issue` skill to open the issue for one ticket at a time.

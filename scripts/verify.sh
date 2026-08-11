@@ -8,6 +8,7 @@ pnpm typecheck
 pnpm lint
 cd "$(dirname "${BASH_SOURCE[0]}")/../apps/api"
 pnpm --filter api test
+pnpm --filter web test
 
 if docker container inspect family-budget-postgres-test >/dev/null 2>&1; then
   echo "Postgres test container already exists."
