@@ -261,20 +261,24 @@ describe('TransactionsService', () => {
       expect(result.nextCursor).toBeNull();
     });
 
-    it('derives total/incomeTotal/expenseTotal from the groupBy result, defaulting an absent type to 0', async () => {
+    it('derives total/incomeTotal/expenseTotal/cashboxInTotal/cashboxOutTotal from the groupBy result, defaulting an absent type to 0', async () => {
       doubled.transaction.groupBy.mockResolvedValue([
         { type: 'INCOME', _sum: { amount: 5_000 }, _count: { _all: 2 } },
         { type: 'EXPENSE', _sum: { amount: 1_500 }, _count: { _all: 3 } },
+        { type: 'CASHBOX_IN', _sum: { amount: 2_000 }, _count: { _all: 1 } },
+        { type: 'CASHBOX_OUT', _sum: { amount: 700 }, _count: { _all: 1 } },
       ]);
 
       const result = await service.findAll(userId, listQuery());
 
-      expect(result.total).toBe(5);
+      expect(result.total).toBe(7);
       expect(result.incomeTotal).toBe(5_000);
       expect(result.expenseTotal).toBe(1_500);
+      expect(result.cashboxInTotal).toBe(2_000);
+      expect(result.cashboxOutTotal).toBe(700);
     });
 
-    it('defaults incomeTotal/expenseTotal to 0 when a type is absent from the groupBy result', async () => {
+    it('defaults incomeTotal/expenseTotal/cashboxInTotal/cashboxOutTotal to 0 when a type is absent from the groupBy result', async () => {
       doubled.transaction.groupBy.mockResolvedValue([{ type: 'TRANSFER', _sum: { amount: 9_000 }, _count: { _all: 1 } }]);
 
       const result = await service.findAll(userId, listQuery());
@@ -282,6 +286,8 @@ describe('TransactionsService', () => {
       expect(result.total).toBe(1);
       expect(result.incomeTotal).toBe(0);
       expect(result.expenseTotal).toBe(0);
+      expect(result.cashboxInTotal).toBe(0);
+      expect(result.cashboxOutTotal).toBe(0);
     });
 
     it('scopes both findMany and groupBy to userId', async () => {

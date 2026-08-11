@@ -15,6 +15,10 @@ export interface TransactionListDto {
   incomeTotal: number;
   /** Cents, sum of EXPENSE only — the domain rule that only EXPENSE is an expense. */
   expenseTotal: number;
+  /** Cents, sum of CASHBOX_IN over the filtered set. */
+  cashboxInTotal: number;
+  /** Cents, sum of CASHBOX_OUT over the filtered set. */
+  cashboxOutTotal: number;
   /**
      * Pass as `cursor` to fetch the next page. `null` on the last page.
      * @nullable
