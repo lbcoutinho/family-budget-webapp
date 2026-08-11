@@ -189,6 +189,12 @@
     "new": "Nova caixinha",
     "showInactive": "Mostrar inativas",
     "inactiveBadge": "inativa",
+    "summary": {
+      "activeCount": "Caixinhas ativas",
+      "depositedIn": "Depositado em {{month}}",
+      "withdrawnIn": "Resgatado em {{month}}",
+      "totalSaved": "Total guardado"
+    },
     "actions": {
       "edit": "Editar",
       "deactivate": "Desativar",
