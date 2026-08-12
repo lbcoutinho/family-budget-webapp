@@ -44,6 +44,12 @@ export class TransactionListDto {
   @ApiProperty({ type: Number, description: 'Cents, sum of EXPENSE only — the domain rule that only EXPENSE is an expense.' })
   expenseTotal!: number;
 
+  @ApiProperty({ type: Number, description: 'Cents, sum of CASHBOX_IN over the filtered set.' })
+  cashboxInTotal!: number;
+
+  @ApiProperty({ type: Number, description: 'Cents, sum of CASHBOX_OUT over the filtered set.' })
+  cashboxOutTotal!: number;
+
   @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Pass as `cursor` to fetch the next page. `null` on the last page.' })
   nextCursor!: string | null;
 }

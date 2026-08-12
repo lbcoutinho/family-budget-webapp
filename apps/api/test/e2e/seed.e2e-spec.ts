@@ -43,12 +43,14 @@ describe('Database seed (e2e)', () => {
     await moduleRef.init();
   });
 
-  // Every seeded row holds a foreign key onto the user with `onDelete: Restrict`, so they come off
-  // first. Categories take two passes of their own: the self-referencing key is `Restrict` too and
-  // is checked per row, so one `deleteMany` spanning parents and children fails with P2003.
+  // Transactions hold `Restrict` foreign keys onto account/category, so they come off before those.
+  // Every seeded row also holds a foreign key onto the user with `onDelete: Restrict`, so they come
+  // off before that. Categories take two passes of their own: the self-referencing key is `Restrict`
+  // too and is checked per row, so one `deleteMany` spanning parents and children fails with P2003.
   const removeFixtures = async (): Promise<void> => {
     const owner = { user: { email: { in: emails } } };
 
+    await prisma.transaction.deleteMany({ where: owner });
     await prisma.account.deleteMany({ where: owner });
     await prisma.cashbox.deleteMany({ where: owner });
     await prisma.category.deleteMany({ where: { ...owner, parentId: { not: null } } });
@@ -142,8 +144,8 @@ describe('Database seed (e2e)', () => {
     await expect(prisma.user.count({ where: { email: { in: emails } } })).resolves.toBe(2);
     // The sample accounts are upserted too, so a second run must not double them.
     await expect(prisma.account.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(2);
-    // Same for the category tree: six roots and eight subcategories, once.
-    await expect(prisma.category.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(14);
+    // Same for the category tree: six roots and nine subcategories, once.
+    await expect(prisma.category.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(15);
     // Same for the cashboxes, once.
     await expect(prisma.cashbox.count({ where: { user: { email: { in: emails } } } })).resolves.toBe(3);
   });

@@ -27,6 +27,7 @@ import type {
 import type {
   ApiErrorDto,
   CreateTransactionDto,
+  ListTransactionsParams,
   TransactionDto,
   TransactionListDto,
   UpdateTransactionDto
@@ -57,13 +58,14 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
  * @summary List transactions with filters and pagination
  */
 export const listTransactions = (
-
+    params?: ListTransactionsParams,
  signal?: AbortSignal
 ) => {
 
 
       return customInstance<TransactionListDto>(
-      {url: `/transactions`, method: 'GET', signal
+      {url: `/transactions`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -71,23 +73,23 @@ export const listTransactions = (
 
 
 
-export const getListTransactionsQueryKey = () => {
+export const getListTransactionsQueryKey = (params?: ListTransactionsParams,) => {
     return [
-    `/transactions`
+    `/transactions`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+export const getListTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListTransactionsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListTransactionsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTransactions>>> = ({ signal }) => listTransactions(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTransactions>>> = ({ signal }) => listTransactions(params, signal);
 
 
 
@@ -101,7 +103,7 @@ export type ListTransactionsQueryError = ErrorType<ApiErrorDto>
 
 
 export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
+ params: undefined |  ListTransactionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTransactions>>,
           TError,
@@ -111,7 +113,7 @@ export function useListTransactions<TData = Awaited<ReturnType<typeof listTransa
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
+ params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTransactions>>,
           TError,
@@ -121,7 +123,7 @@ export function useListTransactions<TData = Awaited<ReturnType<typeof listTransa
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+ params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -129,11 +131,11 @@ export function useListTransactions<TData = Awaited<ReturnType<typeof listTransa
  */
 
 export function useListTransactions<TData = Awaited<ReturnType<typeof listTransactions>>, TError = ErrorType<ApiErrorDto>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
+ params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTransactions>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListTransactionsQueryOptions(options)
+  const queryOptions = getListTransactionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

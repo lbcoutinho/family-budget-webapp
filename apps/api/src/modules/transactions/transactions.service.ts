@@ -70,6 +70,8 @@ export class TransactionsService {
       total: totals.reduce((sum, t) => sum + t._count._all, 0),
       incomeTotal: totals.find((t) => t.type === 'INCOME')?._sum.amount ?? 0,
       expenseTotal: totals.find((t) => t.type === 'EXPENSE')?._sum.amount ?? 0,
+      cashboxInTotal: totals.find((t) => t.type === 'CASHBOX_IN')?._sum.amount ?? 0,
+      cashboxOutTotal: totals.find((t) => t.type === 'CASHBOX_OUT')?._sum.amount ?? 0,
       nextCursor: hasNextPage ? (items[items.length - 1]?.id ?? null) : null,
     };
   }

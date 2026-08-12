@@ -27,6 +27,21 @@ function monthAndYear(locale: string): Intl.DateTimeFormat {
   return formatter;
 }
 
+const monthNameFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function monthName(locale: string): Intl.DateTimeFormat {
+  const existing = monthNameFormatters.get(locale);
+
+  if (existing) {
+    return existing;
+  }
+
+  const formatter = new Intl.DateTimeFormat(locale, { month: 'long' });
+  monthNameFormatters.set(locale, formatter);
+
+  return formatter;
+}
+
 /** The first day of the month the date falls in, at midnight. This is `referenceMonth`'s shape. */
 export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -40,6 +55,13 @@ export function formatMonth(date: Date, locale: string = i18n.language): string 
   // capital is added here rather than by a CSS transform that would also hit the year. It is a
   // no-op in en-US, where `Intl` already capitalizes.
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+/** `formatMonthName(new Date(2026, 6, 15))` → `"julho"`. Lowercase on purpose: used inline in a
+ * sentence ("Depositado em julho"), not as a title, so unlike `formatMonth` no capitalization
+ * fix-up is applied. Defaults to the active language. */
+export function formatMonthName(date: Date, locale: string = i18n.language): string {
+  return monthName(locale).format(date);
 }
 
 export interface MonthRange {

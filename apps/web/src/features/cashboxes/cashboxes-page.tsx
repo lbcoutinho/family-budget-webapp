@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CashboxCard, CashboxGridSkeleton } from './cashbox-card';
 import { CashboxDialog } from './cashbox-dialog';
+import { CashboxesSummary } from './cashboxes-summary';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
@@ -127,6 +128,7 @@ export function CashboxesPage() {
         }
       />
       <PageContent>
+        {!isPending && !isError && cashboxes.length > 0 && <CashboxesSummary month={new Date()} activeCount={cashboxes.filter((c) => c.isActive).length} />}
         {isPending && <CashboxGridSkeleton />}
         {isError && (
           <EmptyState
