@@ -37,8 +37,10 @@ jobs:
           # Interpreted language: nothing to build, so no install/build step is needed.
           build-mode: none
           queries: security-and-quality
-          paths-ignore:
-            - prototypes/**
+          # codeql-action/init has no paths-ignore input — exclusions go through inline config.
+          config: |
+            paths-ignore:
+              - prototypes/**
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
