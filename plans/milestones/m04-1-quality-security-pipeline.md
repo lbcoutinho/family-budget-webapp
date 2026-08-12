@@ -105,35 +105,7 @@ with a type-aware layer, not a taint-tracking engine. CodeQL is free on public r
 
 ## M4.1-T03 — Gitleaks secret scanning
 
-### Why this is needed
-
-A committed token is compromised the moment it is pushed to a public repository, and rewriting history afterwards does not un-leak it. The cheap defence is a
-check that fails the PR before the merge. The repo already carries plausible-looking-but-fake CI secrets in `ci.yml`, so the config needs to be right rather
-than merely present.
-
-### Implementation notes
-
-- New workflow `.github/workflows/gitleaks.yml`, job id `gitleaks`. Keep it out of `ci.yml`: it needs `fetch-depth: 0`, which would slow every other step.
-- `actions/checkout@v7` with `fetch-depth: 0`, then `gitleaks/gitleaks-action@v2` with `GITHUB_TOKEN`. No `GITLEAKS_LICENSE` — that is only required for
-  organisation-owned repos; this one is personal.
-- Triggers: `pull_request` and `push` to `main`. Permissions: `contents: read` (plus `pull-requests: read`).
-- Add `.gitleaks.toml` only if the default ruleset flags something. If it does, extend the default config (`[extend] useDefault = true`) and add a **narrow**
-  allowlist entry — path- or regex-scoped to the specific false positive, with a comment explaining it. Blanket `paths = ['.*']` allowlists are not acceptable.
-- Expected candidates for a false positive: the throwaway `ci-jwt-secret` / `ci-refresh-secret` values in `ci.yml`, seed fixtures, and vendored
-  `.claude/skills/impeccable/**` test data.
-
-### Acceptance criteria
-
-- [ ] The `gitleaks` workflow runs on PRs and on pushes to `main`
-- [ ] It scans full history (`fetch-depth: 0`)
-- [ ] It passes on the repository's current state
-- [ ] Any allowlist entry is scoped to a single file or pattern and carries a comment justifying it
-- [ ] A planted test secret fails the workflow
-
-### Tests
-
-- On a disposable branch, commit a Gitleaks-detectable test value (e.g. an `AKIA`-prefixed dummy AWS key), push, confirm the check fails, then delete the branch
-  and never merge it. Record the run URL in the PR.
+Done — see #129.
 
 ---
 
