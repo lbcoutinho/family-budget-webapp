@@ -1,10 +1,8 @@
-## Project state: M3 in progress (Master data)
+## Project state: M5 next (Entries UI)
 
-**M1 Foundation and M2 Authentication complete.** M3 Master data underway: Account, Category and Cashbox models/APIs, base layout/nav, i18n foundation and
-stable API error codes all shipped; Accounts and Categories screens (M3-T07, M3-T08) are built. **M3-T09 (Cashboxes screen) is next** — its prototype
-(`prototypes/approved/05-cashboxes.html`) is approved. Remaining after that: M3-T12–T14 (locale on `User`, Settings › General, deploy to Vercel). GitHub Issues
-are **strict source of truth** for ticketed work; `docs/adr/` for architectural decisions. Before code, read the issue + relevant ADR; if implementation would
-deviate, **stop and flag** rather than improvise.
+**M1 Foundation, M2 Authentication, M3 Master data and M4 Transactions (API) complete.** Accounts, Categories and Cashboxes are fully usable end to end
+(models, APIs, screens); the transactions domain core — per-type validation, cashbox operations, transfers, balance endpoints, filtered/paginated listing — is
+done on the API. **M5 Entries (UI)** is next.
 
 ## Repository structure
 
