@@ -37,8 +37,9 @@ jobs:
           # Interpreted language: nothing to build, so no install/build step is needed.
           build-mode: none
           queries: security-and-quality
-          paths-ignore:
-            - prototypes/**
+          # Action inputs are strings, not YAML sequences — one path per line in a block scalar.
+          paths-ignore: |
+            prototypes/**
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
