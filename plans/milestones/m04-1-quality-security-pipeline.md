@@ -69,37 +69,7 @@ number is too embarrassing to enforce. A threshold set at the measured baseline 
 
 ## M4.1-T02 — CodeQL static analysis
 
-### Why this is needed
-
-Nothing in the pipeline looks for security-relevant code patterns — injection paths, unsafe deserialization, path traversal. ESLint is a style/correctness tool
-with a type-aware layer, not a taint-tracking engine. CodeQL is free on public repositories and reports into GitHub Code Scanning.
-
-### Implementation notes
-
-- New workflow `.github/workflows/codeql.yml`, job id `codeql` (this becomes the required-check name).
-- Triggers: `pull_request` targeting `main` and `push` to `main`. **No schedule** — every change reaches `main` through a PR, so a cron pass only re-scans code
-  already scanned; add one later only if CodeQL query-pack updates prove to surface new findings.
-- Single language matrix entry: `javascript-typescript` (one CodeQL language covers both).
-- `github/codeql-action/init@v4` with `build-mode: none` (interpreted languages need no build) → `github/codeql-action/analyze@v4`. Use the
-  `security-and-quality` query suite; if it proves noisy on the existing codebase, fall back to `security-extended` and note why in the workflow.
-- Permissions, job-scoped and minimal: `security-events: write`, `contents: read`, `actions: read`. No repo-wide default write.
-- Add the same `concurrency` group pattern used by `ci.yml`, keyed on the workflow name, so superseded commits stop consuming minutes.
-- Do not add a `codeql-config.yml` with path exclusions in this phase. `.claude/skills/impeccable/**` is vendored third-party JS; exclude it only if it actually
-  produces findings, and say so in a comment.
-
-### Acceptance criteria
-
-- [ ] The `codeql` workflow runs on PRs to `main` and on pushes to `main`
-- [ ] It analyses JavaScript/TypeScript across `apps/api`, `apps/web` and `packages/`
-- [ ] Results appear under Security → Code scanning
-- [ ] Workflow permissions are declared at job level and are the minimum listed above
-- [ ] The run finishes green on the current codebase, or every finding is triaged (fixed or dismissed with a written reason)
-
-### Tests
-
-- The ticket's own PR must show a completed CodeQL run.
-- On a throwaway branch, introduce an obviously vulnerable snippet (e.g. `eval` on request input in a scratch file), confirm CodeQL flags it, then delete the
-  branch without merging.
+Done — see #128.
 
 ---
 
