@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r --if-present test",
+    "test:cov": "pnpm -r --if-present test:cov",
     "typecheck": "pnpm -r typecheck",
     "gen": "pnpm --filter api openapi:export && pnpm --filter web gen:client",
     "go": "bash scripts/go.sh",
@@ -31,6 +32,7 @@
     "api:test": "pnpm --filter api test",
     "api:test:watch": "pnpm --filter api test:watch",
     "api:test:e2e": "pnpm --filter api test:e2e",
+    "api:test:cov": "pnpm --filter api test:cov",
     "api:prisma:generate": "pnpm --filter api prisma:generate",
     "api:db:migrate": "pnpm --filter api db:migrate",
     "api:db:reset": "pnpm --filter api db:reset",
@@ -43,7 +45,8 @@
     "web:typecheck": "pnpm --filter web typecheck",
     "web:test": "pnpm --filter web test",
     "web:test:watch": "pnpm --filter web test:watch",
-    "web:gen:client": "pnpm --filter web gen:client"
+    "web:gen:client": "pnpm --filter web gen:client",
+    "web:test:cov": "pnpm --filter web test:cov"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
