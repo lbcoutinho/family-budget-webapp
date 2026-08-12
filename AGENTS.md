@@ -2,10 +2,7 @@
 
 **M1 Foundation, M2 Authentication, M3 Master data and M4 Transactions (API) complete.** Accounts, Categories and Cashboxes are fully usable end to end
 (models, APIs, screens); the transactions domain core — per-type validation, cashbox operations, transfers, balance endpoints, filtered/paginated listing — is
-done on the API. **M5 Entries (UI)** is next: the monthly tab and entry forms that let the app replace the spreadsheet (see `plans/milestones/m05-entries-ui.md`).
-M3-T14 (deploy to Vercel) remains open as issue #74, deliberately deferred — see that issue for the hosting options still to be settled. GitHub Issues are
-**strict source of truth** for ticketed work; `docs/adr/` for architectural decisions. Before code, read the issue + relevant ADR; if implementation would
-deviate, **stop and flag** rather than improvise.
+done on the API. **M5 Entries (UI)** is next.
 
 ## Repository structure
 

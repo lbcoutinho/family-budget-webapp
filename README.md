@@ -4,10 +4,6 @@ Personal web application for family budget management and expense tracking: stru
 recording of income and expenses, a consolidated view by category, and a mechanism for
 setting money aside (cashboxes).
 
-> **Status:** M1 Foundation, M2 Authentication, M3 Master data and M4 Transactions (API) complete.
-> Accounts, categories and cashboxes are usable end to end; the transactions domain core is done
-> on the API. M5 Entries (UI) — the monthly tab and entry forms — is next.
-
 ## Requirements
 
 | Tool    | Version | Notes                                                                                                 |
@@ -48,16 +44,11 @@ codegraph init
 export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
 
 # 5. Claude Code plugins — marketplaces are per-machine, not cloned with the repo
-claude plugin marketplace add ChromeDevTools/chrome-devtools-mcp
-claude plugin install chrome-devtools-mcp@chrome-devtools-plugins
-
 claude plugin marketplace add DietrichGebert/ponytail
 claude plugin install ponytail@ponytail
 
 claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin install security-guidance@claude-plugins-official
-claude plugin install claude-md-management@claude-plugins-official
-claude plugin install superpowers@claude-plugins-official
 
 claude   # inside the session: /reload-plugins
 ```
