@@ -29,5 +29,18 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'lcov'],
+      exclude: ['src/test/**', 'src/**/*.d.ts'],
+      // TODO(M4.1-T01): raise to the 70/60/70/70 target — baseline already clears it
+      // (statements 81.18%, branches 80%, functions 76.1%, lines 81.34%), floors just lock it in.
+      thresholds: {
+        statements: 70,
+        branches: 60,
+        functions: 70,
+        lines: 70,
+      },
+    },
   },
 });

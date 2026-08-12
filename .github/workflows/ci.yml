@@ -79,8 +79,8 @@ jobs:
       - name: Migrate test database
         run: pnpm --filter api exec prisma migrate deploy
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Unit tests (with coverage)
+        run: pnpm test:cov
 
       - name: Integration tests (e2e)
         run: pnpm --filter api test:e2e
