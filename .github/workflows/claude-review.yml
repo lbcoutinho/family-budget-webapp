@@ -1,0 +1,39 @@
+name: Claude Opus Code Review
+
+# Manual only — value/cost of an automatic review on every push is unproven, and this repo
+# has a single developer with a human merge gate anyway. Dispatch per PR when a second
+# opinion on design (not the mechanical checks CI already covers) is wanted before merging.
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to review
+        required: true
+        type: string
+
+concurrency:
+  group: claude-review-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ inputs.pr_number }}/merge
+          fetch-depth: 0
+
+      - name: Run Claude Opus review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: /review
+          claude_args: --model claude-opus-5
