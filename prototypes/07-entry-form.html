@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>07 — Lançamento (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .dlg-body {
+        padding: 16px;
+        display: grid;
+        gap: 13px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 620px) {
+        .two {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* Segmented control positioned at the top of the dialog body */
+      .entry-type {
+        margin-bottom: 8px;
+      }
+      /* Hide fields based on type — controlled via data-type on the form */
+      #entry-form[data-type='exp'] .field-transfer,
+      #entry-form[data-type='inc'] .field-transfer,
+      #entry-form[data-type='tr'] .field-expense-specific {
+        display: none;
+      }
+      /* Reference month field visible only when credit card checkbox is checked */
+      .field-ref-month {
+        display: none;
+      }
+      .field-ref-month.show {
+        display: grid;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="07 — Lançamento" data-ticket="M5-T02 · M5-T03"></div>
+
+    <div class="proto-note">
+      <strong>Novo diálogo em v2.</strong> Tipo (despesa, receita, transferência) via segmented control abrindo em "Despesa"; data e valor antes de
+      classificação; cartão de crédito checkbox que revela o mês de referência sugerindo o próximo mês; otimista com rollback.
+    </div>
+
+    <div data-shell="month">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Julho de 2026</span>
+          </div>
+          <div class="row">
+            <button class="btn"><span data-icon="plus"></span> Novo lançamento</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- The dialog, open by default -->
+          <div class="scrim" id="entry-dialog" style="display: grid">
+            <div class="dialog">
+              <div class="card-head">
+                <h2>Novo lançamento</h2>
+                <button class="btn icon ghost" data-close><span data-icon="x"></span></button>
+              </div>
+
+              <form id="entry-form" class="dlg-body" data-type="exp">
+                <!-- Type selection -->
+                <div class="entry-type">
+                  <div class="segmented" id="type-control">
+                    <button type="button" aria-selected="true" data-type="exp">Despesa</button>
+                    <button type="button" aria-selected="false" data-type="inc">Receita</button>
+                    <button type="button" aria-selected="false" data-type="tr">Transferência</button>
+                  </div>
+                </div>
+
+                <!-- Ordered as per bank statement: date and amount first -->
+                <div class="field">
+                  <label for="e-date">Data</label>
+                  <input class="input" id="e-date" type="text" placeholder="dd/mm/aaaa" value="15/07/2026" />
+                </div>
+
+                <div class="field">
+                  <label for="e-amount">Valor</label>
+                  <input class="input num" id="e-amount" type="text" placeholder="0,00" value="128,40" inputmode="decimal" />
+                  <span class="hint">Aceita 1.234,56 e 1234.56</span>
+                </div>
+
+                <!-- Expense and Income specific fields -->
+                <div class="field-expense-specific">
+                  <div class="two">
+                    <div class="field">
+                      <label for="e-account">Conta</label>
+                      <select class="select" id="e-account">
+                        <option value="">Selecione uma conta</option>
+                        <option value="millennium">Millennium</option>
+                        <option value="revolut">Revolut</option>
+                        <option value="dinheiro" selected>Dinheiro</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label for="e-category">Categoria</label>
+                      <select class="select" id="e-category">
+                        <option value="">Selecione uma categoria</option>
+                        <option value="moradia">Moradia</option>
+                        <option value="transporte">Transporte</option>
+                        <option value="alimentacao" selected>Alimentação</option>
+                        <option value="saude">Saúde</option>
+                        <option value="lazer">Lazer</option>
+                        <option value="outros">Outros</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label for="e-subcategory">Subcategoria</label>
+                    <select class="select" id="e-subcategory" disabled>
+                      <option value="">Selecione uma categoria primeiro</option>
+                    </select>
+                    <span class="hint">Clique na categoria acima para atualizar</span>
+                  </div>
+
+                  <label class="check">
+                    <input type="checkbox" id="e-credit-card" />
+                    <span class="small">Compra no cartão de crédito<br /><span class="hint">Revela o mês de referência</span></span>
+                  </label>
+
+                  <div class="field-ref-month field">
+                    <label for="e-ref-month">Mês de referência</label>
+                    <input class="input" id="e-ref-month" type="text" placeholder="dd/mm/aaaa" value="01/08/2026" />
+                    <span class="hint">Sugerido: próximo mês</span>
+                  </div>
+
+                  <div class="field">
+                    <label for="e-notes">Descrição (opcional)</label>
+                    <input class="input" id="e-notes" type="text" placeholder="Supermercado Continente" value="Supermercado" />
+                  </div>
+                </div>
+
+                <!-- Transfer specific fields -->
+                <div class="field-transfer">
+                  <div class="two">
+                    <div class="field">
+                      <label for="e-from-account">De</label>
+                      <select class="select" id="e-from-account">
+                        <option value="">Selecione a conta</option>
+                        <option value="millennium">Millennium</option>
+                        <option value="revolut" selected>Revolut</option>
+                        <option value="dinheiro">Dinheiro</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label for="e-to-account">Para</label>
+                      <select class="select" id="e-to-account">
+                        <option value="">Selecione a conta</option>
+                        <option value="millennium" selected>Millennium</option>
+                        <option value="revolut">Revolut</option>
+                        <option value="dinheiro">Dinheiro</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label for="e-transfer-notes">Descrição (opcional)</label>
+                    <input class="input" id="e-transfer-notes" type="text" placeholder="Reserva de férias" value="Reserva de férias" />
+                  </div>
+                </div>
+              </form>
+
+              <div class="card-foot">
+                <button class="btn outline" data-close>Cancelar</button>
+                <button class="btn" id="save-btn">Salvar</button>
+                <button class="btn outline" id="save-and-add-btn">Salvar e adicionar outro</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decisions block -->
+    <div class="content" style="max-width: 1120px; margin: 44px auto 60px; padding: 0 22px">
+      <div class="decisions">
+        <h2>Decisões a aprovar</h2>
+        <p>Questões que ainda precisam de resposta para a implementação começar.</p>
+        <ol>
+          <li>
+            <b>Campo de descrição — quanto fica opcional, quanto é obrigatório?</b>
+            <span>
+              No protótipo fica marcado como "opcional" para ambos os tipos (despesa/receita e transferência), mas a implementação pode exigir. Também não está
+              definido se há limite de caracteres ou validações de conteúdo.
+            </span>
+          </li>
+          <li>
+            <b>Comportamento de "Salvar e adicionar outro".</b>
+            <span>
+              O protótipo mostra como um botão de igual peso ao "Salvar", mas não define se ele preserva: (a) só data, conta e categoria; (b) tudo menos o
+              valor; (c) todos os campos. A descrição da tela diz "preservando data, conta e categoria" — aqui está feito assim.
+            </span>
+          </li>
+          <li>
+            <b>Cor de ação para "Transferência".</b>
+            <span>
+              O azul da transferência fica em valores, nunca em chrome — o botão verde de ação segue sendo a ação, não o tipo. Guardado para depois: perguntar
+              se transferência merece seu próprio acento visual no botão "Salvar".
+            </span>
+          </li>
+          <li>
+            <b>Categoria desativada mostrada como "(inativa)".</b>
+            <span>
+              A tela diz que edição de lançamento antigo cuja categoria foi desativada continua mostrando o valor — aqui o protótipo nota o caso no comentário,
+              mas uma implementação renderiza ela com um badge ou alguma marcação. Não há renderização explícita no protótipo porque é estático.
+            </span>
+          </li>
+          <li>
+            <b>Validação de campos — quando é feita?</b>
+            <span>
+              O protótipo não mostra erros de validação em tempo real, mas o padrão da aplicação é mostrar erros por campo no blur ou no submit. A ser definido
+              qual é o comportamento exato.
+            </span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('entry-form');
+      const typeControl = document.getElementById('type-control');
+      const categorySelect = document.getElementById('e-category');
+      const subcategorySelect = document.getElementById('e-subcategory');
+      const creditCardCheckbox = document.getElementById('e-credit-card');
+      const refMonthField = document.querySelector('.field-ref-month');
+      const saveBtn = document.getElementById('save-btn');
+      const saveAndAddBtn = document.getElementById('save-and-add-btn');
+
+      // Category to subcategories mapping — fixture data consistent with 04-categories.html
+      const categories = {
+        alimentacao: ['Supermercado', 'Restaurante', 'Outros'],
+        moradia: ['Renda', 'Água, luz e gás', 'Mudança (inativa)', 'Outros'],
+        transporte: ['Combustível', 'Seguro', 'Estacionamento', 'Outros'],
+        saude: ['Consultas', 'Farmácia', 'Outros'],
+        lazer: ['Espetáculos', 'Livros', 'Outros'],
+        outros: ['Outros'],
+        // Income categories
+        trabalho: ['Salário', 'Outros'],
+        reembolsos: ['Outros'],
+      };
+
+      // Type segmented control — switch between expense, income, transfer
+      typeControl.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') return;
+        typeControl.querySelectorAll('button').forEach((btn) => {
+          btn.setAttribute('aria-selected', btn === e.target ? 'true' : 'false');
+        });
+        const newType = e.target.dataset.type;
+        form.dataset.type = newType;
+
+        // Update category selects on type change
+        if (newType === 'exp') {
+          categorySelect.innerHTML = `
+            <option value="">Selecione uma categoria</option>
+            <option value="alimentacao" selected>Alimentação</option>
+            <option value="moradia">Moradia</option>
+            <option value="transporte">Transporte</option>
+            <option value="saude">Saúde</option>
+            <option value="lazer">Lazer</option>
+            <option value="outros">Outros</option>
+          `;
+        } else if (newType === 'inc') {
+          categorySelect.innerHTML = `
+            <option value="">Selecione uma categoria</option>
+            <option value="trabalho">Trabalho</option>
+            <option value="reembolsos">Reembolsos</option>
+          `;
+        }
+
+        // Clear subcategory on type change
+        subcategorySelect.innerHTML = '<option value="">Selecione uma categoria primeiro</option>';
+        subcategorySelect.disabled = true;
+        refMonthField.classList.remove('show');
+        creditCardCheckbox.checked = false;
+      });
+
+      // Category select — update subcategories and clear when category changes
+      categorySelect.addEventListener('change', (e) => {
+        const selectedCategory = e.target.value;
+        if (!selectedCategory || !categories[selectedCategory]) {
+          subcategorySelect.innerHTML = '<option value="">Selecione uma categoria primeiro</option>';
+          subcategorySelect.disabled = true;
+          return;
+        }
+
+        const subs = categories[selectedCategory];
+        subcategorySelect.innerHTML =
+          `<option value="">Selecione uma subcategoria</option>` + subs.map((s) => `<option value="${s.toLowerCase()}">${s}</option>`).join('');
+        subcategorySelect.disabled = false;
+      });
+
+      // Credit card checkbox — show/hide reference month field
+      creditCardCheckbox.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          refMonthField.classList.add('show');
+        } else {
+          refMonthField.classList.remove('show');
+        }
+      });
+
+      // Save buttons — simple log for demo (real app would submit via API)
+      const handleSave = (addAnother = false) => {
+        console.log('Save entry:', Object.fromEntries(new FormData(form)), addAnother ? '(and add another)' : '');
+        // In the real app: submit to API, optimistically insert, rollback on error
+        if (addAnother) {
+          // Keep date, account, category; clear notes and amount
+          document.getElementById('e-notes').value = '';
+          document.getElementById('e-transfer-notes').value = '';
+          document.getElementById('e-amount').value = '';
+        } else {
+          // Close dialog
+          document.getElementById('entry-dialog').style.display = 'none';
+        }
+      };
+
+      saveBtn.addEventListener('click', () => handleSave(false));
+      saveAndAddBtn.addEventListener('click', () => handleSave(true));
+    </script>
+  </body>
+</html>
