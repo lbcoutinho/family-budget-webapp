@@ -80,6 +80,21 @@ required. Export it in your shell before starting Claude Code, it is not read fr
 export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
 ```
 
+## Claude Opus code review
+
+CI (lint, typecheck, tests, CodeQL, Gitleaks) catches mechanical issues but not design —
+naming, domain-rule violations, dead abstractions, missing tests. `.github/workflows/claude-review.yml`
+runs a Claude Opus `/review` pass against an open PR, on demand:
+
+```bash
+gh workflow run claude-review.yml -f pr_number=<N>
+```
+
+The review posts as a PR comment; it is not a required check and never blocks merge.
+Re-dispatching the same PR cancels any in-flight review. Requires the `ANTHROPIC_API_KEY`
+repo secret (Settings → Secrets and variables → Actions) — the workflow fails fast with a
+clear message if it's missing.
+
 ## Quality & security checks
 
 ```text
