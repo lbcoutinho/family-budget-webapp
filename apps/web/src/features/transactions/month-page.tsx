@@ -208,9 +208,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   useEffect(() => {
     const node = sentinel.current;
     if (!node || !confirmed.hasNextPage || confirmed.isFetchingNextPage) return;
-    const observer = new IntersectionObserver((records) => {
+    const onIntersect: IntersectionObserverCallback = (records) => {
       if (records[0]?.isIntersecting) void confirmed.fetchNextPage();
-    });
+    };
+    const observer = new window.IntersectionObserver(onIntersect);
     observer.observe(node);
     return () => observer.disconnect();
   }, [confirmed.fetchNextPage, confirmed.hasNextPage, confirmed.isFetchingNextPage]);
