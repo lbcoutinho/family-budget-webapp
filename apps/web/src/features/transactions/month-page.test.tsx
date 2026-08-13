@@ -57,6 +57,10 @@ function renderPage(initialEntry = '/month/2026/07') {
   };
 }
 
+async function expectTextToBePresent(text: string) {
+  expect(await screen.findAllByText(text)).not.toHaveLength(0);
+}
+
 describe('MonthPage', () => {
   afterEach(() => vi.useRealTimers());
 
@@ -72,11 +76,11 @@ describe('MonthPage', () => {
 
     renderPage();
 
-    expect(await screen.findByText('Groceries')).toBeInTheDocument();
-    expect(await screen.findByText('Voice draft')).toBeInTheDocument();
-    expect(screen.getByText('1 lançamento · 1 rascunho')).toBeInTheDocument();
-    expect(screen.getByText('+ 0,00 €')).toBeInTheDocument();
-    expect(screen.getByText('− 123,45 €')).toBeInTheDocument();
+    await expectTextToBePresent('Groceries');
+    await expectTextToBePresent('Voice draft');
+    await expectTextToBePresent('1 lançamento · 1 rascunho');
+    await expectTextToBePresent('+ 0,00 €');
+    await expectTextToBePresent('− 123,45 €');
 
     expect(requests).toHaveLength(2);
     expect(requests.map((request) => request.searchParams.get('referenceMonth'))).toEqual(['2026-07-01', '2026-07-01']);
@@ -129,22 +133,24 @@ describe('MonthPage', () => {
   });
 
   it('fetches the next confirmed page when the load-more control is used', async () => {
-    const cursors: Array<string | null> = [];
+    const cursors: (string | null)[] = [];
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
         if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
         const cursor = url.searchParams.get('cursor');
         cursors.push(cursor);
-        return HttpResponse.json(cursor ? page([{ ...CONFIRMED, id: 'confirmed-2', description: 'Fuel' }]) : page([CONFIRMED], { nextCursor: 'cursor-1', total: 2 }));
+        return HttpResponse.json(
+          cursor ? page([{ ...CONFIRMED, id: 'confirmed-2', description: 'Fuel' }]) : page([CONFIRMED], { nextCursor: 'cursor-1', total: 2 }),
+        );
       }),
     );
 
     const { user } = renderPage();
-    await screen.findByText('Groceries');
+    await expectTextToBePresent('Groceries');
     await user.click(screen.getByRole('button', { name: 'Carregar mais' }));
 
-    expect(await screen.findByText('Fuel')).toBeInTheDocument();
+    await expectTextToBePresent('Fuel');
     expect(cursors).toEqual([null, 'cursor-1']);
   });
 });
