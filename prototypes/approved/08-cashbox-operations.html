@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ==================================================================
          Dialog para operações de caixinha: depositar, retirar, transferir.
@@ -66,16 +66,11 @@
         display: none;
       }
 
-      /* Insufficient balance warning state. */
-      .field.warn .input {
-        border-color: var(--cashbox);
-      }
-
-      /* Explanatory callout per mode. */
+      /* Explanatory callout per mode — informational, not a warning: blue. */
       .callout.info {
-        background: var(--cashbox-wash);
-        border-left-color: var(--cashbox);
-        color: var(--cashbox);
+        background: var(--transfer-wash);
+        border-left-color: var(--transfer);
+        color: var(--transfer);
       }
 
       /* Demo section for deleted cashbox state. */
@@ -143,35 +138,6 @@
       .demo-card .dlg-body {
         padding: 12px 14px;
       }
-
-      /* Decisions block styling. */
-      .decisions {
-        margin: 26px 0 44px;
-        border-top: 2px solid var(--ink);
-        padding-top: 16px;
-      }
-      .decisions h2 {
-        font-size: 1rem;
-        margin-bottom: 4px;
-      }
-      .decisions > p {
-        font-size: 12.5px;
-        color: var(--ink-soft);
-        margin-bottom: 12px;
-      }
-      .decisions ol {
-        margin: 0;
-        padding-left: 20px;
-        display: grid;
-        gap: 9px;
-        font-size: 13px;
-      }
-      .decisions li b {
-        font-weight: 600;
-      }
-      .decisions li span {
-        color: var(--ink-soft);
-      }
     </style>
   </head>
   <body>
@@ -214,8 +180,11 @@
               <!-- Body with mode-specific fields -->
               <div class="dlg-body">
                 <!-- DEPOSITAR: account → cashbox -->
-                <div class="field hide-when-withdraw hide-when-transfer">
-                  <label for="dep-account">Conta de origem</label>
+                <div class="field with-balance hide-when-withdraw hide-when-transfer">
+                  <div class="row">
+                    <label for="dep-account">Conta de origem</label>
+                    <span class="balance num">Saldo: 3.120,00 €</span>
+                  </div>
                   <select class="select" id="dep-account">
                     <option value="">Escolha uma conta</option>
                     <option value="dinheiro">Dinheiro</option>
@@ -247,7 +216,7 @@
                 </div>
 
                 <!-- RETIRAR: cashbox → account -->
-                <div class="field hide-when-deposit hide-when-transfer">
+                <div class="field with-balance hide-when-deposit hide-when-transfer">
                   <div class="row">
                     <label for="wit-cashbox">Caixinha de origem</label>
                     <span class="balance num">Saldo: 2.300,00 €</span>
@@ -259,8 +228,11 @@
                   </select>
                 </div>
 
-                <div class="field hide-when-deposit hide-when-transfer">
-                  <label for="wit-account">Conta de destino</label>
+                <div class="field with-balance hide-when-deposit hide-when-transfer">
+                  <div class="row">
+                    <label for="wit-account">Conta de destino</label>
+                    <span class="balance num">Saldo: 3.120,00 €</span>
+                  </div>
                   <select class="select" id="wit-account">
                     <option value="">Escolha uma conta</option>
                     <option value="dinheiro">Dinheiro</option>
@@ -269,10 +241,10 @@
                   </select>
                 </div>
 
-                <div class="field warn hide-when-deposit hide-when-transfer">
+                <div class="field hide-when-deposit hide-when-transfer" id="wit-amount-field">
                   <label for="wit-amount">Valor</label>
                   <input class="input num" id="wit-amount" placeholder="0,00" value="2.500,00" inputmode="decimal" />
-                  <div class="callout warn" style="margin-top: 5px">
+                  <div class="callout warn" id="wit-insufficient-warning" style="margin-top: 5px; display: none">
                     <span data-icon="alert"></span>
                     <span
                       >Saldo da caixinha: <strong class="num">2.300,00 €</strong>. Valor acima do saldo não bloqueia — o servidor responde se há saldo de
@@ -281,18 +253,13 @@
                   </div>
                 </div>
 
-                <div class="callout info hide-when-deposit hide-when-transfer">
-                  <span data-icon="info"></span>
-                  <span>O dinheiro volta para a conta. Resgate encerra a poupança.</span>
-                </div>
-
                 <!-- TRANSFERIR: cashbox → cashbox (no account at all) -->
-                <div class="field hide-when-deposit hide-when-withdraw">
+                <div class="field with-balance hide-when-deposit hide-when-withdraw">
                   <div class="row">
                     <label for="xfer-from">Caixinha de origem</label>
                     <span class="balance num">Saldo: 2.300,00 €</span>
                   </div>
-                  <select class="select" id="xfer-from">
+                  <select class="select" id="xfer-from" required>
                     <option value="">Escolha uma caixinha</option>
                     <option value="ferias">Férias 2027</option>
                     <option value="obras">Obras</option>
@@ -325,49 +292,7 @@
               <!-- Footer -->
               <div class="card-foot">
                 <button class="btn outline sm" data-close>Cancelar</button>
-                <button class="btn sm">Salvar</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- ===== demo: insufficient balance warning ===== -->
-          <h2 style="margin-top: 36px; margin-bottom: 11px">Estado: aviso de saldo insuficiente</h2>
-          <p class="small muted" style="margin-bottom: 12px">
-            Quando o valor é maior que o saldo da caixinha, aparece um aviso mas não bloqueia o submit. O campo fica com borda âmbar e a mensagem lista o saldo
-            de verdade.
-          </p>
-          <div class="demo-grid">
-            <div class="demo-card">
-              <div class="card-head">
-                <h4>Retirar: valor acima do saldo</h4>
-              </div>
-              <div class="dlg-body">
-                <div class="field with-balance">
-                  <div class="row">
-                    <label>Caixinha de origem</label>
-                    <span class="balance num">Saldo: 2.300,00 €</span>
-                  </div>
-                  <select class="select" disabled>
-                    <option>Férias 2027</option>
-                  </select>
-                </div>
-                <div class="field with-balance">
-                  <label>Conta de destino</label>
-                  <select class="select" disabled>
-                    <option>Millennium</option>
-                  </select>
-                </div>
-                <div class="field warn">
-                  <label>Valor</label>
-                  <input class="input num" value="2.500,00" disabled />
-                  <div class="callout warn" style="margin-top: 5px">
-                    <span data-icon="alert"></span>
-                    <span
-                      >Saldo da caixinha: <strong class="num">2.300,00 €</strong>. Valor acima do saldo não bloqueia — o servidor responde se há saldo de
-                      verdade.</span
-                    >
-                  </div>
-                </div>
+                <button class="btn sm" id="save-btn">Salvar</button>
               </div>
             </div>
           </div>
@@ -452,48 +377,6 @@
               </div>
             </div>
           </div>
-
-          <!-- ===== decisions ===== -->
-          <div class="decisions">
-            <h2>Decisões a aprovar</h2>
-            <p>Pontos em aberto e alternativas a resolver.</p>
-            <ol>
-              <li>
-                <b>Texto da linha explicativa de cada modo.</b>
-                <span
-                  >As três linhas acima (uma por modo) resumem o que acontece, porque cashbox é conceito novo na interface. O texto proposto está em pt-BR
-                  coloquial — aprova ou sugere reescrita?</span
-                >
-              </li>
-              <li>
-                <b>Visual do aviso "saldo insuficiente".</b>
-                <span
-                  >A implementação aqui mostra borda âmbar no input + callout no tom de aviso. Alternativa: só callout, sem marcar o input. Preferência?</span
-                >
-              </li>
-              <li>
-                <b>Campo "caixinha de origem" no modo Transferir — obrigatório?</b>
-                <span
-                  >Hoje no mockup ele está acima e obrigatório antes de saber o saldo. Alternativa: deixar como select vazio até clicar, ou colocar só depois
-                  que escolhe destino. Fluxo preferido?</span
-                >
-              </li>
-              <li>
-                <b>Label "(caixinha apagada)" — visual e ação.</b>
-                <span
-                  >A demo acima mostra como label + "escolha nova caixinha" inline. Alternativa: um ícone de warning, ou um botão "criar caixinha" embutido. O
-                  que funciona melhor?</span
-                >
-              </li>
-              <li>
-                <b>Ordem de modos no segmented control.</b>
-                <span
-                  >Proposta: Depositar → Retirar → Transferir (ordem de operações). Alternativa: alfabética (Depositar → Retirar → Transferir — que é a mesma
-                  😊). Mantém?</span
-                >
-              </li>
-            </ol>
-          </div>
         </div>
       </div>
     </div>
@@ -557,6 +440,17 @@
               });
             }
           });
+        });
+
+        // Insufficient-balance warning: only checked on submit, never while typing.
+        const saveBtn = document.getElementById('save-btn');
+        const witAmount = document.getElementById('wit-amount');
+        const witWarning = document.getElementById('wit-insufficient-warning');
+        const witCashboxBalance = 2300;
+        saveBtn.addEventListener('click', () => {
+          if (dialog.dataset.mode !== 'retirar') return;
+          const amount = parseFloat(witAmount.value.replace(/\./g, '').replace(',', '.'));
+          witWarning.style.display = amount > witCashboxBalance ? 'flex' : 'none';
         });
       });
     </script>
