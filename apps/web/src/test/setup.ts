@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 
 import { NO_MATCH, stubMatchMedia } from './match-media';
@@ -16,6 +16,11 @@ beforeAll(async () => {
   server.listen({ onUnhandledRequest: 'error' });
   await i18n.changeLanguage(DEFAULT_LOCALE);
 });
+
+// Testing Library's 1s default is enough for a single file but not for the whole suite under
+// coverage on a loaded CI runner, where mounting the shell has been seen to take longer than that.
+// Kept below Vitest's own 5s test timeout so a real failure still reports as the missing element.
+configure({ asyncUtilTimeout: 3000 });
 
 // The shell reads the viewport through `matchMedia`, which jsdom does not implement at all.
 stubMatchMedia(NO_MATCH);
