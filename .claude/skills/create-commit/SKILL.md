@@ -2,13 +2,12 @@
 name: create-commit
 description: Create a commit following the project's standard. Use this whenever creating a commit in this repository, or when asked to create/do a commit.
 model: haiku
-effort: medium
 allowed-tools:
-  - Bash(git status *)
-  - Bash(git diff *)
-  - Bash(git log *)
-  - Bash(git add *)
-  - Bash(git commit *)
+  - Bash(rtk git status *)
+  - Bash(rtk git diff *)
+  - Bash(rtk git log *)
+  - Bash(rtk git add *)
+  - Bash(rtk git commit *)
 ---
 
 ## Commit format
@@ -40,11 +39,3 @@ Examples:
 feat(auth): add password reset flow
 fix(api): handle expired refresh tokens
 refactor(users): simplify profile validation
-
-## Workflow
-
-1. Inspect `git status`.
-2. Review the complete diff.
-3. Determine an appropriate commit message following the rules above.
-4. Stage the relevant files.
-5. Commit.
