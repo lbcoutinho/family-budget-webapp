@@ -135,4 +135,6 @@ scripts). `typecheck` does not: every workspace is expected to define it. `lint`
 ## Contributing
 
 Code style, TypeScript configuration, MCP tooling setup and general conventions live in
-[`CONTRIBUTING.md`](CONTRIBUTING.md).
+[`CONTRIBUTING.md`](CONTRIBUTING.md), including the [Quality & security
+checks](CONTRIBUTING.md#quality--security-checks) every pull request goes through — coverage
+thresholds, CodeQL, Gitleaks and the Dependabot auto-merge policy.

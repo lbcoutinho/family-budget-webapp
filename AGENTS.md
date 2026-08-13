@@ -19,6 +19,7 @@ done on the API. **M5 Entries (UI)** is next.
 **Repo-wide** (run from root, cover both apps)
 
 - `pnpm dev` / `pnpm build` / `pnpm test`
+- `pnpm test:cov` — unit tests with coverage, both apps; the coverage thresholds CI enforces (see `CONTRIBUTING.md`).
 - `pnpm lint` / `pnpm lint:fix` / `pnpm format` / `pnpm format:check`
 - `pnpm -r typecheck`
 - `pnpm gen` — regenerates `@family-budget/api-client` (OpenAPI export → Orval)
@@ -28,6 +29,7 @@ done on the API. **M5 Entries (UI)** is next.
 **API** (`api:*`, proxies to `apps/api`)
 
 - `pnpm api:dev` / `api:build` / `api:start` / `api:typecheck` / `api:test` / `api:test:watch` / `api:test:e2e`.
+- `pnpm api:test:cov` — Jest with coverage.
 - `pnpm api:prisma:generate` — regenerate Prisma client into `src/generated/prisma`.
 - `pnpm api:db:migrate` / `api:db:seed` / `api:db:studio` — Prisma migrate deploy, seed script, Prisma Studio.
 - `pnpm api:db:reset` — not the same as `prisma migrate reset`; still **user-run**.
@@ -36,6 +38,7 @@ done on the API. **M5 Entries (UI)** is next.
 **Web** (`web:*`, proxies to `apps/web`)
 
 - `pnpm web:dev` / `web:build` / `web:preview` / `web:typecheck` / `web:test` / `web:test:watch`.
+- `pnpm web:test:cov` — Vitest with coverage.
 - `pnpm web:gen:client` — Orval step of `pnpm gen`; run `pnpm gen` from root instead unless you already have a fresh OpenAPI export.
 
 **Infra**
