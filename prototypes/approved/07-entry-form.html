@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       .dlg-body {
         padding: 16px;
@@ -22,6 +22,11 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
+      }
+      .field-expense-specific,
+      .field-transfer {
+        display: grid;
+        gap: 13px;
       }
       @media (max-width: 620px) {
         .two {
@@ -177,13 +182,13 @@
                   </div>
 
                   <div class="field">
-                    <label for="e-transfer-notes">Descrição (opcional)</label>
-                    <input class="input" id="e-transfer-notes" type="text" placeholder="Reserva de férias" value="Reserva de férias" />
+                    <label for="e-transfer-date">Data</label>
+                    <input class="input" id="e-transfer-date" type="text" placeholder="dd/mm/aaaa" value="15/07/2026" />
                   </div>
 
                   <div class="field">
-                    <label for="e-transfer-date">Data</label>
-                    <input class="input" id="e-transfer-date" type="text" placeholder="dd/mm/aaaa" value="15/07/2026" />
+                    <label for="e-transfer-notes">Descrição (opcional)</label>
+                    <input class="input" id="e-transfer-notes" type="text" placeholder="Reserva de férias" value="Reserva de férias" />
                   </div>
 
                   <div class="field">
