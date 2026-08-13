@@ -248,6 +248,52 @@
       "description": "Check your connection and try again."
     }
   },
+  "transactions": {
+    "title": "Entries",
+    "entries": "Month entries",
+    "new": "New entry",
+    "search": "Search entries",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "draftCount_one": "{{count}} draft",
+    "draftCount_other": "{{count}} drafts",
+    "draft": "draft",
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "monthPicker": "Choose month and year",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "creditCard": "Credit card",
+    "purchaseOn": "purchased on {{date}}",
+    "income": "Income",
+    "expense": "Expenses",
+    "monthNet": "Month balance",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…",
+    "columns": {
+      "date": "Date",
+      "description": "Description",
+      "type": "Type",
+      "amount": "Amount"
+    },
+    "type": {
+      "INCOME": "Income",
+      "EXPENSE": "Expense",
+      "TRANSFER": "Transfer",
+      "CASHBOX_IN": "Cashbox deposit",
+      "CASHBOX_OUT": "Cashbox withdrawal",
+      "CASHBOX_TRANSFER": "Between cashboxes"
+    },
+    "empty": {
+      "title": "No entries in {{month}}",
+      "description": "Record the first movement of the month or choose another month."
+    },
+    "error": {
+      "title": "Could not load entries",
+      "description": "Check your connection and try again."
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Language",
