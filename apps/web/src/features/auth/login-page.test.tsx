@@ -2,7 +2,7 @@ import { getAccessToken, setAccessToken } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { HttpResponse, delay, http } from 'msw';
+import { HttpResponse, http } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -53,9 +53,17 @@ describe('LoginPage', () => {
   });
 
   it('shows the busy state in the button while the request is in flight', async () => {
+    // The response is held open until the assertions have run. A fixed delay would race them: the
+    // element found by `findBy*` is re-rendered in place, so it stops being disabled the moment the
+    // request settles, whether or not the assertions got there first.
+    let respond!: () => void;
+    const inFlight = new Promise<void>((resolve) => {
+      respond = resolve;
+    });
+
     server.use(
       http.post('/api/auth/login', async () => {
-        await delay(50);
+        await inFlight;
 
         return HttpResponse.json(SESSION);
       }),
@@ -69,6 +77,11 @@ describe('LoginPage', () => {
     const submitting = await screen.findByRole('button', { name: /Entrando/ });
     expect(submitting).toBeDisabled();
     expect(screen.getByLabelText('E-mail')).toBeDisabled();
+
+    respond();
+    await waitFor(() => {
+      expect(getAccessToken()).toBe('access-token');
+    });
   });
 
   it('stores the token on success', async () => {
