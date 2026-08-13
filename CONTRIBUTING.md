@@ -80,6 +80,48 @@ required. Export it in your shell before starting Claude Code, it is not read fr
 export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
 ```
 
+## Quality & security checks
+
+```text
+Regular pull requests:
+  lint + typecheck + generated-client check + tests + coverage + integration tests + CodeQL + Gitleaks
+
+Dependabot version updates:
+  Friday, 12:00 Europe/Lisbon
+
+Dependabot patch/minor:
+  auto-merge after green CI
+
+Dependabot major:
+  manual review
+```
+
+Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — lint, typecheck, a check
+that the committed `packages/api-client` still matches the OpenAPI contract (`pnpm gen` re-run, diffed), unit tests
+with coverage (`pnpm test:cov`), and the API's integration/e2e suite against a real Postgres service container — plus
+two dedicated workflows: [`codeql.yml`](.github/workflows/codeql.yml) (SAST for JS/TS) and
+[`gitleaks.yml`](.github/workflows/gitleaks.yml) (secret scanning, full history). `ci`, `CodeQL` and `gitleaks` are
+required status checks on `main`, with "require branches to be up to date" enabled.
+
+**Coverage thresholds** are enforced per app, not repo-wide: `apps/api/jest.config.js` (`coverageThreshold`) and
+`apps/web/vite.config.ts` (`test.coverage.thresholds`). The web thresholds are already at the long-term target
+(70% statements/functions/lines, 60% branches). The API thresholds are temporarily frozen at its measured baseline
+(45% statements/lines, 60% branches/functions) — see the `TODO(M4.1-T01)` comment next to them — and should be
+raised as API coverage improves; either app failing its thresholds fails the `ci` check.
+
+**Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) checks npm/pnpm and GitHub Actions dependencies
+weekly, Friday 12:00 `Europe/Lisbon`. Patch and minor bumps are grouped per ecosystem into one PR; major bumps stay
+ungrouped. [`dependabot-automerge.yml`](.github/workflows/dependabot-automerge.yml) enables GitHub's native
+auto-merge on any Dependabot PR classified `semver-patch` or `semver-minor` — the actual merge still waits for every
+required check to pass, so a red `ci` run blocks it exactly like a human-authored PR. Major-version PRs are left
+alone by that workflow and require a manual merge. Dependabot Alerts and Security Updates are enabled independently
+of the weekly schedule, so vulnerability patches aren't gated on Friday.
+
+Every workflow in `.github/workflows/` declares an explicit, minimal `permissions:` block (no repo-wide default
+write); none of them uses a personal access token. `dependabot-automerge.yml` runs on `pull_request_target` for its
+writable token, but its steps only read PR metadata and call `gh pr merge` — it never checks out or executes
+PR-authored code.
+
 ## Conventions
 
 - Money is always stored and transported as **integer cents** — never floats.
