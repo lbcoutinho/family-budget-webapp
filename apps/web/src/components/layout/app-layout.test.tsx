@@ -13,7 +13,12 @@ import { server } from '@/test/server';
 // The accounts route now renders the real AccountsPage, so any navigation there fetches; a route
 // this suite treats as a navigation target, not a screen under test, just needs an empty list.
 beforeEach(() => {
-  server.use(http.get('/api/accounts', () => HttpResponse.json([])));
+  server.use(
+    http.get('/api/accounts', () => HttpResponse.json([])),
+    http.get('/api/transactions', () =>
+      HttpResponse.json({ items: [], total: 0, incomeTotal: 0, expenseTotal: 0, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null }),
+    ),
+  );
 });
 
 const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' as const };
@@ -82,10 +87,10 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: 'Mês' })).not.toHaveAttribute('aria-current');
   });
 
-  it('sends the index route to the month screen', () => {
+  it('sends the index route to the month screen', async () => {
     renderShell('/');
 
-    expect(screen.getByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mês anterior' })).toBeInTheDocument();
   });
 
   it('shows the user and logs out without asking for confirmation', async () => {

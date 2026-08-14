@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, delay, http } from 'msw';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthProvider } from './auth-provider';
 
@@ -32,6 +32,14 @@ function renderApp(initialEntry: string) {
 
 const noSession = () => http.post('/api/auth/refresh', () => new HttpResponse(null, { status: 401 }));
 const restoredSession = () => http.post('/api/auth/refresh', () => HttpResponse.json(SESSION));
+const emptyTransactions = () =>
+  http.get('/api/transactions', () =>
+    HttpResponse.json({ items: [], total: 0, incomeTotal: 0, expenseTotal: 0, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null }),
+  );
+
+beforeEach(() => {
+  server.use(emptyTransactions());
+});
 
 afterEach(() => {
   setAccessToken(null);
@@ -41,9 +49,9 @@ describe('authentication flow', () => {
   it('restores the session on mount and renders the protected route', async () => {
     server.use(restoredSession());
 
-    renderApp('/');
+    renderApp('/month/2026/08');
 
-    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+    expect(await screen.findByRole('searchbox')).toBeInTheDocument();
   });
 
   it('shows the verifying state instead of the login form while the refresh is in flight', async () => {
@@ -59,7 +67,7 @@ describe('authentication flow', () => {
 
     expect(screen.getByText('Restaurando sessão…')).toBeInTheDocument();
     expect(screen.queryByLabelText('E-mail')).not.toBeInTheDocument();
-    await screen.findByRole('heading', { name: 'Mês' });
+    await screen.findByRole('button', { name: 'Mês anterior' });
   });
 
   it('sends a protected route without a session to the login screen', async () => {
@@ -85,7 +93,7 @@ describe('authentication flow', () => {
     await user.type(screen.getByLabelText('Senha'), 'demo1234');
     await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
-    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mês anterior' })).toBeInTheDocument();
   });
 
   it("wins over the browser's language: a pt-BR session renders even when navigator.language is en-US", async () => {
@@ -94,7 +102,7 @@ describe('authentication flow', () => {
 
     renderApp('/');
 
-    expect(await screen.findByRole('heading', { name: 'Mês' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mês anterior' })).toBeInTheDocument();
     expect(i18n.language).toBe('pt-BR');
   });
 

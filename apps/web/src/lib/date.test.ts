@@ -58,8 +58,11 @@ describe('monthRange', () => {
 
 describe('month URL helpers', () => {
   it('builds a canonical, zero-padded path from a month label', () => {
+    const yearNine = new Date(0);
+    yearNine.setFullYear(9, 10, 1);
+
     expect(monthPath(new Date(2026, 0, 27))).toBe('/month/2026/01');
-    expect(monthPath(new Date(9, 10, 1))).toBe('/month/0009/11');
+    expect(monthPath(yearNine)).toBe('/month/0009/11');
   });
 
   it('uses the local current month for the month redirect', () => {
