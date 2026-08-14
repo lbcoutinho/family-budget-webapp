@@ -1,8 +1,18 @@
 import { getListTransactionsQueryOptions, listTransactions, type TransactionListItemDto, TransactionStatus, TransactionType } from '@family-budget/api-client';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { type TFunction } from 'i18next';
-import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, CreditCardIcon, SearchIcon } from 'lucide-react';
+import {
+  CalendarDaysIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CreditCardIcon,
+  FilterIcon,
+  PencilIcon,
+  PiggyBankIcon,
+  PlusIcon,
+  SearchIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -13,7 +23,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import i18n, { type TranslationKey } from '@/i18n';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
 import { formatCents } from '@/lib/money';
@@ -43,20 +52,26 @@ function typeLabel(type: TransactionType, t: TFunction): string {
   return t(`transactions.type.${type}` as TranslationKey);
 }
 
-function transactionDetail(transaction: TransactionListItemDto): string {
-  const category = [transaction.category?.name, transaction.subcategory?.name].filter(Boolean).join(' · ');
-  const account = transaction.account?.name;
-  const cashbox = transaction.cashboxLabel ?? transaction.destinationCashboxLabel;
-
-  return [category, account, cashbox].filter(Boolean).join(' — ');
+function isCashboxOperation(type: TransactionType): boolean {
+  return type === TransactionType.CASHBOX_IN || type === TransactionType.CASHBOX_OUT || type === TransactionType.CASHBOX_TRANSFER;
 }
 
-function typeBadgeClass(type: TransactionType): string {
-  if (type === TransactionType.INCOME) return 'border-emerald-200 bg-emerald-50 text-emerald-800';
-  if (type === TransactionType.EXPENSE) return 'border-red-200 bg-red-50 text-red-800';
-  if (type === TransactionType.TRANSFER) return 'border-blue-200 bg-blue-50 text-blue-800';
+function transactionDetail(transaction: TransactionListItemDto): string {
+  if (isCashboxOperation(transaction.type)) {
+    const [source, destination] =
+      transaction.type === TransactionType.CASHBOX_IN
+        ? [transaction.account?.name, transaction.cashboxLabel]
+        : transaction.type === TransactionType.CASHBOX_OUT
+          ? [transaction.cashboxLabel, transaction.account?.name]
+          : [transaction.cashboxLabel, transaction.destinationCashboxLabel];
 
-  return 'border-amber-200 bg-amber-50 text-amber-900';
+    return [source, destination].filter(Boolean).join(' → ');
+  }
+
+  const category = [transaction.category?.name, transaction.subcategory?.name].filter(Boolean).join(' · ');
+  const account = transaction.account?.name;
+
+  return [category, account].filter(Boolean).join(' — ');
 }
 
 function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) => void }) {
@@ -73,7 +88,7 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
     <div className="relative">
       <Button
         variant="ghost"
-        className="h-auto px-1 text-[1.05rem] font-bold tracking-[-0.02em]"
+        className="h-auto px-2 text-[1.05rem] font-bold tracking-[-0.02em]"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
       >
@@ -84,7 +99,7 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
         <div
           role="dialog"
           aria-label={t('transactions.monthPicker')}
-          className="absolute top-full left-0 z-30 mt-2 w-72 rounded-lg border bg-popover p-3 shadow-md"
+          className="absolute top-full left-1/2 z-30 mt-2 w-72 -translate-x-1/2 rounded-lg border bg-popover p-3 shadow-md"
         >
           <div className="mb-3 flex items-center justify-between">
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousYear')} onClick={() => setYear((value) => value - 1)}>
@@ -134,6 +149,11 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
             {t('transactions.draft')}
           </Badge>
         ) : null}
+        {isCashboxOperation(entry.type) ? (
+          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] text-amber-900">
+            {typeLabel(entry.type, t)}
+          </Badge>
+        ) : null}
       </div>
       <p className="mt-0.5 truncate text-xs text-muted-foreground">
         {detail || typeLabel(entry.type, t)}
@@ -144,11 +164,27 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
 }
 
 function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
+  const { t } = useTranslation();
   const neutral = entry.type === TransactionType.TRANSFER || entry.type === TransactionType.CASHBOX_TRANSFER;
   const amount = neutral ? entry.amount : transactionAmount(entry);
-  const tone = amount < 0 ? 'text-destructive' : amount > 0 ? 'text-emerald-700' : '';
+  const tone =
+    entry.type === TransactionType.EXPENSE
+      ? 'text-destructive'
+      : entry.type === TransactionType.INCOME
+        ? 'text-emerald-700'
+        : entry.type === TransactionType.TRANSFER
+          ? 'text-blue-700'
+          : 'text-cashbox';
 
-  return <span className={`num whitespace-nowrap ${tone}`}>{formatCents(amount, { sign: !neutral })}</span>;
+  return (
+    <span className={`num block whitespace-nowrap ${tone}`}>
+      {formatCents(amount, { sign: !neutral })}
+      {/* The list API does not supply running balances. */}
+      {entry.status === TransactionStatus.CONFIRMED ? (
+        <small className="mt-0.5 block text-[11px] font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
+      ) : null}
+    </span>
+  );
 }
 
 function EntriesSkeleton() {
@@ -201,30 +237,6 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const draftEntries = drafts.data?.items ?? [];
   const firstPage = confirmed.data?.pages[0];
   const allEntries = [...draftEntries, ...entries];
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table exposes non-memoizable functions by design.
-  const table = useReactTable({
-    data: allEntries,
-    columns: [
-      {
-        accessorKey: 'date',
-        header: t('transactions.columns.date'),
-        cell: ({ row }) => new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(row.original.date)),
-      },
-      { accessorKey: 'description', header: t('transactions.columns.description'), cell: ({ row }) => <EntryMeta entry={row.original} /> },
-      {
-        accessorKey: 'type',
-        header: t('transactions.columns.type'),
-        cell: ({ row }) => (
-          <Badge variant="outline" className={typeBadgeClass(row.original.type)}>
-            {typeLabel(row.original.type, t)}
-          </Badge>
-        ),
-      },
-      { accessorKey: 'amount', header: t('transactions.columns.amount'), cell: ({ row }) => <EntryAmount entry={row.original} /> },
-    ],
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
 
   useEffect(() => {
     const node = sentinel.current;
@@ -251,41 +263,89 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   return (
     <>
       <PageHeader
-        title={<MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />}
-        actions={
-          <div className="flex items-center gap-1">
+        title={
+          <span className="flex items-center gap-1">
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
               <ChevronLeftIcon />
             </Button>
+            <MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
               <ChevronRightIcon />
             </Button>
-            <Button variant="outline" size="sm" onClick={() => selectMonth(new Date())}>
+            <Button variant="ghost" size="sm" onClick={() => selectMonth(new Date())}>
               {t('transactions.today')}
+            </Button>
+          </span>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="border-amber-300 text-cashbox">
+              <PiggyBankIcon />
+              {t('transactions.moveCashbox')}
+            </Button>
+            <Button size="sm">
+              <PlusIcon />
+              {t('transactions.new')}
             </Button>
           </div>
         }
       />
       <PageContent className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-semibold">{t('transactions.title')}</h2>
-            {!loading && !failed ? (
-              <p className="text-sm text-muted-foreground">
-                {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
-              </p>
-            ) : null}
+        <section className="rounded-lg border bg-card p-4 shadow-xs">
+          <h2 className="font-semibold">{t('transactions.dailyExpense.title')}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t('transactions.dailyExpense.description')}</p>
+        </section>
+
+        <section aria-label={t('transactions.balances')} className="grid grid-cols-2 gap-2.5 shell:grid-cols-4">
+          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.millennium')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(348215)}</p>
           </div>
-          <div className="relative w-full sm:w-60">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              aria-label={t('transactions.search')}
-              placeholder={t('transactions.search')}
-              className="pl-8"
-            />
+          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.revolut')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(41290)}</p>
+          </div>
+          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.cash')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em] text-destructive">{formatCents(-3500)}</p>
+          </div>
+          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.cashboxes')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(415000)}</p>
+          </div>
+        </section>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-1 flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-58">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                aria-label={t('transactions.search')}
+                placeholder={t('transactions.search')}
+                className="pl-8"
+              />
+            </div>
+            <Button variant="outline" size="sm">
+              <FilterIcon />
+              {t('transactions.filters.type')}
+            </Button>
+            <Button variant="outline" size="sm">
+              {t('transactions.filters.category')}
+            </Button>
+            <Button variant="outline" size="sm">
+              {t('transactions.filters.account')}
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="month-sort" className="text-xs text-muted-foreground">
+              {t('transactions.sort.label')}
+            </label>
+            <select id="month-sort" className="h-8 rounded-md border bg-background px-2 text-xs">
+              <option>{t('transactions.sort.newest')}</option>
+            </select>
           </div>
         </div>
 
@@ -314,107 +374,69 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             icon={CalendarDaysIcon}
             title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}
             description={t('transactions.empty.description')}
-            action={
-              <Button size="sm" disabled>
-                {t('transactions.new')}
-              </Button>
-            }
+            action={<Button size="sm">{t('transactions.new')}</Button>}
           />
         ) : null}
         {!loading && !failed && hasEntries ? (
           <section aria-labelledby="month-entries" className="overflow-hidden rounded-lg border">
-            <div className="border-b px-3 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
               <h2 id="month-entries" className="font-semibold">
                 {t('transactions.entries')}
               </h2>
+              <p className="text-xs text-muted-foreground">
+                {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
+              </p>
             </div>
-            <div className="hidden shell:block">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id} className={header.id === 'amount' ? 'text-right' : ''}>
-                          {header.isPlaceholder ? null : (
-                            <button type="button" className="cursor-pointer" onClick={header.column.getToggleSortingHandler()}>
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                            </button>
-                          )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                {/* ponytail: client-side sorting only orders the loaded prefix; add API sorting if this ever becomes limiting. */}
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} className={row.original.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className={cell.column.id === 'amount' ? 'text-right' : ''}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={3}>{t('transactions.income')}</TableCell>
-                    <TableCell className="text-right">
-                      <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={3}>{t('transactions.expense')}</TableCell>
-                    <TableCell className="text-right">
-                      <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={3}>{t('transactions.monthNet')}</TableCell>
-                    <TableCell className="text-right">
-                      <span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span>
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </div>
-            <div className="shell:hidden divide-y">
+            <div>
               {allEntries.map((entry) => (
-                <article key={entry.id} className={`flex gap-3 p-3 ${entry.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}`}>
-                  <time className="num shrink-0 text-xs text-muted-foreground">
+                <article
+                  key={entry.id}
+                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
+                  style={{ borderLeftColor: entry.category?.color ?? 'transparent' }}
+                >
+                  <time className="num text-xs text-muted-foreground">
                     {new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(entry.date))}
                   </time>
                   <EntryMeta entry={entry} />
-                  <div className="ml-auto">
+                  <div className="text-right">
                     <EntryAmount entry={entry} />
+                  </div>
+                  <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
+                    <Button variant="ghost" size="icon-xs" aria-label={t('common.edit')} className="opacity-50 transition-opacity group-hover:opacity-100">
+                      <PencilIcon />
+                    </Button>
+                    <Button variant="ghost" size="icon-xs" aria-label={t('common.delete')} className="opacity-50 transition-opacity group-hover:opacity-100">
+                      <Trash2Icon />
+                    </Button>
                   </div>
                 </article>
               ))}
             </div>
-            <div className="border-t bg-muted/40 px-3 py-3 text-sm shell:hidden">
+            {confirmed.hasNextPage ? (
+              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-sm">
+                <Button variant="ghost" size="sm" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
+                  {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
+                </Button>
+              </div>
+            ) : null}
+            <footer className="bg-muted/70 px-4 py-3 text-sm">
               <div className="flex justify-between">
                 <span>{t('transactions.income')}</span>
                 <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
               </div>
               <div className="mt-1 flex justify-between">
-                <span>{t('transactions.expense')}</span>
+                <span>
+                  {t('transactions.expense')} <small className="text-xs text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                </span>
                 <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-              <div className="mt-1 flex justify-between font-medium">
+              <div className="mt-2 flex justify-between border-t pt-2 font-display text-base font-bold tracking-[-0.02em]">
                 <span>{t('transactions.monthNet')}</span>
                 <span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-            </div>
+            </footer>
           </section>
         ) : null}
-        <div ref={sentinel} className="flex justify-center" aria-hidden={!confirmed.hasNextPage}>
-          {confirmed.hasNextPage ? (
-            <Button variant="outline" size="sm" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
-              {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
-            </Button>
-          ) : null}
-        </div>
       </PageContent>
     </>
   );

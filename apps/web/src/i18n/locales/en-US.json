@@ -249,9 +249,9 @@
     }
   },
   "transactions": {
-    "title": "Entries",
     "entries": "Month entries",
     "new": "New entry",
+    "moveCashbox": "Move cashbox funds",
     "search": "Search entries",
     "count_one": "{{count}} entry",
     "count_other": "{{count}} entries",
@@ -266,17 +266,33 @@
     "nextYear": "Next year",
     "creditCard": "Credit card",
     "purchaseOn": "purchased on {{date}}",
+    "balancePlaceholder": "Balance unavailable",
+    "balances": "Account balances",
+    "dailyExpense": {
+      "title": "Daily expenses",
+      "description": "Here are the day-to-day expenses."
+    },
+    "accounts": {
+      "millennium": "Millennium",
+      "revolut": "Revolut",
+      "cash": "Cash",
+      "cashboxes": "Cashboxes"
+    },
+    "filters": {
+      "type": "Type: all",
+      "category": "Category: all",
+      "account": "Account: all"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Date — newest first"
+    },
     "income": "Income",
     "expense": "Expenses",
+    "expenseExcludesCashboxes": "excluding transfers and cashboxes",
     "monthNet": "Month balance",
     "loadMore": "Load more",
     "loadingMore": "Loading more…",
-    "columns": {
-      "date": "Date",
-      "description": "Description",
-      "type": "Type",
-      "amount": "Amount"
-    },
     "type": {
       "INCOME": "Income",
       "EXPENSE": "Expense",

@@ -124,12 +124,17 @@ describe('MonthPage', () => {
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/month\/\d{4}\/(0[1-9]|1[0-2])$/));
   });
 
-  it('offers the disabled create action for an empty month until the entry dialog lands', async () => {
+  it('shows the approved month-list controls without a generic table', async () => {
     server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
 
     renderPage();
 
-    expect(await screen.findByRole('button', { name: 'Novo lançamento' })).toBeDisabled();
+    await screen.findByText('Nada lançado em Julho de 2026');
+
+    expect(screen.getAllByRole('button', { name: 'Novo lançamento' })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Movimentar caixinha' })).toBeEnabled();
+    expect(screen.getByText('Aqui são as despesas dia a dia.')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
   });
 
   it('fetches the next confirmed page when the load-more control is used', async () => {

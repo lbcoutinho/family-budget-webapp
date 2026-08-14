@@ -249,9 +249,9 @@
     }
   },
   "transactions": {
-    "title": "Lançamentos",
     "entries": "Lançamentos do mês",
     "new": "Novo lançamento",
+    "moveCashbox": "Movimentar caixinha",
     "search": "Buscar lançamentos",
     "count_one": "{{count}} lançamento",
     "count_other": "{{count}} lançamentos",
@@ -266,17 +266,33 @@
     "nextYear": "Próximo ano",
     "creditCard": "Cartão de crédito",
     "purchaseOn": "compra em {{date}}",
+    "balancePlaceholder": "Saldo indisponível",
+    "balances": "Saldos das contas",
+    "dailyExpense": {
+      "title": "Despesas dia a dia",
+      "description": "Aqui são as despesas dia a dia."
+    },
+    "accounts": {
+      "millennium": "Millennium",
+      "revolut": "Revolut",
+      "cash": "Dinheiro",
+      "cashboxes": "Caixinhas"
+    },
+    "filters": {
+      "type": "Tipo: todos",
+      "category": "Categoria: todas",
+      "account": "Conta: todas"
+    },
+    "sort": {
+      "label": "Ordenar",
+      "newest": "Data — mais recente"
+    },
     "income": "Receitas",
     "expense": "Despesas",
+    "expenseExcludesCashboxes": "sem transferências e caixinhas",
     "monthNet": "Saldo do mês",
     "loadMore": "Carregar mais",
     "loadingMore": "Carregando mais…",
-    "columns": {
-      "date": "Data",
-      "description": "Descrição",
-      "type": "Tipo",
-      "amount": "Valor"
-    },
     "type": {
       "INCOME": "Receita",
       "EXPENSE": "Despesa",
