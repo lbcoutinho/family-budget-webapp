@@ -288,6 +288,43 @@ const SAMPLE_TRANSACTIONS = [
   { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-09', description: 'Reforço da obra' },
   { type: 'CASHBOX_OUT', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-05', description: 'Pagamento ao empreiteiro' },
   { type: 'CASHBOX_OUT', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-11', description: 'Compra de material' },
+
+  // July 2026: income equals expenses, month ends at a zero balance.
+  { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 320_000, date: '2026-07-01', description: 'Salário' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Renda', amount: 90_000, date: '2026-07-01', description: 'Renda de julho' },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 12_000,
+    date: '2026-07-10',
+    description: 'Compras da semana',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Transporte',
+    subcategory: 'Seguro',
+    amount: 218_000,
+    date: '2026-07-15',
+    description: 'Reparação do carro',
+  },
+
+  // June 2026: income covers expenses plus a cashbox deposit, month ends at a zero balance.
+  { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 300_000, date: '2026-06-01', description: 'Salário' },
+  { type: 'INCOME', account: 'Revolut', category: 'Salário', subcategory: 'Outros', amount: 50_000, date: '2026-06-05', description: 'Trabalho extra' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Renda', amount: 90_000, date: '2026-06-01', description: 'Renda de junho' },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 60_000,
+    date: '2026-06-10',
+    description: 'Compras do mês',
+  },
+  { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Férias 2027', amount: 200_000, date: '2026-06-15', description: 'Poupança de junho' },
 ] as const;
 
 /**
