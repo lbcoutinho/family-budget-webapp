@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp", "--path", "/home/leandro/Documentos/git/family-budget-webapp/.claude/worktrees/issue-152-monthly-tab"]
+    }
+  }
+}
