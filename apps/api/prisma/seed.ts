@@ -282,6 +282,17 @@ const SAMPLE_TRANSACTIONS = [
   { type: 'EXPENSE', account: 'Revolut', category: 'Lazer', subcategory: 'Espetáculos', amount: 5_000, date: '2026-08-08', description: 'Cinema' },
   { type: 'EXPENSE', account: 'Millennium', category: 'Lazer', subcategory: 'Espetáculos', amount: 2_200, date: '2026-08-10', description: 'Concerto' },
 
+  {
+    type: 'EXPENSE',
+    account: 'Revolut',
+    category: 'Lazer',
+    subcategory: 'Espetáculos',
+    amount: 7_500,
+    date: '2026-08-12',
+    description: 'Bilhetes de festival (por confirmar)',
+    status: 'DRAFT',
+  },
+
   { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Férias 2027', amount: 40_000, date: '2026-08-01', description: 'Poupança de agosto' },
   { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Férias 2027', amount: 25_000, date: '2026-08-08', description: 'Bónus de férias' },
   { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-02', description: 'Depósito para a obra' },
@@ -309,6 +320,16 @@ const SAMPLE_TRANSACTIONS = [
     amount: 218_000,
     date: '2026-07-15',
     description: 'Reparação do carro',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Revolut',
+    category: 'Alimentação',
+    subcategory: 'Restaurante',
+    amount: 4_200,
+    date: '2026-07-20',
+    description: 'Jantar de aniversário (por confirmar)',
+    status: 'DRAFT',
   },
 
   // June 2026: income covers expenses plus a cashbox deposit, month ends at a zero balance.
@@ -372,6 +393,7 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         userId,
         type: transaction.type,
         amount: transaction.amount,
+        status: 'status' in transaction ? transaction.status : undefined,
         date,
         referenceMonth,
         description: transaction.description,
