@@ -262,5 +262,18 @@
         "en-US": "English (US)"
       }
     }
+  },
+  "transactions": {
+    "field": {
+      "category": "Categoria",
+      "subcategory": "Subcategoria"
+    },
+    "category": {
+      "placeholder": "Selecione uma categoria"
+    },
+    "subcategory": {
+      "placeholder": "Selecione uma subcategoria",
+      "placeholderNoCategory": "Selecione uma categoria primeiro"
+    }
   }
 }
