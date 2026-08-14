@@ -1,12 +1,6 @@
-import {
-  getListTransactionsQueryOptions,
-  listTransactions,
-  type TransactionListItemDto,
-  TransactionStatus,
-  TransactionType,
-} from '@family-budget/api-client';
-import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
+import { getListTransactionsQueryOptions, listTransactions, type TransactionListItemDto, TransactionStatus, TransactionType } from '@family-budget/api-client';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, CreditCardIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -69,8 +63,6 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(month.getFullYear());
 
-  useEffect(() => setYear(month.getFullYear()), [month]);
-
   const monthNames = useMemo(
     () => Array.from({ length: 12 }, (_, index) => new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(year, index, 1))),
     [year],
@@ -78,12 +70,21 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
 
   return (
     <div className="relative">
-      <Button variant="ghost" className="h-auto px-1 text-[1.05rem] font-bold tracking-[-0.02em]" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <Button
+        variant="ghost"
+        className="h-auto px-1 text-[1.05rem] font-bold tracking-[-0.02em]"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+      >
         {formatMonth(month)}
         <ChevronRightIcon className="size-4" />
       </Button>
       {open ? (
-        <div role="dialog" aria-label={t('transactions.monthPicker')} className="absolute top-full left-0 z-30 mt-2 w-72 rounded-lg border bg-popover p-3 shadow-md">
+        <div
+          role="dialog"
+          aria-label={t('transactions.monthPicker')}
+          className="absolute top-full left-0 z-30 mt-2 w-72 rounded-lg border bg-popover p-3 shadow-md"
+        >
           <div className="mb-3 flex items-center justify-between">
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousYear')} onClick={() => setYear((value) => value - 1)}>
               <ChevronLeftIcon />
@@ -127,7 +128,11 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="truncate font-medium">{entry.description}</span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
-        {entry.status === TransactionStatus.DRAFT ? <Badge variant="outline" className="border-dashed text-[10px]">{t('transactions.draft')}</Badge> : null}
+        {entry.status === TransactionStatus.DRAFT ? (
+          <Badge variant="outline" className="border-dashed text-[10px]">
+            {t('transactions.draft')}
+          </Badge>
+        ) : null}
       </div>
       <p className="mt-0.5 truncate text-xs text-muted-foreground">
         {detail || typeLabel(entry.type, t)}
@@ -148,7 +153,9 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
 function EntriesSkeleton() {
   return (
     <div className="space-y-px rounded-lg border p-3" aria-label="Loading entries">
-      {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-14 w-full" />)}
+      {Array.from({ length: 6 }, (_, index) => (
+        <Skeleton key={index} className="h-14 w-full" />
+      ))}
     </div>
   );
 }
@@ -193,12 +200,25 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const draftEntries = drafts.data?.items ?? [];
   const firstPage = confirmed.data?.pages[0];
   const allEntries = [...draftEntries, ...entries];
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table exposes non-memoizable functions by design.
   const table = useReactTable({
     data: allEntries,
     columns: [
-      { accessorKey: 'date', header: t('transactions.columns.date'), cell: ({ row }) => new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(row.original.date)) },
+      {
+        accessorKey: 'date',
+        header: t('transactions.columns.date'),
+        cell: ({ row }) => new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(row.original.date)),
+      },
       { accessorKey: 'description', header: t('transactions.columns.description'), cell: ({ row }) => <EntryMeta entry={row.original} /> },
-      { accessorKey: 'type', header: t('transactions.columns.type'), cell: ({ row }) => <Badge variant="outline" className={typeBadgeClass(row.original.type)}>{typeLabel(row.original.type, t)}</Badge> },
+      {
+        accessorKey: 'type',
+        header: t('transactions.columns.type'),
+        cell: ({ row }) => (
+          <Badge variant="outline" className={typeBadgeClass(row.original.type)}>
+            {typeLabel(row.original.type, t)}
+          </Badge>
+        ),
+      },
       { accessorKey: 'amount', header: t('transactions.columns.amount'), cell: ({ row }) => <EntryAmount entry={row.original} /> },
     ],
     getCoreRowModel: getCoreRowModel(),
@@ -214,10 +234,15 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     const observer = new window.IntersectionObserver(onIntersect);
     observer.observe(node);
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Subscribe only when the observer inputs change, not on query object identity.
   }, [confirmed.fetchNextPage, confirmed.hasNextPage, confirmed.isFetchingNextPage]);
 
-  const moveMonth = (offset: number) => navigate(monthPath(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + offset, 1)));
-  const selectMonth = (next: Date) => navigate(monthPath(next));
+  const moveMonth = (offset: number) => {
+    void navigate(monthPath(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + offset, 1)));
+  };
+  const selectMonth = (next: Date) => {
+    void navigate(monthPath(next));
+  };
   const hasEntries = allEntries.length > 0;
   const loading = confirmed.isPending || drafts.isPending;
   const failed = confirmed.isError || drafts.isError;
@@ -225,12 +250,18 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   return (
     <>
       <PageHeader
-        title={<MonthPicker month={referenceMonth} onSelect={selectMonth} />}
+        title={<MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />}
         actions={
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}><ChevronLeftIcon /></Button>
-            <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}><ChevronRightIcon /></Button>
-            <Button variant="outline" size="sm" onClick={() => selectMonth(new Date())}>{t('transactions.today')}</Button>
+            <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
+              <ChevronLeftIcon />
+            </Button>
+            <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
+              <ChevronRightIcon />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => selectMonth(new Date())}>
+              {t('transactions.today')}
+            </Button>
           </div>
         }
       />
@@ -238,49 +269,150 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-semibold">{t('transactions.title')}</h2>
-            {!loading && !failed ? <p className="text-sm text-muted-foreground">{t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}</p> : null}
+            {!loading && !failed ? (
+              <p className="text-sm text-muted-foreground">
+                {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
+              </p>
+            ) : null}
           </div>
           <div className="relative w-full sm:w-60">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} aria-label={t('transactions.search')} placeholder={t('transactions.search')} className="pl-8" />
+            <Input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              aria-label={t('transactions.search')}
+              placeholder={t('transactions.search')}
+              className="pl-8"
+            />
           </div>
         </div>
 
         {loading ? <EntriesSkeleton /> : null}
         {failed ? (
-          <EmptyState icon={CalendarDaysIcon} title={t('transactions.error.title')} description={t('transactions.error.description')} action={<Button size="sm" variant="outline" onClick={() => { void confirmed.refetch(); void drafts.refetch(); }}>{t('common.retry')}</Button>} />
+          <EmptyState
+            icon={CalendarDaysIcon}
+            title={t('transactions.error.title')}
+            description={t('transactions.error.description')}
+            action={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void confirmed.refetch();
+                  void drafts.refetch();
+                }}
+              >
+                {t('common.retry')}
+              </Button>
+            }
+          />
         ) : null}
         {!loading && !failed && !hasEntries ? (
           <EmptyState
             icon={CalendarDaysIcon}
             title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}
             description={t('transactions.empty.description')}
-            action={<Button size="sm" disabled>{t('transactions.new')}</Button>}
+            action={
+              <Button size="sm" disabled>
+                {t('transactions.new')}
+              </Button>
+            }
           />
         ) : null}
         {!loading && !failed && hasEntries ? (
           <section aria-labelledby="month-entries" className="overflow-hidden rounded-lg border">
-            <div className="border-b px-3 py-3"><h2 id="month-entries" className="font-semibold">{t('transactions.entries')}</h2></div>
+            <div className="border-b px-3 py-3">
+              <h2 id="month-entries" className="font-semibold">
+                {t('transactions.entries')}
+              </h2>
+            </div>
             <div className="hidden shell:block">
               <Table>
-                <TableHeader>{table.getHeaderGroups().map((headerGroup) => <TableRow key={headerGroup.id}>{headerGroup.headers.map((header) => <TableHead key={header.id} className={header.id === 'amount' ? 'text-right' : ''}>{header.isPlaceholder ? null : <button type="button" className="cursor-pointer" onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}</button>}</TableHead>)}</TableRow>)}</TableHeader>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className={header.id === 'amount' ? 'text-right' : ''}>
+                          {header.isPlaceholder ? null : (
+                            <button type="button" className="cursor-pointer" onClick={header.column.getToggleSortingHandler()}>
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                            </button>
+                          )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
                 {/* ponytail: client-side sorting only orders the loaded prefix; add API sorting if this ever becomes limiting. */}
-                <TableBody>{table.getRowModel().rows.map((row) => <TableRow key={row.id} className={row.original.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}>{row.getVisibleCells().map((cell) => <TableCell key={cell.id} className={cell.column.id === 'amount' ? 'text-right' : ''}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>)}</TableRow>)}</TableBody>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} className={row.original.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className={cell.column.id === 'amount' ? 'text-right' : ''}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
                 <TableFooter>
-                  <TableRow><TableCell colSpan={3}>{t('transactions.income')}</TableCell><TableCell className="text-right"><span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span></TableCell></TableRow>
-                  <TableRow><TableCell colSpan={3}>{t('transactions.expense')}</TableCell><TableCell className="text-right"><span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span></TableCell></TableRow>
-                  <TableRow><TableCell colSpan={3}>{t('transactions.monthNet')}</TableCell><TableCell className="text-right"><span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span></TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3}>{t('transactions.income')}</TableCell>
+                    <TableCell className="text-right">
+                      <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3}>{t('transactions.expense')}</TableCell>
+                    <TableCell className="text-right">
+                      <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3}>{t('transactions.monthNet')}</TableCell>
+                    <TableCell className="text-right">
+                      <span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+                    </TableCell>
+                  </TableRow>
                 </TableFooter>
               </Table>
             </div>
             <div className="shell:hidden divide-y">
-              {allEntries.map((entry) => <article key={entry.id} className={`flex gap-3 p-3 ${entry.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}`}><time className="num shrink-0 text-xs text-muted-foreground">{new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(entry.date))}</time><EntryMeta entry={entry} /><div className="ml-auto"><EntryAmount entry={entry} /></div></article>)}
+              {allEntries.map((entry) => (
+                <article key={entry.id} className={`flex gap-3 p-3 ${entry.status === TransactionStatus.DRAFT ? 'opacity-55' : ''}`}>
+                  <time className="num shrink-0 text-xs text-muted-foreground">
+                    {new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(entry.date))}
+                  </time>
+                  <EntryMeta entry={entry} />
+                  <div className="ml-auto">
+                    <EntryAmount entry={entry} />
+                  </div>
+                </article>
+              ))}
             </div>
-            <div className="border-t bg-muted/40 px-3 py-3 text-sm shell:hidden"><div className="flex justify-between"><span>{t('transactions.income')}</span><span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span></div><div className="mt-1 flex justify-between"><span>{t('transactions.expense')}</span><span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span></div><div className="mt-1 flex justify-between font-medium"><span>{t('transactions.monthNet')}</span><span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span></div></div>
+            <div className="border-t bg-muted/40 px-3 py-3 text-sm shell:hidden">
+              <div className="flex justify-between">
+                <span>{t('transactions.income')}</span>
+                <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
+              </div>
+              <div className="mt-1 flex justify-between">
+                <span>{t('transactions.expense')}</span>
+                <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+              </div>
+              <div className="mt-1 flex justify-between font-medium">
+                <span>{t('transactions.monthNet')}</span>
+                <span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+              </div>
+            </div>
           </section>
         ) : null}
         <div ref={sentinel} className="flex justify-center" aria-hidden={!confirmed.hasNextPage}>
-          {confirmed.hasNextPage ? <Button variant="outline" size="sm" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>{confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}</Button> : null}
+          {confirmed.hasNextPage ? (
+            <Button variant="outline" size="sm" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
+              {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
+            </Button>
+          ) : null}
         </div>
       </PageContent>
     </>
