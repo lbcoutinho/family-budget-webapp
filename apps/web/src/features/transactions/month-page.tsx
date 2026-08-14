@@ -41,6 +41,11 @@ function localDate(value: string): Date {
   return new Date(`${value}T00:00:00`);
 }
 
+function formatEntryDate(value: string): string {
+  const date = localDate(value);
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function transactionAmount(transaction: TransactionListItemDto): number {
   if (transaction.type === TransactionType.EXPENSE || transaction.type === TransactionType.CASHBOX_IN) return -transaction.amount;
   if (transaction.type === TransactionType.INCOME || transaction.type === TransactionType.CASHBOX_OUT) return transaction.amount;
@@ -88,12 +93,11 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
     <div className="relative">
       <Button
         variant="ghost"
-        className="h-auto px-2 text-[1.05rem] font-bold tracking-[-0.02em]"
+        className="h-auto min-w-[150px] border border-transparent bg-muted/70 px-2 py-1 font-display text-[1.05rem] font-bold tracking-[-0.02em] hover:bg-muted"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
       >
         {formatMonth(month)}
-        <ChevronRightIcon className="size-4" />
       </Button>
       {open ? (
         <div
@@ -142,7 +146,7 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="truncate font-medium">{entry.description}</span>
+        <span className="truncate text-[14px] font-semibold">{entry.description}</span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.status === TransactionStatus.DRAFT ? (
           <Badge variant="outline" className="border-dashed text-[10px]">
@@ -155,7 +159,7 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
           </Badge>
         ) : null}
       </div>
-      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+      <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
         {detail || typeLabel(entry.type, t)}
         {entry.isCreditCard ? ` · ${t('transactions.purchaseOn', { date: new Intl.DateTimeFormat(i18n.language).format(localDate(entry.date)) })}` : ''}
       </p>
@@ -177,7 +181,7 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
           : 'text-cashbox';
 
   return (
-    <span className={`num block whitespace-nowrap ${tone}`}>
+    <span className={`num block whitespace-nowrap text-[14px] font-medium ${tone}`}>
       {formatCents(amount, { sign: !neutral })}
       {/* The list API does not supply running balances. */}
       {entry.status === TransactionStatus.CONFIRMED ? (
@@ -237,6 +241,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const draftEntries = drafts.data?.items ?? [];
   const firstPage = confirmed.data?.pages[0];
   const allEntries = [...draftEntries, ...entries];
+  const netTotal = (firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0);
 
   useEffect(() => {
     const node = sentinel.current;
@@ -272,18 +277,22 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
               <ChevronRightIcon />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => selectMonth(new Date())}>
+            <Button variant="ghost" size="sm" className="text-[12.5px]" onClick={() => selectMonth(new Date())}>
               {t('transactions.today')}
             </Button>
           </span>
         }
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="border-cashbox/30 text-cashbox">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-cashbox bg-cashbox-wash text-[12.5px] text-cashbox hover:border-cashbox hover:bg-cashbox hover:text-white"
+            >
               <PiggyBankIcon />
               {t('transactions.moveCashbox')}
             </Button>
-            <Button size="sm">
+            <Button size="sm" className="text-[12.5px]">
               <PlusIcon />
               {t('transactions.new')}
             </Button>
@@ -293,31 +302,31 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
       <PageContent className="space-y-4">
         <section className="rounded-lg border bg-card p-4 shadow-xs">
           <h2 className="font-semibold">{t('transactions.dailyExpense.title')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('transactions.dailyExpense.description')}</p>
+          <p className="mt-1 text-[14px] text-muted-foreground">{t('transactions.dailyExpense.description')}</p>
         </section>
 
         <section aria-label={t('transactions.balances')} className="grid grid-cols-2 gap-2.5 shell:grid-cols-4">
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account1')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account1')}</p>
+            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
               —
             </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account2')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account2')}</p>
+            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
               —
             </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account3')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account3')}</p>
+            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
               —
             </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.total')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.total')}</p>
+            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
               —
             </p>
           </div>
@@ -333,25 +342,25 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 onChange={(event) => setSearchInput(event.target.value)}
                 aria-label={t('transactions.search')}
                 placeholder={t('transactions.search')}
-                className="pl-8"
+                className="pl-8 text-[12.5px] md:text-[12.5px]"
               />
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-[12.5px]">
               <FilterIcon />
               {t('transactions.filters.type')}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-[12.5px]">
               {t('transactions.filters.category')}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-[12.5px]">
               {t('transactions.filters.account')}
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="month-sort" className="text-xs text-muted-foreground">
+            <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
               {t('transactions.sort.label')}
             </label>
-            <select id="month-sort" className="h-8 rounded-md border bg-background px-2 text-xs">
+            <select id="month-sort" className="h-8 rounded-md border bg-background px-2 text-[12.5px]">
               <option>{t('transactions.sort.newest')}</option>
               <option>{t('transactions.sort.oldest')}</option>
               <option>{t('transactions.sort.amountHighest')}</option>
@@ -395,7 +404,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               <h2 id="month-entries" className="font-semibold">
                 {t('transactions.entries')}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11.5px] text-muted-foreground">
                 {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
               </p>
             </div>
@@ -406,9 +415,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                   className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
                   style={{ borderLeftColor: entry.category?.color ?? (isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent') }}
                 >
-                  <time className="num text-xs text-muted-foreground">
-                    {new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(entry.date))}
-                  </time>
+                  <time className="num text-[12.5px] text-muted-foreground">{formatEntryDate(entry.date)}</time>
                   <EntryMeta entry={entry} />
                   <div className="text-right">
                     <EntryAmount entry={entry} />
@@ -425,26 +432,32 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               ))}
             </div>
             {confirmed.hasNextPage ? (
-              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-sm">
-                <Button variant="ghost" size="sm" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
+              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-[12.5px]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[12.5px]"
+                  onClick={() => void confirmed.fetchNextPage()}
+                  disabled={confirmed.isFetchingNextPage}
+                >
                   {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
                 </Button>
               </div>
             ) : null}
-            <footer className="bg-muted/70 px-4 py-3 text-sm">
+            <footer className="bg-muted/70 px-4 py-3 text-[13px]">
               <div className="flex justify-between">
                 <span>{t('transactions.income')}</span>
                 <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span>
-                  {t('transactions.expense')} <small className="text-xs text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                  {t('transactions.expense')} <small className="text-[11.5px] text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
                 </span>
                 <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-              <div className="mt-2 flex justify-between border-t pt-2 font-display text-base font-bold tracking-[-0.02em]">
+              <div className="mt-2 flex justify-between border-t pt-2 font-display text-[1.02rem] font-bold tracking-[-0.02em]">
                 <span>{t('transactions.monthNet')}</span>
-                <span className="num">{formatCents((firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+                <span className={`num ${netTotal >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
               </div>
             </footer>
           </section>

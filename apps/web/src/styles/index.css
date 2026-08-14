@@ -56,6 +56,7 @@
   /* the cashbox amber — the colour that means "cashbox" everywhere in the app, shown only where
      a cashbox deposit/withdrawal is on screen (prototypes/approved/05-cashboxes.html) */
   --cashbox: #8a6008;
+  --cashbox-wash: #f7f0dd;
 }
 
 /* The one breakpoint the shell cares about: below it the sidebar is a drawer, above it a fixed
@@ -91,6 +92,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-cashbox: var(--cashbox);
+  --color-cashbox-wash: var(--cashbox-wash);
 }
 
 @layer base {
