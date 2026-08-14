@@ -16,10 +16,10 @@ else
   docker compose up -d postgres
 fi
 
-echo "Waiting for postgres..."
-until docker compose exec -T postgres pg_isready -U "${POSTGRES_USER:-budget}" -d "${POSTGRES_DB:-budget}" >/dev/null 2>&1; do
-  sleep 1
-done
+# echo "Waiting for postgres..."
+# until docker compose exec -T postgres pg_isready -U "${POSTGRES_USER:-budget}" -d "${POSTGRES_DB:-budget}" >/dev/null 2>&1; do
+#   sleep 1
+# done
 
 pnpm api:db:migrate
 pnpm api:db:seed
