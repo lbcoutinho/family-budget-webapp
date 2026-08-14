@@ -273,10 +273,10 @@
       "description": "Here are the day-to-day expenses."
     },
     "accounts": {
-      "millennium": "Millennium",
-      "revolut": "Revolut",
-      "cash": "Cash",
-      "cashboxes": "Cashboxes"
+      "account1": "Account 1",
+      "account2": "Account 2",
+      "account3": "Account 3",
+      "total": "Total balance"
     },
     "filters": {
       "type": "Type: all",
@@ -285,7 +285,11 @@
     },
     "sort": {
       "label": "Sort",
-      "newest": "Date — newest first"
+      "newest": "Date — newest first",
+      "oldest": "Date — oldest first",
+      "amountHighest": "Amount — highest first",
+      "amountLowest": "Amount — lowest first",
+      "description": "Description — A to Z"
     },
     "income": "Income",
     "expense": "Expenses",

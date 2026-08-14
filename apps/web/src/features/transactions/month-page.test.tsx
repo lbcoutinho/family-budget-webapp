@@ -134,6 +134,18 @@ describe('MonthPage', () => {
     expect(screen.getAllByRole('button', { name: 'Novo lançamento' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Movimentar caixinha' })).toBeEnabled();
     expect(screen.getByText('Aqui são as despesas dia a dia.')).toBeInTheDocument();
+    expect(screen.getAllByText('—')).toHaveLength(4);
+    expect(screen.getByText('Conta 1')).toBeInTheDocument();
+    expect(screen.getByText('Conta 2')).toBeInTheDocument();
+    expect(screen.getByText('Conta 3')).toBeInTheDocument();
+    expect(screen.getByText('Saldo total')).toBeInTheDocument();
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Data — mais recente',
+      'Data — mais antiga',
+      'Valor — maior',
+      'Valor — menor',
+      'Descrição — A a Z',
+    ]);
     expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
   });
 

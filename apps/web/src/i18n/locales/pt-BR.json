@@ -273,10 +273,10 @@
       "description": "Aqui são as despesas dia a dia."
     },
     "accounts": {
-      "millennium": "Millennium",
-      "revolut": "Revolut",
-      "cash": "Dinheiro",
-      "cashboxes": "Caixinhas"
+      "account1": "Conta 1",
+      "account2": "Conta 2",
+      "account3": "Conta 3",
+      "total": "Saldo total"
     },
     "filters": {
       "type": "Tipo: todos",
@@ -285,7 +285,11 @@
     },
     "sort": {
       "label": "Ordenar",
-      "newest": "Data — mais recente"
+      "newest": "Data — mais recente",
+      "oldest": "Data — mais antiga",
+      "amountHighest": "Valor — maior",
+      "amountLowest": "Valor — menor",
+      "description": "Descrição — A a Z"
     },
     "income": "Receitas",
     "expense": "Despesas",

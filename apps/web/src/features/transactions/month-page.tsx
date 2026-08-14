@@ -150,7 +150,7 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
           </Badge>
         ) : null}
         {isCashboxOperation(entry.type) ? (
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] text-amber-900">
+          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10px] text-cashbox">
             {typeLabel(entry.type, t)}
           </Badge>
         ) : null}
@@ -279,7 +279,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         }
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="border-amber-300 text-cashbox">
+            <Button variant="outline" size="sm" className="border-cashbox/30 text-cashbox">
               <PiggyBankIcon />
               {t('transactions.moveCashbox')}
             </Button>
@@ -298,20 +298,28 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
         <section aria-label={t('transactions.balances')} className="grid grid-cols-2 gap-2.5 shell:grid-cols-4">
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.millennium')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(348215)}</p>
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account1')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+              —
+            </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.revolut')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(41290)}</p>
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account2')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+              —
+            </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.cash')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em] text-destructive">{formatCents(-3500)}</p>
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.account3')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+              —
+            </p>
           </div>
           <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-xs text-muted-foreground">{t('transactions.accounts.cashboxes')}</p>
-            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]">{formatCents(415000)}</p>
+            <p className="text-xs text-muted-foreground">{t('transactions.accounts.total')}</p>
+            <p className="num mt-0.5 font-display text-xl font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
+              —
+            </p>
           </div>
         </section>
 
@@ -345,6 +353,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             </label>
             <select id="month-sort" className="h-8 rounded-md border bg-background px-2 text-xs">
               <option>{t('transactions.sort.newest')}</option>
+              <option>{t('transactions.sort.oldest')}</option>
+              <option>{t('transactions.sort.amountHighest')}</option>
+              <option>{t('transactions.sort.amountLowest')}</option>
+              <option>{t('transactions.sort.description')}</option>
             </select>
           </div>
         </div>
@@ -392,7 +404,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 <article
                   key={entry.id}
                   className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
-                  style={{ borderLeftColor: entry.category?.color ?? 'transparent' }}
+                  style={{ borderLeftColor: entry.category?.color ?? (isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent') }}
                 >
                   <time className="num text-xs text-muted-foreground">
                     {new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(localDate(entry.date))}
