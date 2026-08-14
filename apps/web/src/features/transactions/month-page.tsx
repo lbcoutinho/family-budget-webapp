@@ -1,6 +1,7 @@
 import { getListTransactionsQueryOptions, listTransactions, type TransactionListItemDto, TransactionStatus, TransactionType } from '@family-budget/api-client';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
+import { type TFunction } from 'i18next';
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, CreditCardIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import i18n from '@/i18n';
+import i18n, { type TranslationKey } from '@/i18n';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
@@ -38,8 +39,8 @@ function transactionAmount(transaction: TransactionListItemDto): number {
   return transaction.amount;
 }
 
-function typeLabel(type: TransactionType, t: (key: string) => string): string {
-  return t(`transactions.type.${type}`);
+function typeLabel(type: TransactionType, t: TFunction): string {
+  return t(`transactions.type.${type}` as TranslationKey);
 }
 
 function transactionDetail(transaction: TransactionListItemDto): string {
