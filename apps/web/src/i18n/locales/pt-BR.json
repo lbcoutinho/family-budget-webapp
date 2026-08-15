@@ -321,6 +321,13 @@
       "title": "Não foi possível carregar os lançamentos",
       "description": "Verifique a conexão e tente de novo."
     },
+    "deleted": "Lançamento apagado.",
+    "undo": "Desfazer",
+    "undoRestored": "Lançamento restaurado.",
+    "delete": {
+      "title": "Apagar lançamento?",
+      "confirm": "Apagar"
+    },
     "field": {
       "category": "Categoria",
       "subcategory": "Subcategoria"

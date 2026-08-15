@@ -321,6 +321,13 @@
       "title": "Could not load entries",
       "description": "Check your connection and try again."
     },
+    "deleted": "Entry deleted.",
+    "undo": "Undo",
+    "undoRestored": "Entry restored.",
+    "delete": {
+      "title": "Delete entry?",
+      "confirm": "Delete"
+    },
     "field": {
       "category": "Category",
       "subcategory": "Subcategory"

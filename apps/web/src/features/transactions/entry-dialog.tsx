@@ -2,11 +2,13 @@ import {
   getListAccountBalancesQueryKey,
   getListTransactionsQueryKey,
   type CreateTransactionDto,
+  type UpdateTransactionDto,
   type TransactionListDto,
   type TransactionListItemDto,
   TransactionStatus,
   useCreateTransaction,
   useListAccounts,
+  useUpdateTransaction,
 } from '@family-budget/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
@@ -110,9 +112,10 @@ function formKey(key: string): TranslationKey {
 export interface EntryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  transaction?: TransactionListItemDto;
 }
 
-export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
+export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const saveAnother = useRef(false);
@@ -133,16 +136,16 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
   } = useForm<EntryFormValues>({
     resolver: zodResolver(entrySchema),
     defaultValues: {
-      type: 'EXPENSE',
-      date: today(),
-      accountId: '',
-      destinationAccountId: '',
-      categoryId: '',
-      subcategoryId: '',
-      description: '',
-      amount: '',
-      isCreditCard: false,
-      referenceMonth: '',
+      type: (transaction?.type as EntryType | undefined) ?? 'EXPENSE',
+      date: transaction?.date ?? today(),
+      accountId: transaction?.accountId ?? '',
+      destinationAccountId: transaction?.destinationAccountId ?? '',
+      categoryId: transaction?.categoryId ?? '',
+      subcategoryId: transaction?.subcategoryId ?? '',
+      description: transaction?.description ?? '',
+      amount: transaction ? formatCents(transaction.amount) : '',
+      isCreditCard: transaction?.isCreditCard ?? false,
+      referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
     },
   });
   const [type, date, isCreditCard, selectedCategoryId, selectedSubcategoryId] = useWatch({
@@ -233,23 +236,39 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
     },
   });
 
+  const updateMutation = useUpdateTransaction({
+    mutation: {
+      onError: (error) => toast.error(apiErrorMessage(error, t)),
+      onSuccess: () => {
+        toast.success(t(formKey('transactions.form.save')));
+        onOpenChange(false);
+      },
+      onSettled: () => {
+        void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+      },
+    },
+  });
+
+  const activeMutation = transaction ? updateMutation : mutation;
+
   useEffect(() => {
     if (!open) return;
     const nextDate = today();
     reset({
-      type: 'EXPENSE',
-      date: nextDate,
-      accountId: '',
-      destinationAccountId: '',
-      categoryId: '',
-      subcategoryId: '',
-      description: '',
-      amount: '',
-      isCreditCard: false,
-      referenceMonth: '',
+      type: (transaction?.type as EntryType | undefined) ?? 'EXPENSE',
+      date: transaction?.date ?? nextDate,
+      accountId: transaction?.accountId ?? '',
+      destinationAccountId: transaction?.destinationAccountId ?? '',
+      categoryId: transaction?.categoryId ?? '',
+      subcategoryId: transaction?.subcategoryId ?? '',
+      description: transaction?.description ?? '',
+      amount: transaction ? formatCents(transaction.amount) : '',
+      isCreditCard: transaction?.isCreditCard ?? false,
+      referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
     });
     queueMicrotask(() => setReferenceMonthOverridden(false));
-  }, [open, reset]);
+  }, [open, reset, transaction]);
 
   useEffect(() => {
     if (isCreditCard && !referenceMonthOverridden) setValue('referenceMonth', suggestedReferenceMonth(date).slice(0, 7), { shouldValidate: true });
@@ -286,16 +305,34 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
             ...(values.isCreditCard ? { referenceMonth: `${values.referenceMonth}-01` } : {}),
           }),
     };
-    mutation.mutate({ data: payload });
+    if (!transaction) {
+      mutation.mutate({ data: payload });
+      return;
+    }
+
+    const update: UpdateTransactionDto = {};
+    const changed = <K extends keyof UpdateTransactionDto>(key: K, value: UpdateTransactionDto[K], original: UpdateTransactionDto[K]) => {
+      if (value !== original) update[key] = value;
+    };
+    changed('amount', payload.amount, transaction.amount);
+    changed('date', payload.date, transaction.date);
+    changed('description', payload.description, transaction.description);
+    changed('isCreditCard', payload.isCreditCard, transaction.isCreditCard);
+    changed('accountId', payload.accountId, transaction.accountId ?? undefined);
+    changed('destinationAccountId', payload.destinationAccountId, transaction.destinationAccountId ?? undefined);
+    changed('categoryId', payload.categoryId, transaction.categoryId ?? undefined);
+    changed('subcategoryId', payload.subcategoryId, transaction.subcategoryId ?? undefined);
+    if (values.isCreditCard && `${values.referenceMonth}-01` !== transaction.referenceMonth) update.referenceMonth = `${values.referenceMonth}-01`;
+    updateMutation.mutate({ id: transaction.id, data: update });
   });
 
   const accountsEmpty = accounts.length === 0;
   return (
-    <Dialog open={open} onOpenChange={mutation.isPending ? undefined : onOpenChange}>
+    <Dialog open={open} onOpenChange={activeMutation.isPending ? undefined : onOpenChange}>
       <DialogContent
-        showCloseButton={!mutation.isPending}
-        onEscapeKeyDown={mutation.isPending ? (event) => event.preventDefault() : undefined}
-        onPointerDownOutside={mutation.isPending ? (event) => event.preventDefault() : undefined}
+        showCloseButton={!activeMutation.isPending}
+        onEscapeKeyDown={activeMutation.isPending ? (event) => event.preventDefault() : undefined}
+        onPointerDownOutside={activeMutation.isPending ? (event) => event.preventDefault() : undefined}
       >
         <DialogHeader>
           <DialogTitle>{t(formKey('transactions.form.title'))}</DialogTitle>
@@ -318,9 +355,15 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
           >
             <Tabs value={type} onValueChange={changeType}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="EXPENSE">{t(formKey('transactions.form.expense'))}</TabsTrigger>
-                <TabsTrigger value="INCOME">{t(formKey('transactions.form.income'))}</TabsTrigger>
-                <TabsTrigger value="TRANSFER">{t(formKey('transactions.form.transfer'))}</TabsTrigger>
+                <TabsTrigger value="EXPENSE" disabled={Boolean(transaction && transaction.type !== 'EXPENSE')}>
+                  {t(formKey('transactions.form.expense'))}
+                </TabsTrigger>
+                <TabsTrigger value="INCOME" disabled={Boolean(transaction && transaction.type !== 'INCOME')}>
+                  {t(formKey('transactions.form.income'))}
+                </TabsTrigger>
+                <TabsTrigger value="TRANSFER" disabled={Boolean(transaction && transaction.type !== 'TRANSFER')}>
+                  {t(formKey('transactions.form.transfer'))}
+                </TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -328,7 +371,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                 id="entry-account"
                 label={t(formKey(type === 'TRANSFER' ? 'transactions.form.sourceAccount' : 'transactions.form.account'))}
                 accounts={accounts}
-                disabled={mutation.isPending}
+                disabled={activeMutation.isPending}
                 error={errors.accountId?.message}
                 registration={register('accountId')}
               />
@@ -337,7 +380,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                   id="entry-destination-account"
                   label={t(formKey('transactions.form.destinationAccount'))}
                   accounts={accounts}
-                  disabled={mutation.isPending}
+                  disabled={activeMutation.isPending}
                   error={errors.destinationAccountId?.message}
                   registration={register('destinationAccountId')}
                 />
@@ -349,7 +392,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                     type="date"
                     aria-describedby={errors.date ? 'entry-date-error' : undefined}
                     aria-invalid={errors.date !== undefined}
-                    disabled={mutation.isPending}
+                    disabled={activeMutation.isPending}
                     {...register('date')}
                   />
                   <FieldError id="entry-date-error" error={errors.date?.message} />
@@ -364,7 +407,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                   type="date"
                   aria-describedby={errors.date ? 'entry-date-error' : undefined}
                   aria-invalid={errors.date !== undefined}
-                  disabled={mutation.isPending}
+                  disabled={activeMutation.isPending}
                   {...register('date')}
                 />
                 <FieldError id="entry-date-error" error={errors.date?.message} />
@@ -376,7 +419,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                     kind={type}
                     categoryId={categoryId}
                     subcategoryId={subcategoryId}
-                    disabled={mutation.isPending}
+                    disabled={activeMutation.isPending}
                     categoryDescribedBy={errors.categoryId ? 'entry-category-error' : undefined}
                     subcategoryDescribedBy={errors.subcategoryId ? 'entry-subcategory-error' : undefined}
                     categoryInvalid={errors.categoryId !== undefined}
@@ -395,7 +438,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                   <Checkbox
                     id="entry-credit-card"
                     checked={isCreditCard}
-                    disabled={mutation.isPending}
+                    disabled={activeMutation.isPending}
                     onCheckedChange={(checked) => {
                       const next = checked === true;
                       setValue('isCreditCard', next, { shouldValidate: true });
@@ -413,7 +456,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                       type="month"
                       aria-describedby={`entry-reference-month-hint${errors.referenceMonth ? ' entry-reference-month-error' : ''}`}
                       aria-invalid={errors.referenceMonth !== undefined}
-                      disabled={mutation.isPending}
+                      disabled={activeMutation.isPending}
                       {...register('referenceMonth', { onChange: overrideReferenceMonth })}
                     />
                     <p id="entry-reference-month-hint" className="text-xs text-muted-foreground">
@@ -430,7 +473,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                 id="entry-description"
                 aria-describedby={errors.description ? 'entry-description-error' : undefined}
                 aria-invalid={errors.description !== undefined}
-                disabled={mutation.isPending}
+                disabled={activeMutation.isPending}
                 {...register('description')}
               />
               <FieldError id="entry-description-error" error={errors.description?.message} />
@@ -444,7 +487,7 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                 placeholder={t(formKey('transactions.form.amountPlaceholder'))}
                 aria-describedby={`entry-amount-hint${errors.amount ? ' entry-amount-error' : ''}`}
                 aria-invalid={errors.amount !== undefined}
-                disabled={mutation.isPending}
+                disabled={activeMutation.isPending}
                 {...register('amount', {
                   onBlur: (event: FocusEvent<HTMLInputElement>) => {
                     const cents = parseCurrencyInput(event.target.value);
@@ -458,14 +501,14 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
               <FieldError id="entry-amount-error" error={errors.amount?.message} />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={activeMutation.isPending}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
+              <Button type="submit" disabled={activeMutation.isPending}>
+                {activeMutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
                 {t(formKey('transactions.form.save'))}
               </Button>
-              <Button type="submit" variant="outline" disabled={mutation.isPending} data-save-another="true">
+              <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-another="true">
                 {t(formKey('transactions.form.saveAndAddAnother'))}
               </Button>
             </DialogFooter>

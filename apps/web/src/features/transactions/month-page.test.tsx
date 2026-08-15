@@ -10,6 +10,24 @@ import { MonthPage } from './month-page';
 
 import { server } from '@/test/server';
 
+const { toastSuccess, toastError, lastUndo, lastOptions, lastMessage } = vi.hoisted(() => {
+  let undo: (() => void) | undefined;
+  let options: { duration?: number; action?: { label?: string; onClick?: () => void } } | undefined;
+  let message = '';
+  return {
+    toastSuccess: vi.fn((_: string, toastOptions?: { duration?: number; action?: { label?: string; onClick?: () => void } }) => {
+      message = _;
+      undo = toastOptions?.action?.onClick;
+      options = toastOptions;
+    }),
+    toastError: vi.fn(),
+    lastUndo: () => undo,
+    lastOptions: () => options,
+    lastMessage: () => message,
+  };
+});
+vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }));
+
 const CONFIRMED: TransactionListItemDto = {
   id: 'confirmed-1',
   type: TransactionType.EXPENSE,
@@ -230,5 +248,57 @@ describe('MonthPage', () => {
 
     await expectTextToBePresent('Fuel');
     expect(cursors).toEqual([null, 'cursor-1']);
+  });
+
+  it('routes an income or expense row edit to the prefilled entry dialog', async () => {
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CONFIRMED])),
+      ),
+      http.get('/api/accounts', () => HttpResponse.json([{ id: 'account-1', name: 'Millennium' }])),
+      http.get('/api/categories', () => HttpResponse.json([{ id: 'category-1', name: 'Food', kind: 'EXPENSE', isActive: true, children: [] }])),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Groceries');
+    await user.click(screen.getByRole('button', { name: 'Editar' }));
+
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Novo lançamento');
+    expect(screen.getByLabelText('Descrição')).toHaveValue('Groceries');
+    expect(screen.getByLabelText('Valor')).toHaveValue('123,45 €');
+  });
+
+  it('confirms deletion, invalidates the list, and exposes undo recreation', async () => {
+    let deleted = false;
+    let deleteRequest: string | undefined;
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page(deleted ? [] : [CONFIRMED])),
+      ),
+      http.delete('/api/transactions/:id', ({ params }) => {
+        deleted = true;
+        deleteRequest = String(params.id);
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.post('/api/transactions', async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ ...CONFIRMED, id: 'restored-1', ...body }, { status: 201 });
+      }),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Groceries');
+    await user.click(screen.getByRole('button', { name: 'Apagar' }));
+
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Apagar lançamento?');
+    expect(screen.getByRole('dialog')).toHaveTextContent('Groceries');
+    await user.click(screen.getAllByRole('button', { name: /^Apagar$/ }).at(-1)!);
+    await waitFor(() => expect(deleteRequest).toBe('confirmed-1'));
+    expect(lastMessage()).toBe('Lançamento apagado.');
+    expect(lastOptions()?.duration).toBe(10_000);
+    expect(lastOptions()?.action?.label).toBe('Desfazer');
+
+    lastUndo()?.();
+    await waitFor(() => expect(lastMessage()).toBe('Lançamento restaurado.'));
   });
 });
