@@ -92,7 +92,7 @@ describe('MonthPage', () => {
     renderPage();
 
     await expectTextToBePresent('Groceries');
-    expect(screen.getByText('14/07')).toBeInTheDocument();
+    expect(screen.getAllByText('14/07')).toHaveLength(2);
     await expectTextToBePresent('Voice draft');
     await expectTextToBePresent('1 lançamento · 1 rascunho');
     await expectTextToBePresent('+ 0,00 €');

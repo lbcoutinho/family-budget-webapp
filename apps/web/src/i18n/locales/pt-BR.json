@@ -312,6 +312,17 @@
     "error": {
       "title": "Não foi possível carregar os lançamentos",
       "description": "Verifique a conexão e tente de novo."
+    },
+    "field": {
+      "category": "Categoria",
+      "subcategory": "Subcategoria"
+    },
+    "category": {
+      "placeholder": "Selecione uma categoria"
+    },
+    "subcategory": {
+      "placeholder": "Selecione uma subcategoria",
+      "placeholderNoCategory": "Selecione uma categoria primeiro"
     }
   },
   "settingsGeneral": {
@@ -327,19 +338,6 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
-    }
-  },
-  "transactions": {
-    "field": {
-      "category": "Categoria",
-      "subcategory": "Subcategoria"
-    },
-    "category": {
-      "placeholder": "Selecione uma categoria"
-    },
-    "subcategory": {
-      "placeholder": "Selecione uma subcategoria",
-      "placeholderNoCategory": "Selecione uma categoria primeiro"
     }
   }
 }

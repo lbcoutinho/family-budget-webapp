@@ -312,6 +312,17 @@
     "error": {
       "title": "Could not load entries",
       "description": "Check your connection and try again."
+    },
+    "field": {
+      "category": "Category",
+      "subcategory": "Subcategory"
+    },
+    "category": {
+      "placeholder": "Select a category"
+    },
+    "subcategory": {
+      "placeholder": "Select a subcategory",
+      "placeholderNoCategory": "Select a category first"
     }
   },
   "settingsGeneral": {
@@ -327,19 +338,6 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
-    }
-  },
-  "transactions": {
-    "field": {
-      "category": "Category",
-      "subcategory": "Subcategory"
-    },
-    "category": {
-      "placeholder": "Select a category"
-    },
-    "subcategory": {
-      "placeholder": "Select a subcategory",
-      "placeholderNoCategory": "Select a category first"
     }
   }
 }

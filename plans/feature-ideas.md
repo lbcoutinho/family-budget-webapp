@@ -14,7 +14,11 @@ Ideas recorded for future features — no milestone or deadline defined yet. Pri
 # Tests
 
 - Testar cashbox transfer - parece que exige uma conta associada e todas as transações. pode fazer sentido pq o dinheiro da cashbox está em algum banco.
-- Testar como recorrências aparecem na tela Mês.
+- tela Mês.
+  - Infinite scroll loads subsequent pages
+  - How it shows credit card entries.
+  - Test on mobile
+  - Testar como recorrências aparecem na tela Mês.
 
 # Improvements
 - improve path for "/month/{year}/{month}" feels wrong, should be query param? 
