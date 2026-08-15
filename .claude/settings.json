@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__codegraph__*"
+    ]
+  },
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -37,12 +42,6 @@
     ]
   },
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true
-  },
-  "permissions": {
-    "allow": [
-      "mcp__codegraph__*"
-    ]
   }
 }
