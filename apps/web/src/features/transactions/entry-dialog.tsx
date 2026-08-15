@@ -116,6 +116,8 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const saveAnother = useRef(false);
+  const categoryRef = useRef<HTMLButtonElement>(null);
+  const subcategoryRef = useRef<HTMLButtonElement>(null);
   const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(false);
   const { data: accounts = [] } = useListAccounts();
   const {
@@ -206,7 +208,13 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
         if (context?.previous) queryClient.setQueryData(context.key, context.previous);
         const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code;
         const field = businessCodeField(code);
-        if (field) setError(field, { message: formKey(`errors.${code}`) });
+        if (field) {
+          setError(field, { message: formKey(`errors.${code}`) }, { shouldFocus: true });
+          if (field === 'categoryId') categoryRef.current?.focus();
+          if (field === 'subcategoryId') subcategoryRef.current?.focus();
+        } else {
+          toast.error(apiErrorMessage(error, t));
+        }
       },
       onSuccess: () => {
         if (saveAnother.current) {
@@ -282,8 +290,6 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
   });
 
   const accountsEmpty = accounts.length === 0;
-  const errorMessage = mutation.error ? apiErrorMessage(mutation.error, t) : null;
-
   return (
     <Dialog open={open} onOpenChange={mutation.isPending ? undefined : onOpenChange}>
       <DialogContent
@@ -302,7 +308,14 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
             </Button>
           </div>
         ) : (
-          <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
+          <form
+            noValidate
+            onSubmit={(event) => {
+              saveAnother.current = event.nativeEvent.submitter?.getAttribute('data-save-another') === 'true';
+              void submit(event);
+            }}
+            className="grid gap-3.5"
+          >
             <Tabs value={type} onValueChange={changeType}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="EXPENSE">{t(formKey('transactions.form.expense'))}</TabsTrigger>
@@ -368,6 +381,8 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                     subcategoryDescribedBy={errors.subcategoryId ? 'entry-subcategory-error' : undefined}
                     categoryInvalid={errors.categoryId !== undefined}
                     subcategoryInvalid={errors.subcategoryId !== undefined}
+                    categoryRef={categoryRef}
+                    subcategoryRef={subcategoryRef}
                     onChange={(nextCategory, nextSubcategory) => {
                       setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
                       setValue('subcategoryId', nextSubcategory ?? '', { shouldValidate: true });
@@ -442,34 +457,16 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
               </p>
               <FieldError id="entry-amount-error" error={errors.amount?.message} />
             </div>
-            {errorMessage ? (
-              <p role="alert" className="text-sm text-destructive">
-                {errorMessage}
-              </p>
-            ) : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
                 {t('common.cancel')}
               </Button>
-              <Button
-                type="submit"
-                variant="outline"
-                disabled={mutation.isPending}
-                onClick={() => {
-                  saveAnother.current = true;
-                }}
-              >
-                {t(formKey('transactions.form.saveAndAddAnother'))}
-              </Button>
-              <Button
-                type="submit"
-                disabled={mutation.isPending}
-                onClick={() => {
-                  saveAnother.current = false;
-                }}
-              >
+              <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
                 {t(formKey('transactions.form.save'))}
+              </Button>
+              <Button type="submit" variant="outline" disabled={mutation.isPending} data-save-another="true">
+                {t(formKey('transactions.form.saveAndAddAnother'))}
               </Button>
             </DialogFooter>
           </form>

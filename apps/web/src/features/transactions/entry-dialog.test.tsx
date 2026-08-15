@@ -1,3 +1,4 @@
+import { getListTransactionsQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,8 +12,10 @@ import type * as ApiClient from '@family-budget/api-client';
 const categoryButtonLabel = 'choose category';
 const subcategoryButtonLabel = 'choose subcategory';
 const mutate = vi.fn<(variables: { data: ApiClient.CreateTransactionDto }) => void>();
+const { toastError, toastSuccess } = vi.hoisted(() => ({ toastError: vi.fn(), toastSuccess: vi.fn() }));
 interface MutationOptions {
   mutation: {
+    onMutate: (variables: { data: ApiClient.CreateTransactionDto }) => Promise<{ key: readonly unknown[]; previous: unknown }>;
     onError: (error: unknown, variables: unknown, context: unknown) => void;
     onSuccess: () => void;
   };
@@ -25,6 +28,7 @@ let accounts = [
 ];
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock('sonner', () => ({ toast: { error: toastError, success: toastSuccess } }));
 vi.mock('@family-budget/api-client', async (importOriginal) => {
   const actual = await importOriginal<typeof ApiClient>();
   return {
@@ -45,6 +49,8 @@ vi.mock('./category-select', () => ({
     subcategoryDescribedBy,
     categoryInvalid,
     subcategoryInvalid,
+    categoryRef,
+    subcategoryRef,
   }: {
     categoryId?: string;
     subcategoryId?: string;
@@ -53,11 +59,14 @@ vi.mock('./category-select', () => ({
     subcategoryDescribedBy?: string;
     categoryInvalid?: boolean;
     subcategoryInvalid?: boolean;
+    categoryRef?: { current: HTMLSelectElement | null };
+    subcategoryRef?: { current: HTMLSelectElement | null };
   }) => (
     <div>
       <label htmlFor="mock-category">{categoryButtonLabel}</label>
       <select
         id="mock-category"
+        ref={categoryRef}
         value={categoryId ?? ''}
         aria-describedby={categoryDescribedBy}
         aria-invalid={categoryInvalid}
@@ -70,6 +79,7 @@ vi.mock('./category-select', () => ({
       <label htmlFor="mock-subcategory">{subcategoryButtonLabel}</label>
       <select
         id="mock-subcategory"
+        ref={subcategoryRef}
         value={subcategoryId ?? ''}
         aria-describedby={subcategoryDescribedBy}
         aria-invalid={subcategoryInvalid}
@@ -95,6 +105,7 @@ function renderDialog(onOpenChange = vi.fn()) {
       </QueryClientProvider>,
     ),
     onOpenChange,
+    queryClient,
   };
 }
 
@@ -123,6 +134,8 @@ describe('entry dialog helpers', () => {
 describe('EntryDialog', () => {
   beforeEach(() => {
     mutate.mockClear();
+    toastError.mockClear();
+    toastSuccess.mockClear();
     mutationOptions = undefined;
     mutationState = { isPending: false, error: null };
     accounts = [
@@ -167,20 +180,21 @@ describe('EntryDialog', () => {
   ])('submits %s as %i cents', async (amount, cents) => {
     const { user } = renderDialog();
 
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-08-15' } });
     await fillExpense(user, amount);
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
     const saved = mutate.mock.calls[0]?.[0].data;
-    expect(saved).toMatchObject({
+    expect(saved).toEqual({
       type: 'EXPENSE',
       amount: cents,
+      date: '2026-08-15',
       accountId: 'account-1',
       categoryId: 'category-1',
       subcategoryId: 'subcategory-1',
       description: 'Groceries',
       isCreditCard: false,
     });
-    expect(saved).not.toHaveProperty('referenceMonth');
   });
 
   it('blocks nonsense amounts before mutation', async () => {
@@ -221,6 +235,29 @@ describe('EntryDialog', () => {
     expect(screen.queryByLabelText('transactions.form.referenceMonth')).not.toBeInTheDocument();
   });
 
+  it('omits reference month after credit card is unticked', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByLabelText('transactions.form.creditCard'));
+    await user.click(screen.getByLabelText('transactions.form.creditCard'));
+    await fillExpense(user);
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(mutate.mock.calls[0]?.[0].data).not.toHaveProperty('referenceMonth');
+  });
+
+  it('clears category and credit-card fields when switching transaction type', async () => {
+    const { user } = renderDialog();
+
+    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await user.click(screen.getByLabelText('transactions.form.creditCard'));
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.income' }));
+
+    expect(screen.getByTestId('selected-category')).toHaveTextContent('');
+    expect(screen.getByTestId('selected-subcategory')).toHaveTextContent('');
+    expect(screen.queryByLabelText('transactions.form.referenceMonth')).not.toBeInTheDocument();
+  });
+
   it('keeps an overridden credit-card reference month after the date changes', async () => {
     const { user } = renderDialog();
 
@@ -246,22 +283,69 @@ describe('EntryDialog', () => {
     await waitFor(() => expect(screen.getByLabelText('transactions.form.description')).toHaveFocus());
   });
 
+  it('treats Enter as Save after a failed save-and-add request', async () => {
+    const onOpenChange = vi.fn();
+    const { user } = renderDialog(onOpenChange);
+
+    await fillExpense(user);
+    await user.click(screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' }));
+    act(() => mutationOptions?.mutation.onError(new Error('Network Error'), undefined, undefined));
+    await user.click(screen.getByLabelText('transactions.form.description'));
+    await user.keyboard('{Enter}');
+    act(() => mutationOptions?.mutation.onSuccess());
+
+    expect(mutate).toHaveBeenCalledTimes(2);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('toasts a non-field mutation error', () => {
+    renderDialog();
+
+    act(() => mutationOptions?.mutation.onError(new Error('Network Error'), undefined, undefined));
+
+    expect(toastError).toHaveBeenCalledWith('errors.UNKNOWN');
+  });
+
+  it('inserts optimistically and restores the list when the request fails', async () => {
+    const { queryClient } = renderDialog();
+    const key = getListTransactionsQueryKey({ referenceMonth: '2026-08-01', limit: 30 });
+    const previous = { pages: [{ items: [], total: 0, incomeTotal: 0, expenseTotal: 0 }], pageParams: [] };
+    queryClient.setQueryData(key, previous);
+    const data = {
+      type: 'EXPENSE' as const,
+      amount: 1000,
+      date: '2026-08-15',
+      description: 'Groceries',
+      isCreditCard: false,
+      accountId: 'account-1',
+      categoryId: 'category-1',
+      subcategoryId: 'subcategory-1',
+    };
+
+    const context = await mutationOptions?.mutation.onMutate({ data });
+    const optimistic = queryClient.getQueryData<{ pages: { items: { description: string }[] }[] }>(key);
+    expect(optimistic?.pages[0]?.items[0]?.description).toBe('Groceries');
+
+    act(() => mutationOptions?.mutation.onError(new Error('Network Error'), { data }, context));
+    expect(queryClient.getQueryData(key)).toEqual(previous);
+  });
+
   it.each([
     ['TRANSACTION_SAME_ACCOUNT', 'transactions.form.destinationAccount', 'entry-destination-account-error', true],
     ['TRANSACTION_CATEGORY_KIND_MISMATCH', categoryButtonLabel, 'entry-category-error', false],
     ['TRANSACTION_SUBCATEGORY_PARENT_MISMATCH', subcategoryButtonLabel, 'entry-subcategory-error', false],
   ])('shows translated %s error on its mapped control', async (code, label, errorId, isTransfer) => {
-    mutationState = { isPending: false, error: { response: { data: { code } } } };
     const { user } = renderDialog();
 
     if (isTransfer) await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
 
     act(() => mutationOptions?.mutation.onError({ response: { data: { code } } }, undefined, undefined));
 
-    expect(screen.getByRole('alert')).toHaveTextContent(`errors.${code}`);
     const control = screen.getByLabelText(label);
     expect(control).toHaveAttribute('aria-describedby', errorId);
     expect(document.getElementById(errorId)).toHaveTextContent(`errors.${code}`);
+    expect(control).toHaveFocus();
+    expect(toastError).not.toHaveBeenCalled();
   });
 
   it('cannot be dismissed while a save is pending', () => {
