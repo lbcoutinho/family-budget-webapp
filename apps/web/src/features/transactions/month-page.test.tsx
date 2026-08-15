@@ -180,6 +180,26 @@ describe('MonthPage', () => {
     expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
   });
 
+  it('opens the new-entry dialog from the header action', async () => {
+    server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+    const { user } = renderPage();
+
+    await screen.findByText('Nada lançado em Julho de 2026');
+    await user.click(screen.getAllByRole('button', { name: 'Novo lançamento' }).at(0)!);
+
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('Novo lançamento');
+  });
+
+  it('opens the new-entry dialog from the empty state action', async () => {
+    server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+    const { user } = renderPage();
+
+    await screen.findByText('Nada lançado em Julho de 2026');
+    await user.click(screen.getAllByRole('button', { name: 'Novo lançamento' }).at(-1)!);
+
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('Novo lançamento');
+  });
+
   it('fetches the next confirmed page when the load-more control is used', async () => {
     const cursors: (string | null)[] = [];
     server.use(

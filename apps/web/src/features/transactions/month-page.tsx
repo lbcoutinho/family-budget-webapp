@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
 import { formatCents } from '@/lib/money';
@@ -214,6 +215,7 @@ export function MonthPage() {
 function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [entryDialogOpen, setEntryDialogOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const sentinel = useRef<HTMLDivElement>(null);
@@ -292,7 +294,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               <PiggyBankIcon />
               {t('transactions.moveCashbox')}
             </Button>
-            <Button size="sm" className="text-[12.5px]">
+            <Button size="sm" className="text-[12.5px]" onClick={() => setEntryDialogOpen(true)}>
               <PlusIcon />
               {t('transactions.new')}
             </Button>
@@ -395,7 +397,11 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             icon={CalendarDaysIcon}
             title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}
             description={t('transactions.empty.description')}
-            action={<Button size="sm">{t('transactions.new')}</Button>}
+            action={
+              <Button size="sm" onClick={() => setEntryDialogOpen(true)}>
+                {t('transactions.new')}
+              </Button>
+            }
           />
         ) : null}
         {!loading && !failed && hasEntries ? (
@@ -467,6 +473,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
           </section>
         ) : null}
       </PageContent>
+      <EntryDialog open={entryDialogOpen} onOpenChange={setEntryDialogOpen} />
     </>
   );
 }
