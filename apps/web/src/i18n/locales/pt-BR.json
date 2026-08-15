@@ -248,6 +248,83 @@
       "description": "Verifique a conexão e tente de novo."
     }
   },
+  "transactions": {
+    "entries": "Lançamentos do mês",
+    "new": "Novo lançamento",
+    "moveCashbox": "Movimentar caixinha",
+    "search": "Buscar lançamentos",
+    "count_one": "{{count}} lançamento",
+    "count_other": "{{count}} lançamentos",
+    "draftCount_one": "{{count}} rascunho",
+    "draftCount_other": "{{count}} rascunhos",
+    "draft": "rascunho",
+    "today": "Hoje",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "monthPicker": "Escolher mês e ano",
+    "previousYear": "Ano anterior",
+    "nextYear": "Próximo ano",
+    "creditCard": "Cartão de crédito",
+    "purchaseOn": "compra em {{date}}",
+    "balancePlaceholder": "Saldo indisponível",
+    "balances": "Saldos das contas",
+    "dailyExpense": {
+      "title": "Despesas dia a dia",
+      "description": "Aqui são as despesas dia a dia."
+    },
+    "accounts": {
+      "account1": "Conta 1",
+      "account2": "Conta 2",
+      "account3": "Conta 3",
+      "total": "Saldo total"
+    },
+    "filters": {
+      "type": "Tipo: todos",
+      "category": "Categoria: todas",
+      "account": "Conta: todas"
+    },
+    "sort": {
+      "label": "Ordenar",
+      "newest": "Data — mais recente",
+      "oldest": "Data — mais antiga",
+      "amountHighest": "Valor — maior",
+      "amountLowest": "Valor — menor",
+      "description": "Descrição — A a Z"
+    },
+    "income": "Receitas",
+    "expense": "Despesas",
+    "expenseExcludesCashboxes": "sem transferências e caixinhas",
+    "monthNet": "Saldo do mês",
+    "loadMore": "Carregar mais",
+    "loadingMore": "Carregando mais…",
+    "type": {
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa",
+      "TRANSFER": "Transferência",
+      "CASHBOX_IN": "Depósito",
+      "CASHBOX_OUT": "Resgate",
+      "CASHBOX_TRANSFER": "Transferência"
+    },
+    "empty": {
+      "title": "Nada lançado em {{month}}",
+      "description": "Registre o primeiro movimento do mês ou escolha outro mês."
+    },
+    "error": {
+      "title": "Não foi possível carregar os lançamentos",
+      "description": "Verifique a conexão e tente de novo."
+    },
+    "field": {
+      "category": "Categoria",
+      "subcategory": "Subcategoria"
+    },
+    "category": {
+      "placeholder": "Selecione uma categoria"
+    },
+    "subcategory": {
+      "placeholder": "Selecione uma subcategoria",
+      "placeholderNoCategory": "Selecione uma categoria primeiro"
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Idioma",
@@ -261,19 +338,6 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
-    }
-  },
-  "transactions": {
-    "field": {
-      "category": "Categoria",
-      "subcategory": "Subcategoria"
-    },
-    "category": {
-      "placeholder": "Selecione uma categoria"
-    },
-    "subcategory": {
-      "placeholder": "Selecione uma subcategoria",
-      "placeholderNoCategory": "Selecione uma categoria primeiro"
     }
   }
 }

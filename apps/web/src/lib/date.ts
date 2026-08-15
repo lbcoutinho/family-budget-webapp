@@ -85,3 +85,28 @@ export function monthRange(date: Date): MonthRange {
 
   return { start, end };
 }
+
+/** Builds the canonical URL for a local reference month. */
+export function monthPath(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+
+  return `/month/${year}/${month}`;
+}
+
+/** The canonical URL for the browser's current local month. */
+export function currentMonthPath(date: Date = new Date()): string {
+  return monthPath(date);
+}
+
+/**
+ * Parses only the canonical `:year/:month` route representation. Route months are labels, so
+ * construct this in local time instead of interpreting an ISO string as an instant.
+ */
+export function monthFromPathParams(year: string | undefined, month: string | undefined): Date | undefined {
+  if (!year || !month || !/^\d{4}$/.test(year) || !/^(0[1-9]|1[0-2])$/.test(month) || year === '0000') {
+    return undefined;
+  }
+
+  return new Date(Number(year), Number(month) - 1, 1);
+}

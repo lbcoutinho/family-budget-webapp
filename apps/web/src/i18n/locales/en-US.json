@@ -248,6 +248,83 @@
       "description": "Check your connection and try again."
     }
   },
+  "transactions": {
+    "entries": "Month entries",
+    "new": "New entry",
+    "moveCashbox": "Move cashbox funds",
+    "search": "Search entries",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "draftCount_one": "{{count}} draft",
+    "draftCount_other": "{{count}} drafts",
+    "draft": "draft",
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "monthPicker": "Choose month and year",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "creditCard": "Credit card",
+    "purchaseOn": "purchased on {{date}}",
+    "balancePlaceholder": "Balance unavailable",
+    "balances": "Account balances",
+    "dailyExpense": {
+      "title": "Daily expenses",
+      "description": "Here are the day-to-day expenses."
+    },
+    "accounts": {
+      "account1": "Account 1",
+      "account2": "Account 2",
+      "account3": "Account 3",
+      "total": "Total balance"
+    },
+    "filters": {
+      "type": "Type: all",
+      "category": "Category: all",
+      "account": "Account: all"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Date — newest first",
+      "oldest": "Date — oldest first",
+      "amountHighest": "Amount — highest first",
+      "amountLowest": "Amount — lowest first",
+      "description": "Description — A to Z"
+    },
+    "income": "Income",
+    "expense": "Expenses",
+    "expenseExcludesCashboxes": "excluding transfers and cashboxes",
+    "monthNet": "Month balance",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…",
+    "type": {
+      "INCOME": "Income",
+      "EXPENSE": "Expense",
+      "TRANSFER": "Transfer",
+      "CASHBOX_IN": "Deposit",
+      "CASHBOX_OUT": "Withdrawal",
+      "CASHBOX_TRANSFER": "Transfer"
+    },
+    "empty": {
+      "title": "No entries in {{month}}",
+      "description": "Record the first movement of the month or choose another month."
+    },
+    "error": {
+      "title": "Could not load entries",
+      "description": "Check your connection and try again."
+    },
+    "field": {
+      "category": "Category",
+      "subcategory": "Subcategory"
+    },
+    "category": {
+      "placeholder": "Select a category"
+    },
+    "subcategory": {
+      "placeholder": "Select a subcategory",
+      "placeholderNoCategory": "Select a category first"
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Language",
@@ -261,19 +338,6 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
-    }
-  },
-  "transactions": {
-    "field": {
-      "category": "Category",
-      "subcategory": "Subcategory"
-    },
-    "category": {
-      "placeholder": "Select a category"
-    },
-    "subcategory": {
-      "placeholder": "Select a subcategory",
-      "placeholderNoCategory": "Select a category first"
     }
   }
 }

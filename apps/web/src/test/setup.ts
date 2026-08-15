@@ -33,6 +33,14 @@ class StubResizeObserver {
 }
 globalThis.ResizeObserver ??= StubResizeObserver as unknown as typeof ResizeObserver;
 
+// The month ledger observes its pagination sentinel; jsdom does not provide this browser API.
+class StubIntersectionObserver {
+  observe = () => undefined;
+  unobserve = () => undefined;
+  disconnect = () => undefined;
+}
+globalThis.IntersectionObserver ??= StubIntersectionObserver as unknown as typeof IntersectionObserver;
+
 // Radix's Select primitive calls these on pointer interaction; jsdom implements neither.
 if (!Element.prototype.hasPointerCapture) {
   Element.prototype.hasPointerCapture = () => false;
