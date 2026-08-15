@@ -23,6 +23,7 @@ interface MutationOptions {
 }
 let mutationOptions: MutationOptions | undefined;
 let updateMutationOptions: MutationOptions | undefined;
+let listAccountsParams: unknown;
 let mutationState: { isPending: boolean; error: unknown };
 let accounts = [
   { id: 'account-1', name: 'Main account' },
@@ -35,7 +36,10 @@ vi.mock('@family-budget/api-client', async (importOriginal) => {
   const actual = await importOriginal<typeof ApiClient>();
   return {
     ...actual,
-    useListAccounts: () => ({ data: accounts }),
+    useListAccounts: (params: unknown) => {
+      listAccountsParams = params;
+      return { data: accounts };
+    },
     useCreateTransaction: (options: unknown) => {
       mutationOptions = options as MutationOptions;
       return { mutate, ...mutationState };
@@ -145,6 +149,7 @@ describe('EntryDialog', () => {
     toastSuccess.mockClear();
     mutationOptions = undefined;
     updateMutationOptions = undefined;
+    listAccountsParams = undefined;
     mutationState = { isPending: false, error: null };
     accounts = [
       { id: 'account-1', name: 'Main account' },
@@ -395,6 +400,7 @@ describe('EntryDialog', () => {
     const onOpenChange = vi.fn();
     const { user } = renderDialog(onOpenChange, transaction);
 
+    expect(listAccountsParams).toEqual({ includeInactive: true });
     expect(screen.getByLabelText('transactions.form.description')).toHaveValue('Groceries');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('10,00 €');
     expect(screen.getByRole('tab', { name: 'transactions.form.income' })).toBeDisabled();
@@ -440,5 +446,41 @@ describe('EntryDialog', () => {
     act(() => updateMutationOptions?.mutation.onError(new Error('Network Error'), undefined, undefined));
     expect(toastError).toHaveBeenCalledWith('errors.UNKNOWN');
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('preserves the stored credit-card reference month until the date changes', async () => {
+    const { user } = renderDialog(vi.fn(), {
+      id: 'transaction-1',
+      type: 'EXPENSE',
+      status: 'CONFIRMED',
+      source: 'MANUAL',
+      amount: 1000,
+      date: '2026-08-15',
+      referenceMonth: '2026-12-01',
+      description: 'Groceries',
+      notes: null,
+      isCreditCard: true,
+      accountId: 'account-1',
+      destinationAccountId: null,
+      categoryId: 'category-1',
+      subcategoryId: 'subcategory-1',
+      cashboxId: null,
+      destinationCashboxId: null,
+      cashboxLabel: null,
+      destinationCashboxLabel: null,
+      createdAt: '2026-08-15T00:00:00.000Z',
+      updatedAt: '2026-08-15T00:00:00.000Z',
+      account: { id: 'account-1', name: 'Main account' },
+      category: null,
+      subcategory: null,
+    });
+
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12');
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
+    await waitFor(() => expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-10'));
+    await user.clear(screen.getByLabelText('transactions.form.referenceMonth'));
+    await user.type(screen.getByLabelText('transactions.form.referenceMonth'), '2026-11');
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-10-15' } });
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-11');
   });
 });

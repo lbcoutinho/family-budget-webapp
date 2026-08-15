@@ -287,7 +287,6 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         });
       },
       onError: (error) => {
-        setDeleting(undefined);
         toast.error(apiErrorMessage(error, t));
       },
     },

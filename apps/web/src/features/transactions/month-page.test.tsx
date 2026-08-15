@@ -301,4 +301,21 @@ describe('MonthPage', () => {
     lastUndo()?.();
     await waitFor(() => expect(lastMessage()).toBe('Lançamento restaurado.'));
   });
+
+  it('keeps the confirmation open when deletion fails', async () => {
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CONFIRMED])),
+      ),
+      http.delete('/api/transactions/:id', () => HttpResponse.json({ code: 'RECORD_IN_USE', message: 'Cannot delete' }, { status: 409 })),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Groceries');
+    await user.click(screen.getByRole('button', { name: 'Apagar' }));
+    await user.click(screen.getAllByRole('button', { name: /^Apagar$/ }).at(-1)!);
+
+    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
 });

@@ -122,7 +122,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   const categoryRef = useRef<HTMLButtonElement>(null);
   const subcategoryRef = useRef<HTMLButtonElement>(null);
   const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(false);
-  const { data: accounts = [] } = useListAccounts();
+  const { data: accounts = [] } = useListAccounts(transaction ? { includeInactive: true } : undefined);
   const {
     control,
     register,
@@ -148,9 +148,9 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
     },
   });
-  const [type, date, isCreditCard, selectedCategoryId, selectedSubcategoryId] = useWatch({
+  const [type, date, isCreditCard, selectedCategoryId, selectedSubcategoryId, referenceMonth, selectedAccountId, selectedDestinationAccountId] = useWatch({
     control,
-    name: ['type', 'date', 'isCreditCard', 'categoryId', 'subcategoryId'],
+    name: ['type', 'date', 'isCreditCard', 'categoryId', 'subcategoryId', 'referenceMonth', 'accountId', 'destinationAccountId'],
   });
   const categoryId = selectedCategoryId || undefined;
   const subcategoryId = selectedSubcategoryId || undefined;
@@ -271,8 +271,11 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   }, [open, reset, transaction]);
 
   useEffect(() => {
-    if (isCreditCard && !referenceMonthOverridden) setValue('referenceMonth', suggestedReferenceMonth(date).slice(0, 7), { shouldValidate: true });
-  }, [date, isCreditCard, referenceMonthOverridden, setValue]);
+    const preservedEditReference = transaction?.isCreditCard && date === transaction.date && referenceMonth === transaction.referenceMonth.slice(0, 7);
+    if (isCreditCard && !referenceMonthOverridden && !preservedEditReference) {
+      setValue('referenceMonth', suggestedReferenceMonth(date).slice(0, 7), { shouldValidate: true });
+    }
+  }, [date, isCreditCard, referenceMonth, referenceMonthOverridden, setValue, transaction]);
 
   const changeType = (nextType: string) => {
     setValue('type', nextType as EntryType, { shouldValidate: true });
@@ -355,13 +358,13 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
           >
             <Tabs value={type} onValueChange={changeType}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="EXPENSE" disabled={Boolean(transaction && transaction.type !== 'EXPENSE')}>
+                <TabsTrigger value="EXPENSE" disabled={Boolean(transaction)}>
                   {t(formKey('transactions.form.expense'))}
                 </TabsTrigger>
-                <TabsTrigger value="INCOME" disabled={Boolean(transaction && transaction.type !== 'INCOME')}>
+                <TabsTrigger value="INCOME" disabled={Boolean(transaction)}>
                   {t(formKey('transactions.form.income'))}
                 </TabsTrigger>
-                <TabsTrigger value="TRANSFER" disabled={Boolean(transaction && transaction.type !== 'TRANSFER')}>
+                <TabsTrigger value="TRANSFER" disabled={Boolean(transaction)}>
                   {t(formKey('transactions.form.transfer'))}
                 </TabsTrigger>
               </TabsList>
@@ -371,6 +374,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                 id="entry-account"
                 label={t(formKey(type === 'TRANSFER' ? 'transactions.form.sourceAccount' : 'transactions.form.account'))}
                 accounts={accounts}
+                selectedId={selectedAccountId}
                 disabled={activeMutation.isPending}
                 error={errors.accountId?.message}
                 registration={register('accountId')}
@@ -380,6 +384,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   id="entry-destination-account"
                   label={t(formKey('transactions.form.destinationAccount'))}
                   accounts={accounts}
+                  selectedId={selectedDestinationAccountId}
                   disabled={activeMutation.isPending}
                   error={errors.destinationAccountId?.message}
                   registration={register('destinationAccountId')}
@@ -532,13 +537,15 @@ function AccountField({
   id,
   label,
   accounts,
+  selectedId,
   disabled,
   error,
   registration,
 }: {
   id: string;
   label: string;
-  accounts: { id: string; name: string }[];
+  accounts: { id: string; name: string; isActive?: boolean }[];
+  selectedId: string;
   disabled: boolean;
   error?: string;
   registration: ReturnType<ReturnType<typeof useForm<EntryFormValues>>['register']>;
@@ -556,7 +563,7 @@ function AccountField({
       >
         <option value="" />
         {accounts.map((account) => (
-          <option key={account.id} value={account.id}>
+          <option key={account.id} value={account.id} disabled={account.isActive === false && account.id !== selectedId}>
             {account.name}
           </option>
         ))}
