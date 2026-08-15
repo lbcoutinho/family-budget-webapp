@@ -1,5 +1,17 @@
-import { getListTransactionsQueryOptions, listTransactions, type TransactionListItemDto, TransactionStatus, TransactionType } from '@family-budget/api-client';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  getListAccountBalancesQueryKey,
+  getListCashboxBalancesQueryKey,
+  getListTransactionsQueryOptions,
+  getListTransactionsQueryKey,
+  listTransactions,
+  type CreateTransactionDto,
+  type TransactionListItemDto,
+  TransactionStatus,
+  TransactionType,
+  useCreateTransaction,
+  useDeleteTransaction,
+} from '@family-budget/api-client';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type TFunction } from 'i18next';
 import {
   CalendarDaysIcon,
@@ -16,7 +28,9 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
+import { apiErrorMessage } from '@/lib/api-error';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
@@ -61,6 +76,23 @@ function typeLabel(type: TransactionType, t: TFunction): string {
 
 function isCashboxOperation(type: TransactionType): boolean {
   return type === TransactionType.CASHBOX_IN || type === TransactionType.CASHBOX_OUT || type === TransactionType.CASHBOX_TRANSFER;
+}
+
+function restorePayload(entry: TransactionListItemDto): CreateTransactionDto {
+  return {
+    type: entry.type,
+    amount: entry.amount,
+    date: entry.date,
+    description: entry.description,
+    ...(entry.notes !== null ? { notes: entry.notes } : {}),
+    ...(entry.isCreditCard ? { isCreditCard: true, referenceMonth: entry.referenceMonth } : {}),
+    ...(entry.accountId ? { accountId: entry.accountId } : {}),
+    ...(entry.destinationAccountId ? { destinationAccountId: entry.destinationAccountId } : {}),
+    ...(entry.categoryId ? { categoryId: entry.categoryId } : {}),
+    ...(entry.subcategoryId ? { subcategoryId: entry.subcategoryId } : {}),
+    ...(entry.cashboxId ? { cashboxId: entry.cashboxId } : {}),
+    ...(entry.destinationCashboxId ? { destinationCashboxId: entry.destinationCashboxId } : {}),
+  };
 }
 
 function transactionDetail(transaction: TransactionListItemDto): string {
@@ -216,11 +248,49 @@ export function MonthPage() {
 function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [entryDialogOpen, setEntryDialogOpen] = useState(false);
   const [cashboxOperationDialogOpen, setCashboxOperationDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<TransactionListItemDto>();
+  const [deleting, setDeleting] = useState<TransactionListItemDto>();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const sentinel = useRef<HTMLDivElement>(null);
+
+  const invalidateTransactions = () => {
+    void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+  };
+  const restore = useCreateTransaction({
+    mutation: {
+      onSuccess: () => {
+        invalidateTransactions();
+        toast.success(t('transactions.undoRestored'));
+      },
+      onError: (error) => toast.error(apiErrorMessage(error, t)),
+    },
+  });
+  const remove = useDeleteTransaction({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        const entry = deleting;
+        setDeleting(undefined);
+        invalidateTransactions();
+        if (entry?.id !== variables.id) return;
+        toast.success(t('transactions.deleted'), {
+          duration: 10_000,
+          action: {
+            label: t('transactions.undo'),
+            onClick: () => restore.mutate({ data: restorePayload(entry) }),
+          },
+        });
+      },
+      onError: (error) => {
+        toast.error(apiErrorMessage(error, t));
+      },
+    },
+  });
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -434,10 +504,26 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <EntryAmount entry={entry} />
                   </div>
                   <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
-                    <Button variant="ghost" size="icon-xs" aria-label={t('common.edit')} className="opacity-50 transition-opacity group-hover:opacity-100">
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={t('common.edit')}
+                      className="opacity-50 transition-opacity group-hover:opacity-100"
+                      onClick={() => {
+                        setEditing(entry);
+                        if (isCashboxOperation(entry.type)) setCashboxOperationDialogOpen(true);
+                        else setEntryDialogOpen(true);
+                      }}
+                    >
                       <PencilIcon />
                     </Button>
-                    <Button variant="ghost" size="icon-xs" aria-label={t('common.delete')} className="opacity-50 transition-opacity group-hover:opacity-100">
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={t('common.delete')}
+                      className="opacity-50 transition-opacity group-hover:opacity-100"
+                      onClick={() => setDeleting(entry)}
+                    >
                       <Trash2Icon />
                     </Button>
                   </div>
@@ -476,8 +562,36 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
           </section>
         ) : null}
       </PageContent>
-      <EntryDialog open={entryDialogOpen} onOpenChange={setEntryDialogOpen} />
-      <CashboxOperationDialog open={cashboxOperationDialogOpen} onOpenChange={setCashboxOperationDialogOpen} />
+      <EntryDialog
+        open={entryDialogOpen}
+        onOpenChange={(open) => {
+          setEntryDialogOpen(open);
+          if (!open) setEditing(undefined);
+        }}
+        transaction={editing}
+      />
+      <CashboxOperationDialog
+        open={cashboxOperationDialogOpen}
+        onOpenChange={(open) => {
+          setCashboxOperationDialogOpen(open);
+          if (!open) setEditing(undefined);
+        }}
+        transaction={editing}
+      />
+      <ConfirmDialog
+        open={deleting !== undefined}
+        onOpenChange={(open) => {
+          if (!open && !remove.isPending) setDeleting(undefined);
+        }}
+        title={t('transactions.delete.title')}
+        description={deleting ? `${deleting.description} · ${formatCents(deleting.amount)} · ${formatEntryDate(deleting.date)}` : ''}
+        variant="destructive"
+        confirmLabel={t('transactions.delete.confirm')}
+        isPending={remove.isPending}
+        onConfirm={() => {
+          if (deleting) remove.mutate({ id: deleting.id });
+        }}
+      />
     </>
   );
 }

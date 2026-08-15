@@ -3,10 +3,12 @@ import {
   getListCashboxBalancesQueryKey,
   getListTransactionsQueryKey,
   type CreateTransactionDto,
+  type UpdateTransactionDto,
   type TransactionListDto,
   type TransactionListItemDto,
   TransactionStatus,
   useCreateTransaction,
+  useUpdateTransaction,
   useListAccountBalances,
   useListAccounts,
   useListCashboxBalances,
@@ -19,6 +21,7 @@ import { useEffect, useState, type FocusEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { EmptyState } from '@/components/empty-state';
@@ -92,6 +95,25 @@ export function cashboxOperationPayload(mode: CashboxOperationMode, values: Cash
   return { type: MODE[mode].type, amount: values.amount, date: values.date, description: values.description.trim(), ...references };
 }
 
+export function cashboxOperationUpdatePayload(
+  transaction: TransactionListItemDto,
+  mode: CashboxOperationMode,
+  values: CashboxOperationPayloadValues,
+): UpdateTransactionDto {
+  const payload: UpdateTransactionDto = {};
+  if (values.amount !== transaction.amount) payload.amount = values.amount;
+  if (values.date !== transaction.date) payload.date = values.date;
+  if (values.description.trim() !== transaction.description) payload.description = values.description.trim();
+
+  for (const field of MODE[mode].fields as readonly ('accountId' | 'cashboxId' | 'destinationCashboxId')[]) {
+    const next = values[field] || undefined;
+    const previous = transaction[field] ?? undefined;
+    if (next !== previous && next !== undefined) payload[field] = next;
+  }
+
+  return payload;
+}
+
 function modeFromTransaction(transaction?: TransactionListItemDto): CashboxOperationMode {
   if (transaction?.type === 'CASHBOX_OUT') return 'withdrawal';
   if (transaction?.type === 'CASHBOX_TRANSFER') return 'transfer';
@@ -119,16 +141,27 @@ export interface CashboxOperationDialogProps {
 export function CashboxOperationDialog({ open, onOpenChange, transaction }: CashboxOperationDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { data: accounts = [] } = useListAccounts();
-  const { data: cashboxes = [] } = useListCashboxes();
+  const { data: accounts = [] } = useListAccounts(transaction?.accountId ? { includeId: transaction.accountId } : undefined);
+  const { data: cashboxes = [] } = useListCashboxes(transaction ? { includeInactive: true } : undefined);
   const { data: accountBalances = [] } = useListAccountBalances();
   const { data: cashboxBalances = [] } = useListCashboxBalances();
   const [balanceWarning, setBalanceWarning] = useState<number>();
   const [submissionError, setSubmissionError] = useState<string>();
-  const activeAccounts = accounts.filter((account) => account.isActive);
-  const activeCashboxes = cashboxes.filter((cashbox) => cashbox.isActive);
+  const activeAccounts = accounts.filter((account) => account.isActive || account.id === transaction?.accountId);
+  const activeCashboxes = cashboxes.filter(
+    (cashbox) => cashbox.isActive || cashbox.id === transaction?.cashboxId || cashbox.id === transaction?.destinationCashboxId,
+  );
   const accountBalanceById = new Map(accountBalances.map((balance) => [balance.accountId, balance]));
   const cashboxBalanceById = new Map(cashboxBalances.map((balance) => [balance.cashboxId, balance]));
+  const accountOptions = activeAccounts.map((account) => ({
+    id: account.id,
+    name: account.isActive ? account.name : `${account.name} (${t('categories.badge.inactive')})`,
+    balance: accountBalanceById.get(account.id)?.balance,
+  }));
+  const cashboxOptions = activeCashboxes.map((cashbox) => ({
+    id: cashbox.id,
+    name: cashbox.isActive ? cashbox.name : `${cashbox.name} (${t('categories.badge.inactive')})`,
+  }));
   const defaultMode = modeFromTransaction(transaction);
   const {
     control,
@@ -151,7 +184,26 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   });
   const [mode, accountId, cashboxId, destinationCashboxId] = useWatch({ control, name: ['mode', 'accountId', 'cashboxId', 'destinationCashboxId'] });
 
-  const mutation = useCreateTransaction({
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+  };
+  const handleSuccess = () => {
+    setBalanceWarning(undefined);
+    setSubmissionError(undefined);
+    toast.success(t('transactions.form.save'));
+    onOpenChange(false);
+  };
+  const handleError = (error: unknown) => {
+    const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code;
+    if (code === 'CASHBOX_INSUFFICIENT_FUNDS') {
+      setSubmissionError(t('errors.CASHBOX_INSUFFICIENT_FUNDS', { amount: formatCents(availableBalanceFromError(error) ?? 0) }));
+    } else {
+      setSubmissionError(apiErrorMessage(error, t));
+    }
+  };
+  const createMutation = useCreateTransaction({
     mutation: {
       onMutate: async ({ data }) => {
         const referenceMonth = referenceMonthFromDate(data.date);
@@ -203,25 +255,16 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
       },
       onError: (error, _variables, context) => {
         if (context?.previous) queryClient.setQueryData(context.key, context.previous);
-        const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code;
-        if (code === 'CASHBOX_INSUFFICIENT_FUNDS') {
-          setSubmissionError(t('errors.CASHBOX_INSUFFICIENT_FUNDS', { amount: formatCents(availableBalanceFromError(error) ?? 0) }));
-        } else {
-          setSubmissionError(apiErrorMessage(error, t));
-        }
+        handleError(error);
       },
-      onSuccess: () => {
-        setBalanceWarning(undefined);
-        setSubmissionError(undefined);
-        onOpenChange(false);
-      },
-      onSettled: () => {
-        void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
-        void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
-        void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
-      },
+      onSuccess: handleSuccess,
+      onSettled: invalidate,
     },
   });
+  const updateMutation = useUpdateTransaction({
+    mutation: { onError: handleError, onSuccess: handleSuccess, onSettled: invalidate },
+  });
+  const mutation = transaction ? updateMutation : createMutation;
 
   useEffect(() => {
     if (!open) return;
@@ -256,7 +299,11 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
     // ponytail: advisory only; the backend is the concurrent source of truth.
     setBalanceWarning(balance !== undefined && amount > balance ? balance : undefined);
     setSubmissionError(undefined);
-    mutation.mutate({ data: cashboxOperationPayload(values.mode, { ...values, amount }) });
+    if (transaction) {
+      updateMutation.mutate({ id: transaction.id, data: cashboxOperationUpdatePayload(transaction, values.mode, { ...values, amount }) });
+    } else {
+      createMutation.mutate({ data: cashboxOperationPayload(values.mode, { ...values, amount }) });
+    }
   });
 
   const cashboxesEmpty = activeCashboxes.length === 0;
@@ -288,9 +335,13 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
           <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
             <Tabs value={mode} onValueChange={changeMode}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="deposit">{t('transactions.cashboxOperation.deposit')}</TabsTrigger>
-                <TabsTrigger value="withdrawal">{t('transactions.cashboxOperation.withdrawal')}</TabsTrigger>
-                <TabsTrigger value="transfer" disabled={transferUnavailable}>
+                <TabsTrigger value="deposit" disabled={Boolean(transaction)}>
+                  {t('transactions.cashboxOperation.deposit')}
+                </TabsTrigger>
+                <TabsTrigger value="withdrawal" disabled={Boolean(transaction)}>
+                  {t('transactions.cashboxOperation.withdrawal')}
+                </TabsTrigger>
+                <TabsTrigger value="transfer" disabled={Boolean(transaction) || transferUnavailable}>
                   {t('transactions.cashboxOperation.transfer')}
                 </TabsTrigger>
               </TabsList>
@@ -314,7 +365,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                       label={t('transactions.cashboxOperation.sourceAccount')}
                       value={accountId}
                       onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
-                      options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
+                      options={accountOptions}
                       error={errors.accountId?.message}
                       disabled={mutation.isPending}
                     />
@@ -326,7 +377,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                         setValue('cashboxId', value, { shouldValidate: true });
                         setBalanceWarning(undefined);
                       }}
-                      options={activeCashboxes}
+                      options={cashboxOptions}
                       balances={cashboxBalanceById}
                       error={errors.cashboxId?.message}
                       disabled={mutation.isPending}
@@ -344,7 +395,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                         setValue('cashboxId', value, { shouldValidate: true });
                         setBalanceWarning(undefined);
                       }}
-                      options={activeCashboxes}
+                      options={cashboxOptions}
                       balances={cashboxBalanceById}
                       error={errors.cashboxId?.message}
                       disabled={mutation.isPending}
@@ -355,7 +406,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                       label={t('transactions.cashboxOperation.destinationAccount')}
                       value={accountId}
                       onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
-                      options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
+                      options={accountOptions}
                       error={errors.accountId?.message}
                       disabled={mutation.isPending}
                     />
@@ -371,7 +422,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                         setValue('cashboxId', value, { shouldValidate: true });
                         setBalanceWarning(undefined);
                       }}
-                      options={activeCashboxes}
+                      options={cashboxOptions}
                       balances={cashboxBalanceById}
                       error={errors.cashboxId?.message}
                       disabled={mutation.isPending}
@@ -385,7 +436,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                         setValue('destinationCashboxId', value, { shouldValidate: true });
                         setBalanceWarning(undefined);
                       }}
-                      options={activeCashboxes}
+                      options={cashboxOptions}
                       balances={cashboxBalanceById}
                       error={errors.destinationCashboxId?.message}
                       disabled={mutation.isPending}
