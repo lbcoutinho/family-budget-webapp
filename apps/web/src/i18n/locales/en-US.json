@@ -66,9 +66,11 @@
     "TRANSACTION_FIELD_REQUIRED": "Fill in all required fields for this entry type.",
     "TRANSACTION_FIELD_NOT_ALLOWED": "This field is not allowed for this entry type.",
     "TRANSACTION_SAME_ACCOUNT": "The source and destination accounts must be different.",
+    "TRANSACTION_SAME_CASHBOX": "The source and destination cashboxes must be different.",
     "TRANSACTION_REFERENCE_INACTIVE": "One of the selected accounts, categories, subcategories or cashboxes is inactive.",
     "TRANSACTION_CATEGORY_KIND_MISMATCH": "The category must match the entry type.",
-    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "The subcategory must belong to the selected category."
+    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "The subcategory must belong to the selected category.",
+    "CASHBOX_INSUFFICIENT_FUNDS": "Cashbox balance available: {{amount}}."
   },
   "accounts": {
     "new": "New account",
@@ -329,6 +331,26 @@
     "subcategory": {
       "placeholder": "Select a subcategory",
       "placeholderNoCategory": "Select a category first"
+    },
+    "cashboxOperation": {
+      "title": "Cashbox operation",
+      "deposit": "Deposit",
+      "withdrawal": "Withdraw",
+      "transfer": "Transfer",
+      "sourceAccount": "Source account",
+      "destinationAccount": "Destination account",
+      "sourceCashbox": "Source cashbox",
+      "destinationCashbox": "Destination cashbox",
+      "newCashbox": "Cashbox (new)",
+      "deletedCashbox": "deleted cashbox",
+      "noCashboxes": "Create a cashbox before recording this operation.",
+      "createCashbox": "Go to Cashboxes",
+      "noAccounts": "Create an account before depositing or withdrawing.",
+      "transferUnavailable": "Create at least two active cashboxes to transfer between them.",
+      "sameCashbox": "The source and destination cashboxes must be different.",
+      "depositInfo": "The money leaves the account and is kept in the cashbox. It does not count as an expense in any report.",
+      "transferInfo": "Move the balance from one cashbox to another — the savings stay in circulation; only their purpose changes.",
+      "insufficientWarning": "Cashbox balance: {{amount}}. An amount above it does not block saving — the server confirms the current balance."
     },
     "form": {
       "title": "New entry",

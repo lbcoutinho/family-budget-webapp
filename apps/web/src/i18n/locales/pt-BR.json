@@ -66,9 +66,11 @@
     "TRANSACTION_FIELD_REQUIRED": "Preencha todos os campos obrigatórios deste tipo de lançamento.",
     "TRANSACTION_FIELD_NOT_ALLOWED": "Este campo não é permitido para este tipo de lançamento.",
     "TRANSACTION_SAME_ACCOUNT": "As contas de origem e destino precisam ser diferentes.",
+    "TRANSACTION_SAME_CASHBOX": "As caixinhas de origem e destino precisam ser diferentes.",
     "TRANSACTION_REFERENCE_INACTIVE": "Uma das contas, categorias, subcategorias ou caixinhas selecionadas está desativada.",
     "TRANSACTION_CATEGORY_KIND_MISMATCH": "A categoria precisa corresponder ao tipo do lançamento.",
-    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada."
+    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada.",
+    "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}."
   },
   "accounts": {
     "new": "Nova conta",
@@ -329,6 +331,26 @@
     "subcategory": {
       "placeholder": "Selecione uma subcategoria",
       "placeholderNoCategory": "Selecione uma categoria primeiro"
+    },
+    "cashboxOperation": {
+      "title": "Operação de caixinha",
+      "deposit": "Depositar",
+      "withdrawal": "Retirar",
+      "transfer": "Transferir",
+      "sourceAccount": "Conta de origem",
+      "destinationAccount": "Conta de destino",
+      "sourceCashbox": "Caixinha de origem",
+      "destinationCashbox": "Caixinha de destino",
+      "newCashbox": "Caixinha (nova)",
+      "deletedCashbox": "caixinha excluída",
+      "noCashboxes": "Cadastre uma caixinha antes de registrar esta operação.",
+      "createCashbox": "Ir para Caixinhas",
+      "noAccounts": "Cadastre uma conta antes de depositar ou retirar.",
+      "transferUnavailable": "Crie pelo menos duas caixinhas ativas para transferir entre elas.",
+      "sameCashbox": "As caixinhas de origem e destino precisam ser diferentes.",
+      "depositInfo": "O dinheiro sai da conta e fica guardado na caixinha. Não conta como despesa em relatório nenhum.",
+      "transferInfo": "Transfira saldo de uma caixinha para outra — a poupança não sai de circulação, só muda de nome.",
+      "insufficientWarning": "Saldo da caixinha: {{amount}}. O valor acima do saldo não bloqueia — o servidor confirma o saldo atual."
     },
     "form": {
       "title": "Novo lançamento",
