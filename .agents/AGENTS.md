@@ -1,1 +1,1 @@
-/home/leandro/Documentos/git/family-budget-webapp/.claude/AGENTS.md
+../.claude/AGENTS.md
