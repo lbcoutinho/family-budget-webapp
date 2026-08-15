@@ -26,6 +26,7 @@ let cashboxes = [
   { id: 'cashbox-1', name: 'Férias', isActive: true },
   { id: 'cashbox-2', name: 'Obras', isActive: true },
 ];
+let cashboxListParams: unknown;
 let accountBalances = [
   { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
   { accountId: 'account-2', name: 'Poupança', balance: 300000 },
@@ -40,7 +41,10 @@ vi.mock('@family-budget/api-client', async (importOriginal) => {
   return {
     ...actual,
     useListAccounts: () => ({ data: accounts }),
-    useListCashboxes: () => ({ data: cashboxes }),
+    useListCashboxes: (params: unknown) => {
+      cashboxListParams = params;
+      return { data: cashboxes };
+    },
     useListAccountBalances: () => ({ data: accountBalances }),
     useListCashboxBalances: () => ({ data: cashboxBalances }),
     useCreateTransaction: (options: unknown) => {
@@ -108,6 +112,7 @@ describe('CashboxOperationDialog', () => {
       { id: 'cashbox-1', name: 'Férias', isActive: true },
       { id: 'cashbox-2', name: 'Obras', isActive: true },
     ];
+    cashboxListParams = undefined;
     accountBalances = [
       { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
       { accountId: 'account-2', name: 'Poupança', balance: 300000 },
@@ -262,6 +267,44 @@ describe('CashboxOperationDialog', () => {
 
     expect(screen.queryByRole('option', { name: 'Conta encerrada' })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Caixinha encerrada' })).not.toBeInTheDocument();
+  });
+
+  it('keeps both inactive cashboxes visible when editing a transfer', () => {
+    cashboxes = [
+      { id: 'cashbox-1', name: 'Férias', isActive: false },
+      { id: 'cashbox-2', name: 'Obras', isActive: false },
+    ];
+    const transaction = {
+      id: 'transaction-1',
+      type: 'CASHBOX_TRANSFER',
+      status: 'CONFIRMED',
+      source: 'MANUAL',
+      amount: 1000,
+      date: '2026-08-15',
+      referenceMonth: '2026-08-01',
+      description: 'Old transfer',
+      notes: null,
+      isCreditCard: false,
+      accountId: null,
+      destinationAccountId: null,
+      categoryId: null,
+      subcategoryId: null,
+      cashboxId: 'cashbox-1',
+      destinationCashboxId: 'cashbox-2',
+      cashboxLabel: 'Férias',
+      destinationCashboxLabel: 'Obras',
+      createdAt: '2026-08-15T00:00:00.000Z',
+      updatedAt: '2026-08-15T00:00:00.000Z',
+      account: null,
+      category: null,
+      subcategory: null,
+    } as ApiClient.TransactionListItemDto;
+
+    renderDialog(vi.fn(), transaction);
+
+    expect(cashboxListParams).toEqual({ includeInactive: true });
+    expect(screen.getAllByRole('option', { name: 'Férias (inativa)' })).toHaveLength(2);
+    expect(screen.getAllByRole('option', { name: 'Obras (inativa)' })).toHaveLength(2);
   });
 
   it('shows the approved explanatory callouts for deposits and transfers', async () => {

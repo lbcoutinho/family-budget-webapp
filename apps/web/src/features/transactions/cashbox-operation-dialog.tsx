@@ -142,11 +142,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: accounts = [] } = useListAccounts(transaction?.accountId ? { includeId: transaction.accountId } : undefined);
-  const { data: cashboxes = [] } = useListCashboxes(
-    transaction?.cashboxId || transaction?.destinationCashboxId
-      ? { includeId: transaction.cashboxId ?? transaction.destinationCashboxId ?? undefined }
-      : undefined,
-  );
+  const { data: cashboxes = [] } = useListCashboxes(transaction ? { includeInactive: true } : undefined);
   const { data: accountBalances = [] } = useListAccountBalances();
   const { data: cashboxBalances = [] } = useListCashboxBalances();
   const [balanceWarning, setBalanceWarning] = useState<number>();
