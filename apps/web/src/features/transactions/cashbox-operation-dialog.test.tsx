@@ -154,6 +154,33 @@ describe('CashboxOperationDialog', () => {
     expect(screen.getByText('1.000,00 €')).toBeInTheDocument();
   });
 
+  it('keeps transfer available without accounts and disables it with fewer than two cashboxes', async () => {
+    accounts = [];
+    const { user, unmount } = renderDialog();
+
+    expect(screen.getByRole('tab', { name: 'Transferir' })).toHaveAttribute('data-state', 'active');
+    expect(screen.queryByLabelText('Conta de origem')).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
+    unmount();
+
+    accounts = [{ id: 'account-1', name: 'Conta principal', isActive: true }];
+    cashboxes = [{ id: 'cashbox-1', name: 'Férias', isActive: true }];
+    renderDialog();
+
+    expect(screen.getByRole('tab', { name: 'Transferir' })).toBeDisabled();
+    expect(screen.getByText('Crie pelo menos duas caixinhas ativas para transferir entre elas.')).toBeInTheDocument();
+  });
+
+  it('excludes inactive accounts and cashboxes from selectors', () => {
+    accounts = [...accounts, { id: 'account-inactive', name: 'Conta encerrada', isActive: false }];
+    cashboxes = [...cashboxes, { id: 'cashbox-inactive', name: 'Caixinha encerrada', isActive: false }];
+    renderDialog();
+
+    expect(screen.queryByRole('option', { name: 'Conta encerrada' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Caixinha encerrada' })).not.toBeInTheDocument();
+  });
+
   it('warns only on submit when a cashbox withdrawal exceeds its balance without blocking the request', async () => {
     const { user } = renderDialog();
 
@@ -167,6 +194,23 @@ describe('CashboxOperationDialog', () => {
 
     expect(screen.getByText(/Saldo da caixinha: 1.000,00 €/)).toBeInTheDocument();
     expect(mutate).toHaveBeenCalledOnce();
+
+    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-2');
+    expect(screen.queryByText(/Saldo da caixinha:/)).not.toBeInTheDocument();
+  });
+
+  it('rejects a transfer to the same cashbox before mutation', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByRole('tab', { name: 'Transferir' }));
+    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await fillCommon(user, '20');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(screen.getByLabelText('Caixinha de destino')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('As caixinhas de origem e destino precisam ser diferentes.')).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   it('renders the available balance from a cashbox insufficient-funds response', () => {

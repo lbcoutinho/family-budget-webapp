@@ -128,7 +128,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const activeCashboxes = cashboxes.filter((cashbox) => cashbox.isActive);
   const accountBalanceById = new Map(accountBalances.map((balance) => [balance.accountId, balance]));
   const cashboxBalanceById = new Map(cashboxBalances.map((balance) => [balance.cashboxId, balance]));
-  const defaultMode = modeFromTransaction(transaction);
+  const defaultMode = transaction ? modeFromTransaction(transaction) : activeAccounts.length === 0 && activeCashboxes.length >= 2 ? 'transfer' : 'deposit';
   const {
     control,
     register,
@@ -282,8 +282,12 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
           <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
             <Tabs value={mode} onValueChange={changeMode}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="deposit">{t('transactions.cashboxOperation.deposit')}</TabsTrigger>
-                <TabsTrigger value="withdrawal">{t('transactions.cashboxOperation.withdrawal')}</TabsTrigger>
+                <TabsTrigger value="deposit" disabled={accountsEmpty}>
+                  {t('transactions.cashboxOperation.deposit')}
+                </TabsTrigger>
+                <TabsTrigger value="withdrawal" disabled={accountsEmpty}>
+                  {t('transactions.cashboxOperation.withdrawal')}
+                </TabsTrigger>
                 <TabsTrigger value="transfer" disabled={transferUnavailable}>
                   {t('transactions.cashboxOperation.transfer')}
                 </TabsTrigger>
