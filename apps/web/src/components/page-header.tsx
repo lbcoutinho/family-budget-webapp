@@ -41,7 +41,8 @@ export function PageHeader({ title, actions, className }: PageHeaderProps) {
             <MenuIcon />
           </Button>
         )}
-        <h1 className="truncate font-display text-[1.05rem] font-bold tracking-[-0.02em]">{title}</h1>
+        {/* A composed title carries its own controls — truncating it would clip their popovers. */}
+        <h1 className={cn('font-display text-[1.05rem] font-bold tracking-[-0.02em]', typeof title === 'string' ? 'truncate' : 'min-w-0')}>{title}</h1>
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </header>

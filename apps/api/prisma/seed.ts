@@ -411,6 +411,9 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         subcategoryId: 'subcategory' in transaction ? categoryId(transaction.subcategory, category) : null,
         cashboxId: 'cashbox' in transaction ? cashboxId(transaction.cashbox) : null,
         destinationCashboxId: 'destinationCashbox' in transaction ? cashboxId(transaction.destinationCashbox) : null,
+        // Snapshotted at write time like the service does (ADR-0019) — without it the UI has no cashbox name.
+        cashboxLabel: 'cashbox' in transaction ? transaction.cashbox : null,
+        destinationCashboxLabel: 'destinationCashbox' in transaction ? transaction.destinationCashbox : null,
       },
     });
   }
