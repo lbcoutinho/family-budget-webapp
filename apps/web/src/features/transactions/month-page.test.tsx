@@ -37,6 +37,21 @@ const CONFIRMED: TransactionListItemDto = {
 };
 
 const DRAFT: TransactionListItemDto = { ...CONFIRMED, id: 'draft-1', status: TransactionStatus.DRAFT, description: 'Voice draft', isCreditCard: false };
+const CASHBOX_TRANSFER: TransactionListItemDto = {
+  ...CONFIRMED,
+  id: 'cashbox-transfer-1',
+  type: TransactionType.CASHBOX_TRANSFER,
+  amount: 50000,
+  description: 'Holiday fund move',
+  accountId: null,
+  categoryId: null,
+  cashboxId: 'cashbox-1',
+  destinationCashboxId: 'cashbox-2',
+  cashboxLabel: 'Holiday fund',
+  destinationCashboxLabel: 'Home repairs',
+  account: null,
+  category: null,
+};
 
 function page(items: TransactionListItemDto[], overrides: Partial<TransactionListDto> = {}): TransactionListDto {
   return { items, total: items.length, incomeTotal: 0, expenseTotal: 12345, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null, ...overrides };
@@ -86,6 +101,21 @@ describe('MonthPage', () => {
     expect(requests).toHaveLength(2);
     expect(requests.map((request) => request.searchParams.get('referenceMonth'))).toEqual(['2026-07-01', '2026-07-01']);
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
+  });
+
+  it('uses the transfer color for cashbox transfers', async () => {
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CASHBOX_TRANSFER])),
+      ),
+    );
+
+    renderPage();
+
+    const badge = await screen.findByText('Transferência');
+    expect(badge).toHaveClass('text-transfer');
+    expect(screen.getByText('500,00 €')).toHaveClass('text-transfer');
+    expect(badge.closest('article')).toHaveStyle({ borderLeftColor: 'var(--transfer)' });
   });
 
   it('debounces the server-side description search', async () => {

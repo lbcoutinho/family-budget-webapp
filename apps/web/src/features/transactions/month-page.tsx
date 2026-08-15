@@ -154,7 +154,14 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
           </Badge>
         ) : null}
         {isCashboxOperation(entry.type) ? (
-          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10px] text-cashbox">
+          <Badge
+            variant="outline"
+            className={`text-[10px] ${
+              entry.type === TransactionType.CASHBOX_TRANSFER
+                ? 'border-transfer/30 bg-transfer/10 text-transfer'
+                : 'border-cashbox/30 bg-cashbox/10 text-cashbox'
+            }`}
+          >
             {typeLabel(entry.type, t)}
           </Badge>
         ) : null}
@@ -176,8 +183,8 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
       ? 'text-destructive'
       : entry.type === TransactionType.INCOME
         ? 'text-emerald-700'
-        : entry.type === TransactionType.TRANSFER
-          ? 'text-blue-700'
+        : entry.type === TransactionType.TRANSFER || entry.type === TransactionType.CASHBOX_TRANSFER
+          ? 'text-transfer'
           : 'text-cashbox';
 
   return (
@@ -413,7 +420,11 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 <article
                   key={entry.id}
                   className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
-                  style={{ borderLeftColor: entry.category?.color ?? (isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent') }}
+                  style={{
+                    borderLeftColor:
+                      entry.category?.color ??
+                      (entry.type === TransactionType.CASHBOX_TRANSFER ? 'var(--transfer)' : isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent'),
+                  }}
                 >
                   <time className="num text-[12.5px] text-muted-foreground">{formatEntryDate(entry.date)}</time>
                   <EntryMeta entry={entry} />
