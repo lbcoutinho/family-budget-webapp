@@ -14,6 +14,7 @@ import { Loader2Icon } from 'lucide-react';
 import { useEffect, useRef, useState, type FocusEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -294,7 +295,12 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
           <DialogTitle>{t(formKey('transactions.form.title'))}</DialogTitle>
         </DialogHeader>
         {accountsEmpty ? (
-          <p className="text-sm text-muted-foreground">{t(formKey('transactions.form.noAccounts'))}</p>
+          <div className="grid gap-3">
+            <p className="text-sm text-muted-foreground">{t(formKey('transactions.form.noAccounts'))}</p>
+            <Button asChild size="sm" className="w-fit">
+              <Link to="/accounts">{t(formKey('transactions.form.createAccount'))}</Link>
+            </Button>
+          </div>
         ) : (
           <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
             <Tabs value={type} onValueChange={changeType}>
@@ -304,42 +310,70 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                 <TabsTrigger value="TRANSFER">{t(formKey('transactions.form.transfer'))}</TabsTrigger>
               </TabsList>
             </Tabs>
-            <div className="grid gap-1.5">
-              <Label htmlFor="entry-date">{t(formKey('transactions.form.date'))}</Label>
-              <Input id="entry-date" type="date" aria-invalid={errors.date !== undefined} disabled={mutation.isPending} {...register('date')} />
-              <FieldError error={errors.date?.message} />
-            </div>
-            <AccountField
-              id="entry-account"
-              label={t(formKey(type === 'TRANSFER' ? 'transactions.form.sourceAccount' : 'transactions.form.account'))}
-              accounts={accounts}
-              disabled={mutation.isPending}
-              error={errors.accountId?.message}
-              registration={register('accountId')}
-            />
-            {type === 'TRANSFER' ? (
+            <div className="grid gap-3 sm:grid-cols-2">
               <AccountField
-                id="entry-destination-account"
-                label={t(formKey('transactions.form.destinationAccount'))}
+                id="entry-account"
+                label={t(formKey(type === 'TRANSFER' ? 'transactions.form.sourceAccount' : 'transactions.form.account'))}
                 accounts={accounts}
                 disabled={mutation.isPending}
-                error={errors.destinationAccountId?.message}
-                registration={register('destinationAccountId')}
+                error={errors.accountId?.message}
+                registration={register('accountId')}
               />
+              {type === 'TRANSFER' ? (
+                <AccountField
+                  id="entry-destination-account"
+                  label={t(formKey('transactions.form.destinationAccount'))}
+                  accounts={accounts}
+                  disabled={mutation.isPending}
+                  error={errors.destinationAccountId?.message}
+                  registration={register('destinationAccountId')}
+                />
+              ) : (
+                <div className="grid gap-1.5">
+                  <Label htmlFor="entry-date">{t(formKey('transactions.form.date'))}</Label>
+                  <Input
+                    id="entry-date"
+                    type="date"
+                    aria-describedby={errors.date ? 'entry-date-error' : undefined}
+                    aria-invalid={errors.date !== undefined}
+                    disabled={mutation.isPending}
+                    {...register('date')}
+                  />
+                  <FieldError id="entry-date-error" error={errors.date?.message} />
+                </div>
+              )}
+            </div>
+            {type === 'TRANSFER' ? (
+              <div className="grid gap-1.5">
+                <Label htmlFor="entry-date">{t(formKey('transactions.form.date'))}</Label>
+                <Input
+                  id="entry-date"
+                  type="date"
+                  aria-describedby={errors.date ? 'entry-date-error' : undefined}
+                  aria-invalid={errors.date !== undefined}
+                  disabled={mutation.isPending}
+                  {...register('date')}
+                />
+                <FieldError id="entry-date-error" error={errors.date?.message} />
+              </div>
             ) : (
               <>
-                <CategorySelect
-                  kind={type}
-                  categoryId={categoryId}
-                  subcategoryId={subcategoryId}
-                  disabled={mutation.isPending}
-                  onChange={(nextCategory, nextSubcategory) => {
-                    setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
-                    setValue('subcategoryId', nextSubcategory ?? '', { shouldValidate: true });
-                  }}
-                />
-                <FieldError error={errors.categoryId?.message} />
-                <FieldError error={errors.subcategoryId?.message} />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <CategorySelect
+                    kind={type}
+                    categoryId={categoryId}
+                    subcategoryId={subcategoryId}
+                    disabled={mutation.isPending}
+                    categoryDescribedBy={errors.categoryId ? 'entry-category-error' : undefined}
+                    subcategoryDescribedBy={errors.subcategoryId ? 'entry-subcategory-error' : undefined}
+                    onChange={(nextCategory, nextSubcategory) => {
+                      setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
+                      setValue('subcategoryId', nextSubcategory ?? '', { shouldValidate: true });
+                    }}
+                  />
+                </div>
+                <FieldError id="entry-category-error" error={errors.categoryId?.message} />
+                <FieldError id="entry-subcategory-error" error={errors.subcategoryId?.message} />
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="entry-credit-card"
@@ -360,19 +394,29 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                     <Input
                       id="entry-reference-month"
                       type="month"
+                      aria-describedby={`entry-reference-month-hint${errors.referenceMonth ? ' entry-reference-month-error' : ''}`}
                       aria-invalid={errors.referenceMonth !== undefined}
                       disabled={mutation.isPending}
                       {...register('referenceMonth', { onChange: overrideReferenceMonth })}
                     />
-                    <FieldError error={errors.referenceMonth?.message} />
+                    <p id="entry-reference-month-hint" className="text-xs text-muted-foreground">
+                      {t(formKey('transactions.form.referenceMonthHint'))}
+                    </p>
+                    <FieldError id="entry-reference-month-error" error={errors.referenceMonth?.message} />
                   </div>
                 ) : null}
               </>
             )}
             <div className="grid gap-1.5">
               <Label htmlFor="entry-description">{t(formKey('transactions.form.description'))}</Label>
-              <Input id="entry-description" aria-invalid={errors.description !== undefined} disabled={mutation.isPending} {...register('description')} />
-              <FieldError error={errors.description?.message} />
+              <Input
+                id="entry-description"
+                aria-describedby={errors.description ? 'entry-description-error' : undefined}
+                aria-invalid={errors.description !== undefined}
+                disabled={mutation.isPending}
+                {...register('description')}
+              />
+              <FieldError id="entry-description-error" error={errors.description?.message} />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="entry-amount">{t(formKey('transactions.form.amount'))}</Label>
@@ -380,6 +424,8 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                 id="entry-amount"
                 inputMode="decimal"
                 className="text-right tabular-nums"
+                placeholder={t(formKey('transactions.form.amountPlaceholder'))}
+                aria-describedby={`entry-amount-hint${errors.amount ? ' entry-amount-error' : ''}`}
                 aria-invalid={errors.amount !== undefined}
                 disabled={mutation.isPending}
                 {...register('amount', {
@@ -389,7 +435,10 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                   },
                 })}
               />
-              <FieldError error={errors.amount?.message} />
+              <p id="entry-amount-hint" className="text-xs text-muted-foreground">
+                {t(formKey('transactions.form.amountHint'))}
+              </p>
+              <FieldError id="entry-amount-error" error={errors.amount?.message} />
             </div>
             {errorMessage ? (
               <p role="alert" className="text-sm text-destructive">
@@ -428,9 +477,13 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
   );
 }
 
-function FieldError({ error }: { error?: string }) {
+function FieldError({ id, error }: { id?: string; error?: string }) {
   const { t } = useTranslation();
-  return error ? <p className="text-xs text-destructive">{t(formKey(error))}</p> : null;
+  return error ? (
+    <p id={id} className="text-xs text-destructive">
+      {t(formKey(error))}
+    </p>
+  ) : null;
 }
 
 function AccountField({
@@ -454,6 +507,7 @@ function AccountField({
       <select
         id={id}
         className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+        aria-describedby={error ? `${id}-error` : undefined}
         aria-invalid={error !== undefined}
         disabled={disabled}
         {...registration}
@@ -465,7 +519,7 @@ function AccountField({
           </option>
         ))}
       </select>
-      <FieldError error={error} />
+      <FieldError id={`${id}-error`} error={error} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { businessCodeField, EntryDialog, suggestedReferenceMonth } from './entry-dialog';
@@ -9,18 +10,17 @@ import type * as ApiClient from '@family-budget/api-client';
 
 const categoryButtonLabel = 'choose category';
 const mutate = vi.fn<(variables: { data: ApiClient.CreateTransactionDto }) => void>();
+let accounts = [
+  { id: 'account-1', name: 'Main account' },
+  { id: 'account-2', name: 'Savings' },
+];
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('@family-budget/api-client', async (importOriginal) => {
   const actual = await importOriginal<typeof ApiClient>();
   return {
     ...actual,
-    useListAccounts: () => ({
-      data: [
-        { id: 'account-1', name: 'Main account' },
-        { id: 'account-2', name: 'Savings' },
-      ],
-    }),
+    useListAccounts: () => ({ data: accounts }),
     useCreateTransaction: () => ({ mutate, isPending: false, error: null }),
   };
 });
@@ -38,7 +38,9 @@ function renderDialog() {
     user: userEvent.setup(),
     ...render(
       <QueryClientProvider client={queryClient}>
-        <EntryDialog open onOpenChange={() => undefined} />
+        <MemoryRouter>
+          <EntryDialog open onOpenChange={() => undefined} />
+        </MemoryRouter>
       </QueryClientProvider>,
     ),
   };
@@ -60,7 +62,29 @@ describe('entry dialog helpers', () => {
 });
 
 describe('EntryDialog', () => {
-  beforeEach(() => mutate.mockClear());
+  beforeEach(() => {
+    mutate.mockClear();
+    accounts = [
+      { id: 'account-1', name: 'Main account' },
+      { id: 'account-2', name: 'Savings' },
+    ];
+  });
+
+  it('links to Accounts when none exist', () => {
+    accounts = [];
+    renderDialog();
+
+    expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/accounts');
+  });
+
+  it('associates account errors with the account input', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(screen.getByLabelText('transactions.form.account')).toHaveAttribute('aria-describedby', 'entry-account-error');
+    expect(document.getElementById('entry-account-error')).toHaveTextContent('transactions.form.required');
+  });
 
   it('submits an expense in cents with no reference month by default', async () => {
     const { user } = renderDialog();
