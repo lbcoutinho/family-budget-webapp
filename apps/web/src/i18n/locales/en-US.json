@@ -62,7 +62,15 @@
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "A subcategory inherits the kind of its main category.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Only a main category carries a colour; a subcategory inherits its own.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead.",
-    "CASHBOX_NOT_EMPTY": "The cashbox still has a balance. Deleting is only allowed with a zero balance — deactivate it instead, or withdraw the balance and try again."
+    "CASHBOX_NOT_EMPTY": "The cashbox still has a balance. Deleting is only allowed with a zero balance — deactivate it instead, or withdraw the balance and try again.",
+    "TRANSACTION_FIELD_REQUIRED": "Fill in all required fields for this entry type.",
+    "TRANSACTION_FIELD_NOT_ALLOWED": "This field is not allowed for this entry type.",
+    "TRANSACTION_SAME_ACCOUNT": "The source and destination accounts must be different.",
+    "TRANSACTION_SAME_CASHBOX": "The source and destination cashboxes must be different.",
+    "TRANSACTION_REFERENCE_INACTIVE": "One of the selected accounts, categories, subcategories or cashboxes is inactive.",
+    "TRANSACTION_CATEGORY_KIND_MISMATCH": "The category must match the entry type.",
+    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "The subcategory must belong to the selected category.",
+    "CASHBOX_INSUFFICIENT_FUNDS": "Cashbox balance available: {{amount}}."
   },
   "accounts": {
     "new": "New account",
@@ -246,6 +254,137 @@
     "error": {
       "title": "Could not load the cashboxes",
       "description": "Check your connection and try again."
+    }
+  },
+  "transactions": {
+    "entries": "Month entries",
+    "new": "New entry",
+    "moveCashbox": "Move cashbox funds",
+    "search": "Search entries",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "draftCount_one": "{{count}} draft",
+    "draftCount_other": "{{count}} drafts",
+    "draft": "draft",
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "monthPicker": "Choose month and year",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "creditCard": "Credit card",
+    "purchaseOn": "purchased on {{date}}",
+    "balancePlaceholder": "Balance unavailable",
+    "balances": "Account balances",
+    "dailyExpense": {
+      "title": "Daily expenses",
+      "description": "Here are the day-to-day expenses."
+    },
+    "accounts": {
+      "account1": "Account 1",
+      "account2": "Account 2",
+      "account3": "Account 3",
+      "total": "Total balance"
+    },
+    "filters": {
+      "type": "Type: all",
+      "category": "Category: all",
+      "account": "Account: all"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Date — newest first",
+      "oldest": "Date — oldest first",
+      "amountHighest": "Amount — highest first",
+      "amountLowest": "Amount — lowest first",
+      "description": "Description — A to Z"
+    },
+    "income": "Income",
+    "expense": "Expenses",
+    "expenseExcludesCashboxes": "excluding transfers and cashboxes",
+    "monthNet": "Month balance",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…",
+    "type": {
+      "INCOME": "Income",
+      "EXPENSE": "Expense",
+      "TRANSFER": "Transfer",
+      "CASHBOX_IN": "Deposit",
+      "CASHBOX_OUT": "Withdrawal",
+      "CASHBOX_TRANSFER": "Transfer"
+    },
+    "empty": {
+      "title": "No entries in {{month}}",
+      "description": "Record the first movement of the month or choose another month."
+    },
+    "error": {
+      "title": "Could not load entries",
+      "description": "Check your connection and try again."
+    },
+    "deleted": "Entry deleted.",
+    "undo": "Undo",
+    "undoRestored": "Entry restored.",
+    "delete": {
+      "title": "Delete entry?",
+      "confirm": "Delete"
+    },
+    "field": {
+      "category": "Category",
+      "subcategory": "Subcategory"
+    },
+    "category": {
+      "placeholder": "Select a category"
+    },
+    "subcategory": {
+      "placeholder": "Select a subcategory",
+      "placeholderNoCategory": "Select a category first"
+    },
+    "cashboxOperation": {
+      "title": "Cashbox operation",
+      "deposit": "Deposit",
+      "withdrawal": "Withdraw",
+      "transfer": "Transfer",
+      "sourceAccount": "Source account",
+      "destinationAccount": "Destination account",
+      "sourceCashbox": "Source cashbox",
+      "destinationCashbox": "Destination cashbox",
+      "newCashbox": "Cashbox (new)",
+      "deletedCashbox": "deleted cashbox",
+      "noCashboxes": "Create a cashbox before recording this operation.",
+      "createCashbox": "Go to Cashboxes",
+      "noAccounts": "Create an account before depositing or withdrawing.",
+      "transferUnavailable": "Create at least two active cashboxes to transfer between them.",
+      "sameCashbox": "The source and destination cashboxes must be different.",
+      "depositInfo": "The money leaves the account and is kept in the cashbox. It does not count as an expense in any report.",
+      "transferInfo": "Move the balance from one cashbox to another — the savings stay in circulation; only their purpose changes.",
+      "insufficientWarning": "Cashbox balance: {{amount}}. An amount above it does not block saving — the server confirms the current balance."
+    },
+    "form": {
+      "title": "New entry",
+      "expense": "Expense",
+      "income": "Income",
+      "transfer": "Transfer",
+      "date": "Date",
+      "account": "Account",
+      "sourceAccount": "From",
+      "destinationAccount": "To",
+      "accountPlaceholder": "Select an account",
+      "category": "Category",
+      "subcategory": "Subcategory",
+      "description": "Description",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "amountHint": "Accepts 1,234.56 and 1.234,56.",
+      "creditCard": "Credit card purchase",
+      "referenceMonth": "Reference month",
+      "referenceMonthHint": "The month when this entry appears in reports — normally the month after the purchase.",
+      "noAccounts": "Create an account before adding an entry.",
+      "createAccount": "Go to Accounts",
+      "required": "Fill in this field.",
+      "invalidAmount": "Enter a valid amount.",
+      "sameAccount": "The source and destination accounts must be different.",
+      "save": "Save",
+      "saveAndAddAnother": "Save and add another"
     }
   },
   "settingsGeneral": {

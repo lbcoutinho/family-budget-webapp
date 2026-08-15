@@ -37,9 +37,9 @@
   --primary-foreground: #ffffff;
   --ring: #1a7a52;
 
-  /* money, fixed forever. Only `--expense` is in use yet (as shadcn's destructive); the rest
-     arrive with the first screen that shows an amount. */
+  /* money, fixed forever */
   --destructive: #bc2f3e;
+  --transfer: #3a6ea5;
 
   /* the ten category swatches — each >= 4.8:1 on the page, grey permanently "Outros" */
   --category-1: #1f6f54;
@@ -56,6 +56,7 @@
   /* the cashbox amber — the colour that means "cashbox" everywhere in the app, shown only where
      a cashbox deposit/withdrawal is on screen (prototypes/approved/05-cashboxes.html) */
   --cashbox: #8a6008;
+  --cashbox-wash: #f7f0dd;
 }
 
 /* The one breakpoint the shell cares about: below it the sidebar is a drawer, above it a fixed
@@ -87,10 +88,12 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-transfer: var(--transfer);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-cashbox: var(--cashbox);
+  --color-cashbox-wash: var(--cashbox-wash);
 }
 
 @layer base {

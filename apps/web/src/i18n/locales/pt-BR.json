@@ -62,7 +62,15 @@
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "Uma subcategoria herda o tipo da categoria principal.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal.",
-    "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo."
+    "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo.",
+    "TRANSACTION_FIELD_REQUIRED": "Preencha todos os campos obrigatórios deste tipo de lançamento.",
+    "TRANSACTION_FIELD_NOT_ALLOWED": "Este campo não é permitido para este tipo de lançamento.",
+    "TRANSACTION_SAME_ACCOUNT": "As contas de origem e destino precisam ser diferentes.",
+    "TRANSACTION_SAME_CASHBOX": "As caixinhas de origem e destino precisam ser diferentes.",
+    "TRANSACTION_REFERENCE_INACTIVE": "Uma das contas, categorias, subcategorias ou caixinhas selecionadas está desativada.",
+    "TRANSACTION_CATEGORY_KIND_MISMATCH": "A categoria precisa corresponder ao tipo do lançamento.",
+    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada.",
+    "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}."
   },
   "accounts": {
     "new": "Nova conta",
@@ -246,6 +254,137 @@
     "error": {
       "title": "Não foi possível carregar as caixinhas",
       "description": "Verifique a conexão e tente de novo."
+    }
+  },
+  "transactions": {
+    "entries": "Lançamentos do mês",
+    "new": "Novo lançamento",
+    "moveCashbox": "Movimentar caixinha",
+    "search": "Buscar lançamentos",
+    "count_one": "{{count}} lançamento",
+    "count_other": "{{count}} lançamentos",
+    "draftCount_one": "{{count}} rascunho",
+    "draftCount_other": "{{count}} rascunhos",
+    "draft": "rascunho",
+    "today": "Hoje",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "monthPicker": "Escolher mês e ano",
+    "previousYear": "Ano anterior",
+    "nextYear": "Próximo ano",
+    "creditCard": "Cartão de crédito",
+    "purchaseOn": "compra em {{date}}",
+    "balancePlaceholder": "Saldo indisponível",
+    "balances": "Saldos das contas",
+    "dailyExpense": {
+      "title": "Despesas dia a dia",
+      "description": "Aqui são as despesas dia a dia."
+    },
+    "accounts": {
+      "account1": "Conta 1",
+      "account2": "Conta 2",
+      "account3": "Conta 3",
+      "total": "Saldo total"
+    },
+    "filters": {
+      "type": "Tipo: todos",
+      "category": "Categoria: todas",
+      "account": "Conta: todas"
+    },
+    "sort": {
+      "label": "Ordenar",
+      "newest": "Data — mais recente",
+      "oldest": "Data — mais antiga",
+      "amountHighest": "Valor — maior",
+      "amountLowest": "Valor — menor",
+      "description": "Descrição — A a Z"
+    },
+    "income": "Receitas",
+    "expense": "Despesas",
+    "expenseExcludesCashboxes": "sem transferências e caixinhas",
+    "monthNet": "Saldo do mês",
+    "loadMore": "Carregar mais",
+    "loadingMore": "Carregando mais…",
+    "type": {
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa",
+      "TRANSFER": "Transferência",
+      "CASHBOX_IN": "Depósito",
+      "CASHBOX_OUT": "Resgate",
+      "CASHBOX_TRANSFER": "Transferência"
+    },
+    "empty": {
+      "title": "Nada lançado em {{month}}",
+      "description": "Registre o primeiro movimento do mês ou escolha outro mês."
+    },
+    "error": {
+      "title": "Não foi possível carregar os lançamentos",
+      "description": "Verifique a conexão e tente de novo."
+    },
+    "deleted": "Lançamento apagado.",
+    "undo": "Desfazer",
+    "undoRestored": "Lançamento restaurado.",
+    "delete": {
+      "title": "Apagar lançamento?",
+      "confirm": "Apagar"
+    },
+    "field": {
+      "category": "Categoria",
+      "subcategory": "Subcategoria"
+    },
+    "category": {
+      "placeholder": "Selecione uma categoria"
+    },
+    "subcategory": {
+      "placeholder": "Selecione uma subcategoria",
+      "placeholderNoCategory": "Selecione uma categoria primeiro"
+    },
+    "cashboxOperation": {
+      "title": "Operação de caixinha",
+      "deposit": "Depositar",
+      "withdrawal": "Retirar",
+      "transfer": "Transferir",
+      "sourceAccount": "Conta de origem",
+      "destinationAccount": "Conta de destino",
+      "sourceCashbox": "Caixinha de origem",
+      "destinationCashbox": "Caixinha de destino",
+      "newCashbox": "Caixinha (nova)",
+      "deletedCashbox": "caixinha excluída",
+      "noCashboxes": "Cadastre uma caixinha antes de registrar esta operação.",
+      "createCashbox": "Ir para Caixinhas",
+      "noAccounts": "Cadastre uma conta antes de depositar ou retirar.",
+      "transferUnavailable": "Crie pelo menos duas caixinhas ativas para transferir entre elas.",
+      "sameCashbox": "As caixinhas de origem e destino precisam ser diferentes.",
+      "depositInfo": "O dinheiro sai da conta e fica guardado na caixinha. Não conta como despesa em relatório nenhum.",
+      "transferInfo": "Transfira saldo de uma caixinha para outra — a poupança não sai de circulação, só muda de nome.",
+      "insufficientWarning": "Saldo da caixinha: {{amount}}. O valor acima do saldo não bloqueia — o servidor confirma o saldo atual."
+    },
+    "form": {
+      "title": "Novo lançamento",
+      "expense": "Despesa",
+      "income": "Receita",
+      "transfer": "Transferência",
+      "date": "Data",
+      "account": "Conta",
+      "sourceAccount": "De",
+      "destinationAccount": "Para",
+      "accountPlaceholder": "Selecione uma conta",
+      "category": "Categoria",
+      "subcategory": "Subcategoria",
+      "description": "Descrição",
+      "amount": "Valor",
+      "amountPlaceholder": "0,00",
+      "amountHint": "Aceita 1.234,56 e 1234.56.",
+      "creditCard": "Compra no cartão de crédito",
+      "referenceMonth": "Mês de referência",
+      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios — normalmente o mês seguinte à compra.",
+      "noAccounts": "Cadastre uma conta antes de criar um lançamento.",
+      "createAccount": "Ir para Contas",
+      "required": "Preencha este campo.",
+      "invalidAmount": "Informe um valor válido.",
+      "sameAccount": "As contas de origem e destino precisam ser diferentes.",
+      "save": "Salvar",
+      "saveAndAddAnother": "Salvar e adicionar outro"
     }
   },
   "settingsGeneral": {

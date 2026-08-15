@@ -282,12 +282,79 @@ const SAMPLE_TRANSACTIONS = [
   { type: 'EXPENSE', account: 'Revolut', category: 'Lazer', subcategory: 'Espetáculos', amount: 5_000, date: '2026-08-08', description: 'Cinema' },
   { type: 'EXPENSE', account: 'Millennium', category: 'Lazer', subcategory: 'Espetáculos', amount: 2_200, date: '2026-08-10', description: 'Concerto' },
 
+  {
+    type: 'EXPENSE',
+    account: 'Revolut',
+    category: 'Lazer',
+    subcategory: 'Espetáculos',
+    amount: 7_500,
+    date: '2026-08-12',
+    description: 'Bilhetes de festival (por confirmar)',
+    status: 'DRAFT',
+  },
+
   { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Férias 2027', amount: 40_000, date: '2026-08-01', description: 'Poupança de agosto' },
   { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Férias 2027', amount: 25_000, date: '2026-08-08', description: 'Bónus de férias' },
   { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-02', description: 'Depósito para a obra' },
   { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-09', description: 'Reforço da obra' },
   { type: 'CASHBOX_OUT', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-05', description: 'Pagamento ao empreiteiro' },
   { type: 'CASHBOX_OUT', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-11', description: 'Compra de material' },
+  {
+    type: 'CASHBOX_TRANSFER',
+    account: 'Millennium',
+    cashbox: 'Férias 2027',
+    destinationCashbox: 'Obras',
+    amount: 15_000,
+    date: '2026-08-13',
+    description: 'Reforço da obra a partir das férias',
+  },
+
+  // July 2026: income equals expenses, month ends at a zero balance.
+  { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 320_000, date: '2026-07-01', description: 'Salário' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Renda', amount: 90_000, date: '2026-07-01', description: 'Renda de julho' },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 12_000,
+    date: '2026-07-10',
+    description: 'Compras da semana',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Transporte',
+    subcategory: 'Seguro',
+    amount: 218_000,
+    date: '2026-07-15',
+    description: 'Reparação do carro',
+  },
+  {
+    type: 'EXPENSE',
+    account: 'Revolut',
+    category: 'Alimentação',
+    subcategory: 'Restaurante',
+    amount: 4_200,
+    date: '2026-07-20',
+    description: 'Jantar de aniversário (por confirmar)',
+    status: 'DRAFT',
+  },
+
+  // June 2026: income covers expenses plus a cashbox deposit, month ends at a zero balance.
+  { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 300_000, date: '2026-06-01', description: 'Salário' },
+  { type: 'INCOME', account: 'Revolut', category: 'Salário', subcategory: 'Outros', amount: 50_000, date: '2026-06-05', description: 'Trabalho extra' },
+  { type: 'EXPENSE', account: 'Millennium', category: 'Moradia', subcategory: 'Renda', amount: 90_000, date: '2026-06-01', description: 'Renda de junho' },
+  {
+    type: 'EXPENSE',
+    account: 'Millennium',
+    category: 'Alimentação',
+    subcategory: 'Supermercado',
+    amount: 60_000,
+    date: '2026-06-10',
+    description: 'Compras do mês',
+  },
+  { type: 'CASHBOX_IN', account: 'Millennium', cashbox: 'Férias 2027', amount: 200_000, date: '2026-06-15', description: 'Poupança de junho' },
 ] as const;
 
 /**
@@ -335,6 +402,7 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         userId,
         type: transaction.type,
         amount: transaction.amount,
+        status: 'status' in transaction ? transaction.status : undefined,
         date,
         referenceMonth,
         description: transaction.description,
@@ -342,6 +410,10 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         categoryId: category,
         subcategoryId: 'subcategory' in transaction ? categoryId(transaction.subcategory, category) : null,
         cashboxId: 'cashbox' in transaction ? cashboxId(transaction.cashbox) : null,
+        destinationCashboxId: 'destinationCashbox' in transaction ? cashboxId(transaction.destinationCashbox) : null,
+        // Snapshotted at write time like the service does (ADR-0019) — without it the UI has no cashbox name.
+        cashboxLabel: 'cashbox' in transaction ? transaction.cashbox : null,
+        destinationCashboxLabel: 'destinationCashbox' in transaction ? transaction.destinationCashbox : null,
       },
     });
   }

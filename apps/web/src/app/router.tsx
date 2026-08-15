@@ -8,6 +8,8 @@ import { ProtectedRoute } from '@/features/auth/protected-route';
 import { CashboxesPage } from '@/features/cashboxes/cashboxes-page';
 import { CategoriesPage } from '@/features/categories/categories-page';
 import { GeneralSettingsPage } from '@/features/settings/general-settings-page';
+import { MonthPage } from '@/features/transactions/month-page';
+import { currentMonthPath } from '@/lib/date';
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -33,7 +35,8 @@ export const routes = [
       // No dashboard: the month screen is this application's home, and the balance panel sits at
       // the top of it.
       { index: true, element: <Navigate to="/month" replace /> },
-      { path: 'month', element: <RoutePlaceholder titleKey="nav.month" ticket="M5-T01" /> },
+      { path: 'month', element: <Navigate to={currentMonthPath()} replace /> },
+      { path: 'month/:year/:month', element: <MonthPage /> },
       { path: 'cashboxes', element: <CashboxesPage /> },
       { path: 'reports', element: <RoutePlaceholder titleKey="nav.reports" ticket="M6-T03" /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },

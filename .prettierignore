@@ -27,5 +27,6 @@ apps/api/src/generated/
 docs/adr/
 plans/
 
-# Skill definitions are prompts; wrapping them changes what the model reads
-.claude/
+# Skill definitions are prompts; wrapping them changes what the model reads.
+# `.claude/skills` and `.codex/skills` are symlinks into this directory.
+.agents/

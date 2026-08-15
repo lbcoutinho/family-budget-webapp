@@ -42,8 +42,9 @@ module.exports = tseslint.config(
       'prototypes/**',
       // Vendored agent tooling (the Impeccable skill ships ~100 `.mjs` detector scripts). Third-party
       // code that is replaced wholesale by `npx impeccable update`, so it is never hand-edited.
-      // Prettier already skips all of `.claude/` — see `.prettierignore`.
-      '.claude/skills/impeccable/**',
+      // Prettier already skips all of `.agents/` — see `.prettierignore`.
+      // `.claude/skills` and `.codex/skills` are symlinks into `.agents/skills`.
+      '.agents/skills/impeccable/**',
     ],
   },
 

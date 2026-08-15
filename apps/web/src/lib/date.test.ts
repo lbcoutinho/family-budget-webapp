@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatMonth, monthRange, startOfMonth } from './date';
+import { currentMonthPath, formatMonth, monthFromPathParams, monthPath, monthRange, startOfMonth } from './date';
 
 describe('startOfMonth', () => {
   it('normalizes any day of the month to the first, at midnight', () => {
@@ -53,5 +53,34 @@ describe('monthRange', () => {
     expect(end.getMonth()).toBe(11);
     expect(end.getDate()).toBe(31);
     expect(end.getFullYear()).toBe(2026);
+  });
+});
+
+describe('month URL helpers', () => {
+  it('builds a canonical, zero-padded path from a month label', () => {
+    const yearNine = new Date(0);
+    yearNine.setFullYear(9, 10, 1);
+
+    expect(monthPath(new Date(2026, 0, 27))).toBe('/month/2026/01');
+    expect(monthPath(yearNine)).toBe('/month/0009/11');
+  });
+
+  it('uses the local current month for the month redirect', () => {
+    expect(currentMonthPath(new Date(2026, 7, 14, 23, 59))).toBe('/month/2026/08');
+  });
+
+  it('parses canonical route parameters as a local reference month', () => {
+    expect(monthFromPathParams('2026', '02')).toEqual(new Date(2026, 1, 1));
+  });
+
+  it.each([
+    ['2026', '2'],
+    ['2026', '00'],
+    ['2026', '13'],
+    ['0000', '01'],
+    ['202x', '01'],
+    [undefined, '01'],
+  ])('rejects malformed or out-of-range route parameters %s/%s', (year, month) => {
+    expect(monthFromPathParams(year, month)).toBeUndefined();
   });
 });
