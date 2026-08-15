@@ -348,6 +348,8 @@
       "noAccounts": "Create an account before depositing or withdrawing.",
       "transferUnavailable": "Create at least two active cashboxes to transfer between them.",
       "sameCashbox": "The source and destination cashboxes must be different.",
+      "depositInfo": "The money leaves the account and is kept in the cashbox. It does not count as an expense in any report.",
+      "transferInfo": "Move the balance from one cashbox to another — the savings stay in circulation; only their purpose changes.",
       "insufficientWarning": "Cashbox balance: {{amount}}. An amount above it does not block saving — the server confirms the current balance."
     },
     "form": {

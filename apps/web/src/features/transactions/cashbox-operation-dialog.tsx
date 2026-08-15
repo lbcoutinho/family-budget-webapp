@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import * as z from 'zod';
 
+import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -128,7 +129,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const activeCashboxes = cashboxes.filter((cashbox) => cashbox.isActive);
   const accountBalanceById = new Map(accountBalances.map((balance) => [balance.accountId, balance]));
   const cashboxBalanceById = new Map(cashboxBalances.map((balance) => [balance.cashboxId, balance]));
-  const defaultMode = transaction ? modeFromTransaction(transaction) : activeAccounts.length === 0 && activeCashboxes.length >= 2 ? 'transfer' : 'deposit';
+  const defaultMode = modeFromTransaction(transaction);
   const {
     control,
     register,
@@ -275,190 +276,195 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
           <DialogTitle>{t('transactions.cashboxOperation.title')}</DialogTitle>
         </DialogHeader>
         {cashboxesEmpty ? (
-          <EmptyState text={t('transactions.cashboxOperation.noCashboxes')} link="/cashboxes" linkText={t('transactions.cashboxOperation.createCashbox')} />
-        ) : accountsEmpty && mode !== 'transfer' ? (
-          <EmptyState text={t('transactions.cashboxOperation.noAccounts')} link="/accounts" linkText={t('transactions.form.createAccount')} />
+          <EmptyState
+            title={t('transactions.cashboxOperation.noCashboxes')}
+            action={
+              <Button asChild size="sm">
+                <Link to="/cashboxes">{t('transactions.cashboxOperation.createCashbox')}</Link>
+              </Button>
+            }
+          />
         ) : (
           <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
             <Tabs value={mode} onValueChange={changeMode}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="deposit" disabled={accountsEmpty}>
-                  {t('transactions.cashboxOperation.deposit')}
-                </TabsTrigger>
-                <TabsTrigger value="withdrawal" disabled={accountsEmpty}>
-                  {t('transactions.cashboxOperation.withdrawal')}
-                </TabsTrigger>
+                <TabsTrigger value="deposit">{t('transactions.cashboxOperation.deposit')}</TabsTrigger>
+                <TabsTrigger value="withdrawal">{t('transactions.cashboxOperation.withdrawal')}</TabsTrigger>
                 <TabsTrigger value="transfer" disabled={transferUnavailable}>
                   {t('transactions.cashboxOperation.transfer')}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
             {transferUnavailable ? <p className="text-xs text-muted-foreground">{t('transactions.cashboxOperation.transferUnavailable')}</p> : null}
-            {mode === 'deposit' ? (
-              <>
-                <BalanceSelect
-                  id="cashbox-operation-account"
-                  label={t('transactions.cashboxOperation.sourceAccount')}
-                  value={accountId}
-                  onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
-                  options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
-                  error={errors.accountId?.message}
-                  disabled={mutation.isPending}
-                />
-                <CashboxField
-                  id="cashbox-operation-cashbox"
-                  label={t('transactions.cashboxOperation.destinationCashbox')}
-                  value={cashboxId}
-                  onChange={(value) => {
-                    setValue('cashboxId', value, { shouldValidate: true });
-                    setBalanceWarning(undefined);
-                  }}
-                  options={activeCashboxes}
-                  balances={cashboxBalanceById}
-                  error={errors.cashboxId?.message}
-                  disabled={mutation.isPending}
-                  deletedLabel={deletedSource}
-                />
-              </>
-            ) : null}
-            {mode === 'withdrawal' ? (
-              <>
-                <CashboxField
-                  id="cashbox-operation-cashbox"
-                  label={t('transactions.cashboxOperation.sourceCashbox')}
-                  value={cashboxId}
-                  onChange={(value) => {
-                    setValue('cashboxId', value, { shouldValidate: true });
-                    setBalanceWarning(undefined);
-                  }}
-                  options={activeCashboxes}
-                  balances={cashboxBalanceById}
-                  error={errors.cashboxId?.message}
-                  disabled={mutation.isPending}
-                  deletedLabel={deletedSource}
-                />
-                <BalanceSelect
-                  id="cashbox-operation-account"
-                  label={t('transactions.cashboxOperation.destinationAccount')}
-                  value={accountId}
-                  onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
-                  options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
-                  error={errors.accountId?.message}
-                  disabled={mutation.isPending}
-                />
-              </>
-            ) : null}
-            {mode === 'transfer' ? (
-              <>
-                <CashboxField
-                  id="cashbox-operation-cashbox"
-                  label={t('transactions.cashboxOperation.sourceCashbox')}
-                  value={cashboxId}
-                  onChange={(value) => {
-                    setValue('cashboxId', value, { shouldValidate: true });
-                    setBalanceWarning(undefined);
-                  }}
-                  options={activeCashboxes}
-                  balances={cashboxBalanceById}
-                  error={errors.cashboxId?.message}
-                  disabled={mutation.isPending}
-                  deletedLabel={deletedSource}
-                />
-                <CashboxField
-                  id="cashbox-operation-destination-cashbox"
-                  label={t('transactions.cashboxOperation.destinationCashbox')}
-                  value={destinationCashboxId}
-                  onChange={(value) => {
-                    setValue('destinationCashboxId', value, { shouldValidate: true });
-                    setBalanceWarning(undefined);
-                  }}
-                  options={activeCashboxes}
-                  balances={cashboxBalanceById}
-                  error={errors.destinationCashboxId?.message}
-                  disabled={mutation.isPending}
-                  deletedLabel={deletedDestination}
-                />
-              </>
-            ) : null}
-            <div className="grid gap-1.5">
-              <Label htmlFor="cashbox-operation-date">{t('transactions.form.date')}</Label>
-              <Input
-                id="cashbox-operation-date"
-                type="date"
-                aria-describedby={errors.date ? 'cashbox-operation-date-error' : undefined}
-                aria-invalid={errors.date !== undefined}
-                disabled={mutation.isPending}
-                {...register('date')}
+            {accountsEmpty && mode !== 'transfer' ? (
+              <EmptyState
+                title={t('transactions.cashboxOperation.noAccounts')}
+                action={
+                  <Button asChild size="sm">
+                    <Link to="/accounts">{t('transactions.form.createAccount')}</Link>
+                  </Button>
+                }
               />
-              <FieldError id="cashbox-operation-date-error" error={errors.date?.message} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="cashbox-operation-description">{t('transactions.form.description')}</Label>
-              <Input
-                id="cashbox-operation-description"
-                aria-describedby={errors.description ? 'cashbox-operation-description-error' : undefined}
-                aria-invalid={errors.description !== undefined}
-                disabled={mutation.isPending}
-                {...register('description')}
-              />
-              <FieldError id="cashbox-operation-description-error" error={errors.description?.message} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="cashbox-operation-amount">{t('transactions.form.amount')}</Label>
-              <Input
-                id="cashbox-operation-amount"
-                inputMode="decimal"
-                className="text-right tabular-nums"
-                placeholder={t('transactions.form.amountPlaceholder')}
-                aria-describedby={`cashbox-operation-amount-hint${errors.amount ? ' cashbox-operation-amount-error' : ''}`}
-                aria-invalid={errors.amount !== undefined}
-                disabled={mutation.isPending}
-                {...register('amount', {
-                  onBlur: (event: FocusEvent<HTMLInputElement>) => {
-                    const cents = parseCurrencyInput(event.target.value);
-                    if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
-                  },
-                })}
-              />
-              <p id="cashbox-operation-amount-hint" className="text-xs text-muted-foreground">
-                {t('transactions.form.amountHint')}
-              </p>
-              <FieldError id="cashbox-operation-amount-error" error={errors.amount?.message} />
-              {balanceWarning !== undefined ? (
-                <p className="border-l-2 border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-                  {t('transactions.cashboxOperation.insufficientWarning', { amount: formatCents(balanceWarning) })}
-                </p>
-              ) : null}
-            </div>
-            {submissionError ? (
-              <p role="alert" className="text-sm text-destructive">
-                {submissionError}
-              </p>
-            ) : null}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
-                {t('transactions.form.save')}
-              </Button>
-            </DialogFooter>
+            ) : (
+              <>
+                {mode === 'deposit' ? (
+                  <>
+                    <BalanceSelect
+                      id="cashbox-operation-account"
+                      label={t('transactions.cashboxOperation.sourceAccount')}
+                      value={accountId}
+                      onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
+                      options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
+                      error={errors.accountId?.message}
+                      disabled={mutation.isPending}
+                    />
+                    <CashboxField
+                      id="cashbox-operation-cashbox"
+                      label={t('transactions.cashboxOperation.destinationCashbox')}
+                      value={cashboxId}
+                      onChange={(value) => {
+                        setValue('cashboxId', value, { shouldValidate: true });
+                        setBalanceWarning(undefined);
+                      }}
+                      options={activeCashboxes}
+                      balances={cashboxBalanceById}
+                      error={errors.cashboxId?.message}
+                      disabled={mutation.isPending}
+                      deletedLabel={deletedSource}
+                    />
+                  </>
+                ) : null}
+                {mode === 'withdrawal' ? (
+                  <>
+                    <CashboxField
+                      id="cashbox-operation-cashbox"
+                      label={t('transactions.cashboxOperation.sourceCashbox')}
+                      value={cashboxId}
+                      onChange={(value) => {
+                        setValue('cashboxId', value, { shouldValidate: true });
+                        setBalanceWarning(undefined);
+                      }}
+                      options={activeCashboxes}
+                      balances={cashboxBalanceById}
+                      error={errors.cashboxId?.message}
+                      disabled={mutation.isPending}
+                      deletedLabel={deletedSource}
+                    />
+                    <BalanceSelect
+                      id="cashbox-operation-account"
+                      label={t('transactions.cashboxOperation.destinationAccount')}
+                      value={accountId}
+                      onChange={(value) => setValue('accountId', value, { shouldValidate: true })}
+                      options={activeAccounts.map((account) => ({ id: account.id, name: account.name, balance: accountBalanceById.get(account.id)?.balance }))}
+                      error={errors.accountId?.message}
+                      disabled={mutation.isPending}
+                    />
+                  </>
+                ) : null}
+                {mode === 'transfer' ? (
+                  <>
+                    <CashboxField
+                      id="cashbox-operation-cashbox"
+                      label={t('transactions.cashboxOperation.sourceCashbox')}
+                      value={cashboxId}
+                      onChange={(value) => {
+                        setValue('cashboxId', value, { shouldValidate: true });
+                        setBalanceWarning(undefined);
+                      }}
+                      options={activeCashboxes}
+                      balances={cashboxBalanceById}
+                      error={errors.cashboxId?.message}
+                      disabled={mutation.isPending}
+                      deletedLabel={deletedSource}
+                    />
+                    <CashboxField
+                      id="cashbox-operation-destination-cashbox"
+                      label={t('transactions.cashboxOperation.destinationCashbox')}
+                      value={destinationCashboxId}
+                      onChange={(value) => {
+                        setValue('destinationCashboxId', value, { shouldValidate: true });
+                        setBalanceWarning(undefined);
+                      }}
+                      options={activeCashboxes}
+                      balances={cashboxBalanceById}
+                      error={errors.destinationCashboxId?.message}
+                      disabled={mutation.isPending}
+                      deletedLabel={deletedDestination}
+                    />
+                  </>
+                ) : null}
+                <div className="grid gap-1.5">
+                  <Label htmlFor="cashbox-operation-amount">{t('transactions.form.amount')}</Label>
+                  <Input
+                    id="cashbox-operation-amount"
+                    inputMode="decimal"
+                    className="text-right tabular-nums"
+                    placeholder={t('transactions.form.amountPlaceholder')}
+                    aria-describedby={`cashbox-operation-amount-hint${errors.amount ? ' cashbox-operation-amount-error' : ''}`}
+                    aria-invalid={errors.amount !== undefined}
+                    disabled={mutation.isPending}
+                    {...register('amount', {
+                      onBlur: (event: FocusEvent<HTMLInputElement>) => {
+                        const cents = parseCurrencyInput(event.target.value);
+                        if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
+                      },
+                    })}
+                  />
+                  <p id="cashbox-operation-amount-hint" className="text-xs text-muted-foreground">
+                    {t('transactions.form.amountHint')}
+                  </p>
+                  <FieldError id="cashbox-operation-amount-error" error={errors.amount?.message} />
+                  {balanceWarning !== undefined ? (
+                    <p className="border-l-2 border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                      {t('transactions.cashboxOperation.insufficientWarning', { amount: formatCents(balanceWarning) })}
+                    </p>
+                  ) : null}
+                </div>
+                {mode === 'deposit' ? <InfoCallout>{t('transactions.cashboxOperation.depositInfo')}</InfoCallout> : null}
+                {mode === 'transfer' ? <InfoCallout>{t('transactions.cashboxOperation.transferInfo')}</InfoCallout> : null}
+                <div className="grid gap-1.5">
+                  <Label htmlFor="cashbox-operation-date">{t('transactions.form.date')}</Label>
+                  <Input
+                    id="cashbox-operation-date"
+                    type="date"
+                    aria-describedby={errors.date ? 'cashbox-operation-date-error' : undefined}
+                    aria-invalid={errors.date !== undefined}
+                    disabled={mutation.isPending}
+                    {...register('date')}
+                  />
+                  <FieldError id="cashbox-operation-date-error" error={errors.date?.message} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="cashbox-operation-description">{t('transactions.form.description')}</Label>
+                  <Input
+                    id="cashbox-operation-description"
+                    aria-describedby={errors.description ? 'cashbox-operation-description-error' : undefined}
+                    aria-invalid={errors.description !== undefined}
+                    disabled={mutation.isPending}
+                    {...register('description')}
+                  />
+                  <FieldError id="cashbox-operation-description-error" error={errors.description?.message} />
+                </div>
+                {submissionError ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {submissionError}
+                  </p>
+                ) : null}
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button type="submit" disabled={mutation.isPending}>
+                    {mutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
+                    {t('transactions.form.save')}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </form>
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function EmptyState({ text, link, linkText }: { text: string; link: string; linkText: string }) {
-  return (
-    <div className="grid gap-3">
-      <p className="text-sm text-muted-foreground">{text}</p>
-      <Button asChild size="sm" className="w-fit">
-        <Link to={link}>{linkText}</Link>
-      </Button>
-    </div>
   );
 }
 
@@ -469,6 +475,10 @@ function FieldError({ id, error }: { id: string; error?: string }) {
       {t(formKey(error))}
     </p>
   ) : null;
+}
+
+function InfoCallout({ children }: { children: string }) {
+  return <p className="border-l-2 border-transfer bg-transfer-wash px-3 py-2 text-xs text-transfer">{children}</p>;
 }
 
 function BalanceSelect({

@@ -158,7 +158,8 @@ describe('CashboxOperationDialog', () => {
     accounts = [];
     const { user, unmount } = renderDialog();
 
-    expect(screen.getByRole('tab', { name: 'Transferir' })).toHaveAttribute('data-state', 'active');
+    expect(screen.getByRole('tab', { name: 'Depositar' })).toHaveAttribute('data-state', 'active');
+    await user.click(screen.getByRole('tab', { name: 'Transferir' }));
     expect(screen.queryByLabelText('Conta de origem')).not.toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
     await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
@@ -179,6 +180,14 @@ describe('CashboxOperationDialog', () => {
 
     expect(screen.queryByRole('option', { name: 'Conta encerrada' })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Caixinha encerrada' })).not.toBeInTheDocument();
+  });
+
+  it('shows the approved explanatory callouts for deposits and transfers', async () => {
+    const { user } = renderDialog();
+
+    expect(screen.getByText('O dinheiro sai da conta e fica guardado na caixinha. Não conta como despesa em relatório nenhum.')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Transferir' }));
+    expect(screen.getByText('Transfira saldo de uma caixinha para outra — a poupança não sai de circulação, só muda de nome.')).toBeInTheDocument();
   });
 
   it('warns only on submit when a cashbox withdrawal exceeds its balance without blocking the request', async () => {
