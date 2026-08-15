@@ -62,7 +62,13 @@
     "CATEGORY_SUBCATEGORY_KIND_MISMATCH": "Uma subcategoria herda o tipo da categoria principal.",
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal.",
-    "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo."
+    "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo.",
+    "TRANSACTION_FIELD_REQUIRED": "Preencha todos os campos obrigatórios deste tipo de lançamento.",
+    "TRANSACTION_FIELD_NOT_ALLOWED": "Este campo não é permitido para este tipo de lançamento.",
+    "TRANSACTION_SAME_ACCOUNT": "As contas de origem e destino precisam ser diferentes.",
+    "TRANSACTION_REFERENCE_INACTIVE": "Uma das contas, categorias, subcategorias ou caixinhas selecionadas está desativada.",
+    "TRANSACTION_CATEGORY_KIND_MISMATCH": "A categoria precisa corresponder ao tipo do lançamento.",
+    "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada."
   },
   "accounts": {
     "new": "Nova conta",
@@ -323,6 +329,33 @@
     "subcategory": {
       "placeholder": "Selecione uma subcategoria",
       "placeholderNoCategory": "Selecione uma categoria primeiro"
+    },
+    "form": {
+      "title": "Novo lançamento",
+      "expense": "Despesa",
+      "income": "Receita",
+      "transfer": "Transferência",
+      "date": "Data",
+      "account": "Conta",
+      "sourceAccount": "De",
+      "destinationAccount": "Para",
+      "accountPlaceholder": "Selecione uma conta",
+      "category": "Categoria",
+      "subcategory": "Subcategoria",
+      "description": "Descrição",
+      "amount": "Valor",
+      "amountPlaceholder": "0,00",
+      "amountHint": "Aceita 1.234,56 e 1234.56.",
+      "creditCard": "Compra no cartão de crédito",
+      "referenceMonth": "Mês de referência",
+      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios — normalmente o mês seguinte à compra.",
+      "noAccounts": "Cadastre uma conta antes de criar um lançamento.",
+      "createAccount": "Ir para Contas",
+      "required": "Preencha este campo.",
+      "invalidAmount": "Informe um valor válido.",
+      "sameAccount": "As contas de origem e destino precisam ser diferentes.",
+      "save": "Salvar",
+      "saveAndAddAnother": "Salvar e adicionar outro"
     }
   },
   "settingsGeneral": {
