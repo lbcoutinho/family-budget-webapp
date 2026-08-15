@@ -12,6 +12,8 @@ export interface CategorySelectProps {
   disabled?: boolean;
   categoryDescribedBy?: string;
   subcategoryDescribedBy?: string;
+  categoryInvalid?: boolean;
+  subcategoryInvalid?: boolean;
 }
 
 /** Category + subcategory, two dependent `Select`s. Handles the case where the entry being edited
@@ -19,7 +21,17 @@ export interface CategorySelectProps {
  * even if inactive, but a deactivated root cascades to its children, so a lone inactive subcategory
  * (root still active) falls through `includeId` — `useGetCategory` covers that gap and splices the
  * row back in, suffixed "(inativa)", so the field never renders silently empty. */
-export function CategorySelect({ kind, categoryId, subcategoryId, onChange, disabled, categoryDescribedBy, subcategoryDescribedBy }: CategorySelectProps) {
+export function CategorySelect({
+  kind,
+  categoryId,
+  subcategoryId,
+  onChange,
+  disabled,
+  categoryDescribedBy,
+  subcategoryDescribedBy,
+  categoryInvalid,
+  subcategoryInvalid,
+}: CategorySelectProps) {
   const { t } = useTranslation();
 
   const { data: categories } = useListCategories({ tree: true, includeId: categoryId });
@@ -38,7 +50,7 @@ export function CategorySelect({ kind, categoryId, subcategoryId, onChange, disa
       <div className="grid gap-1.5">
         <Label htmlFor="entry-category">{t('transactions.field.category')}</Label>
         <Select value={categoryId} onValueChange={(value) => onChange(value, undefined)} disabled={disabled}>
-          <SelectTrigger id="entry-category" className="w-full" aria-describedby={categoryDescribedBy}>
+          <SelectTrigger id="entry-category" className="w-full" aria-describedby={categoryDescribedBy} aria-invalid={categoryInvalid}>
             <SelectValue placeholder={t('transactions.category.placeholder')} />
           </SelectTrigger>
           <SelectContent>
@@ -55,7 +67,7 @@ export function CategorySelect({ kind, categoryId, subcategoryId, onChange, disa
       <div className="grid gap-1.5">
         <Label htmlFor="entry-subcategory">{t('transactions.field.subcategory')}</Label>
         <Select value={subcategoryId} onValueChange={(value) => onChange(categoryId, value)} disabled={(disabled ?? false) || categoryId === undefined}>
-          <SelectTrigger id="entry-subcategory" className="w-full" aria-describedby={subcategoryDescribedBy}>
+          <SelectTrigger id="entry-subcategory" className="w-full" aria-describedby={subcategoryDescribedBy} aria-invalid={subcategoryInvalid}>
             <SelectValue
               placeholder={categoryId === undefined ? t('transactions.subcategory.placeholderNoCategory') : t('transactions.subcategory.placeholder')}
             />

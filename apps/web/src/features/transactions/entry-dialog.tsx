@@ -366,6 +366,8 @@ export function EntryDialog({ open, onOpenChange }: EntryDialogProps) {
                     disabled={mutation.isPending}
                     categoryDescribedBy={errors.categoryId ? 'entry-category-error' : undefined}
                     subcategoryDescribedBy={errors.subcategoryId ? 'entry-subcategory-error' : undefined}
+                    categoryInvalid={errors.categoryId !== undefined}
+                    subcategoryInvalid={errors.subcategoryId !== undefined}
                     onChange={(nextCategory, nextSubcategory) => {
                       setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
                       setValue('subcategoryId', nextSubcategory ?? '', { shouldValidate: true });
