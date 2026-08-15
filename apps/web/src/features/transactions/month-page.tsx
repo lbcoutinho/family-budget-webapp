@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
@@ -216,6 +217,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [entryDialogOpen, setEntryDialogOpen] = useState(false);
+  const [cashboxOperationDialogOpen, setCashboxOperationDialogOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const sentinel = useRef<HTMLDivElement>(null);
@@ -290,6 +292,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               variant="outline"
               size="sm"
               className="border-cashbox bg-cashbox-wash text-[12.5px] text-cashbox hover:border-cashbox hover:bg-cashbox hover:text-white"
+              onClick={() => setCashboxOperationDialogOpen(true)}
             >
               <PiggyBankIcon />
               {t('transactions.moveCashbox')}
@@ -474,6 +477,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         ) : null}
       </PageContent>
       <EntryDialog open={entryDialogOpen} onOpenChange={setEntryDialogOpen} />
+      <CashboxOperationDialog open={cashboxOperationDialogOpen} onOpenChange={setCashboxOperationDialogOpen} />
     </>
   );
 }

@@ -180,6 +180,16 @@ describe('MonthPage', () => {
     expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
   });
 
+  it('opens the cashbox operation dialog from the monthly tab', async () => {
+    server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+    const { user } = renderPage();
+
+    await screen.findByText('Nada lançado em Julho de 2026');
+    await user.click(screen.getByRole('button', { name: 'Movimentar caixinha' }));
+
+    expect(screen.getByRole('heading', { name: 'Operação de caixinha' })).toBeInTheDocument();
+  });
+
   it('opens the new-entry dialog from the header action', async () => {
     server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
     const { user } = renderPage();
