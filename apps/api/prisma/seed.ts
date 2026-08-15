@@ -299,6 +299,15 @@ const SAMPLE_TRANSACTIONS = [
   { type: 'CASHBOX_IN', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-09', description: 'Reforço da obra' },
   { type: 'CASHBOX_OUT', account: 'Millennium', cashbox: 'Obras', amount: 50_000, date: '2026-08-05', description: 'Pagamento ao empreiteiro' },
   { type: 'CASHBOX_OUT', account: 'Revolut', cashbox: 'Obras', amount: 30_000, date: '2026-08-11', description: 'Compra de material' },
+  {
+    type: 'CASHBOX_TRANSFER',
+    account: 'Millennium',
+    cashbox: 'Férias 2027',
+    destinationCashbox: 'Obras',
+    amount: 15_000,
+    date: '2026-08-13',
+    description: 'Reforço da obra a partir das férias',
+  },
 
   // July 2026: income equals expenses, month ends at a zero balance.
   { type: 'INCOME', account: 'Millennium', category: 'Salário', subcategory: 'Outros', amount: 320_000, date: '2026-07-01', description: 'Salário' },
@@ -401,6 +410,7 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         categoryId: category,
         subcategoryId: 'subcategory' in transaction ? categoryId(transaction.subcategory, category) : null,
         cashboxId: 'cashbox' in transaction ? cashboxId(transaction.cashbox) : null,
+        destinationCashboxId: 'destinationCashbox' in transaction ? cashboxId(transaction.destinationCashbox) : null,
       },
     });
   }

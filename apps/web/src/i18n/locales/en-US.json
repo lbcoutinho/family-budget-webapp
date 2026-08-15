@@ -301,9 +301,9 @@
       "INCOME": "Income",
       "EXPENSE": "Expense",
       "TRANSFER": "Transfer",
-      "CASHBOX_IN": "Cashbox deposit",
-      "CASHBOX_OUT": "Cashbox withdrawal",
-      "CASHBOX_TRANSFER": "Between cashboxes"
+      "CASHBOX_IN": "Deposit",
+      "CASHBOX_OUT": "Withdrawal",
+      "CASHBOX_TRANSFER": "Transfer"
     },
     "empty": {
       "title": "No entries in {{month}}",

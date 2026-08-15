@@ -301,9 +301,9 @@
       "INCOME": "Receita",
       "EXPENSE": "Despesa",
       "TRANSFER": "Transferência",
-      "CASHBOX_IN": "Depósito em caixinha",
-      "CASHBOX_OUT": "Resgate de caixinha",
-      "CASHBOX_TRANSFER": "Entre caixinhas"
+      "CASHBOX_IN": "Depósito",
+      "CASHBOX_OUT": "Resgate",
+      "CASHBOX_TRANSFER": "Transferência"
     },
     "empty": {
       "title": "Nada lançado em {{month}}",
