@@ -103,7 +103,7 @@ describe('MonthPage', () => {
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
   });
 
-  it('uses the transfer color for cashbox transfers', async () => {
+  it('uses the cashbox tag with transfer amount and stripe for cashbox transfers', async () => {
     server.use(
       http.get('/api/transactions', ({ request }) =>
         HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CASHBOX_TRANSFER])),
@@ -113,7 +113,7 @@ describe('MonthPage', () => {
     renderPage();
 
     const badge = await screen.findByText('Transferência');
-    expect(badge).toHaveClass('text-transfer');
+    expect(badge).toHaveClass('text-cashbox');
     expect(screen.getByText('500,00 €')).toHaveClass('text-transfer');
     expect(badge.closest('article')).toHaveStyle({ borderLeftColor: 'var(--transfer)' });
   });

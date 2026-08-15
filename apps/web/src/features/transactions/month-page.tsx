@@ -154,14 +154,7 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
           </Badge>
         ) : null}
         {isCashboxOperation(entry.type) ? (
-          <Badge
-            variant="outline"
-            className={`text-[10px] ${
-              entry.type === TransactionType.CASHBOX_TRANSFER
-                ? 'border-transfer/30 bg-transfer/10 text-transfer'
-                : 'border-cashbox/30 bg-cashbox/10 text-cashbox'
-            }`}
-          >
+          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10px] text-cashbox">
             {typeLabel(entry.type, t)}
           </Badge>
         ) : null}
