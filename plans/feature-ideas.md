@@ -25,18 +25,14 @@ Ideas recorded for future features — no milestone or deadline defined yet. Pri
 - Tag de Depósito, Retirada e Transfeência parecem chamar muita atenção para as transações de caixinhas. Precisa delas?
 - tela Mês. Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
 - tela Mês. componentes sem ação.
-  - Botão mês ano topo: Adicionar date picker ao clicar no mês.
-  - Botão Movimentar caixinhas
-  - Botão Novo lançamento
-  - Despesas dia a dia
-  - Cards de contas
-  - Filtros
-  - Ordenação
-  - Buscar lançamentos funciona apenas na página atual?
-  - editar lançamento
-  - remover lançamento
-  - Saldo da conta após aplicar lançamento
-  - API não está retornado a cashbox label para transação de deposito e retirada de caixinha, por isso só mostra label da conta.
+  - Botão Movimentar caixinhas - sem ação - #155
+  - Botão Novo lançamento - sem ação - #154
+  - Despesas dia a dia - sem gráfico - new ticket
+  - Cards de contas - sem dados - #157
+  - Filtros - sem ação - new ticket
+  - Ordenação - apenas 1 tipo - new ticket
+  - Editar e remover lançamento - sem ação - #156
+  - Saldo da conta após aplicar lançamento (valor abaixo do valor da transação) - sem ação - #157
 
 # Bugs
 
