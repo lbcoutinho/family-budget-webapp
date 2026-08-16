@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
 /** "Millennium" → "MI", "Conta Corrente" → "CC". Two letters, no icon set distinguishes a list of banks. */
@@ -18,6 +19,10 @@ function initials(name: string): string {
 
 export interface AccountsTableProps {
   accounts: AccountDto[];
+  /** Balance in cents by account id. A missing entry (the balances query failed) renders as an em
+   * dash, same convention as `StatCard`/`CashboxCard`. */
+  balances: Map<string, number>;
+  balancesLoading: boolean;
   onEdit: (account: AccountDto) => void;
   onDeactivate: (account: AccountDto) => void;
   onActivate: (account: AccountDto) => void;
@@ -32,6 +37,7 @@ export function AccountsTableSkeleton() {
       <TableHeader>
         <TableRow>
           <TableHead>{t('accounts.columns.name')}</TableHead>
+          <TableHead className="text-right">{t('accounts.columns.balance')}</TableHead>
           <TableHead />
         </TableRow>
       </TableHeader>
@@ -40,6 +46,9 @@ export function AccountsTableSkeleton() {
           <TableRow key={width}>
             <TableCell>
               <Skeleton className="h-4" style={{ width }} />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="ml-auto h-4 w-16" />
             </TableCell>
             <TableCell />
           </TableRow>
@@ -50,7 +59,7 @@ export function AccountsTableSkeleton() {
 }
 
 /** Rows and their per-row actions. Sorting and data fetching live in the page above this. */
-export function AccountsTable({ accounts, onEdit, onDeactivate, onActivate, onDelete }: AccountsTableProps) {
+export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onDeactivate, onActivate, onDelete }: AccountsTableProps) {
   const { t } = useTranslation();
 
   return (
@@ -58,6 +67,7 @@ export function AccountsTable({ accounts, onEdit, onDeactivate, onActivate, onDe
       <TableHeader>
         <TableRow>
           <TableHead>{t('accounts.columns.name')}</TableHead>
+          <TableHead className="text-right">{t('accounts.columns.balance')}</TableHead>
           <TableHead>
             <span className="sr-only">{t('common.actions')}</span>
           </TableHead>
@@ -79,6 +89,9 @@ export function AccountsTable({ accounts, onEdit, onDeactivate, onActivate, onDe
                 <span className={cn('font-medium', !account.isActive && 'font-normal')}>{account.name}</span>
                 {!account.isActive && <Badge variant="outline">{t('accounts.inactiveBadge')}</Badge>}
               </div>
+            </TableCell>
+            <TableCell className="text-right tabular-nums">
+              {balancesLoading ? <Skeleton className="ml-auto h-4 w-16" /> : balances.has(account.id) ? formatCents(balances.get(account.id)!) : '—'}
             </TableCell>
             <TableCell>
               <div className="flex justify-end gap-0.5">

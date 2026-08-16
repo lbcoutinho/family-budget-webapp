@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { BalancePanel } from '@/features/balances/balance-panel';
 import i18n from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 
@@ -128,6 +129,7 @@ export function CashboxesPage() {
         }
       />
       <PageContent>
+        <BalancePanel className="mb-6" />
         {!isPending && !isError && cashboxes.length > 0 && <CashboxesSummary month={new Date()} activeCount={cashboxes.filter((c) => c.isActive).length} />}
         {isPending && <CashboxGridSkeleton />}
         {isError && (

@@ -43,6 +43,16 @@ Two things follow, and both are work rather than wording:
   a cashbox no longer rewrites the label on past entries either. Deactivate stays the reversible
   default action on the card; delete is the permanent one, and its confirmation says so.
 
+## M5-T06 — balance panel added, 2026-08-16
+
+- **The consolidated balance panel (`BalancePanel`, same component as `06-month.html`) now sits
+  above the existing four summary cards.** Neither replaces the other: the panel is net worth
+  (accounts + caixinhas), the summary below it is this month's flow (active count, deposited,
+  withdrawn, total saved) — the same split the ticket drew for the month screen. No earlier draft of
+  this screen showed the two together, so this is a prototype patch made during implementation
+  rather than a decision reviewed up front; flagged in the `#157` PR per `AGENTS.md`'s rule that a
+  built screen must never silently diverge from its approved prototype.
+
 ## Raised by the M3 block drawn on 2026-08-02
 
 - **The cashbox balance is amber at display size**, the only screen where amber carries a large

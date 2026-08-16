@@ -1,13 +1,14 @@
-import { type CashboxDto } from '@family-budget/api-client';
+import { type AccountBalanceDto, type CashboxBalanceDto, type CashboxDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CashboxesPage } from './cashboxes-page';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { formatCents } from '@/lib/money';
 import { server } from '@/test/server';
 
 const ACTIVE: CashboxDto = {
@@ -47,7 +48,32 @@ function renderPage() {
   };
 }
 
+const ACCOUNT_BALANCES: AccountBalanceDto[] = [{ accountId: 'account-1', name: 'Millennium', isActive: true, initialBalance: 0, balance: 348215 }];
+const CASHBOX_BALANCES: CashboxBalanceDto[] = [{ cashboxId: 'c1', name: 'Férias 2027', isActive: true, targetAmount: null, balance: 200000 }];
+
 describe('CashboxesPage', () => {
+  // Every render mounts `BalancePanel` above the summary, so every test needs these handled —
+  // most don't care about the actual numbers, only that the request doesn't trip
+  // `onUnhandledRequest: 'error'`.
+  beforeEach(() => {
+    server.use(
+      http.get('/api/accounts/balances', () => HttpResponse.json(ACCOUNT_BALANCES)),
+      http.get('/api/cashboxes/balances', () => HttpResponse.json(CASHBOX_BALANCES)),
+    );
+  });
+
+  it('renders the consolidated balance panel above the monthly summary cards', async () => {
+    server.use(http.get('/api/cashboxes', () => HttpResponse.json([ACTIVE])));
+
+    renderPage();
+
+    expect(await screen.findByText('Millennium')).toBeInTheDocument();
+    expect(screen.getByText(formatCents(348215))).toBeInTheDocument();
+    expect(screen.getByText('Total consolidado')).toBeInTheDocument();
+    // The screen's own monthly summary (active count, deposited/withdrawn, total saved) still renders alongside it.
+    expect(await screen.findByText('Caixinhas ativas')).toBeInTheDocument();
+  });
+
   it('hides inactive cashboxes by default and reveals them with the "inativa" badge once toggled', async () => {
     let requestUrl: URL | undefined;
     server.use(

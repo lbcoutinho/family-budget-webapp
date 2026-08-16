@@ -1,11 +1,9 @@
 import { useListCashboxBalances, useListTransactions } from '@family-budget/api-client';
 import { useTranslation } from 'react-i18next';
 
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { StatCard } from '@/components/stat-card';
 import { formatMonthName, startOfMonth } from '@/lib/date';
 import { formatCents } from '@/lib/money';
-import { cn } from '@/lib/utils';
 
 export interface CashboxesSummaryProps {
   month: Date;
@@ -44,22 +42,22 @@ export function CashboxesSummary({ month, activeCount }: CashboxesSummaryProps) 
 
   return (
     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Stat label={t('cashboxes.summary.activeCount')} value={String(activeCount)} />
-      <Stat
+      <StatCard label={t('cashboxes.summary.activeCount')} value={String(activeCount)} />
+      <StatCard
         label={t('cashboxes.summary.depositedIn', { month: monthName })}
         value={movements.data ? formatCents(movements.data.cashboxInTotal, { sign: true }) : undefined}
         className="text-primary"
         loading={isLoading}
         error={isError}
       />
-      <Stat
+      <StatCard
         label={t('cashboxes.summary.withdrawnIn', { month: monthName })}
         value={withdrawn !== undefined ? formatCents(withdrawn, { sign: true }) : undefined}
         className="text-destructive"
         loading={isLoading}
         error={isError}
       />
-      <Stat
+      <StatCard
         label={t('cashboxes.summary.totalSaved')}
         value={totalSaved !== undefined ? formatCents(totalSaved) : undefined}
         className="text-cashbox"
@@ -67,23 +65,5 @@ export function CashboxesSummary({ month, activeCount }: CashboxesSummaryProps) 
         error={isError}
       />
     </div>
-  );
-}
-
-interface StatProps {
-  label: string;
-  /** `undefined` while there's nothing to show yet — `loading` and `error` decide what fills in. */
-  value: string | undefined;
-  className?: string;
-  loading?: boolean;
-  error?: boolean;
-}
-
-function Stat({ label, value, className, loading, error }: StatProps) {
-  return (
-    <Card className="gap-1 p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      {loading ? <Skeleton className="h-7 w-1/2" /> : <p className={cn('font-display text-2xl font-bold tabular-nums', className)}>{error ? '—' : value}</p>}
-    </Card>
   );
 }

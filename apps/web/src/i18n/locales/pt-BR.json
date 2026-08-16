@@ -76,7 +76,8 @@
     "new": "Nova conta",
     "showInactive": "Mostrar inativas",
     "columns": {
-      "name": "Conta"
+      "name": "Conta",
+      "balance": "Saldo atual"
     },
     "inactiveBadge": "inativa",
     "actions": {
@@ -275,7 +276,6 @@
     "creditCard": "Cartão de crédito",
     "purchaseOn": "compra em {{date}}",
     "balancePlaceholder": "Saldo indisponível",
-    "balances": "Saldos das contas",
     "dailyExpense": {
       "title": "Despesas dia a dia",
       "caption": "altura = quanto saiu · cada cor = uma categoria daquele dia",
@@ -283,12 +283,6 @@
       "noCategory": "Sem categoria",
       "tooltip": "{{date}} — {{total}} — {{breakdown}}",
       "tooltipEmpty": "{{date}} — nada saiu"
-    },
-    "accounts": {
-      "account1": "Conta 1",
-      "account2": "Conta 2",
-      "account3": "Conta 3",
-      "total": "Saldo total"
     },
     "filters": {
       "type": "Tipo: todos",
@@ -390,6 +384,11 @@
       "save": "Salvar",
       "saveAndAddAnother": "Salvar e adicionar outro"
     }
+  },
+  "balances": {
+    "title": "Saldos",
+    "cashboxes": "Caixinhas",
+    "total": "Total consolidado"
   },
   "settingsGeneral": {
     "language": {

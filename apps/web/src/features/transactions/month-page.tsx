@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
@@ -392,32 +393,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
       <PageContent className="space-y-4">
         <DailyExpenseStrip referenceMonth={referenceMonth} selectedDate={selectedDay} onToggleDay={toggleDay} />
 
-        <section aria-label={t('transactions.balances')} className="grid grid-cols-2 gap-2.5 shell:grid-cols-4">
-          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account1')}</p>
-            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
-              —
-            </p>
-          </div>
-          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account2')}</p>
-            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
-              —
-            </p>
-          </div>
-          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.account3')}</p>
-            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
-              —
-            </p>
-          </div>
-          <div className="rounded-lg border bg-card px-3.5 py-2.5 shadow-xs">
-            <p className="text-[11.5px] text-muted-foreground">{t('transactions.accounts.total')}</p>
-            <p className="num mt-0.5 font-display text-[1.3rem] font-bold tracking-[-0.03em]" aria-label={t('transactions.balancePlaceholder')}>
-              —
-            </p>
-          </div>
-        </section>
+        <BalancePanel />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-1 flex-wrap items-center gap-2">
