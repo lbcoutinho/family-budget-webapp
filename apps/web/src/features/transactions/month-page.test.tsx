@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MonthPage } from './month-page';
 
@@ -95,6 +95,17 @@ async function expectTextToBePresent(text: string) {
 }
 
 describe('MonthPage', () => {
+  // EntryDialog and CashboxOperationDialog are always mounted (only their `open` prop changes) and
+  // fetch accounts/cashboxes unconditionally, regardless of the ticket under test here.
+  beforeEach(() => {
+    server.use(
+      http.get('/api/accounts', () => HttpResponse.json([])),
+      http.get('/api/cashboxes', () => HttpResponse.json([])),
+      http.get('/api/accounts/balances', () => HttpResponse.json([])),
+      http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
+    );
+  });
+
   afterEach(() => vi.useRealTimers());
 
   it('loads confirmed entries and drafts separately for the route reference month', async () => {
@@ -102,6 +113,7 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
         requests.push(url);
         return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([DRAFT]) : page([CONFIRMED]));
       }),
@@ -123,9 +135,11 @@ describe('MonthPage', () => {
 
   it('uses the cashbox tag with transfer amount and stripe for cashbox transfers', async () => {
     server.use(
-      http.get('/api/transactions', ({ request }) =>
-        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CASHBOX_TRANSFER])),
-      ),
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([]) : page([CASHBOX_TRANSFER]));
+      }),
     );
 
     renderPage();
@@ -142,7 +156,9 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get('status') !== 'DRAFT') searches.push(url.searchParams.get('search') ?? '');
+        if (url.searchParams.get('type') !== 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') {
+          searches.push(url.searchParams.get('search') ?? '');
+        }
         return HttpResponse.json(page([]));
       }),
     );
@@ -182,7 +198,8 @@ describe('MonthPage', () => {
 
     expect(screen.getAllByRole('button', { name: 'Novo lançamento' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Movimentar caixinha' })).toBeEnabled();
-    expect(screen.getByText('Aqui são as despesas dia a dia.')).toBeInTheDocument();
+    expect(screen.getByText('Despesas dia a dia')).toBeInTheDocument();
+    expect(screen.getByText('altura = quanto saiu · cada cor = uma categoria daquele dia')).toBeInTheDocument();
     expect(screen.getAllByText('—')).toHaveLength(4);
     expect(screen.getByText('Conta 1')).toBeInTheDocument();
     expect(screen.getByText('Conta 2')).toBeInTheDocument();
@@ -233,6 +250,7 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
         if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
         const cursor = url.searchParams.get('cursor');
         cursors.push(cursor);
