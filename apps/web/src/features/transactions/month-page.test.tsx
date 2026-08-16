@@ -1,13 +1,21 @@
-import { type TransactionListDto, type TransactionListItemDto, TransactionStatus, TransactionType } from '@family-budget/api-client';
+import {
+  type AccountBalanceDto,
+  type CashboxBalanceDto,
+  type TransactionListDto,
+  type TransactionListItemDto,
+  TransactionStatus,
+  TransactionType,
+} from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MonthPage } from './month-page';
 
+import { formatCents } from '@/lib/money';
 import { server } from '@/test/server';
 
 const { toastSuccess, toastError, lastUndo, lastOptions, lastMessage } = vi.hoisted(() => {
@@ -75,6 +83,9 @@ function page(items: TransactionListItemDto[], overrides: Partial<TransactionLis
   return { items, total: items.length, incomeTotal: 0, expenseTotal: 12345, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null, ...overrides };
 }
 
+const ACCOUNT_BALANCES: AccountBalanceDto[] = [{ accountId: 'account-1', name: 'Millennium', isActive: true, initialBalance: 0, balance: 348215 }];
+const CASHBOX_BALANCES: CashboxBalanceDto[] = [{ cashboxId: 'cashbox-1', name: 'Holiday fund', isActive: true, targetAmount: null, balance: 415000 }];
+
 function renderPage(initialEntry = '/month/2026/07') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter([{ path: '/month/:year/:month', element: <MonthPage /> }], { initialEntries: [initialEntry] });
@@ -96,6 +107,15 @@ async function expectTextToBePresent(text: string) {
 
 describe('MonthPage', () => {
   afterEach(() => vi.useRealTimers());
+
+  // Every render mounts `BalancePanel`, so every test needs these two handled — most don't care
+  // about the actual numbers, only that the request doesn't trip `onUnhandledRequest: 'error'`.
+  beforeEach(() => {
+    server.use(
+      http.get('/api/accounts/balances', () => HttpResponse.json(ACCOUNT_BALANCES)),
+      http.get('/api/cashboxes/balances', () => HttpResponse.json(CASHBOX_BALANCES)),
+    );
+  });
 
   it('loads confirmed entries and drafts separately for the route reference month', async () => {
     const requests: URL[] = [];
@@ -183,11 +203,11 @@ describe('MonthPage', () => {
     expect(screen.getAllByRole('button', { name: 'Novo lançamento' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Movimentar caixinha' })).toBeEnabled();
     expect(screen.getByText('Aqui são as despesas dia a dia.')).toBeInTheDocument();
-    expect(screen.getAllByText('—')).toHaveLength(4);
-    expect(screen.getByText('Conta 1')).toBeInTheDocument();
-    expect(screen.getByText('Conta 2')).toBeInTheDocument();
-    expect(screen.getByText('Conta 3')).toBeInTheDocument();
-    expect(screen.getByText('Saldo total')).toBeInTheDocument();
+    expect(await screen.findByText('Millennium')).toBeInTheDocument();
+    expect(screen.getByText(formatCents(348215))).toBeInTheDocument();
+    expect(screen.getByText('Caixinhas')).toBeInTheDocument();
+    expect(screen.getByText('Total consolidado')).toBeInTheDocument();
+    expect(screen.getByText(formatCents(348215 + 415000))).toBeInTheDocument();
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Data — mais recente',
       'Data — mais antiga',

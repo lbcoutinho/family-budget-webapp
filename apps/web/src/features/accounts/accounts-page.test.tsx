@@ -1,13 +1,14 @@
-import { type AccountDto } from '@family-budget/api-client';
+import { type AccountBalanceDto, type AccountDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { AccountsPage } from './accounts-page';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { formatCents } from '@/lib/money';
 import { server } from '@/test/server';
 
 const ACTIVE: AccountDto = {
@@ -45,7 +46,37 @@ function renderPage() {
   };
 }
 
+const BALANCES: AccountBalanceDto[] = [{ accountId: 'a1', name: 'Millennium', isActive: true, initialBalance: 348215, balance: 348215 }];
+
 describe('AccountsPage', () => {
+  // Every test renders the "Saldo atual" column, which is backed by its own query — most tests
+  // don't care about the actual numbers, only that the request doesn't trip
+  // `onUnhandledRequest: 'error'`.
+  beforeEach(() => {
+    server.use(http.get('/api/accounts/balances', () => HttpResponse.json(BALANCES)));
+  });
+
+  it('shows the current balance from the balances endpoint, formatted, in its own column', async () => {
+    server.use(http.get('/api/accounts', () => HttpResponse.json([ACTIVE])));
+
+    renderPage();
+
+    expect(await screen.findByText('Millennium')).toBeInTheDocument();
+    expect(screen.getByText(formatCents(348215))).toBeInTheDocument();
+  });
+
+  it('shows an em dash when an account has no matching balance', async () => {
+    server.use(
+      http.get('/api/accounts', () => HttpResponse.json([ACTIVE, INACTIVE])),
+      http.get('/api/accounts/balances', () => HttpResponse.json([])),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('Millennium')).toBeInTheDocument();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+  });
+
   it('sends no includeInactive and shows only active rows by default', async () => {
     let requestUrl: URL | undefined;
     server.use(

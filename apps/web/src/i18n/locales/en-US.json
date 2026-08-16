@@ -76,7 +76,8 @@
     "new": "New account",
     "showInactive": "Show inactive",
     "columns": {
-      "name": "Account"
+      "name": "Account",
+      "balance": "Current balance"
     },
     "inactiveBadge": "inactive",
     "actions": {
@@ -275,16 +276,9 @@
     "creditCard": "Credit card",
     "purchaseOn": "purchased on {{date}}",
     "balancePlaceholder": "Balance unavailable",
-    "balances": "Account balances",
     "dailyExpense": {
       "title": "Daily expenses",
       "description": "Here are the day-to-day expenses."
-    },
-    "accounts": {
-      "account1": "Account 1",
-      "account2": "Account 2",
-      "account3": "Account 3",
-      "total": "Total balance"
     },
     "filters": {
       "type": "Type: all",
@@ -386,6 +380,11 @@
       "save": "Save",
       "saveAndAddAnother": "Save and add another"
     }
+  },
+  "balances": {
+    "title": "Balances",
+    "cashboxes": "Cashboxes",
+    "total": "Consolidated total"
   },
   "settingsGeneral": {
     "language": {
