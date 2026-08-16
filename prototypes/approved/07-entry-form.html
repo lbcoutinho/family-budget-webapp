@@ -53,11 +53,12 @@
     </style>
   </head>
   <body>
-    <div data-proto="07 — Lançamento" data-ticket="M5-T02 · M5-T03"></div>
+    <div data-proto="07 — Lançamento" data-ticket="M5-T02 · M5-T03 · M5-T09"></div>
 
     <div class="proto-note">
       <strong>Novo diálogo em v2.</strong> Tipo (despesa, receita, transferência) via segmented control abrindo em "Despesa"; conta e data lado a lado, depois
-      categoria e subcategoria; cartão de crédito no final do formulário, revelando o mês de referência; otimista com rollback.
+      categoria e subcategoria; cartão de crédito no final do formulário, revelando o mês de referência; otimista com rollback. O checkbox de cartão de crédito
+      não aparece em "Receita" — cartão é sempre despesa. O título do diálogo muda para "Editar lançamento" ao editar.
     </div>
 
     <div data-shell="month">
@@ -133,7 +134,7 @@
                   </div>
 
                   <div class="field">
-                    <label for="e-notes">Descrição (opcional)</label>
+                    <label for="e-notes">Descrição</label>
                     <input class="input" id="e-notes" type="text" placeholder="Supermercado Continente" value="Supermercado" />
                   </div>
 
@@ -187,7 +188,7 @@
                   </div>
 
                   <div class="field">
-                    <label for="e-transfer-notes">Descrição (opcional)</label>
+                    <label for="e-transfer-notes">Descrição</label>
                     <input class="input" id="e-transfer-notes" type="text" placeholder="Reserva de férias" value="Reserva de férias" />
                   </div>
 
@@ -216,20 +217,6 @@
         <h2>Decisões a aprovar</h2>
         <p>Questões que ainda precisam de resposta para a implementação começar.</p>
         <ol>
-          <li>
-            <b>Campo de descrição — quanto fica opcional, quanto é obrigatório?</b>
-            <span>
-              No protótipo fica marcado como "opcional" para ambos os tipos (despesa/receita e transferência), mas a implementação pode exigir. Também não está
-              definido se há limite de caracteres ou validações de conteúdo.
-            </span>
-          </li>
-          <li>
-            <b>Comportamento de "Salvar e adicionar outro".</b>
-            <span>
-              O protótipo mostra como um botão de igual peso ao "Salvar", mas não define se ele preserva: (a) só data, conta e categoria; (b) tudo menos o
-              valor; (c) todos os campos. A descrição da tela diz "preservando data, conta e categoria" — aqui está feito assim.
-            </span>
-          </li>
           <li>
             <b>Cor de ação para "Transferência".</b>
             <span>
