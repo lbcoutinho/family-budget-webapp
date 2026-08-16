@@ -287,7 +287,23 @@
     "filters": {
       "type": "Type: all",
       "category": "Category: all",
-      "account": "Account: all"
+      "account": "Account: all",
+      "typeAriaLabel": "Filter by type",
+      "categoryAriaLabel": "Filter by category",
+      "accountAriaLabel": "Filter by account",
+      "typeOption": {
+        "INCOME": "Income",
+        "EXPENSE": "Expense",
+        "TRANSFER": "Transfer between accounts",
+        "CASHBOX_IN": "Deposit",
+        "CASHBOX_OUT": "Withdrawal",
+        "CASHBOX_TRANSFER": "Transfer between piggy banks"
+      },
+      "empty": {
+        "title": "No entries match these filters",
+        "description": "Adjust the filters or clear them to see the whole month.",
+        "clear": "Clear filters"
+      }
     },
     "sort": {
       "label": "Sort",

@@ -37,6 +37,7 @@ export * from './sessionDto';
 export * from './transactionDto';
 export * from './transactionListDto';
 export * from './transactionListItemDto';
+export * from './transactionSort';
 export * from './transactionSource';
 export * from './transactionStatus';
 export * from './transactionType';

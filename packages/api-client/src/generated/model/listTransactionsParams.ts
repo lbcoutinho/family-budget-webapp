@@ -5,10 +5,15 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { TransactionSort } from './transactionSort';
 import type { TransactionStatus } from './transactionStatus';
 import type { TransactionType } from './transactionType';
 
 export type ListTransactionsParams = {
+/**
+ * Server-side ordering of the whole filtered set, not just the loaded pages.
+ */
+sort?: TransactionSort;
 /**
  * @minimum 1
  * @maximum 200

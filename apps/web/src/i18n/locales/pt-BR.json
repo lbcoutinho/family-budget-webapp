@@ -287,7 +287,23 @@
     "filters": {
       "type": "Tipo: todos",
       "category": "Categoria: todas",
-      "account": "Conta: todas"
+      "account": "Conta: todas",
+      "typeAriaLabel": "Filtrar por tipo",
+      "categoryAriaLabel": "Filtrar por categoria",
+      "accountAriaLabel": "Filtrar por conta",
+      "typeOption": {
+        "INCOME": "Receita",
+        "EXPENSE": "Despesa",
+        "TRANSFER": "Transferência entre contas",
+        "CASHBOX_IN": "Depósito",
+        "CASHBOX_OUT": "Resgate",
+        "CASHBOX_TRANSFER": "Transferência entre caixinhas"
+      },
+      "empty": {
+        "title": "Nenhum lançamento com esses filtros",
+        "description": "Ajuste os filtros ou limpe-os para ver o mês inteiro.",
+        "clear": "Limpar filtros"
+      }
     },
     "sort": {
       "label": "Ordenar",

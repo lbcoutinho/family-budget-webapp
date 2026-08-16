@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { cashboxBalances } from '../cashboxes/cashbox-balance';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
+import { ListTransactionsQueryDto, TransactionSort } from './dto/list-transactions-query.dto';
 import { TransactionListDto, type TransactionListItemDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -21,6 +21,19 @@ const LIST_INCLUDE = {
 } satisfies Prisma.TransactionInclude;
 
 type ListedTransaction = Prisma.TransactionGetPayload<{ include: typeof LIST_INCLUDE }>;
+
+/**
+ * One `orderBy` per `TransactionSort` (M5-T07). Every entry ends in `{ id: 'desc' }`: cursor
+ * pagination (`cursor: { id }` + `skip: 1`) needs a fully deterministic ordering, or a tie on the
+ * leading column(s) could skip or repeat a row across pages.
+ */
+const SORT_ORDER_BY: Record<TransactionSort, Prisma.TransactionOrderByWithRelationInput[]> = {
+  [TransactionSort.NEWEST]: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+  [TransactionSort.OLDEST]: [{ date: 'asc' }, { createdAt: 'asc' }, { id: 'desc' }],
+  [TransactionSort.AMOUNT_HIGHEST]: [{ amount: 'desc' }, { date: 'desc' }, { id: 'desc' }],
+  [TransactionSort.AMOUNT_LOWEST]: [{ amount: 'asc' }, { date: 'desc' }, { id: 'desc' }],
+  [TransactionSort.DESCRIPTION]: [{ description: 'asc' }, { date: 'desc' }, { id: 'desc' }],
+};
 
 /**
  * `INCOME`/`EXPENSE`/`TRANSFER`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05,
@@ -54,7 +67,7 @@ export class TransactionsService {
     const [rows, totals] = await this.prisma.$transaction([
       this.prisma.transaction.findMany({
         where,
-        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+        orderBy: SORT_ORDER_BY[query.sort ?? TransactionSort.NEWEST],
         take: query.limit + 1,
         ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
         include: LIST_INCLUDE,

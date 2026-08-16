@@ -4,8 +4,11 @@ import {
   getListTransactionsQueryOptions,
   getListTransactionsQueryKey,
   listTransactions,
+  useListAccounts,
+  useListCategories,
   type CreateTransactionDto,
   type TransactionListItemDto,
+  TransactionSort,
   TransactionStatus,
   TransactionType,
   useCreateTransaction,
@@ -25,7 +28,7 @@ import {
   SearchIcon,
   Trash2Icon,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,6 +39,7 @@ import { PageContent, PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
@@ -175,6 +179,44 @@ function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) 
   );
 }
 
+const FILTER_ALL = 'all';
+
+/** One shape backs the type/category/account filter triggers — each has exactly one call site
+ * below, so this stays local rather than becoming a shared component. Radix rejects `""` as an
+ * item value, hence the `FILTER_ALL` sentinel mapped to/from `undefined` at the boundary. */
+function FilterSelect({
+  value,
+  onChange,
+  allLabel,
+  ariaLabel,
+  options,
+  icon,
+}: {
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+  allLabel: string;
+  ariaLabel: string;
+  options: { id: string; name: string }[];
+  icon?: ReactNode;
+}) {
+  return (
+    <Select value={value ?? FILTER_ALL} onValueChange={(next) => onChange(next === FILTER_ALL ? undefined : next)}>
+      <SelectTrigger size="sm" aria-label={ariaLabel} className="text-[12.5px]">
+        {icon}
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem>
+        {options.map((option) => (
+          <SelectItem key={option.id} value={option.id}>
+            {option.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
   const { t } = useTranslation();
   const detail = transactionDetail(entry);
@@ -257,6 +299,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [deleting, setDeleting] = useState<TransactionListItemDto>();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<TransactionType>();
+  const [categoryFilter, setCategoryFilter] = useState<string>();
+  const [accountFilter, setAccountFilter] = useState<string>();
+  const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
   const [selectedDay, setSelectedDay] = useState<string>();
   // A day filter belongs to the month it was picked in — comparing against the last
   // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
@@ -314,8 +360,23 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
   const referenceMonthFilter = dateOnly(referenceMonth);
   const dayFilter = selectedDay ? { dateFrom: selectedDay, dateTo: selectedDay } : {};
-  const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, ...(search ? { search } : {}), ...dayFilter };
-  const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, ...(search ? { search } : {}), ...dayFilter };
+  const activeFilters = {
+    ...(search ? { search } : {}),
+    ...(typeFilter ? { type: [typeFilter] } : {}),
+    ...(categoryFilter ? { categoryId: categoryFilter } : {}),
+    ...(accountFilter ? { accountId: accountFilter } : {}),
+    ...dayFilter,
+  };
+  const hasActiveFilters = search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined;
+  const clearFilters = () => {
+    setSearchInput('');
+    setSearch('');
+    setTypeFilter(undefined);
+    setCategoryFilter(undefined);
+    setAccountFilter(undefined);
+  };
+  const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, sort, ...activeFilters };
+  const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, sort, ...activeFilters };
   const confirmedOptions = getListTransactionsQueryOptions(confirmedParams);
   const draftsOptions = getListTransactionsQueryOptions(draftsParams);
 
@@ -326,6 +387,12 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
   const drafts = useQuery(draftsOptions);
+
+  const { data: categories = [] } = useListCategories({ tree: false });
+  const categoryOptions = categories.filter((category) => category.parentId === null).map((category) => ({ id: category.id, name: category.name }));
+  const { data: accounts = [] } = useListAccounts();
+  const accountOptions = accounts.map((account) => ({ id: account.id, name: account.name }));
+  const typeOptions = Object.values(TransactionType).map((type) => ({ id: type, name: t(`transactions.filters.typeOption.${type}` as TranslationKey) }));
 
   const entries = useMemo(() => confirmed.data?.pages.flatMap((page) => page.items) ?? [], [confirmed.data]);
   const draftEntries = drafts.data?.items ?? [];
@@ -408,27 +475,44 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 className="pl-8 text-[12.5px] md:text-[12.5px]"
               />
             </div>
-            <Button variant="outline" size="sm" className="text-[12.5px]">
-              <FilterIcon />
-              {t('transactions.filters.type')}
-            </Button>
-            <Button variant="outline" size="sm" className="text-[12.5px]">
-              {t('transactions.filters.category')}
-            </Button>
-            <Button variant="outline" size="sm" className="text-[12.5px]">
-              {t('transactions.filters.account')}
-            </Button>
+            <FilterSelect
+              value={typeFilter}
+              onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+              allLabel={t('transactions.filters.type')}
+              ariaLabel={t('transactions.filters.typeAriaLabel')}
+              options={typeOptions}
+              icon={<FilterIcon />}
+            />
+            <FilterSelect
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              allLabel={t('transactions.filters.category')}
+              ariaLabel={t('transactions.filters.categoryAriaLabel')}
+              options={categoryOptions}
+            />
+            <FilterSelect
+              value={accountFilter}
+              onChange={setAccountFilter}
+              allLabel={t('transactions.filters.account')}
+              ariaLabel={t('transactions.filters.accountAriaLabel')}
+              options={accountOptions}
+            />
           </div>
           <div className="flex items-center gap-2">
             <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
               {t('transactions.sort.label')}
             </label>
-            <select id="month-sort" className="h-8 rounded-md border bg-background px-2 text-[12.5px]">
-              <option>{t('transactions.sort.newest')}</option>
-              <option>{t('transactions.sort.oldest')}</option>
-              <option>{t('transactions.sort.amountHighest')}</option>
-              <option>{t('transactions.sort.amountLowest')}</option>
-              <option>{t('transactions.sort.description')}</option>
+            <select
+              id="month-sort"
+              className="h-8 rounded-md border bg-background px-2 text-[12.5px]"
+              value={sort}
+              onChange={(event) => setSort(event.target.value as TransactionSort)}
+            >
+              <option value={TransactionSort.newest}>{t('transactions.sort.newest')}</option>
+              <option value={TransactionSort.oldest}>{t('transactions.sort.oldest')}</option>
+              <option value={TransactionSort.amountHighest}>{t('transactions.sort.amountHighest')}</option>
+              <option value={TransactionSort.amountLowest}>{t('transactions.sort.amountLowest')}</option>
+              <option value={TransactionSort.description}>{t('transactions.sort.description')}</option>
             </select>
           </div>
         </div>
@@ -453,7 +537,19 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             }
           />
         ) : null}
-        {!loading && !failed && !hasEntries ? (
+        {!loading && !failed && !hasEntries && hasActiveFilters ? (
+          <EmptyState
+            icon={SearchIcon}
+            title={t('transactions.filters.empty.title')}
+            description={t('transactions.filters.empty.description')}
+            action={
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                {t('transactions.filters.empty.clear')}
+              </Button>
+            }
+          />
+        ) : null}
+        {!loading && !failed && !hasEntries && !hasActiveFilters ? (
           <EmptyState
             icon={CalendarDaysIcon}
             title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}

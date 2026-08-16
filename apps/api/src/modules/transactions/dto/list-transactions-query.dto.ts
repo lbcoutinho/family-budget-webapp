@@ -6,6 +6,16 @@ import { TransactionStatus, TransactionType } from '../../../generated/prisma/cl
 
 import { toDateOnly } from './date-only.transform';
 
+/** The five orderings the month screen's sort control offers (M5-T07). Keyed by intent rather than
+ * an orthogonal `sortBy`/`sortOrder` pair, which would admit combinations the UI never offers. */
+export enum TransactionSort {
+  NEWEST = 'newest',
+  OLDEST = 'oldest',
+  AMOUNT_HIGHEST = 'amountHighest',
+  AMOUNT_LOWEST = 'amountLowest',
+  DESCRIPTION = 'description',
+}
+
 /** Query string of `GET /api/transactions` (M4-T08). */
 export class ListTransactionsQueryDto {
   @ApiProperty({
@@ -104,4 +114,16 @@ export class ListTransactionsQueryDto {
   @Min(1)
   @Max(200)
   limit = 50;
+
+  @ApiProperty({
+    type: String,
+    enum: TransactionSort,
+    enumName: 'TransactionSort',
+    required: false,
+    default: TransactionSort.NEWEST,
+    description: 'Server-side ordering of the whole filtered set, not just the loaded pages.',
+  })
+  @IsOptional()
+  @IsEnum(TransactionSort)
+  sort: TransactionSort = TransactionSort.NEWEST;
 }

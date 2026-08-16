@@ -19,7 +19,7 @@ import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
+import { ListTransactionsQueryDto, TransactionSort } from './dto/list-transactions-query.dto';
 import { TransactionListDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -80,6 +80,14 @@ export class TransactionsController {
     description: 'Opaque to the client — the id of the last row of the previous page.',
   })
   @ApiQuery({ name: 'limit', type: Number, required: false, schema: { default: 50, minimum: 1, maximum: 200 } })
+  @ApiQuery({
+    name: 'sort',
+    enum: TransactionSort,
+    enumName: 'TransactionSort',
+    required: false,
+    schema: { default: TransactionSort.NEWEST },
+    description: 'Server-side ordering of the whole filtered set, not just the loaded pages.',
+  })
   @ApiOkResponse({ type: TransactionListDto })
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListTransactionsQueryDto): Promise<TransactionListDto> {
