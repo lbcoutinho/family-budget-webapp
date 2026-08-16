@@ -14,6 +14,20 @@ done on the API. **M5 Entries (UI)** is next.
 - `apps/web/` — Web frontend.
 - `packages/api-client/` — Orval-generated typed React-Query client.
 
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues (via `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary, unchanged. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
+
 ## Commands
 
 **Repo-wide** (run from root, cover both apps)
@@ -58,8 +72,8 @@ done on the API. **M5 Entries (UI)** is next.
 `animate`, … as sub-commands), four `impeccable-*` agents, and a design hook wired into `.claude/settings.json` that runs its 59-rule detector after `Edit`/
 `Write`/`MultiEdit` on UI files and does a deeper pass on `Stop`. Apache 2.0; `npx impeccable detect <path>` runs the same detector standalone.
 
-- It advises, it does not decide. The prototype gate still wins: a detector finding never authorizes a screen without an approved prototype, and never
-  overrides a decision already settled in `prototypes/MEMORY.md` or `00-design-system.html`.
+- It advises, it does not decide. The prototype gate still wins: a detector finding never authorizes a screen without an approved prototype.
+- If an advise contradicts a decision from `prototypes/MEMORY.md` or `00-design-system.html` then ask user what to do.
 
 ## Domain rules (get these wrong and reports break)
 
