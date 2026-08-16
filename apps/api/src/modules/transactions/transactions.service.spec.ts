@@ -3,7 +3,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { TransactionStatus, TransactionSource, type Transaction } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
 
-import { type ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
+import { type ListTransactionsQueryDto, TransactionSort } from './dto/list-transactions-query.dto';
 import { TransactionsService } from './transactions.service';
 import { type ResolvedTransactionRefs, type TransactionValidator } from './validators/transaction-validator';
 
@@ -175,7 +175,11 @@ describe('TransactionsService', () => {
   });
 
   describe('findAll', () => {
-    const listQuery = (overrides: Partial<ListTransactionsQueryDto> = {}): ListTransactionsQueryDto => ({ limit: 50, ...overrides });
+    const listQuery = (overrides: Partial<ListTransactionsQueryDto> = {}): ListTransactionsQueryDto => ({
+      limit: 50,
+      sort: TransactionSort.NEWEST,
+      ...overrides,
+    });
 
     it('defaults status to CONFIRMED when the query omits it, and passes the explicit value when it does not', async () => {
       await service.findAll(userId, listQuery());
@@ -233,6 +237,26 @@ describe('TransactionsService', () => {
       expect(doubled.transaction.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }], take: 21 }),
       );
+    });
+
+    it('falls back to newest-first when sort is undefined (defensive — the DTO default already covers real requests)', async () => {
+      await service.findAll(userId, { limit: 50, sort: undefined as unknown as TransactionSort });
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }] }),
+      );
+    });
+
+    it.each([
+      [TransactionSort.NEWEST, [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.OLDEST, [{ date: 'asc' }, { createdAt: 'asc' }, { id: 'desc' }]],
+      [TransactionSort.AMOUNT_HIGHEST, [{ amount: 'desc' }, { date: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.AMOUNT_LOWEST, [{ amount: 'asc' }, { date: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.DESCRIPTION, [{ description: 'asc' }, { date: 'desc' }, { id: 'desc' }]],
+    ] as const)('maps sort %s to orderBy %j', async (sort, orderBy) => {
+      await service.findAll(userId, listQuery({ sort }));
+
+      expect(doubled.transaction.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy }));
     });
 
     it('passes cursor/skip only when a cursor is supplied', async () => {

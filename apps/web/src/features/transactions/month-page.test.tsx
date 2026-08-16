@@ -107,10 +107,12 @@ async function expectTextToBePresent(text: string) {
 
 describe('MonthPage', () => {
   // EntryDialog and CashboxOperationDialog are always mounted (only their `open` prop changes) and
-  // fetch accounts/cashboxes unconditionally, regardless of the ticket under test here.
+  // fetch accounts/cashboxes unconditionally, regardless of the ticket under test here. The month
+  // page itself always fetches accounts and categories too, for the account/category filters.
   beforeEach(() => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([])),
+      http.get('/api/categories', () => HttpResponse.json([])),
       http.get('/api/cashboxes', () => HttpResponse.json([])),
       http.get('/api/accounts/balances', () => HttpResponse.json([])),
       http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
@@ -355,5 +357,202 @@ describe('MonthPage', () => {
 
     await waitFor(() => expect(toastError).toHaveBeenCalled());
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  describe('filters and sort (M5-T07)', () => {
+    const CATEGORY_ROOT = { id: 'category-1', name: 'Food', parentId: null };
+    const ACCOUNT_OPTION = { id: 'account-1', name: 'Millennium' };
+
+    function captureTransactionRequests(itemsBySort: Record<string, TransactionListItemDto[]> = {}) {
+      const requests: URL[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          requests.push(url);
+          if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+          const sort = url.searchParams.get('sort') ?? 'newest';
+          return HttpResponse.json(page(itemsBySort[sort] ?? [CONFIRMED]));
+        }),
+      );
+      return requests;
+    }
+
+    it('sends the selected type filter on both the confirmed and the draft requests', async () => {
+      const requests: URL[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          requests.push(url);
+          return HttpResponse.json(page([]));
+        }),
+      );
+
+      const { user } = renderPage();
+      await screen.findByText('Nada lançado em Julho de 2026');
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
+      await user.click(await screen.findByRole('option', { name: 'Receita' }));
+
+      await waitFor(() => expect(requests.filter((r) => r.searchParams.get('type') === 'INCOME')).toHaveLength(2));
+      expect(requests.filter((r) => r.searchParams.get('type') === 'INCOME' && r.searchParams.get('status') === 'DRAFT')).toHaveLength(1);
+    });
+
+    it('sends categoryId/accountId once selected, and drops them again on "all"; two filters compose on one request', async () => {
+      server.use(
+        http.get('/api/categories', () => HttpResponse.json([CATEGORY_ROOT])),
+        http.get('/api/accounts', () => HttpResponse.json([ACCOUNT_OPTION])),
+      );
+      const requests: URL[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') !== 'DRAFT') requests.push(url);
+          return HttpResponse.json(page([]));
+        }),
+      );
+
+      const { user } = renderPage();
+      await screen.findByText('Nada lançado em Julho de 2026');
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por categoria' }));
+      await user.click(await screen.findByRole('option', { name: 'Food' }));
+      await waitFor(() => expect(requests.at(-1)?.searchParams.get('categoryId')).toBe('category-1'));
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por conta' }));
+      await user.click(await screen.findByRole('option', { name: 'Millennium' }));
+      await waitFor(() => {
+        const last = requests.at(-1)!;
+        expect(last.searchParams.get('categoryId')).toBe('category-1');
+        expect(last.searchParams.get('accountId')).toBe('account-1');
+      });
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por categoria' }));
+      await user.click(await screen.findByRole('option', { name: 'Categoria: todas' }));
+      await waitFor(() => {
+        const last = requests.at(-1)!;
+        expect(last.searchParams.get('categoryId')).toBeNull();
+        expect(last.searchParams.get('accountId')).toBe('account-1');
+      });
+    });
+
+    it('resets pagination (no cursor) when a filter changes after loading a second page', async () => {
+      server.use(http.get('/api/accounts', () => HttpResponse.json([ACCOUNT_OPTION])));
+      const cursors: (string | null)[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+          const cursor = url.searchParams.get('cursor');
+          cursors.push(cursor);
+          return HttpResponse.json(
+            cursor || url.searchParams.get('accountId')
+              ? page([{ ...CONFIRMED, id: 'confirmed-2', description: 'Fuel' }])
+              : page([CONFIRMED], { nextCursor: 'cursor-1', total: 2 }),
+          );
+        }),
+      );
+
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+      await user.click(screen.getByRole('button', { name: 'Carregar mais' }));
+      await expectTextToBePresent('Fuel');
+      expect(cursors).toEqual([null, 'cursor-1']);
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por conta' }));
+      await user.click(await screen.findByRole('option', { name: 'Millennium' }));
+
+      await waitFor(() => expect(cursors.at(-1)).toBeNull());
+    });
+
+    it('sends the selected sort on both requests and renders rows in the order the server returned, unmodified', async () => {
+      const requests = captureTransactionRequests({ oldest: [{ ...CONFIRMED, id: 'confirmed-2', description: 'Old one' }, CONFIRMED] });
+
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+
+      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Data — mais antiga');
+
+      await waitFor(() => expect(requests.some((r) => r.searchParams.get('sort') === 'oldest')).toBe(true));
+      expect(requests.filter((r) => r.searchParams.get('sort') === 'oldest' && r.searchParams.get('status') === 'DRAFT')).toHaveLength(1);
+
+      const descriptions = (await screen.findAllByText(/Old one|Groceries/)).map((node) => node.textContent);
+      expect(descriptions).toEqual(['Old one', 'Groceries']);
+    });
+
+    it('resets pagination (no cursor) when the sort changes after loading a second page', async () => {
+      const cursors: (string | null)[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+          const cursor = url.searchParams.get('cursor');
+          cursors.push(cursor);
+          return HttpResponse.json(
+            cursor ? page([{ ...CONFIRMED, id: 'confirmed-2', description: 'Fuel' }]) : page([CONFIRMED], { nextCursor: 'cursor-1', total: 2 }),
+          );
+        }),
+      );
+
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+      await user.click(screen.getByRole('button', { name: 'Carregar mais' }));
+      await expectTextToBePresent('Fuel');
+      expect(cursors).toEqual([null, 'cursor-1']);
+
+      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Valor — maior');
+
+      await waitFor(() => expect(cursors.at(-1)).toBeNull());
+    });
+
+    it('keeps a draft row first regardless of the selected sort', async () => {
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([DRAFT]) : page([CONFIRMED]));
+        }),
+      );
+
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+      await expectTextToBePresent('Voice draft');
+
+      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Descrição — A a Z');
+
+      const rows = await screen.findAllByRole('article');
+      expect(rows[0]).toHaveTextContent('Voice draft');
+    });
+
+    it('shows the filtered-empty state when a filter matches nothing, and "Limpar filtros" restores the unfiltered request', async () => {
+      const requests: URL[] = [];
+      server.use(
+        http.get('/api/transactions', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+          requests.push(url);
+          return HttpResponse.json(url.searchParams.get('type') === 'INCOME' ? page([]) : page([CONFIRMED]));
+        }),
+      );
+
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
+      await user.click(await screen.findByRole('option', { name: 'Receita' }));
+
+      await screen.findByText('Nenhum lançamento com esses filtros');
+      expect(screen.queryByText('Nada lançado em Julho de 2026')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+
+      await expectTextToBePresent('Groceries');
+      expect(requests.at(-1)?.searchParams.get('type')).toBeNull();
+    });
   });
 });

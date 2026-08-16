@@ -665,5 +665,47 @@ describe('Transactions API (e2e)', () => {
       await authed('get', '/transactions?limit=0').expect(400);
       await authed('get', '/transactions?limit=201').expect(400);
     });
+
+    it('rejects an invalid sort value with 400', async () => {
+      await authed('get', '/transactions?sort=bogus').expect(400);
+    });
+
+    it('omitting sort returns the same newest-first order as today', async () => {
+      const explicit = (await authed('get', '/transactions?sort=newest').expect(200)).body as { items: { id: string }[] };
+      const omitted = (await authed('get', '/transactions').expect(200)).body as { items: { id: string }[] };
+      expect(omitted.items.map((i) => i.id)).toEqual(explicit.items.map((i) => i.id));
+    });
+
+    it.each(['newest', 'oldest', 'amountHighest', 'amountLowest', 'description'])('orders the whole filtered set by %s', async (sort) => {
+      // Built inside the test body, not the `it.each` table, because the ids above are only assigned in `beforeEach`.
+      const expectedBySort: Record<string, string[]> = {
+        newest: [aprilId, secondOfPairId, firstOfPairId, coffeeId, deletedCashboxTxId, salaryId, creditCardId],
+        oldest: [creditCardId, salaryId, deletedCashboxTxId, coffeeId, firstOfPairId, secondOfPairId, aprilId],
+        amountHighest: [salaryId, deletedCashboxTxId, aprilId, coffeeId, creditCardId, secondOfPairId, firstOfPairId],
+        amountLowest: [firstOfPairId, secondOfPairId, creditCardId, coffeeId, aprilId, deletedCashboxTxId, salaryId],
+        description: [creditCardId, coffeeId, deletedCashboxTxId, aprilId, salaryId, firstOfPairId, secondOfPairId],
+      };
+
+      const body = (await authed('get', `/transactions?sort=${sort}`).expect(200)).body as { items: { id: string }[] };
+      expect(body.items.map((i) => i.id)).toEqual(expectedBySort[sort]);
+    });
+
+    it('paginates disjoint, correctly-ordered pages under a non-default sort (amountHighest)', async () => {
+      const seen: string[] = [];
+      let cursor: string | undefined;
+
+      for (let page = 0; page < 10; page += 1) {
+        const response = (await authed('get', `/transactions?sort=amountHighest&limit=2${cursor ? `&cursor=${cursor}` : ''}`).expect(200)).body as {
+          items: { id: string }[];
+          nextCursor: string | null;
+        };
+        seen.push(...response.items.map((i) => i.id));
+        if (response.nextCursor === null) break;
+        cursor = response.nextCursor;
+      }
+
+      expect(new Set(seen).size).toBe(seen.length);
+      expect(seen).toEqual([salaryId, deletedCashboxTxId, aprilId, coffeeId, creditCardId, secondOfPairId, firstOfPairId]);
+    });
   });
 });
