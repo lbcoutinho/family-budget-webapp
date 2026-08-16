@@ -278,7 +278,11 @@
     "balances": "Account balances",
     "dailyExpense": {
       "title": "Daily expenses",
-      "description": "Here are the day-to-day expenses."
+      "caption": "height = amount spent · each colour = a category from that day",
+      "groupLabel": "Daily expenses for {{month}}",
+      "noCategory": "No category",
+      "tooltip": "{{date}} — {{total}} — {{breakdown}}",
+      "tooltipEmpty": "{{date}} — nothing spent"
     },
     "accounts": {
       "account1": "Account 1",

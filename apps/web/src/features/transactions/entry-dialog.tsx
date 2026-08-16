@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { CategorySelect } from './category-select';
+import { getDailyExpensesQueryKey } from './daily-expense-strip';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -232,6 +233,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       onSettled: () => {
         void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
       },
     },
   });
@@ -246,6 +248,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       onSettled: () => {
         void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
       },
     },
   });

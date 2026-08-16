@@ -24,6 +24,8 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { getDailyExpensesQueryKey } from './daily-expense-strip';
+
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -188,6 +190,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
   };
   const handleSuccess = () => {
     setBalanceWarning(undefined);
