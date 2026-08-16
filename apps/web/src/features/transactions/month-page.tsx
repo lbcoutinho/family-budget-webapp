@@ -227,12 +227,12 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
         <span className="truncate text-[14px] font-semibold">{entry.description}</span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.status === TransactionStatus.DRAFT ? (
-          <Badge variant="outline" className="border-dashed text-[10px]">
+          <Badge variant="outline" className="border-dashed text-[10.5px]">
             {t('transactions.draft')}
           </Badge>
         ) : null}
         {isCashboxOperation(entry.type) ? (
-          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10px] text-cashbox">
+          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10.5px] text-cashbox">
             {typeLabel(entry.type, t)}
           </Badge>
         ) : null}
