@@ -27,3 +27,10 @@ cashbox)" instead of an empty selector; a live cashbox has to be chosen to save 
 review, the user noted a live cashbox can never appear in a selector once deleted, so this path is
 unlikely to actually occur in the current design — the prototype and its "(deleted cashbox)" label stay
 as a safety net regardless, kept in case a future flow needs it.
+
+**M5-T10** reordered every mode's fields: origin/destination selectors side by side, then Data,
+Descrição, Valor, with the info callout last (right before the footer). The amount hint and the
+amber insufficient-balance warning stay attached to Valor. `callout.info` dropped its left-bar
+treatment for a thin border on all four sides, with a leading blue info icon — `callout.warn` is
+unchanged, it's a different severity. Origin/destination/Descrição fields all got placeholder text
+("Escolha uma conta", "Escolha uma caixinha", "Reserva para férias").

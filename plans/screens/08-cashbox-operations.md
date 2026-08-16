@@ -13,3 +13,6 @@ raises a client-side warning but never disables the submit — the backend owns 
 answers 409 with the available amount, because the balance may have changed since the dialog
 opened. Each mode carries a fixed explanatory line: cashbox mechanics are the non-obvious part of
 the domain.
+
+Field order (M5-T10, see #172): origin and destination selectors side by side in one row, then Data,
+Descrição, Valor, with the info callout last.

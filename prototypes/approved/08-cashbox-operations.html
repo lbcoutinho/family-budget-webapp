@@ -22,6 +22,16 @@
         display: grid;
         gap: 13px;
       }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 620px) {
+        .two {
+          grid-template-columns: 1fr;
+        }
+      }
 
       /* Segmented control sits between head and body. */
       .dialog .modes {
@@ -66,10 +76,10 @@
         display: none;
       }
 
-      /* Explanatory callout per mode — informational, not a warning: blue. */
+      /* Explanatory callout per mode — informational, not a warning: blue, thin border all around. */
       .callout.info {
-        background: var(--transfer-wash);
-        border-left-color: var(--transfer);
+        background: transparent;
+        border: 1px solid var(--transfer);
         color: var(--transfer);
       }
 
@@ -141,7 +151,7 @@
     </style>
   </head>
   <body>
-    <div data-proto="08 — Operações de caixinha" data-ticket="M5-T04"></div>
+    <div data-proto="08 — Operações de caixinha" data-ticket="M5-T04 · M5-T10"></div>
 
     <div class="proto-note">
       <strong>Três modos num diálogo só: depositar, retirar, transferir.</strong> Caixinha é tipo de lançamento, e as operações de caixinha são diferentes de
@@ -180,29 +190,41 @@
               <!-- Body with mode-specific fields -->
               <div class="dlg-body">
                 <!-- DEPOSITAR: account → cashbox -->
-                <div class="field with-balance hide-when-withdraw hide-when-transfer">
-                  <div class="row">
-                    <label for="dep-account">Conta de origem</label>
-                    <span class="balance num">Saldo: 3.120,00 €</span>
+                <div class="two hide-when-withdraw hide-when-transfer">
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="dep-account">Conta de origem</label>
+                      <span class="balance num">Saldo: 3.120,00 €</span>
+                    </div>
+                    <select class="select" id="dep-account">
+                      <option value="">Escolha uma conta</option>
+                      <option value="dinheiro">Dinheiro</option>
+                      <option value="millennium">Millennium</option>
+                      <option value="revolut">Revolut</option>
+                    </select>
                   </div>
-                  <select class="select" id="dep-account">
-                    <option value="">Escolha uma conta</option>
-                    <option value="dinheiro">Dinheiro</option>
-                    <option value="millennium">Millennium</option>
-                    <option value="revolut">Revolut</option>
-                  </select>
+
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="dep-cashbox">Caixinha de destino</label>
+                      <span class="balance num">Saldo: 2.300,00 €</span>
+                    </div>
+                    <select class="select" id="dep-cashbox">
+                      <option value="">Escolha uma caixinha</option>
+                      <option value="ferias">Férias 2027</option>
+                      <option value="obras">Obras</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div class="field with-balance hide-when-withdraw hide-when-transfer">
-                  <div class="row">
-                    <label for="dep-cashbox">Caixinha de destino</label>
-                    <span class="balance num">Saldo: 2.300,00 €</span>
-                  </div>
-                  <select class="select" id="dep-cashbox">
-                    <option value="">Escolha uma caixinha</option>
-                    <option value="ferias">Férias 2027</option>
-                    <option value="obras">Obras</option>
-                  </select>
+                <div class="field hide-when-withdraw hide-when-transfer">
+                  <label for="dep-date">Data</label>
+                  <input class="input" id="dep-date" type="date" value="2026-08-16" />
+                </div>
+
+                <div class="field hide-when-withdraw hide-when-transfer">
+                  <label for="dep-description">Descrição</label>
+                  <input class="input" id="dep-description" placeholder="Reserva para férias" />
                 </div>
 
                 <div class="field hide-when-withdraw hide-when-transfer">
@@ -216,29 +238,41 @@
                 </div>
 
                 <!-- RETIRAR: cashbox → account -->
-                <div class="field with-balance hide-when-deposit hide-when-transfer">
-                  <div class="row">
-                    <label for="wit-cashbox">Caixinha de origem</label>
-                    <span class="balance num">Saldo: 2.300,00 €</span>
+                <div class="two hide-when-deposit hide-when-transfer">
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="wit-cashbox">Caixinha de origem</label>
+                      <span class="balance num">Saldo: 2.300,00 €</span>
+                    </div>
+                    <select class="select" id="wit-cashbox">
+                      <option value="">Escolha uma caixinha</option>
+                      <option value="ferias">Férias 2027</option>
+                      <option value="obras">Obras</option>
+                    </select>
                   </div>
-                  <select class="select" id="wit-cashbox">
-                    <option value="">Escolha uma caixinha</option>
-                    <option value="ferias">Férias 2027</option>
-                    <option value="obras">Obras</option>
-                  </select>
+
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="wit-account">Conta de destino</label>
+                      <span class="balance num">Saldo: 3.120,00 €</span>
+                    </div>
+                    <select class="select" id="wit-account">
+                      <option value="">Escolha uma conta</option>
+                      <option value="dinheiro">Dinheiro</option>
+                      <option value="millennium">Millennium</option>
+                      <option value="revolut">Revolut</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div class="field with-balance hide-when-deposit hide-when-transfer">
-                  <div class="row">
-                    <label for="wit-account">Conta de destino</label>
-                    <span class="balance num">Saldo: 3.120,00 €</span>
-                  </div>
-                  <select class="select" id="wit-account">
-                    <option value="">Escolha uma conta</option>
-                    <option value="dinheiro">Dinheiro</option>
-                    <option value="millennium">Millennium</option>
-                    <option value="revolut">Revolut</option>
-                  </select>
+                <div class="field hide-when-deposit hide-when-transfer">
+                  <label for="wit-date">Data</label>
+                  <input class="input" id="wit-date" type="date" value="2026-08-16" />
+                </div>
+
+                <div class="field hide-when-deposit hide-when-transfer">
+                  <label for="wit-description">Descrição</label>
+                  <input class="input" id="wit-description" placeholder="Reserva para férias" />
                 </div>
 
                 <div class="field hide-when-deposit hide-when-transfer" id="wit-amount-field">
@@ -254,28 +288,40 @@
                 </div>
 
                 <!-- TRANSFERIR: cashbox → cashbox (no account at all) -->
-                <div class="field with-balance hide-when-deposit hide-when-withdraw">
-                  <div class="row">
-                    <label for="xfer-from">Caixinha de origem</label>
-                    <span class="balance num">Saldo: 2.300,00 €</span>
+                <div class="two hide-when-deposit hide-when-withdraw">
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="xfer-from">Caixinha de origem</label>
+                      <span class="balance num">Saldo: 2.300,00 €</span>
+                    </div>
+                    <select class="select" id="xfer-from" required>
+                      <option value="">Escolha uma caixinha</option>
+                      <option value="ferias">Férias 2027</option>
+                      <option value="obras">Obras</option>
+                    </select>
                   </div>
-                  <select class="select" id="xfer-from" required>
-                    <option value="">Escolha uma caixinha</option>
-                    <option value="ferias">Férias 2027</option>
-                    <option value="obras">Obras</option>
-                  </select>
+
+                  <div class="field with-balance">
+                    <div class="row">
+                      <label for="xfer-to">Caixinha de destino</label>
+                      <span class="balance num">Saldo: 1.850,00 €</span>
+                    </div>
+                    <select class="select" id="xfer-to">
+                      <option value="">Escolha uma caixinha</option>
+                      <option value="obras">Obras</option>
+                      <option value="ferias">Férias 2027</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div class="field with-balance hide-when-deposit hide-when-withdraw">
-                  <div class="row">
-                    <label for="xfer-to">Caixinha de destino</label>
-                    <span class="balance num">Saldo: 1.850,00 €</span>
-                  </div>
-                  <select class="select" id="xfer-to">
-                    <option value="">Escolha uma caixinha</option>
-                    <option value="obras">Obras</option>
-                    <option value="ferias">Férias 2027</option>
-                  </select>
+                <div class="field hide-when-deposit hide-when-withdraw">
+                  <label for="xfer-date">Data</label>
+                  <input class="input" id="xfer-date" type="date" value="2026-08-16" />
+                </div>
+
+                <div class="field hide-when-deposit hide-when-withdraw">
+                  <label for="xfer-description">Descrição</label>
+                  <input class="input" id="xfer-description" placeholder="Reserva para férias" />
                 </div>
 
                 <div class="field hide-when-deposit hide-when-withdraw">
