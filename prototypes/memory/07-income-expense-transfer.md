@@ -10,3 +10,17 @@ All five approved as prototyped: type as a segmented control at the top of the d
 operations kept out of this form; reference month revealed only by the credit-card checkbox and
 suggesting the following month; date and amount before classification; optimistic insert with
 rollback.
+
+Two of the prototype's own open decisions were settled during #169, which fixed the shipped dialog
+back onto the approved design:
+
+- **Description is required, not optional** — the API has always rejected a blank one
+  (`@IsNotEmpty()`). The prototype's "(opcional)" on both labels was the one thing wrong; it came
+  off in #169 and the field stays required on every tab.
+- **"Salvar e adicionar outro" clears everything** — date, account, category and all — rather than
+  preserving date/account/category as the screen doc originally said. Only the selected type tab is
+  kept, since that is the mode the user is in, not a value they typed.
+
+Also settled in #169, not previously called out: the credit-card checkbox only appears on the
+expense tab (income on a credit card is not a thing the model represents), and the dialog titles
+itself for the mode it is in — "Novo lançamento" creating, "Editar lançamento" editing.

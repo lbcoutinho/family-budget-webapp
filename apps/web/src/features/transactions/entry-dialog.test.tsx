@@ -1,6 +1,6 @@
 import { getListTransactionsQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -30,6 +30,40 @@ let accounts = [
   { id: 'account-2', name: 'Savings' },
 ];
 
+function today(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function makeTransaction(overrides: Partial<ApiClient.TransactionListItemDto> = {}): ApiClient.TransactionListItemDto {
+  return {
+    id: 'transaction-1',
+    type: 'EXPENSE',
+    status: 'CONFIRMED',
+    source: 'MANUAL',
+    amount: 1000,
+    date: '2026-08-15',
+    referenceMonth: '2026-08-01',
+    description: 'Groceries',
+    notes: null,
+    isCreditCard: false,
+    accountId: 'account-1',
+    destinationAccountId: null,
+    categoryId: 'category-1',
+    subcategoryId: 'subcategory-1',
+    cashboxId: null,
+    destinationCashboxId: null,
+    cashboxLabel: null,
+    destinationCashboxLabel: null,
+    createdAt: '2026-08-15T00:00:00.000Z',
+    updatedAt: '2026-08-15T00:00:00.000Z',
+    account: { id: 'account-1', name: 'Main account' },
+    category: null,
+    subcategory: null,
+    ...overrides,
+  };
+}
+
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('sonner', () => ({ toast: { error: toastError, success: toastSuccess } }));
 vi.mock('@family-budget/api-client', async (importOriginal) => {
@@ -55,20 +89,16 @@ vi.mock('./category-select', () => ({
     categoryId,
     subcategoryId,
     onChange,
-    categoryDescribedBy,
-    subcategoryDescribedBy,
-    categoryInvalid,
-    subcategoryInvalid,
+    categoryError,
+    subcategoryError,
     categoryRef,
     subcategoryRef,
   }: {
     categoryId?: string;
     subcategoryId?: string;
-    onChange: (categoryId: string, subcategoryId: string) => void;
-    categoryDescribedBy?: string;
-    subcategoryDescribedBy?: string;
-    categoryInvalid?: boolean;
-    subcategoryInvalid?: boolean;
+    onChange: (categoryId: string | undefined, subcategoryId: string | undefined) => void;
+    categoryError?: string;
+    subcategoryError?: string;
     categoryRef?: { current: HTMLSelectElement | null };
     subcategoryRef?: { current: HTMLSelectElement | null };
   }) => (
@@ -78,27 +108,29 @@ vi.mock('./category-select', () => ({
         id="mock-category"
         ref={categoryRef}
         value={categoryId ?? ''}
-        aria-describedby={categoryDescribedBy}
-        aria-invalid={categoryInvalid}
-        onChange={(event) => onChange(event.currentTarget.value, 'subcategory-1')}
+        aria-describedby={categoryError ? 'entry-category-error' : undefined}
+        aria-invalid={categoryError !== undefined}
+        onChange={(event) => onChange(event.currentTarget.value || undefined, undefined)}
       >
         <option value="">{categoryButtonLabel}</option>
         <option value="category-1">{categoryButtonLabel}</option>
       </select>
       <output data-testid="selected-category">{categoryId}</output>
+      {categoryError ? <p id="entry-category-error">{categoryError}</p> : null}
       <label htmlFor="mock-subcategory">{subcategoryButtonLabel}</label>
       <select
         id="mock-subcategory"
         ref={subcategoryRef}
         value={subcategoryId ?? ''}
-        aria-describedby={subcategoryDescribedBy}
-        aria-invalid={subcategoryInvalid}
-        onChange={(event) => onChange(categoryId ?? 'category-1', event.currentTarget.value)}
+        aria-describedby={subcategoryError ? 'entry-subcategory-error' : undefined}
+        aria-invalid={subcategoryError !== undefined}
+        onChange={(event) => onChange(categoryId ?? 'category-1', event.currentTarget.value || undefined)}
       >
         <option value="">{subcategoryButtonLabel}</option>
         <option value="subcategory-1">{subcategoryButtonLabel}</option>
       </select>
       <output data-testid="selected-subcategory">{subcategoryId}</output>
+      {subcategoryError ? <p id="entry-subcategory-error">{subcategoryError}</p> : null}
     </div>
   ),
 }));
@@ -122,6 +154,7 @@ function renderDialog(onOpenChange = vi.fn(), transaction?: ApiClient.Transactio
 async function fillExpense(user: ReturnType<typeof userEvent.setup>, amount = '10') {
   await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
   await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+  await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
   await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
   await user.type(screen.getByLabelText('transactions.form.amount'), amount);
 }
@@ -164,27 +197,127 @@ describe('EntryDialog', () => {
     expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/accounts');
   });
 
-  it('marks required controls and associates their errors', async () => {
+  it('exposes the account placeholder on "Conta", "De" and "Para", and clears the value when reselected', async () => {
     const { user } = renderDialog();
 
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '' } });
+    const account = screen.getByLabelText('transactions.form.account');
+    expect(within(account).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
+    await user.selectOptions(account, 'account-1');
+    expect(account).toHaveValue('account-1');
+    await user.selectOptions(account, '');
+    expect(account).toHaveValue('');
+
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
+    const source = screen.getByLabelText('transactions.form.sourceAccount');
+    const destination = screen.getByLabelText('transactions.form.destinationAccount');
+    expect(within(source).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
+    expect(within(destination).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
+  });
+
+  it('focuses "Conta" with a red border on an empty save, and shows exactly one required error for category', async () => {
+    const { user } = renderDialog();
+
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    const requiredErrors = [
-      ['transactions.form.date', 'entry-date-error'],
-      ['transactions.form.account', 'entry-account-error'],
-      ['transactions.form.description', 'entry-description-error'],
-    ] as const;
-    for (const [label, errorId] of requiredErrors) {
-      expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true');
-      expect(document.getElementById(errorId)).toHaveTextContent('transactions.form.required');
-    }
+    expect(screen.getByLabelText('transactions.form.account')).toHaveFocus();
+    expect(screen.getByLabelText('transactions.form.account')).toHaveAttribute('aria-invalid', 'true');
+    expect(document.getElementById('entry-account-error')).toHaveTextContent('transactions.form.required');
+
+    expect(screen.getByLabelText(categoryButtonLabel)).toHaveAttribute('aria-invalid', 'true');
+    expect(document.getElementById('entry-category-error')).toHaveTextContent('transactions.form.required');
+    expect(screen.getByLabelText(subcategoryButtonLabel)).not.toHaveAttribute('aria-invalid', 'true');
+    expect(document.getElementById('entry-subcategory-error')).toBeNull();
+
+    expect(screen.getByLabelText('transactions.form.description')).toHaveAttribute('aria-invalid', 'true');
+    expect(document.getElementById('entry-description-error')).toHaveTextContent('transactions.form.required');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveAttribute('aria-invalid', 'true');
     expect(document.getElementById('entry-amount-error')).toHaveTextContent('transactions.form.invalidAmount');
-    expect(screen.getByLabelText(categoryButtonLabel)).toHaveAttribute('aria-describedby', 'entry-category-error');
-    expect(screen.getByLabelText(subcategoryButtonLabel)).toHaveAttribute('aria-describedby', 'entry-subcategory-error');
-    expect(screen.getByLabelText(categoryButtonLabel)).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByLabelText(subcategoryButtonLabel)).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('advances focus to the next empty field, top to bottom, on each failed save', async () => {
+    const { user } = renderDialog();
+    const save = () => user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    await save();
+    expect(screen.getByLabelText('transactions.form.account')).toHaveFocus();
+
+    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await save();
+    expect(screen.getByLabelText(categoryButtonLabel)).toHaveFocus();
+
+    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await save();
+    expect(screen.getByLabelText(subcategoryButtonLabel)).toHaveFocus();
+
+    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
+    await save();
+    expect(screen.getByLabelText('transactions.form.amount')).toHaveFocus();
+
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('focuses "De" then "Para" on the transfer tab, across failed saves', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(screen.getByLabelText('transactions.form.sourceAccount')).toHaveFocus();
+
+    await user.selectOptions(screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(screen.getByLabelText('transactions.form.destinationAccount')).toHaveFocus();
+  });
+
+  it('blocks save when description is blank, on both the expense and transfer tabs', async () => {
+    const { user } = renderDialog();
+
+    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await user.type(screen.getByLabelText('transactions.form.amount'), '10');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(document.getElementById('entry-description-error')).toHaveTextContent('transactions.form.required');
+    expect(mutate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
+    await user.selectOptions(screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
+    await user.selectOptions(screen.getByLabelText('transactions.form.destinationAccount'), 'account-2');
+    await user.type(screen.getByLabelText('transactions.form.amount'), '10');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(document.getElementById('entry-description-error')).toHaveTextContent('transactions.form.required');
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('never shows a subcategory error right after choosing a category, before or after a prior failed submit', async () => {
+    const { user } = renderDialog();
+
+    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    expect(document.getElementById('entry-subcategory-error')).toBeNull();
+
+    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
+    await user.type(screen.getByLabelText('transactions.form.amount'), '10');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(document.getElementById('entry-subcategory-error')).toHaveTextContent('transactions.form.required');
+
+    fireEvent.change(screen.getByLabelText(categoryButtonLabel), { target: { value: 'category-1' } });
+    expect(document.getElementById('entry-subcategory-error')).toBeNull();
+  });
+
+  it('places each field error as a sibling of its own control, referenced by aria-describedby', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    const categoryControl = screen.getByLabelText(categoryButtonLabel);
+    expect(categoryControl).toHaveAttribute('aria-describedby', 'entry-category-error');
+    expect(document.getElementById('entry-category-error')).toHaveTextContent('transactions.form.required');
+
+    await user.selectOptions(categoryControl, 'category-1');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    const subcategoryControl = screen.getByLabelText(subcategoryButtonLabel);
+    expect(subcategoryControl).toHaveAttribute('aria-describedby', 'entry-subcategory-error');
+    expect(document.getElementById('entry-subcategory-error')).toHaveTextContent('transactions.form.required');
   });
 
   it.each([
@@ -236,6 +369,35 @@ describe('EntryDialog', () => {
     expect(mutate).not.toHaveBeenCalled();
   });
 
+  it('shows the credit-card checkbox only on the expense tab', async () => {
+    const { user } = renderDialog();
+
+    expect(screen.getByLabelText('transactions.form.creditCard')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.income' }));
+    expect(screen.queryByLabelText('transactions.form.creditCard')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
+    expect(screen.queryByLabelText('transactions.form.creditCard')).not.toBeInTheDocument();
+  });
+
+  it('sends isCreditCard:false and no referenceMonth for an income entry, even after ticking the box on the expense tab', async () => {
+    const { user } = renderDialog();
+
+    await user.click(screen.getByLabelText('transactions.form.creditCard'));
+    await user.click(screen.getByRole('tab', { name: 'transactions.form.income' }));
+    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await user.type(screen.getByLabelText('transactions.form.description'), 'Bonus');
+    await user.type(screen.getByLabelText('transactions.form.amount'), '10');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    const saved = mutate.mock.calls[0]?.[0]?.data;
+    expect(saved).toMatchObject({ type: 'INCOME', isCreditCard: false });
+    expect(saved).not.toHaveProperty('referenceMonth');
+  });
+
   it('suggests and clears the credit-card reference month', async () => {
     const { user } = renderDialog();
 
@@ -282,18 +444,35 @@ describe('EntryDialog', () => {
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-10');
   });
 
-  it('keeps entry context, clears entry-specific fields, and focuses description after save and add another', async () => {
+  it('clears every field, resets the date, keeps the type tab, and focuses "Conta" after save and add another', async () => {
     const { user } = renderDialog();
 
     await fillExpense(user);
     await user.click(screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' }));
     act(() => mutationOptions?.mutation.onSuccess());
 
-    expect(screen.getByLabelText('transactions.form.account')).toHaveValue('account-1');
-    expect(screen.getByTestId('selected-category')).toHaveTextContent('category-1');
+    expect(screen.getByRole('tab', { name: 'transactions.form.expense' })).toHaveAttribute('data-state', 'active');
+    expect(screen.getByLabelText('transactions.form.account')).toHaveValue('');
+    expect(screen.getByTestId('selected-category')).toHaveTextContent('');
+    expect(screen.getByTestId('selected-subcategory')).toHaveTextContent('');
     expect(screen.getByLabelText('transactions.form.description')).toHaveValue('');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('');
-    await waitFor(() => expect(screen.getByLabelText('transactions.form.description')).toHaveFocus());
+    expect(screen.getByLabelText('transactions.form.date')).toHaveValue(today());
+    await waitFor(() => expect(screen.getByLabelText('transactions.form.account')).toHaveFocus());
+  });
+
+  it('hides "Salvar e adicionar outro" and titles itself "Editar lançamento" in edit mode', () => {
+    renderDialog(vi.fn(), makeTransaction());
+
+    expect(screen.queryByRole('button', { name: 'transactions.form.saveAndAddAnother' })).not.toBeInTheDocument();
+    expect(screen.getByText('transactions.form.editTitle')).toBeInTheDocument();
+  });
+
+  it('shows "Salvar e adicionar outro" and titles itself "Novo lançamento" in create mode', () => {
+    renderDialog();
+
+    expect(screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' })).toBeInTheDocument();
+    expect(screen.getByText('transactions.form.title')).toBeInTheDocument();
   });
 
   it('treats Enter as Save after a failed save-and-add request', async () => {
@@ -371,36 +550,13 @@ describe('EntryDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('prefills edit mode, locks the transaction type, and patches changed fields only', async () => {
-    const transaction = {
-      id: 'transaction-1',
-      type: 'EXPENSE',
-      status: 'CONFIRMED',
-      source: 'MANUAL',
-      amount: 1000,
-      date: '2026-08-15',
-      referenceMonth: '2026-08-01',
-      description: 'Groceries',
-      notes: null,
-      isCreditCard: false,
-      accountId: 'account-1',
-      destinationAccountId: null,
-      categoryId: 'category-1',
-      subcategoryId: 'subcategory-1',
-      cashboxId: null,
-      destinationCashboxId: null,
-      cashboxLabel: null,
-      destinationCashboxLabel: null,
-      createdAt: '2026-08-15T00:00:00.000Z',
-      updatedAt: '2026-08-15T00:00:00.000Z',
-      account: { id: 'account-1', name: 'Main account' },
-      category: null,
-      subcategory: null,
-    } satisfies ApiClient.TransactionListItemDto;
+  it('prefills edit mode, locks the transaction type, titles itself for editing, and patches changed fields only', async () => {
+    const transaction = makeTransaction();
     const onOpenChange = vi.fn();
     const { user } = renderDialog(onOpenChange, transaction);
 
     expect(listAccountsParams).toEqual({ includeInactive: true });
+    expect(screen.getByText('transactions.form.editTitle')).toBeInTheDocument();
     expect(screen.getByLabelText('transactions.form.description')).toHaveValue('Groceries');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('10,00 €');
     expect(screen.getByRole('tab', { name: 'transactions.form.income' })).toBeDisabled();
@@ -417,31 +573,7 @@ describe('EntryDialog', () => {
 
   it('keeps the edit dialog open and shows a toast when update fails', () => {
     const onOpenChange = vi.fn();
-    renderDialog(onOpenChange, {
-      id: 'transaction-1',
-      type: 'EXPENSE',
-      status: 'CONFIRMED',
-      source: 'MANUAL',
-      amount: 1000,
-      date: '2026-08-15',
-      referenceMonth: '2026-08-01',
-      description: 'Groceries',
-      notes: null,
-      isCreditCard: false,
-      accountId: 'account-1',
-      destinationAccountId: null,
-      categoryId: 'category-1',
-      subcategoryId: 'subcategory-1',
-      cashboxId: null,
-      destinationCashboxId: null,
-      cashboxLabel: null,
-      destinationCashboxLabel: null,
-      createdAt: '2026-08-15T00:00:00.000Z',
-      updatedAt: '2026-08-15T00:00:00.000Z',
-      account: { id: 'account-1', name: 'Main account' },
-      category: null,
-      subcategory: null,
-    });
+    renderDialog(onOpenChange, makeTransaction());
 
     act(() => updateMutationOptions?.mutation.onError(new Error('Network Error'), undefined, undefined));
     expect(toastError).toHaveBeenCalledWith('errors.UNKNOWN');
@@ -449,31 +581,7 @@ describe('EntryDialog', () => {
   });
 
   it('preserves the stored credit-card reference month until the date changes', async () => {
-    const { user } = renderDialog(vi.fn(), {
-      id: 'transaction-1',
-      type: 'EXPENSE',
-      status: 'CONFIRMED',
-      source: 'MANUAL',
-      amount: 1000,
-      date: '2026-08-15',
-      referenceMonth: '2026-12-01',
-      description: 'Groceries',
-      notes: null,
-      isCreditCard: true,
-      accountId: 'account-1',
-      destinationAccountId: null,
-      categoryId: 'category-1',
-      subcategoryId: 'subcategory-1',
-      cashboxId: null,
-      destinationCashboxId: null,
-      cashboxLabel: null,
-      destinationCashboxLabel: null,
-      createdAt: '2026-08-15T00:00:00.000Z',
-      updatedAt: '2026-08-15T00:00:00.000Z',
-      account: { id: 'account-1', name: 'Main account' },
-      category: null,
-      subcategory: null,
-    });
+    const { user } = renderDialog(vi.fn(), makeTransaction({ referenceMonth: '2026-12-01', isCreditCard: true }));
 
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12');
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });

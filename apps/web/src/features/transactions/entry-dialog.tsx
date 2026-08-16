@@ -23,11 +23,13 @@ import * as z from 'zod';
 import { CategorySelect } from './category-select';
 import { getDailyExpensesQueryKey } from './daily-expense-strip';
 
+import { FieldError } from '@/components/field-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -70,8 +72,10 @@ const entrySchema = z
       return;
     }
 
-    for (const field of ['categoryId', 'subcategoryId'] as const) {
-      if (values[field].length === 0) context.addIssue({ code: 'custom', path: [field], message: 'transactions.form.required' });
+    if (values.categoryId.length === 0) {
+      context.addIssue({ code: 'custom', path: ['categoryId'], message: 'transactions.form.required' });
+    } else if (values.subcategoryId.length === 0) {
+      context.addIssue({ code: 'custom', path: ['subcategoryId'], message: 'transactions.form.required' });
     }
     if (values.isCreditCard && values.referenceMonth.length === 0) {
       context.addIssue({ code: 'custom', path: ['referenceMonth'], message: 'transactions.form.required' });
@@ -88,6 +92,13 @@ const BUSINESS_CODE_FIELD: Record<string, keyof EntryFormValues | undefined> = {
 export function businessCodeField(code: string | undefined): keyof EntryFormValues | undefined {
   return code === undefined ? undefined : BUSINESS_CODE_FIELD[code];
 }
+
+/** Visual top-to-bottom order per tab, walked to focus the first errored field on a failed submit. */
+const FOCUS_ORDER: Record<EntryType, readonly (keyof EntryFormValues)[]> = {
+  EXPENSE: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'amount', 'referenceMonth'],
+  INCOME: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'amount', 'referenceMonth'],
+  TRANSFER: ['accountId', 'destinationAccountId', 'date', 'description', 'amount'],
+};
 
 /** Native month input emits YYYY-MM; the API requires its first day. */
 export function suggestedReferenceMonth(date: string): string {
@@ -133,9 +144,11 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
     setError,
     setFocus,
     setValue,
+    clearErrors,
     formState: { errors },
   } = useForm<EntryFormValues>({
     resolver: zodResolver(entrySchema),
+    shouldFocusError: false,
     defaultValues: {
       type: (transaction?.type as EntryType | undefined) ?? 'EXPENSE',
       date: transaction?.date ?? today(),
@@ -155,6 +168,13 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   });
   const categoryId = selectedCategoryId || undefined;
   const subcategoryId = selectedSubcategoryId || undefined;
+
+  /** categoryId/subcategoryId are Radix triggers with no registered input ref, so neither RHF's
+   * shouldFocusError nor setFocus can reach them — this is the shared escape hatch for both. */
+  const focusCategoryOrSubcategory = (field: 'categoryId' | 'subcategoryId') => {
+    if (field === 'categoryId') categoryRef.current?.focus();
+    else subcategoryRef.current?.focus();
+  };
 
   const mutation = useCreateTransaction({
     mutation: {
@@ -214,18 +234,28 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
         const field = businessCodeField(code);
         if (field) {
           setError(field, { message: formKey(`errors.${code}`) }, { shouldFocus: true });
-          if (field === 'categoryId') categoryRef.current?.focus();
-          if (field === 'subcategoryId') subcategoryRef.current?.focus();
+          if (field === 'categoryId' || field === 'subcategoryId') focusCategoryOrSubcategory(field);
         } else {
           toast.error(apiErrorMessage(error, t));
         }
       },
       onSuccess: () => {
         if (saveAnother.current) {
-          const values = getValues();
-          reset({ ...values, description: '', amount: '' });
+          reset({
+            type: getValues('type'),
+            date: today(),
+            accountId: '',
+            destinationAccountId: '',
+            categoryId: '',
+            subcategoryId: '',
+            description: '',
+            amount: '',
+            isCreditCard: false,
+            referenceMonth: '',
+          });
+          setReferenceMonthOverridden(false);
           toast.success(t(formKey('transactions.form.save')));
-          setTimeout(() => setFocus('description'));
+          setTimeout(() => setFocus('accountId'));
         } else {
           onOpenChange(false);
         }
@@ -275,10 +305,10 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
 
   useEffect(() => {
     const preservedEditReference = transaction?.isCreditCard && date === transaction.date && referenceMonth === transaction.referenceMonth.slice(0, 7);
-    if (isCreditCard && !referenceMonthOverridden && !preservedEditReference) {
+    if (type === 'EXPENSE' && isCreditCard && !referenceMonthOverridden && !preservedEditReference) {
       setValue('referenceMonth', suggestedReferenceMonth(date).slice(0, 7), { shouldValidate: true });
     }
-  }, [date, isCreditCard, referenceMonth, referenceMonthOverridden, setValue, transaction]);
+  }, [date, isCreditCard, referenceMonth, referenceMonthOverridden, setValue, transaction, type]);
 
   const changeType = (nextType: string) => {
     setValue('type', nextType as EntryType, { shouldValidate: true });
@@ -287,50 +317,65 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
     setValue('isCreditCard', false);
     setValue('referenceMonth', '');
     setReferenceMonthOverridden(false);
+    clearErrors();
   };
 
   const overrideReferenceMonth = () => {
     setReferenceMonthOverridden(true);
   };
 
-  const submit = handleSubmit((values) => {
-    const amount = parseCurrencyInput(values.amount);
-    if (amount === null || amount <= 0) return;
-    const payload: CreateTransactionDto = {
-      type: values.type,
-      amount,
-      date: values.date,
-      description: values.description.trim(),
-      isCreditCard: values.type === 'TRANSFER' ? false : values.isCreditCard,
-      accountId: values.accountId,
-      ...(values.type === 'TRANSFER'
-        ? { destinationAccountId: values.destinationAccountId }
-        : {
-            categoryId: values.categoryId,
-            subcategoryId: values.subcategoryId,
-            ...(values.isCreditCard ? { referenceMonth: `${values.referenceMonth}-01` } : {}),
-          }),
-    };
-    if (!transaction) {
-      mutation.mutate({ data: payload });
-      return;
-    }
+  const submit = handleSubmit(
+    (values) => {
+      const amount = parseCurrencyInput(values.amount);
+      if (amount === null || amount <= 0) return;
+      const payload: CreateTransactionDto = {
+        type: values.type,
+        amount,
+        date: values.date,
+        description: values.description.trim(),
+        isCreditCard: values.type === 'EXPENSE' ? values.isCreditCard : false,
+        accountId: values.accountId,
+        ...(values.type === 'TRANSFER'
+          ? { destinationAccountId: values.destinationAccountId }
+          : {
+              categoryId: values.categoryId,
+              subcategoryId: values.subcategoryId,
+              ...(values.isCreditCard ? { referenceMonth: `${values.referenceMonth}-01` } : {}),
+            }),
+      };
+      if (!transaction) {
+        mutation.mutate({ data: payload });
+        return;
+      }
 
-    const update: UpdateTransactionDto = {};
-    const changed = <K extends keyof UpdateTransactionDto>(key: K, value: UpdateTransactionDto[K], original: UpdateTransactionDto[K]) => {
-      if (value !== original) update[key] = value;
-    };
-    changed('amount', payload.amount, transaction.amount);
-    changed('date', payload.date, transaction.date);
-    changed('description', payload.description, transaction.description);
-    changed('isCreditCard', payload.isCreditCard, transaction.isCreditCard);
-    changed('accountId', payload.accountId, transaction.accountId ?? undefined);
-    changed('destinationAccountId', payload.destinationAccountId, transaction.destinationAccountId ?? undefined);
-    changed('categoryId', payload.categoryId, transaction.categoryId ?? undefined);
-    changed('subcategoryId', payload.subcategoryId, transaction.subcategoryId ?? undefined);
-    if (values.isCreditCard && `${values.referenceMonth}-01` !== transaction.referenceMonth) update.referenceMonth = `${values.referenceMonth}-01`;
-    updateMutation.mutate({ id: transaction.id, data: update });
-  });
+      const update: UpdateTransactionDto = {};
+      const changed = <K extends keyof UpdateTransactionDto>(key: K, value: UpdateTransactionDto[K], original: UpdateTransactionDto[K]) => {
+        if (value !== original) update[key] = value;
+      };
+      changed('amount', payload.amount, transaction.amount);
+      changed('date', payload.date, transaction.date);
+      changed('description', payload.description, transaction.description);
+      changed('isCreditCard', payload.isCreditCard, transaction.isCreditCard);
+      changed('accountId', payload.accountId, transaction.accountId ?? undefined);
+      changed('destinationAccountId', payload.destinationAccountId, transaction.destinationAccountId ?? undefined);
+      changed('categoryId', payload.categoryId, transaction.categoryId ?? undefined);
+      changed('subcategoryId', payload.subcategoryId, transaction.subcategoryId ?? undefined);
+      if (values.isCreditCard && `${values.referenceMonth}-01` !== transaction.referenceMonth) update.referenceMonth = `${values.referenceMonth}-01`;
+      updateMutation.mutate({ id: transaction.id, data: update });
+    },
+    // eslint-disable-next-line react-hooks/refs -- focusCategoryOrSubcategory only ever runs from the submit event, never during render.
+    (formErrors) => {
+      for (const field of FOCUS_ORDER[getValues('type')]) {
+        if (!formErrors[field]) continue;
+        if (field === 'categoryId' || field === 'subcategoryId') {
+          focusCategoryOrSubcategory(field);
+        } else {
+          setFocus(field);
+        }
+        return;
+      }
+    },
+  );
 
   const accountsEmpty = accounts.length === 0;
   return (
@@ -341,7 +386,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
         onPointerDownOutside={activeMutation.isPending ? (event) => event.preventDefault() : undefined}
       >
         <DialogHeader>
-          <DialogTitle>{t(formKey('transactions.form.title'))}</DialogTitle>
+          <DialogTitle>{t(formKey(transaction ? 'transactions.form.editTitle' : 'transactions.form.title'))}</DialogTitle>
         </DialogHeader>
         {accountsEmpty ? (
           <div className="grid gap-3">
@@ -393,7 +438,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   registration={register('destinationAccountId')}
                 />
               ) : (
-                <div className="grid gap-1.5">
+                <div className="grid min-w-0 content-start gap-1.5">
                   <Label htmlFor="entry-date">{t(formKey('transactions.form.date'))}</Label>
                   <Input
                     id="entry-date"
@@ -421,59 +466,23 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                 <FieldError id="entry-date-error" error={errors.date?.message} />
               </div>
             ) : (
-              <>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CategorySelect
-                    kind={type}
-                    categoryId={categoryId}
-                    subcategoryId={subcategoryId}
-                    disabled={activeMutation.isPending}
-                    categoryDescribedBy={errors.categoryId ? 'entry-category-error' : undefined}
-                    subcategoryDescribedBy={errors.subcategoryId ? 'entry-subcategory-error' : undefined}
-                    categoryInvalid={errors.categoryId !== undefined}
-                    subcategoryInvalid={errors.subcategoryId !== undefined}
-                    categoryRef={categoryRef}
-                    subcategoryRef={subcategoryRef}
-                    onChange={(nextCategory, nextSubcategory) => {
-                      setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
-                      setValue('subcategoryId', nextSubcategory ?? '', { shouldValidate: true });
-                    }}
-                  />
-                </div>
-                <FieldError id="entry-category-error" error={errors.categoryId?.message} />
-                <FieldError id="entry-subcategory-error" error={errors.subcategoryId?.message} />
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="entry-credit-card"
-                    checked={isCreditCard}
-                    disabled={activeMutation.isPending}
-                    onCheckedChange={(checked) => {
-                      const next = checked === true;
-                      setValue('isCreditCard', next, { shouldValidate: true });
-                      setValue('referenceMonth', next ? suggestedReferenceMonth(date).slice(0, 7) : '');
-                      setReferenceMonthOverridden(false);
-                    }}
-                  />
-                  <Label htmlFor="entry-credit-card">{t(formKey('transactions.form.creditCard'))}</Label>
-                </div>
-                {isCreditCard ? (
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="entry-reference-month">{t(formKey('transactions.form.referenceMonth'))}</Label>
-                    <Input
-                      id="entry-reference-month"
-                      type="month"
-                      aria-describedby={`entry-reference-month-hint${errors.referenceMonth ? ' entry-reference-month-error' : ''}`}
-                      aria-invalid={errors.referenceMonth !== undefined}
-                      disabled={activeMutation.isPending}
-                      {...register('referenceMonth', { onChange: overrideReferenceMonth })}
-                    />
-                    <p id="entry-reference-month-hint" className="text-xs text-muted-foreground">
-                      {t(formKey('transactions.form.referenceMonthHint'))}
-                    </p>
-                    <FieldError id="entry-reference-month-error" error={errors.referenceMonth?.message} />
-                  </div>
-                ) : null}
-              </>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <CategorySelect
+                  kind={type}
+                  categoryId={categoryId}
+                  subcategoryId={subcategoryId}
+                  disabled={activeMutation.isPending}
+                  categoryError={errors.categoryId?.message}
+                  subcategoryError={errors.subcategoryId?.message}
+                  categoryRef={categoryRef}
+                  subcategoryRef={subcategoryRef}
+                  onChange={(nextCategory, nextSubcategory) => {
+                    setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
+                    setValue('subcategoryId', nextSubcategory ?? '');
+                    clearErrors(['categoryId', 'subcategoryId']);
+                  }}
+                />
+              </div>
             )}
             <div className="grid gap-1.5">
               <Label htmlFor="entry-description">{t(formKey('transactions.form.description'))}</Label>
@@ -508,6 +517,41 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               </p>
               <FieldError id="entry-amount-error" error={errors.amount?.message} />
             </div>
+            {type === 'EXPENSE' ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="entry-credit-card"
+                    checked={isCreditCard}
+                    disabled={activeMutation.isPending}
+                    onCheckedChange={(checked) => {
+                      const next = checked === true;
+                      setValue('isCreditCard', next, { shouldValidate: true });
+                      setValue('referenceMonth', next ? suggestedReferenceMonth(date).slice(0, 7) : '');
+                      setReferenceMonthOverridden(false);
+                    }}
+                  />
+                  <Label htmlFor="entry-credit-card">{t(formKey('transactions.form.creditCard'))}</Label>
+                </div>
+                {isCreditCard ? (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="entry-reference-month">{t(formKey('transactions.form.referenceMonth'))}</Label>
+                    <Input
+                      id="entry-reference-month"
+                      type="month"
+                      aria-describedby={`entry-reference-month-hint${errors.referenceMonth ? ' entry-reference-month-error' : ''}`}
+                      aria-invalid={errors.referenceMonth !== undefined}
+                      disabled={activeMutation.isPending}
+                      {...register('referenceMonth', { onChange: overrideReferenceMonth })}
+                    />
+                    <p id="entry-reference-month-hint" className="text-xs text-muted-foreground">
+                      {t(formKey('transactions.form.referenceMonthHint'))}
+                    </p>
+                    <FieldError id="entry-reference-month-error" error={errors.referenceMonth?.message} />
+                  </div>
+                ) : null}
+              </>
+            ) : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={activeMutation.isPending}>
                 {t('common.cancel')}
@@ -516,24 +560,17 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                 {activeMutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
                 {t(formKey('transactions.form.save'))}
               </Button>
-              <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-another="true">
-                {t(formKey('transactions.form.saveAndAddAnother'))}
-              </Button>
+              {!transaction ? (
+                <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-another="true">
+                  {t(formKey('transactions.form.saveAndAddAnother'))}
+                </Button>
+              ) : null}
             </DialogFooter>
           </form>
         )}
       </DialogContent>
     </Dialog>
   );
-}
-
-function FieldError({ id, error }: { id?: string; error?: string }) {
-  const { t } = useTranslation();
-  return error ? (
-    <p id={id} className="text-xs text-destructive">
-      {t(formKey(error))}
-    </p>
-  ) : null;
 }
 
 function AccountField({
@@ -553,24 +590,18 @@ function AccountField({
   error?: string;
   registration: ReturnType<ReturnType<typeof useForm<EntryFormValues>>['register']>;
 }) {
+  const { t } = useTranslation();
   return (
-    <div className="grid gap-1.5">
+    <div className="grid min-w-0 content-start gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-        aria-describedby={error ? `${id}-error` : undefined}
-        aria-invalid={error !== undefined}
-        disabled={disabled}
-        {...registration}
-      >
-        <option value="" />
+      <NativeSelect id={id} aria-describedby={error ? `${id}-error` : undefined} aria-invalid={error !== undefined} disabled={disabled} {...registration}>
+        <option value="">{t(formKey('transactions.form.accountPlaceholder'))}</option>
         {accounts.map((account) => (
           <option key={account.id} value={account.id} disabled={account.isActive === false && account.id !== selectedId}>
             {account.name}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <FieldError id={`${id}-error`} error={error} />
     </div>
   );

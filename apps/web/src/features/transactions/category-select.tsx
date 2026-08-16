@@ -2,6 +2,7 @@ import { type CategoryKind, useGetCategory, useListCategories } from '@family-bu
 import { type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { FieldError } from '@/components/field-error';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -11,10 +12,8 @@ export interface CategorySelectProps {
   subcategoryId: string | undefined;
   onChange: (categoryId: string | undefined, subcategoryId: string | undefined) => void;
   disabled?: boolean;
-  categoryDescribedBy?: string;
-  subcategoryDescribedBy?: string;
-  categoryInvalid?: boolean;
-  subcategoryInvalid?: boolean;
+  categoryError?: string;
+  subcategoryError?: string;
   categoryRef?: Ref<HTMLButtonElement>;
   subcategoryRef?: Ref<HTMLButtonElement>;
 }
@@ -30,10 +29,8 @@ export function CategorySelect({
   subcategoryId,
   onChange,
   disabled,
-  categoryDescribedBy,
-  subcategoryDescribedBy,
-  categoryInvalid,
-  subcategoryInvalid,
+  categoryError,
+  subcategoryError,
   categoryRef,
   subcategoryRef,
 }: CategorySelectProps) {
@@ -52,10 +49,16 @@ export function CategorySelect({
 
   return (
     <>
-      <div className="grid gap-1.5">
+      <div className="grid min-w-0 content-start gap-1.5">
         <Label htmlFor="entry-category">{t('transactions.field.category')}</Label>
         <Select value={categoryId} onValueChange={(value) => onChange(value, undefined)} disabled={disabled}>
-          <SelectTrigger ref={categoryRef} id="entry-category" className="w-full" aria-describedby={categoryDescribedBy} aria-invalid={categoryInvalid}>
+          <SelectTrigger
+            ref={categoryRef}
+            id="entry-category"
+            className="w-full min-w-0"
+            aria-describedby={categoryError ? 'entry-category-error' : undefined}
+            aria-invalid={categoryError !== undefined}
+          >
             <SelectValue placeholder={t('transactions.category.placeholder')} />
           </SelectTrigger>
           <SelectContent>
@@ -67,17 +70,18 @@ export function CategorySelect({
             ))}
           </SelectContent>
         </Select>
+        <FieldError id="entry-category-error" error={categoryError} />
       </div>
 
-      <div className="grid gap-1.5">
+      <div className="grid min-w-0 content-start gap-1.5">
         <Label htmlFor="entry-subcategory">{t('transactions.field.subcategory')}</Label>
         <Select value={subcategoryId} onValueChange={(value) => onChange(categoryId, value)} disabled={(disabled ?? false) || categoryId === undefined}>
           <SelectTrigger
             ref={subcategoryRef}
             id="entry-subcategory"
-            className="w-full"
-            aria-describedby={subcategoryDescribedBy}
-            aria-invalid={subcategoryInvalid}
+            className="w-full min-w-0"
+            aria-describedby={subcategoryError ? 'entry-subcategory-error' : undefined}
+            aria-invalid={subcategoryError !== undefined}
           >
             <SelectValue
               placeholder={categoryId === undefined ? t('transactions.subcategory.placeholderNoCategory') : t('transactions.subcategory.placeholder')}
@@ -92,6 +96,7 @@ export function CategorySelect({
             ))}
           </SelectContent>
         </Select>
+        <FieldError id="entry-subcategory-error" error={subcategoryError} />
       </div>
     </>
   );

@@ -1,16 +1,29 @@
 # 07 — Entry form (dialog)
 
-**Ticket:** M5-T02, M5-T03
+**Ticket:** M5-T02, M5-T03, M5-T09
 
 | Action | Result |
 | --- | --- |
 | Pick type (income / expense / transfer) | Segmented control; changes which fields show |
 | Fill and save | Optimistic insert into the table, rolled back on error |
-| "Salvar e adicionar outro" | Keeps the dialog open, preserving date, account and category |
-| Tick "cartão de crédito" | Reveals the reference-month picker, suggesting the following month |
+| "Salvar e adicionar outro" | Clears every field, resets the date to today, keeps the type tab, and focuses "Conta" — create screen only |
+| Tick "cartão de crédito" | Expense-only; reveals the reference-month picker, suggesting the following month |
 
-Fields are ordered the way a bank statement is read: date and amount first, classification after.
-The subcategory select stays disabled until a category is chosen and clears when it changes. When
-editing an old entry whose category was deactivated, the value is still shown, marked
-"(inativa)" — it must not be silently lost. Backend validation errors land on the matching field;
-network errors become a toast.
+The dialog titles itself for the mode it is in — "Novo lançamento" creating, "Editar lançamento"
+editing — and only the create dialog offers "Salvar e adicionar outro".
+
+Fields are ordered the way a bank statement is read: date and amount first, classification after,
+with the credit-card checkbox and reference month last, right above the footer. The credit-card
+checkbox only appears on the expense tab — a credit-card purchase is a spend, never income — and an
+entry saved on any other tab always carries `isCreditCard: false`. "Descrição" is required on every
+tab; the API rejects a blank one, so the form does too.
+
+The subcategory select stays disabled until a category is chosen and clears when it changes;
+choosing a category never marks the subcategory invalid on its own — that only happens on a save
+attempt with a category already chosen. When editing an old entry whose category was deactivated,
+the value is still shown, marked "(inativa)" — it must not be silently lost.
+
+A failed save focuses the topmost field that is missing or invalid, in the same top-to-bottom order
+the fields are drawn, and that field shows a red border. Filling it and saving again moves focus to
+the next empty field. Backend validation errors land on the matching field the same way; network
+errors become a toast.

@@ -27,13 +27,14 @@ import * as z from 'zod';
 import { getDailyExpensesQueryKey } from './daily-expense-strip';
 
 import { EmptyState } from '@/components/empty-state';
+import { FieldError } from '@/components/field-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, parseCurrencyInput } from '@/lib/money';
 
@@ -85,10 +86,6 @@ function today(): string {
 
 function referenceMonthFromDate(date: string): string {
   return date ? `${date.slice(0, 7)}-01` : '';
-}
-
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
 }
 
 /** Keeps the API's mutually-exclusive transaction references in one client-side map. */
@@ -522,15 +519,6 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   );
 }
 
-function FieldError({ id, error }: { id: string; error?: string }) {
-  const { t } = useTranslation();
-  return error ? (
-    <p id={id} className="text-xs text-destructive">
-      {t(formKey(error))}
-    </p>
-  ) : null;
-}
-
 function InfoCallout({ children }: { children: string }) {
   return <p className="border-l-2 border-transfer bg-transfer-wash px-3 py-2 text-xs text-transfer">{children}</p>;
 }
@@ -558,9 +546,8 @@ function BalanceSelect({
         <Label htmlFor={id}>{label}</Label>
         <span className="text-xs text-muted-foreground">{formatCents(options.find((option) => option.id === value)?.balance ?? 0)}</span>
       </div>
-      <select
+      <NativeSelect
         id={id}
-        className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
         value={value}
         onChange={(event) => onChange(event.currentTarget.value)}
         aria-describedby={error ? `${id}-error` : undefined}
@@ -573,7 +560,7 @@ function BalanceSelect({
             {option.name}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <FieldError id={`${id}-error`} error={error} />
     </div>
   );

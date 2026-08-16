@@ -303,7 +303,7 @@ describe('MonthPage', () => {
     await expectTextToBePresent('Groceries');
     await user.click(screen.getByRole('button', { name: 'Editar' }));
 
-    expect(screen.getByRole('dialog')).toHaveAccessibleName('Novo lançamento');
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Editar lançamento');
     expect(screen.getByLabelText('Descrição')).toHaveValue('Groceries');
     expect(screen.getByLabelText('Valor')).toHaveValue('123,45 €');
   });
