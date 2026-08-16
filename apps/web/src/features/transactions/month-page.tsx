@@ -39,6 +39,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
+import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -256,12 +257,25 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [deleting, setDeleting] = useState<TransactionListItemDto>();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [selectedDay, setSelectedDay] = useState<string>();
+  // A day filter belongs to the month it was picked in — comparing against the last
+  // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
+  // month, without an extra render/paint round trip.
+  const [dayFilterMonth, setDayFilterMonth] = useState(referenceMonth);
   const sentinel = useRef<HTMLDivElement>(null);
+
+  if (dayFilterMonth !== referenceMonth) {
+    setDayFilterMonth(referenceMonth);
+    setSelectedDay(undefined);
+  }
+
+  const toggleDay = (date: string) => setSelectedDay((current) => (current === date ? undefined : date));
 
   const invalidateTransactions = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
   };
   const restore = useCreateTransaction({
     mutation: {
@@ -299,8 +313,9 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   }, [searchInput]);
 
   const referenceMonthFilter = dateOnly(referenceMonth);
-  const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, ...(search ? { search } : {}) };
-  const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, ...(search ? { search } : {}) };
+  const dayFilter = selectedDay ? { dateFrom: selectedDay, dateTo: selectedDay } : {};
+  const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, ...(search ? { search } : {}), ...dayFilter };
+  const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, ...(search ? { search } : {}), ...dayFilter };
   const confirmedOptions = getListTransactionsQueryOptions(confirmedParams);
   const draftsOptions = getListTransactionsQueryOptions(draftsParams);
 
@@ -376,10 +391,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         }
       />
       <PageContent className="space-y-4">
-        <section className="rounded-lg border bg-card p-4 shadow-xs">
-          <h2 className="font-semibold">{t('transactions.dailyExpense.title')}</h2>
-          <p className="mt-1 text-[14px] text-muted-foreground">{t('transactions.dailyExpense.description')}</p>
-        </section>
+        <DailyExpenseStrip referenceMonth={referenceMonth} selectedDate={selectedDay} onToggleDay={toggleDay} />
 
         <BalancePanel />
 

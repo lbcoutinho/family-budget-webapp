@@ -278,7 +278,11 @@
     "balancePlaceholder": "Saldo indisponível",
     "dailyExpense": {
       "title": "Despesas dia a dia",
-      "description": "Aqui são as despesas dia a dia."
+      "caption": "altura = quanto saiu · cada cor = uma categoria daquele dia",
+      "groupLabel": "Despesas por dia de {{month}}",
+      "noCategory": "Sem categoria",
+      "tooltip": "{{date}} — {{total}} — {{breakdown}}",
+      "tooltipEmpty": "{{date}} — nada saiu"
     },
     "filters": {
       "type": "Tipo: todos",
