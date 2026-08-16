@@ -8,6 +8,12 @@ Ideas recorded for future features — no milestone or deadline defined yet. Pri
 - Generic `config` JSON field on `User` (instead of a dedicated settings table) to hold all user settings (e.g. `locale`, and whatever future Settings screen options get added), avoiding a new table per setting.
 - Assessibility improv with lighthouse in chrome
 - tela Mês. Icones com cores para representar as transações.
+- tela Mês, filtros e ordenação — deixado explicitamente fora de escopo em #164:
+  - Multi-seleção de tipo (exige um primitivo de UI que ainda não existe — hoje é single select; revisitar se o usuário pedir para ver dois tipos ao mesmo tempo).
+  - Filtros de subcategoria, caixinha, cartão de crédito e intervalo de datas — a API já suporta todos, o protótipo não desenha nenhum.
+  - Ordenação por descrição com collation por locale: o Postgres ordena pela collation do banco, não pelo `pt-BR`, então descrições acentuadas caem fora da ordem que o usuário espera. Exige índice collation-aware ou coluna de ordenação normalizada.
+  - Ordenar rascunhos e confirmados como uma lista única (hoje os rascunhos ficam fixos acima, e a ordenação vale dentro de cada grupo).
+  - Persistir filtros e ordenação na URL ou entre navegações de mês (hoje ambos resetam ao trocar de mês).
 
 
 
