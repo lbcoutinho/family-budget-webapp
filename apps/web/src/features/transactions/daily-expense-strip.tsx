@@ -40,6 +40,13 @@ function monthFilterParam(referenceMonth: Date): string {
   return `${year}-${month}-01`;
 }
 
+/** The strip's query key, exported so any mutation that changes a transaction — not just the ones
+ * `MonthLedger` itself fires — can invalidate it. Unparameterized: every month's cached data is
+ * dropped together, which is cheap next to a create/update/delete actually happening. */
+export function getDailyExpensesQueryKey(): readonly [string, string] {
+  return ['transactions', 'daily-expenses'];
+}
+
 async function fetchMonthlyExpenses(referenceMonthFilter: string, signal: AbortSignal): Promise<TransactionListItemDto[]> {
   const items: TransactionListItemDto[] = [];
   let cursor: string | undefined;
@@ -206,7 +213,7 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
   const referenceMonthFilter = monthFilterParam(referenceMonth);
 
   const { data, isPending, isError } = useQuery({
-    queryKey: ['transactions', 'daily-expenses', referenceMonthFilter],
+    queryKey: [...getDailyExpensesQueryKey(), referenceMonthFilter],
     queryFn: ({ signal }) => fetchMonthlyExpenses(referenceMonthFilter, signal),
   });
 

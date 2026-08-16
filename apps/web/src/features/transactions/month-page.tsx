@@ -38,7 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
-import { DailyExpenseStrip } from '@/features/transactions/daily-expense-strip';
+import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -274,7 +274,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
-    void queryClient.invalidateQueries({ queryKey: ['transactions', 'daily-expenses'] });
+    void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
   };
   const restore = useCreateTransaction({
     mutation: {
