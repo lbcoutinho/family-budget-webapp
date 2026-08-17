@@ -425,6 +425,82 @@ describe('CashboxOperationDialog', () => {
     expect(mutate).not.toHaveBeenCalled();
   });
 
+  it('shows placeholder option text for the account and cashbox selects, and a placeholder for Descrição, on every tab', async () => {
+    const { user } = renderDialog();
+
+    expect(screen.getByRole('option', { name: 'Escolha uma conta' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
+
+    await user.click(screen.getByRole('tab', { name: 'Retirar' }));
+    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Escolha uma conta' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
+
+    await user.click(screen.getByRole('tab', { name: 'Transferir' }));
+    expect(screen.getAllByRole('option', { name: 'Escolha uma caixinha' })).toHaveLength(2);
+    expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
+  });
+
+  it('shows the placeholder on the replacement selector for a deleted cashbox', () => {
+    const transaction = {
+      id: 'transaction-1',
+      type: 'CASHBOX_OUT',
+      status: 'CONFIRMED',
+      source: 'MANUAL',
+      amount: 1000,
+      date: '2026-08-15',
+      referenceMonth: '2026-08-01',
+      description: 'Old withdrawal',
+      notes: null,
+      isCreditCard: false,
+      accountId: 'account-1',
+      destinationAccountId: null,
+      categoryId: null,
+      subcategoryId: null,
+      cashboxId: null,
+      destinationCashboxId: null,
+      cashboxLabel: 'Cashbox antiga',
+      destinationCashboxLabel: null,
+      createdAt: '2026-08-15T00:00:00.000Z',
+      updatedAt: '2026-08-15T00:00:00.000Z',
+      account: { id: 'account-1', name: 'Conta principal' },
+      category: null,
+      subcategory: null,
+    } as ApiClient.TransactionListItemDto;
+
+    renderDialog(vi.fn(), transaction);
+
+    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['Depositar', 'Conta de origem'],
+    ['Retirar', 'Caixinha de origem'],
+    ['Transferir', 'Caixinha de origem'],
+  ] as const)('focuses "%s"\'s topmost errored field, "%s", on an empty save', async (tab, firstField) => {
+    const { user } = renderDialog();
+
+    if (tab !== 'Depositar') await user.click(screen.getByRole('tab', { name: tab }));
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(screen.getByLabelText(firstField)).toHaveFocus();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('focuses only Valor when every other field is filled', async () => {
+    const { user } = renderDialog();
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-15' } });
+    await user.selectOptions(screen.getByLabelText('Conta de origem'), 'account-1');
+    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await user.type(screen.getByLabelText('Descrição'), 'Fundo de férias');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(screen.getByLabelText('Valor')).toHaveFocus();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
   it('cannot be dismissed while a save is pending', () => {
     mutationState = { isPending: true, error: null };
     const { onOpenChange } = renderDialog();

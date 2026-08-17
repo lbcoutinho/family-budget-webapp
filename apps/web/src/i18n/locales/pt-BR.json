@@ -371,7 +371,10 @@
       "sameCashbox": "As caixinhas de origem e destino precisam ser diferentes.",
       "depositInfo": "O dinheiro sai da conta e fica guardado na caixinha. Não conta como despesa em relatório nenhum.",
       "transferInfo": "Transfira saldo de uma caixinha para outra — a poupança não sai de circulação, só muda de nome.",
-      "insufficientWarning": "Saldo da caixinha: {{amount}}. O valor acima do saldo não bloqueia — o servidor confirma o saldo atual."
+      "insufficientWarning": "Saldo da caixinha: {{amount}}. O valor acima do saldo não bloqueia — o servidor confirma o saldo atual.",
+      "accountPlaceholder": "Escolha uma conta",
+      "cashboxPlaceholder": "Escolha uma caixinha",
+      "descriptionPlaceholder": "Reserva para férias"
     },
     "form": {
       "title": "Novo lançamento",
