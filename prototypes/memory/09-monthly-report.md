@@ -4,7 +4,10 @@ Status: approved — **drawn in v2** — CSV gone, against-the-average column dr
 added.
 
 - **No CSV export** — system-wide rule, see [global-rules.md](global-rules.md#settled--applies-everywhere).
-- **The cashbox block is visible by default**, not collapsed. That was the open question here.
+- **The cashbox block is visible by default**, not collapsed. That was the open question here. Reviewed on
+  2026-08-17: it now lists **one row per cashbox** (deposits, withdrawals, variation) instead of three aggregate
+  lines, and includes a deleted cashbox named from `cashboxLabel` and not linked — which is what M6-T01 and
+  ADR-0019 ask the endpoint to return. Nothing else on the screen needed changing.
 - **New column: is this month above or below the average?** Asked for rather than approved, so no
   prototype has drawn it yet. Now fully specified:
   - _Which average._ **The category's own average over the rolling twelve months ending with the

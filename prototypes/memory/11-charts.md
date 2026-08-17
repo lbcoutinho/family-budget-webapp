@@ -1,6 +1,6 @@
 # 11 — Charts
 
-Status: approved — show every category, never group into "Outras".
+Status: approved — **drawn in v2 on 2026-08-17**, under design review — show every category, never group into "Outras".
 
 - **Every category is shown. Nothing is ever grouped into "Outras".** This answers the open
   question, in the opposite direction to what the prototype proposed.

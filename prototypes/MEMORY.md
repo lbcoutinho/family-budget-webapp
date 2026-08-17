@@ -32,8 +32,8 @@ this table and that screen's own file, nothing else.
 | 07  | Income / expense / transfer | **approved**           | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
 | 08  | Cashbox operations          | **approved**           | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
 | 09  | Monthly report              | approved — drawn in v2 | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
-| 10  | Yearly report               | approved               | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
-| 11  | Charts                      | approved               | [memory/11-charts.md](memory/11-charts.md)                                   |
+| 10  | Yearly report               | approved — drawn in v2 | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
+| 11  | Charts                      | approved — drawn in v2 | [memory/11-charts.md](memory/11-charts.md)                                   |
 | 12  | Recurrences                 | approved, in full      | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
 | 13  | Voice                       | approved, in full      | [memory/13-voice.md](memory/13-voice.md)                                     |
 | 14  | Settings › General          | **approved**           | [memory/14-settings-general.md](memory/14-settings-general.md)               |

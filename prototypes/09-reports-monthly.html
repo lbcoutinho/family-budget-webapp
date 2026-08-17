@@ -193,8 +193,8 @@
             <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
             <div class="segmented">
               <button aria-selected="true">Mensal</button>
-              <button aria-selected="false">Anual</button>
-              <button aria-selected="false">Gráficos</button>
+              <button aria-selected="false" onclick="location.href = '10-reports-yearly.html'">Anual</button>
+              <button aria-selected="false" onclick="location.href = '11-reports-charts.html'">Gráficos</button>
             </div>
           </div>
           <div class="row">
@@ -543,26 +543,51 @@
             <div class="card-body">
               <p class="small muted" style="margin-bottom: 12px; max-width: 68ch">
                 Movimento de caixinha não é despesa, então não entra em nenhuma das tabelas acima. Fica aqui para o mês fechar contra o extrato do banco. O
-                bloco abre visível — não recolhido.
+                bloco abre visível — não recolhido. Transferência entre caixinhas aparece nas duas linhas envolvidas e se anula no total.
               </p>
               <table class="data">
+                <thead>
+                  <tr>
+                    <th style="min-width: 200px">Caixinha</th>
+                    <th class="n">Depósitos</th>
+                    <th class="n">Resgates</th>
+                    <th class="n">Variação</th>
+                  </tr>
+                </thead>
                 <tbody>
                   <tr>
-                    <td>Depósitos</td>
-                    <td class="num n cx">− 600,00 €</td>
+                    <td>
+                      <a class="cat" href="approved/05-cashboxes.html"><span class="dot" style="background: var(--c6)"></span><b>Reserva</b></a>
+                    </td>
+                    <td class="num n cx">600,00 €</td>
+                    <td class="num n">—</td>
+                    <td class="num n cx">+ 600,00 €</td>
                   </tr>
                   <tr>
-                    <td>Resgates</td>
-                    <td class="num n cx">+ 200,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>Transferências entre caixinhas</td>
+                    <td>
+                      <a class="cat" href="approved/05-cashboxes.html"><span class="dot" style="background: var(--c5)"></span><b>Viagem</b></a>
+                    </td>
                     <td class="num n cx">500,00 €</td>
+                    <td class="num n cx">200,00 €</td>
+                    <td class="num n cx">+ 300,00 €</td>
+                  </tr>
+                  <tr>
+                    <!-- ADR-0019: caixinha apagada. Sobra o cashboxLabel do lançamento e
+                         nenhuma entidade — por isso a linha não é um link. -->
+                    <td>
+                      <span class="cat"><span class="dot" style="background: var(--line-strong)"></span>Fundo de obras</span>
+                      <span class="badge" style="margin-left: 8px">apagada</span>
+                    </td>
+                    <td class="num n">—</td>
+                    <td class="num n cx">500,00 €</td>
+                    <td class="num n cx">− 500,00 €</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <td>Variação do reservado</td>
+                    <td class="num n cx">1.100,00 €</td>
+                    <td class="num n cx">700,00 €</td>
                     <td class="num n cx">+ 400,00 €</td>
                   </tr>
                 </tfoot>
@@ -609,6 +634,13 @@
               <li>
                 <b>Subcategoria herda a cor do pai, mais clara.</b>
                 <span> Expanda Moradia ou Transporte. A alternativa seria dar cor própria a cada subcategoria, o que estouraria as dezesseis num mês só. </span>
+              </li>
+              <li>
+                <b>O bloco de caixinhas lista uma linha por caixinha, e a apagada continua na lista.</b>
+                <span>
+                  Antes eram três totais agregados. Uma linha por caixinha é o que o M6-T01 devolve, e é o que permite fechar contra o extrato. A caixinha
+                  apagada aparece com o nome guardado no lançamento (ADR-0019) e é a única linha que não é link — não há entidade para abrir.
+                </span>
               </li>
               <li>
                 <b>Sem exportação CSV</b>,

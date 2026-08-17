@@ -1,6 +1,6 @@
 # 10 — Yearly report
 
-Status: approved — drop CSV; percentage beside the current-year value, one row per category;
+Status: approved — **drawn in v2 on 2026-08-17**, under design review — drop CSV; percentage beside the current-year value, one row per category;
 average column headed "Média 12 meses" with a tooltip.
 
 - **Comparison with the previous year: the percentage sits beside the current year's value, and

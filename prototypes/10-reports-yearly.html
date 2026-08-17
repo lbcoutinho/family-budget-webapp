@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>10 — Relatório anual (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ================================================================
+         A ASSINATURA desta tela — a matriz tinge
+         Doze colunas de números iguais não têm forma nenhuma: o ano só
+         aparece quando a célula pesa. Cada célula recebe a cor da própria
+         categoria com opacidade proporcional ao maior mês da linha, então
+         a leitura horizontal ("quando gastei mais em Moradia") acontece
+         antes de qualquer número ser lido. É a mesma tese das outras
+         telas — a cor agrupa, o número nomeia — aplicada a uma tabela.
+         ================================================================ */
+      /* Doze meses mais categoria, total e média cabem em ~1220px sem rolar:
+         a matriz só rola quando a janela é mais estreita que isso. */
+      td.mc,
+      th.mc {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        position: relative;
+        padding: 9px 6px;
+        white-space: nowrap;
+      }
+      td.mc .fill {
+        position: absolute;
+        inset: 1px;
+        border-radius: var(--r-sm);
+        pointer-events: none;
+      }
+      td.mc a,
+      td.mc span.v {
+        position: relative;
+        color: inherit;
+        text-decoration: none;
+      }
+      td.mc a:hover {
+        text-decoration: underline;
+      }
+      td.mc.future {
+        color: var(--ink-faint);
+      }
+      /* Total e média ficam à direita, com fundo próprio: são de outra
+         natureza que os doze meses e não devem entrar na leitura da cor. */
+      td.edge,
+      th.edge {
+        background: var(--wash);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      table.data.freeze td.edge:first-child {
+        background: var(--wash);
+      }
+      td.edge.tot {
+        font-weight: 600;
+      }
+      .cmp {
+        display: block;
+        white-space: nowrap;
+        font-size: 10.5px;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-faint);
+      }
+      .cmp b {
+        font-weight: 600;
+      }
+      .cmp .up {
+        color: var(--expense);
+      }
+      .cmp .down {
+        color: var(--income);
+      }
+      /* Numa linha de receita a direção troca de sentido — mesma regra da
+         coluna "contra a média" da tela 09, e mesmo tratamento: sem seta,
+         sem ícone, desenhado plano para ver como lê. */
+      tr.rev .cmp .up {
+        color: var(--income);
+      }
+      tr.rev .cmp .down {
+        color: var(--expense);
+      }
+      td .cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: inherit;
+        text-decoration: none;
+      }
+      td .cat:hover b {
+        text-decoration: underline;
+      }
+      .expander {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink-faint);
+        cursor: pointer;
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+      }
+      .expander svg {
+        width: 14px;
+        height: 14px;
+        transition: transform var(--fast) var(--ease);
+      }
+      .expander[aria-expanded='true'] svg {
+        transform: rotate(90deg);
+      }
+      .spacer {
+        width: 24px;
+        flex: none;
+        display: inline-block;
+      }
+      .yearnav {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .yearnav .y {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        min-width: 52px;
+        text-align: center;
+      }
+      /* O switch de comparação é o único controle da tela que muda o que a
+         API devolve (?compare=true), então fica junto do ano, não num menu. */
+      .opt {
+        white-space: nowrap;
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--ink-soft);
+        cursor: pointer;
+        user-select: none;
+      }
+      .opt input {
+        accent-color: var(--action);
+        width: 16px;
+        height: 16px;
+      }
+      @media (max-width: 900px) {
+        td.mc,
+        th.mc {
+          padding: 9px 9px;
+          font-size: 12.5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="10 — Relatório anual" data-ticket="M6-T02 · M6-T03"></div>
+
+    <div class="proto-note">
+      <strong>A mesma regra de exclusão da tela 09:</strong> só receita e despesa confirmadas, agrupadas por <strong>mês de referência</strong>. Caixinhas e
+      transferências não entram — as caixinhas têm o painel próprio na tela 11. <strong>Sem exportação CSV</strong>, aqui nem em nenhuma outra tela.
+    </div>
+
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <div class="segmented">
+              <button aria-selected="false" onclick="location.href = '09-reports-monthly.html'">Mensal</button>
+              <button aria-selected="true">Anual</button>
+              <button aria-selected="false" onclick="location.href = '11-reports-charts.html'">Gráficos</button>
+            </div>
+          </div>
+          <div class="row" style="gap: 16px">
+            <label class="opt"><input type="checkbox" id="cmp" /><span>Comparar com 2025</span></label>
+            <span class="yearnav">
+              <button class="btn icon ghost" title="Ano anterior"><span data-icon="chevronLeft"></span></button>
+              <span class="y">2026</span>
+              <button class="btn icon ghost" title="Próximo ano"><span data-icon="chevronRight"></span></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="stats" style="margin-bottom: 14px">
+            <div class="stat">
+              <div class="k">Receitas no ano</div>
+              <div class="v num in">+ 22.656,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Despesas no ano</div>
+              <div class="v num out">− 15.505,00 €</div>
+            </div>
+            <div class="stat total">
+              <div class="k">Saldo do ano</div>
+              <div class="v num in">+ 7.151,00 €</div>
+            </div>
+            <div class="stat">
+              <div class="k">Meses com movimento</div>
+              <div class="v num">7 de 12</div>
+            </div>
+          </div>
+
+          <!-- ===== despesas ===== -->
+          <div class="card" style="margin-bottom: 16px; overflow: hidden">
+            <div class="card-head">
+              <h2>Despesas por categoria</h2>
+              <span class="xs muted">valores em euros inteiros — os cêntimos ficam na visão mensal</span>
+            </div>
+            <div class="table-wrap"><table class="data freeze" id="tExp"></table></div>
+          </div>
+
+          <!-- ===== receitas ===== -->
+          <div class="card" style="margin-bottom: 16px; overflow: hidden">
+            <div class="card-head">
+              <h2>Receitas por categoria</h2>
+              <span class="xs muted">tabela separada, como na visão mensal</span>
+            </div>
+            <div class="table-wrap"><table class="data freeze" id="tInc"></table></div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito já foi aprovado na revisão da v1. O que é novo aqui é a forma — a tinta na célula — e onde a comparação com o ano anterior aparece.
+            </p>
+            <ol>
+              <li>
+                <b>A célula é tingida pela cor da categoria, proporcional ao maior mês da linha.</b>
+                <span>
+                  É a assinatura da tela: doze colunas de números não têm forma, e a leitura que se quer aqui ("em que mês pesou") é horizontal. A alternativa
+                  seria uma escala de cinza única para a tabela inteira, que compararia Moradia com Saúde — comparação que ninguém faz.
+                </span>
+              </li>
+              <li>
+                <b>A comparação com o ano anterior aparece só na coluna Total, e contra o mesmo período — jan a jul de 2025.</b>
+                <span>
+                  Ligue o switch no topo. Comparar sete meses de 2026 com os doze de 2025 daria −39% em toda categoria e a coluna não diria nada além de que o
+                  ano ainda não acabou. Foi decidido que a comparação fica ao lado do valor do ano corrente e que a categoria nunca ocupa duas linhas — isto
+                  cumpre as duas coisas sem encher a matriz de números pequenos. Se a comparação mês a mês for realmente necessária, é este item que muda.
+                </span>
+              </li>
+              <li>
+                <b>"Média 12 meses", nunca só "Média".</b>
+                <span>
+                  Passe o mouse no cabeçalho. Para 2026, ano corrente, a janela entra em 2025 e a coluna não fecha com as doze células ao lado — é por isso que
+                  o título diz doze meses e o tooltip diz o divisor. Para um ano passado completo os dois números coincidem.
+                </span>
+              </li>
+              <li>
+                <b>Mês futuro é "—", e a coluna continua existindo.</b>
+                <span>
+                  Agosto a dezembro de 2026 ainda não aconteceram; zero seria mentira e esconder a coluna faria a tabela mudar de largura a cada mês.
+                </span>
+              </li>
+              <li>
+                <b>Total e média têm fundo próprio e ficam fora da tinta.</b>
+                <span> São de outra natureza que os doze meses; se recebessem cor entrariam na leitura horizontal e ganhariam sempre. </span>
+              </li>
+              <li>
+                <b>No celular, a coluna de categoria congela e o resto rola.</b>
+                <span> Encolha a janela. A matriz não vira cartão: uma matriz sem as colunas lado a lado deixa de ser uma matriz. </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const ATE = 7; /* julho de 2026 — de agosto em diante é futuro */
+
+        /* Doze meses por categoria, em euros inteiros. Os mesmos números da
+           tela 09 no mês de julho, para as duas telas fecharem entre si.
+           avg/avgN: média móvel dos doze meses que terminam em dez/2026 e o
+           número de meses com movimento — o divisor. prev: total de 2025. */
+        const EXP = [
+          {
+            name: 'Moradia',
+            color: 'var(--c1)',
+            v: [1120, 1120, 1145, 1130, 1150, 1150, 1150],
+            avg: 1136,
+            avgN: 12,
+            prev: 7710,
+            subs: [
+              { name: 'Aluguel', v: [950, 950, 950, 950, 950, 950, 950] },
+              { name: 'Água e luz', v: [170, 170, 195, 180, 200, 200, 200] },
+            ],
+          },
+          {
+            name: 'Alimentação',
+            color: 'var(--c3)',
+            v: [590, 640, 602, 655, 618, 604, 613],
+            avg: 631,
+            avgN: 12,
+            prev: 4180,
+            subs: [
+              { name: 'Supermercado', v: [470, 505, 480, 520, 495, 480, 488] },
+              { name: 'Restaurantes', v: [120, 135, 122, 135, 123, 124, 125] },
+            ],
+          },
+          {
+            name: 'Transporte',
+            color: 'var(--c2)',
+            v: [210, 232, 248, 219, 240, 236, 265],
+            avg: 231,
+            avgN: 12,
+            prev: 1580,
+            subs: [
+              { name: 'Combustível', v: [150, 170, 185, 160, 178, 174, 200] },
+              { name: 'Transporte público', v: [60, 62, 63, 59, 62, 62, 65] },
+            ],
+          },
+          { name: 'Lazer', color: 'var(--c5)', v: [95, 140, 120, 210, 165, 130, 180], avg: 148, avgN: 12, prev: 890 },
+          /* Saúde só teve movimento em 3 dos 12 meses da janela: a média
+             divide por 3, não por 12 — o caso que dá sentido ao tooltip. */
+          { name: 'Saúde', color: 'var(--c4)', v: [0, 0, 0, 90, 0, 0, 96], avg: 62, avgN: 3, prev: 210 },
+          { name: 'Outros', color: 'var(--c10)', v: [40, 55, 38, 61, 44, 50, 54], avg: 49, avgN: 12, prev: 375 },
+        ];
+
+        const INC = [
+          { name: 'Trabalho', color: 'var(--c9)', v: [3200, 3200, 3200, 3200, 3200, 3200, 3200], avg: 3200, avgN: 12, prev: 21700, rev: true },
+          { name: 'Reembolsos', color: 'var(--c6)', v: [0, 62, 0, 0, 110, 0, 84], avg: 46, avgN: 4, prev: 310, rev: true },
+        ];
+
+        const int = (n) => Math.round(n).toLocaleString('pt-BR');
+        const sum = (a) => a.reduce((x, y) => x + y, 0);
+
+        function cell(value, color, max, i, name) {
+          if (i >= ATE) return `<td class="mc future">—</td>`;
+          if (!value) return `<td class="mc"><span class="v faint">—</span></td>`;
+          /* A tinta vai até 0.22: acima disso o número perde contraste, e o
+             que se quer aqui é a forma da linha, não um bloco sólido. */
+          const a = (value / max) * 0.22;
+          return `<td class="mc">
+            <span class="fill" style="background:${color};opacity:${a.toFixed(3)}"></span>
+            <a href="approved/06-month.html" title="${name} · ${MESES[i]}/2026 — abre o mês filtrado por esta categoria">${int(value)}</a>
+          </td>`;
+        }
+
+        /* Compara com o MESMO período de 2025 — jan a jul, não o ano fechado.
+           Doze meses contra sete daria −39% em toda categoria e a coluna não
+           diria nada além de "o ano ainda não acabou". */
+        function compare(total, prev) {
+          if (!prev) return '';
+          const d = ((total - prev) / prev) * 100;
+          const cls = d >= 0 ? 'up' : 'down';
+          const s = `${d >= 0 ? '+' : '−'}${Math.abs(d).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+          return `<span class="cmp" data-cmp hidden>jan–jul/2025: ${int(prev)} € · <b class="${cls}">${s}</b></span>`;
+        }
+
+        function row(c, kind, child) {
+          const max = Math.max(...c.v);
+          const total = sum(c.v);
+          const label = child
+            ? `<span class="spacer"></span><span class="cat"><span class="dot" style="background:${c.color};opacity:.45"></span>${c.name}</span>`
+            : `<button class="expander" aria-expanded="false" ${c.subs ? '' : 'style="visibility:hidden"'}>${icon('chevronRight')}</button>
+               <a class="cat" href="approved/06-month.html"><span class="dot" style="background:${c.color}"></span><b>${c.name}</b></a>`;
+          return `<tr class="${child ? 'child' : ''} ${kind === 'inc' ? 'rev' : ''}" ${child ? 'hidden data-child' : ''}>
+            <td><span style="display:inline-flex;align-items:center">${label}</span></td>
+            ${c.v.map((v, i) => cell(v, c.color, max, i, c.name)).join('')}
+            ${Array.from({ length: 12 - c.v.length }, () => '<td class="mc future">—</td>').join('')}
+            <td class="edge tot">${int(total)}${child ? '' : compare(total, c.prev)}</td>
+            <td class="edge">${child ? '' : `${int(c.avg)}${c.avgN < 12 ? `<span class="cmp">${c.avgN} meses</span>` : ''}`}</td>
+          </tr>`;
+        }
+
+        function table(data, kind, label) {
+          const head = `<thead><tr>
+            <th style="min-width:150px">Categoria</th>
+            ${MESES.map((m, i) => `<th class="mc n"${i >= ATE ? ' style="color:var(--ink-faint)"' : ''}>${m}</th>`).join('')}
+            <th class="edge n" style="min-width:118px">Total</th>
+            <th class="edge n" style="min-width:96px">
+              <span class="tip" tabindex="0">Média 12 meses
+                <span>Média dos <b>doze meses que terminam em dezembro de 2026</b>, dividida só pelos meses que tiveram movimento — nunca por doze fixos.
+                Como 2026 é o ano corrente, a janela entra em 2025: esta coluna <b>não fecha</b> com as doze células ao lado, e é isso mesmo.</span>
+              </span>
+            </th></tr></thead>`;
+
+          const body = data.map((c) => row(c, kind) + (c.subs || []).map((s) => row({ ...s, color: c.color }, kind, true)).join('')).join('');
+
+          const cols = MESES.map((_, i) => (i >= ATE ? null : sum(data.map((c) => c.v[i] || 0))));
+          const totalYear = sum(cols.filter(Boolean));
+          const foot = `<tfoot><tr>
+            <td>${label}</td>
+            ${cols.map((v) => `<td class="mc">${v === null ? '—' : int(v)}</td>`).join('')}
+            <td class="edge tot">${int(totalYear)}</td>
+            <td class="edge">${int(sum(data.map((c) => c.avg)))}</td>
+          </tr></tfoot>`;
+
+          return head + `<tbody>${body}</tbody>` + foot;
+        }
+
+        document.getElementById('tExp').innerHTML = table(EXP, 'exp', 'Total de despesas');
+        document.getElementById('tInc').innerHTML = table(INC, 'inc', 'Total de receitas');
+
+        /* Expansão: a subcategoria é a linha logo abaixo, então basta andar
+           enquanto as próximas forem filhas. */
+        document.querySelectorAll('.expander').forEach((b) =>
+          b.addEventListener('click', () => {
+            const open = b.getAttribute('aria-expanded') === 'true';
+            b.setAttribute('aria-expanded', String(!open));
+            let r = b.closest('tr').nextElementSibling;
+            while (r && r.hasAttribute('data-child')) {
+              r.hidden = open;
+              r = r.nextElementSibling;
+            }
+          }),
+        );
+
+        document.getElementById('cmp').addEventListener('change', (e) => {
+          document.querySelectorAll('[data-cmp]').forEach((s) => (s.hidden = !e.target.checked));
+        });
+      });
+    </script>
+  </body>
+</html>

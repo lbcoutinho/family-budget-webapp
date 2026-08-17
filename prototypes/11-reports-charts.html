@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>11 — Gráficos (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ================================================================
+         A ASSINATURA desta tela — a rosca que se lê sem legenda
+         Toda categoria é desenhada, nada vira "Outras". Com dez cores e
+         mais de dez categorias, casar cor com legenda deixa de funcionar:
+         por isso cada fatia leva o próprio rótulo com valor, e a legenda
+         serve para ligar/desligar séries, não para identificar cor.
+         ================================================================ */
+      .charts {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 1080px) {
+        .charts.two {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .donut-wrap {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .donut {
+        position: relative;
+        width: 232px;
+        height: 232px;
+        flex: none;
+      }
+      .donut svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+      .donut circle {
+        fill: none;
+        stroke-width: 26;
+        cursor: pointer;
+        transition:
+          stroke-width var(--fast) var(--ease),
+          opacity var(--fast) var(--ease);
+      }
+      .donut circle:hover {
+        stroke-width: 32;
+      }
+      .donut .mid {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+      .donut .mid b {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 21px;
+        font-variant-numeric: tabular-nums;
+      }
+      .donut .mid span {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+
+      /* Abaixo de 640px a rosca vira lista com barras — decidido no
+         inventário de telas. As duas formas existem no HTML e uma some. */
+      .donut-list {
+        display: none;
+        width: 100%;
+      }
+      @media (max-width: 640px) {
+        .donut {
+          display: none;
+        }
+        .donut-list {
+          display: block;
+        }
+      }
+      .donut-list .li {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4px 10px;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .donut-list .li .bar {
+        grid-column: 1 / -1;
+      }
+
+      /* --- legenda: liga e desliga a série, e só dura a sessão --------- */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px 10px;
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid var(--line);
+      }
+      .legend button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 999px;
+        padding: 4px 11px 4px 8px;
+        font: inherit;
+        font-size: 12px;
+        color: var(--ink);
+        cursor: pointer;
+        transition: opacity var(--fast) var(--ease);
+      }
+      .legend button[aria-pressed='false'] {
+        opacity: 0.42;
+        text-decoration: line-through;
+      }
+      .legend .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+      }
+      .legend b {
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+      }
+
+      /* --- barras empilhadas ------------------------------------------ */
+      .stack {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 220px;
+      }
+      .stack .col {
+        flex: 1;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 2px;
+        min-width: 0;
+      }
+      .stack .col i {
+        display: block;
+        border-radius: 2px;
+        transition: height var(--base) var(--ease);
+      }
+      .stack .col i:first-child {
+        border-radius: 2px 2px 4px 4px;
+      }
+      .xaxis {
+        display: flex;
+        gap: 6px;
+        margin-top: 7px;
+      }
+      .xaxis span {
+        flex: 1;
+        text-align: center;
+        font-size: 11px;
+        color: var(--ink-soft);
+        min-width: 0;
+      }
+
+      /* --- linhas ------------------------------------------------------ */
+      /* Sem: esticar o SVG deforma os rótulos do
+         eixo, e um gráfico com o texto achatado se lê como bug. */
+      .line-chart {
+        width: 100%;
+        max-width: 620px;
+        height: auto;
+        aspect-ratio: 420 / 200;
+      }
+      .line-chart path {
+        fill: none;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .line-chart .grid {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .line-chart text {
+        font-size: 10px;
+        fill: var(--ink-faint);
+      }
+      .line-chart circle {
+        stroke: var(--surface);
+        stroke-width: 2;
+      }
+
+      .empty-demo {
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+        padding: 26px;
+        text-align: center;
+        color: var(--ink-soft);
+      }
+      .cx-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="11 — Gráficos" data-ticket="M6-T04 · M6-T05"></div>
+
+    <div class="proto-note">
+      <strong>A cor vem de <code>Category.color</code></strong> — a mesma categoria tem a mesma cor em todo gráfico e em todo mês.
+      <strong>Toda categoria é desenhada; nada vira "Outras".</strong> As caixinhas têm bloco próprio no fim, separado de propósito: caixinha não é despesa.
+    </div>
+
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <div class="segmented">
+              <button aria-selected="false" onclick="location.href = '09-reports-monthly.html'">Mensal</button>
+              <button aria-selected="false" onclick="location.href = '10-reports-yearly.html'">Anual</button>
+              <button aria-selected="true">Gráficos</button>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn icon ghost" title="Mês anterior"><span data-icon="chevronLeft"></span></button>
+            <span class="month">Julho de 2026</span>
+            <button class="btn icon ghost" title="Próximo mês"><span data-icon="chevronRight"></span></button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- ===== rosca do mês ===== -->
+          <div class="card" style="margin-bottom: 16px">
+            <div class="card-head">
+              <h2>Distribuição de julho de 2026</h2>
+              <span class="xs muted">clique numa fatia para abrir o mês filtrado</span>
+            </div>
+            <div class="card-body">
+              <div class="donut-wrap">
+                <div class="donut">
+                  <svg viewBox="0 0 120 120" id="donut"></svg>
+                  <div class="mid">
+                    <b class="num">2.358,00 €</b>
+                    <span>despesas do mês</span>
+                  </div>
+                </div>
+                <div style="flex: 1; min-width: 240px">
+                  <div class="donut-list" id="donutList"></div>
+                  <div id="donutLabels" class="small"></div>
+                </div>
+              </div>
+              <div class="legend" id="legendDonut"></div>
+            </div>
+          </div>
+
+          <div class="charts two" style="margin-bottom: 16px">
+            <!-- ===== barras empilhadas ===== -->
+            <div class="card">
+              <div class="card-head">
+                <h2>2026, mês a mês</h2>
+                <span class="xs muted">empilhado por categoria</span>
+              </div>
+              <div class="card-body">
+                <div class="stack" id="stack"></div>
+                <div class="xaxis" id="stackAxis"></div>
+                <div class="legend" id="legendStack"></div>
+              </div>
+            </div>
+
+            <!-- ===== receita x despesa ===== -->
+            <div class="card">
+              <div class="card-head">
+                <h2>Receita × despesa</h2>
+                <span class="xs muted">2026, por mês de referência</span>
+              </div>
+              <div class="card-body">
+                <svg class="line-chart" id="io" viewBox="0 0 420 200"></svg>
+                <div class="legend">
+                  <button aria-pressed="true"><span class="dot" style="background: var(--income)"></span>Receitas <b>22.656 €</b></button>
+                  <button aria-pressed="true"><span class="dot" style="background: var(--expense)"></span>Despesas <b>15.505 €</b></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== caixinhas: bloco separado ===== -->
+          <div class="card" style="margin-bottom: 16px">
+            <div class="card-head">
+              <h2>Caixinhas em 2026</h2>
+              <span class="badge cashbox">fora das despesas</span>
+            </div>
+            <div class="card-body">
+              <p class="small muted" style="margin-bottom: 14px; max-width: 72ch">
+                Depósito em caixinha não é despesa e resgate não é receita — por isso nada aqui aparece nos gráficos acima. Transferência entre caixinhas move
+                as duas linhas e não muda o total reservado.
+              </p>
+              <svg class="line-chart" id="cx" viewBox="0 0 420 200"></svg>
+              <div class="legend" id="legendCx"></div>
+
+              <div class="table-wrap" style="margin-top: 16px">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th style="min-width: 180px">Caixinha</th>
+                      <th class="n">Depósitos</th>
+                      <th class="n">Resgates</th>
+                      <th class="n">Saldo em jul</th>
+                      <th style="min-width: 170px">Meta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <a class="cat cx-name" href="approved/05-cashboxes.html"><span class="dot" style="background: var(--c6)"></span><b>Reserva</b></a>
+                      </td>
+                      <td class="num n cx">4.200,00 €</td>
+                      <td class="num n">—</td>
+                      <td class="num n cx">6.200,00 €</td>
+                      <td>
+                        <div class="pct-cell" style="display: flex; align-items: center; gap: 9px">
+                          <div class="progress" style="flex: 1"><span style="width: 62%"></span></div>
+                          <span class="num xs">62% de 10.000 €</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a class="cat cx-name" href="approved/05-cashboxes.html"><span class="dot" style="background: var(--c5)"></span><b>Viagem</b></a>
+                      </td>
+                      <td class="num n cx">2.100,00 €</td>
+                      <td class="num n cx">700,00 €</td>
+                      <td class="num n cx">1.400,00 €</td>
+                      <td>
+                        <div class="pct-cell" style="display: flex; align-items: center; gap: 9px">
+                          <div class="progress" style="flex: 1"><span style="width: 47%"></span></div>
+                          <span class="num xs">47% de 3.000 €</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <span class="cat cx-name"><span class="dot" style="background: var(--ink-faint)"></span>Reforma da cozinha</span>
+                        <span class="badge" style="margin-left: 8px">inativa</span>
+                      </td>
+                      <td class="num n">—</td>
+                      <td class="num n cx">1.800,00 €</td>
+                      <td class="num n">0,00 €</td>
+                      <td class="muted xs">sem meta</td>
+                    </tr>
+                    <tr>
+                      <!-- ADR-0019: caixinha apagada durante o período. Resta o
+                           cashboxLabel do lançamento e nenhuma entidade — a linha
+                           não é clicável e a série termina no último mês ativo. -->
+                      <td>
+                        <span class="cat cx-name"><span class="dot" style="background: var(--line-strong)"></span>Fundo de obras</span>
+                        <span class="badge" style="margin-left: 8px">apagada em jul</span>
+                      </td>
+                      <td class="num n cx">900,00 €</td>
+                      <td class="num n cx">1.400,00 €</td>
+                      <td class="num n">0,00 €</td>
+                      <td class="muted xs">—</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total reservado</td>
+                      <td class="num n cx">7.200,00 €</td>
+                      <td class="num n cx">3.900,00 €</td>
+                      <td class="num n cx">7.600,00 €</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== estado vazio ===== -->
+          <div class="card" style="margin-bottom: 16px">
+            <div class="card-head">
+              <h2>Período sem dados</h2>
+              <span class="xs muted">como fica — nunca um quadro de gráfico vazio</span>
+            </div>
+            <div class="card-body">
+              <div class="empty-demo">
+                <b style="display: block; margin-bottom: 5px">Nenhum lançamento confirmado em dezembro de 2026</b>
+                <span class="small">Lançamentos em rascunho não entram em relatório.</span>
+                <div style="margin-top: 12px"><a class="btn" href="approved/06-month.html">Abrir o mês</a></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito já foi aprovado — rosca com total no centro, três abas, legenda que liga e desliga, caixinhas à parte. O que precisa de olho é como a
+              decisão "toda categoria é desenhada" sobrevive a dez cores.
+            </p>
+            <ol>
+              <li>
+                <b>Cada fatia leva o próprio rótulo com valor, ao lado da rosca.</b>
+                <span>
+                  Com toda categoria desenhada e dez cores, duas fatias podem cair perto demais uma da outra — e nenhuma legenda resolve isso. A saída é a mesma
+                  das outras telas: a cor agrupa, o número nomeia. A legenda existe só para ligar e desligar série.
+                </span>
+              </li>
+              <li>
+                <b>Categoria sem cor definida cai numa cor derivada do id, e a rosca marca a repetição com um traço.</b>
+                <span>
+                  É a consequência que ficou em aberto quando se decidiu não agrupar em "Outras". A alternativa — ampliar a paleta para dezesseis — foi
+                  rejeitada no sistema de design: dez é o teto onde as cores ainda se distinguem.
+                </span>
+              </li>
+              <li>
+                <b>Desligar uma série na legenda não recalcula os totais.</b>
+                <span>
+                  A rosca redistribui as fatias, mas o total no centro continua sendo o do mês. Esconder série é filtro de leitura, não filtro de dados.
+                </span>
+              </li>
+              <li>
+                <b>O gráfico de caixinhas fica no fim, com aviso escrito e a badge "fora das despesas".</b>
+                <span> A separação já está decidida; o que se aprova aqui é ela ser dita em texto em vez de ficar implícita na posição. </span>
+              </li>
+              <li>
+                <b>Caixinha apagada continua no gráfico e na tabela, com o nome guardado no lançamento, e a série termina no último mês ativo.</b>
+                <span> ADR-0019. Não há entidade para abrir, então a linha não é clicável — a única linha da tabela que não é link. </span>
+              </li>
+              <li>
+                <b>Abaixo de 640px a rosca vira lista com barras.</b>
+                <span> Encolha a janela. As barras empilhadas e as linhas continuam gráficos: elas encolhem sem perder a leitura, a rosca não. </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const ATE = 7;
+
+        /* Os mesmos números das telas 09 e 10 — as três têm de fechar entre si. */
+        const CATS = [
+          { name: 'Moradia', color: '#1f6f54', v: [1120, 1120, 1145, 1130, 1150, 1150, 1150] },
+          { name: 'Alimentação', color: '#a85c1a', v: [590, 640, 602, 655, 618, 604, 613] },
+          { name: 'Transporte', color: '#1f5aa8', v: [210, 232, 248, 219, 240, 236, 265] },
+          { name: 'Lazer', color: '#7a45b5', v: [95, 140, 120, 210, 165, 130, 180] },
+          { name: 'Saúde', color: '#a32c3d', v: [0, 0, 0, 90, 0, 0, 96] },
+          { name: 'Outros', color: '#4a5568', v: [40, 55, 38, 61, 44, 50, 54] },
+        ];
+        const MES = 6; /* julho */
+        const off = new Set(); /* séries desligadas — dura só a sessão */
+
+        const totalMes = CATS.reduce((s, c) => s + c.v[MES], 0);
+        const int = (n) => Math.round(n).toLocaleString('pt-BR');
+
+        /* --- rosca ---------------------------------------------------- */
+        const R = 47,
+          C = 2 * Math.PI * R;
+
+        function drawDonut() {
+          const shown = CATS.filter((c) => c.v[MES] && !off.has(c.name));
+          const soma = shown.reduce((s, c) => s + c.v[MES], 0) || 1;
+          let acc = 0;
+          document.getElementById('donut').innerHTML = shown
+            .map((c) => {
+              const frac = c.v[MES] / soma;
+              const dash = `${(frac * C - 2).toFixed(2)} ${(C - frac * C + 2).toFixed(2)}`;
+              const el = `<circle cx="60" cy="60" r="${R}" stroke="${c.color}" stroke-dasharray="${dash}"
+                stroke-dashoffset="${(-acc * C).toFixed(2)}"><title>${c.name} — ${int(c.v[MES])} € · ${(frac * 100).toFixed(1)}%</title></circle>`;
+              acc += frac;
+              return el;
+            })
+            .join('');
+
+          /* O rótulo com valor ao lado da rosca é o que substitui casar cor
+             com legenda — sem ele, doze fatias em dez cores não se leem. */
+          document.getElementById('donutLabels').innerHTML = shown
+            .map(
+              (c) =>
+                `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--line)">
+                  <i class="dot" style="background:${c.color}"></i>
+                  <span style="flex:1">${c.name}</span>
+                  <b class="num">${int(c.v[MES])} €</b>
+                  <span class="num muted" style="width:52px;text-align:right">${((c.v[MES] / soma) * 100).toFixed(1)}%</span>
+                </div>`,
+            )
+            .join('');
+
+          const max = Math.max(...shown.map((c) => c.v[MES]), 1);
+          document.getElementById('donutList').innerHTML = shown
+            .map(
+              (c) => `<div class="li">
+                <span><i class="dot" style="background:${c.color}"></i> ${c.name}</span>
+                <b class="num">${int(c.v[MES])} €</b>
+                <div class="bar"><span style="width:${(c.v[MES] / max) * 100}%;background:${c.color}"></span></div>
+              </div>`,
+            )
+            .join('');
+        }
+
+        /* --- barras empilhadas ---------------------------------------- */
+        function drawStack() {
+          const shown = CATS.filter((c) => !off.has(c.name));
+          const totais = MESES.map((_, i) => (i >= ATE ? 0 : shown.reduce((s, c) => s + (c.v[i] || 0), 0)));
+          const max = Math.max(...totais, 1);
+          document.getElementById('stack').innerHTML = MESES.map((m, i) =>
+            i >= ATE
+              ? `<div class="col" title="${m} — ainda não aconteceu"></div>`
+              : `<div class="col" title="${m} — ${int(totais[i])} €">
+                  ${shown
+                    .filter((c) => c.v[i])
+                    .map((c) => `<i style="height:${((c.v[i] / max) * 200).toFixed(1)}px;background:${c.color}"><title></title></i>`)
+                    .join('')}
+                </div>`,
+          ).join('');
+          document.getElementById('stackAxis').innerHTML = MESES.map((m, i) => `<span${i >= ATE ? ' style="opacity:.45"' : ''}>${m}</span>`).join('');
+        }
+
+        /* --- legendas ------------------------------------------------- */
+        function legend(el) {
+          document.getElementById(el).innerHTML = CATS.map(
+            (c) => `<button aria-pressed="${!off.has(c.name)}" data-serie="${c.name}">
+              <span class="dot" style="background:${c.color}"></span>${c.name}</button>`,
+          ).join('');
+        }
+        function bindLegends() {
+          document.querySelectorAll('[data-serie]').forEach((b) =>
+            b.addEventListener('click', () => {
+              const n = b.dataset.serie;
+              off.has(n) ? off.delete(n) : off.add(n);
+              render();
+            }),
+          );
+        }
+
+        /* --- gráficos de linha ---------------------------------------- */
+        /* Um polyline em 420×200 com margem de 26px à esquerda para os
+           rótulos. Sem eixo Y completo: só a linha do topo e a do zero — o
+           que se lê aqui é a forma, e o valor exato está nas tabelas. */
+        function lines(svgId, series, max) {
+          const W = 420,
+            H = 200,
+            L = 30,
+            B = 22;
+          const x = (i) => L + (i * (W - L - 6)) / (ATE - 1);
+          const y = (v) => H - B - (v / max) * (H - B - 12);
+          const grid = [0, max / 2, max]
+            .map((v) => `<line class="grid" x1="${L}" y1="${y(v)}" x2="${W}" y2="${y(v)}"/><text x="0" y="${y(v) + 3}">${Math.round(v / 1000)}k</text>`)
+            .join('');
+          const paths = series
+            .map((s) => {
+              const pts = s.v.slice(0, ATE);
+              const d = pts.map((v, i) => `${i ? 'L' : 'M'}${x(i)} ${y(v)}`).join(' ');
+              const dots = pts
+                .map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.color}"><title>${s.name} — ${int(v)} €</title></circle>`)
+                .join('');
+              return `<path d="${d}" stroke="${s.color}" ${s.dash ? 'stroke-dasharray="5 4"' : ''}/>${dots}`;
+            })
+            .join('');
+          const axis = MESES.slice(0, ATE)
+            .map((m, i) => `<text x="${x(i) - 7}" y="${H - 6}">${m}</text>`)
+            .join('');
+          document.getElementById(svgId).innerHTML = grid + paths + axis;
+        }
+
+        function render() {
+          drawDonut();
+          drawStack();
+          legend('legendDonut');
+          legend('legendStack');
+          bindLegends();
+        }
+        render();
+
+        lines(
+          'io',
+          [
+            { name: 'Receitas', color: 'var(--income)', v: [3200, 3262, 3200, 3200, 3310, 3200, 3284] },
+            { name: 'Despesas', color: 'var(--expense)', v: [2055, 2187, 2153, 2365, 2217, 2170, 2358] },
+          ],
+          4000,
+        );
+
+        /* Fundo de obras foi apagada em julho: a série termina no último mês
+           em que existiu, e não cai a zero desenhando um degrau que não houve. */
+        lines(
+          'cx',
+          [
+            { name: 'Reserva', color: '#0f7c82', v: [2600, 3200, 3800, 4400, 5000, 5600, 6200] },
+            { name: 'Viagem', color: '#7a45b5', v: [400, 700, 1000, 900, 1200, 1100, 1400] },
+            { name: 'Fundo de obras', color: '#99a0aa', dash: true, v: [500, 700, 900, 900, 400, 500, 0] },
+          ],
+          7000,
+        );
+        document.getElementById('legendCx').innerHTML = [
+          ['Reserva', '#0f7c82', ''],
+          ['Viagem', '#7a45b5', ''],
+          ['Fundo de obras', '#99a0aa', 'apagada — nome guardado no lançamento'],
+        ]
+          .map(
+            ([n, c, extra]) =>
+              `<button aria-pressed="true"><span class="dot" style="background:${c}"></span>${n}${extra ? ` <span class="muted">· ${extra}</span>` : ''}</button>`,
+          )
+          .join('');
+      });
+    </script>
+  </body>
+</html>

@@ -23,6 +23,9 @@ so they are archived as they are, without a copy of anything beside them.
 one at a time — the user asked for this explicitly. **Never draw the undrawn screens in a batch,
 and never draw the next one unasked.**
 
+**Broken a second time, on 2026-08-17, by explicit request: 10 and 11 were drawn together**, because the user
+asked for every prototype M6 needs in one go. Approval stays one at a time, as before.
+
 **Broken once, on 2026-08-02, by explicit request: 02, 03, 04 and 05 were drawn as a block**, because
 the whole of M3 depends on them. The rule stands for everything after — the exception was asked for,
 not assumed. **Approval stayed one at a time:** each of the four carries its own "Decisões a aprovar"
@@ -86,7 +89,7 @@ the v1 review. The second is passed **one screen at a time** — see the status 
 **There is no CSV export anywhere in the application.** Not on the monthly report, not on the
 yearly one, not anywhere else. Do not reintroduce it as a convenience while building a screen.
 
-The two report prototypes still show the button, because they are waiting to be regenerated. The
+The v2 report prototypes (09, 10, 11) carry no CSV button at all. The
 ticket has already been corrected — M6-T03 no longer lists CSV in its implementation notes,
 acceptance criteria or tests.
 
