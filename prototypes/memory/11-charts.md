@@ -1,6 +1,12 @@
 # 11 — Charts
 
-Status: approved — show every category, never group into "Outras".
+Status: **approved on both gates** on 2026-08-17, file in `approved/` — unblocks M6-T04 and M6-T05 — show every category, never group into "Outras".
+
+- **Turning a category off in the legend recalculates the donut's centre total**, decided 2026-08-17 against the
+  prototype's proposal that the centre keep the month's full total: otherwise the slices do not add up to the number
+  inside them.
+- **A category turned off stays in the list beside the donut, struck through**, with its amount still visible and its
+  percentage replaced by an em dash. Turning it off removes it from the chart, not from the reading.
 
 - **Every category is shown. Nothing is ever grouped into "Outras".** This answers the open
   question, in the opposite direction to what the prototype proposed.
