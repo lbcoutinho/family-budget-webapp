@@ -413,7 +413,8 @@
   "reports": {
     "view": {
       "monthly": "Monthly",
-      "yearly": "Yearly"
+      "yearly": "Yearly",
+      "charts": "Charts"
     },
     "uncategorizedCategory": "No category",
     "noSubcategory": "No subcategory",
@@ -459,6 +460,19 @@
       "averageTooltip": "Average over the twelve months ending in December of the year shown, divided only by the months with movement — never a flat twelve. For the current year the window reaches into the prior year, so this column may not reconcile with the twelve cells beside it.",
       "wholeEurosHint": "whole-euro values — cents stay in the monthly view",
       "comparisonValue": "{{year}}: {{value}}"
+    },
+    "charts": {
+      "donutTitle": "{{month}} distribution",
+      "donutHint": "click a slice to open the filtered month",
+      "donutTotalLabel": "month's expenses",
+      "donutTotalPartial": "{{shown}} of {{total}} categories",
+      "stackTitle": "{{year}}, month by month",
+      "stackHint": "stacked by category",
+      "lineTitle": "Income × expense",
+      "lineHint": "{{year}}, by reference month",
+      "income": "Income",
+      "expense": "Expenses",
+      "toggleSeries": "Toggle {{name}}"
     }
   },
   "settingsGeneral": {

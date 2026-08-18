@@ -413,7 +413,8 @@
   "reports": {
     "view": {
       "monthly": "Mensal",
-      "yearly": "Anual"
+      "yearly": "Anual",
+      "charts": "Gráficos"
     },
     "uncategorizedCategory": "Sem categoria",
     "noSubcategory": "Sem subcategoria",
@@ -459,6 +460,19 @@
       "averageTooltip": "Média dos doze meses que terminam em dezembro do ano exibido, dividida só pelos meses que tiveram movimento — nunca por doze fixos. Para o ano corrente a janela entra no ano anterior, então esta coluna pode não fechar com as doze células ao lado.",
       "wholeEurosHint": "valores em euros inteiros — os cêntimos ficam na visão mensal",
       "comparisonValue": "{{year}}: {{value}}"
+    },
+    "charts": {
+      "donutTitle": "Distribuição de {{month}}",
+      "donutHint": "clique numa fatia para abrir o mês filtrado",
+      "donutTotalLabel": "despesas do mês",
+      "donutTotalPartial": "{{shown}} de {{total}} categorias",
+      "stackTitle": "{{year}}, mês a mês",
+      "stackHint": "empilhado por categoria",
+      "lineTitle": "Receita × despesa",
+      "lineHint": "{{year}}, por mês de referência",
+      "income": "Receitas",
+      "expense": "Despesas",
+      "toggleSeries": "Ligar ou desligar {{name}}"
     }
   },
   "settingsGeneral": {
