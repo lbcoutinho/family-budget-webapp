@@ -47,6 +47,7 @@ Thumbs.db
 
 # Claude Code scratch worktrees (local, ephemeral). Rest of .claude/ stays tracked.
 .claude/worktrees/
+.worktrees
 
 # impeccable-ignore-start
 # Ephemeral output, runtime state, and per-dev overrides.
