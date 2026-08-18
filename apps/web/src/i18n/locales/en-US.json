@@ -438,6 +438,7 @@
       "average": "Against the average",
       "averageValue": "average {{value}}",
       "averageTooltip": "Average over the twelve months ending with the month shown, divided only by the months with movement — never a flat twelve.",
+      "count": "Entries",
       "expand": "Show {{name}}'s subcategories",
       "cashboxes": "Cashboxes this month",
       "cashboxesHint": "Cashbox movement isn't an expense, so it isn't part of either table above. A transfer between cashboxes appears on both rows involved and cancels out in the total.",

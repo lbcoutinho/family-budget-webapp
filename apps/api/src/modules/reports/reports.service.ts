@@ -27,13 +27,9 @@ interface SubcategoryRow {
   subcategoryId: string | null;
   type: IncomeOrExpense;
   _sum: { amount: number | null };
-}
-interface YearlyRow {
-  referenceMonth: Date;
-  categoryId: string | null;
-  subcategoryId: string | null;
-  type: IncomeOrExpense;
-  _sum: { amount: number | null };
+  // The requested month's own entry count — the window query above never needs one, since a
+  // rolling average only ever sees the amount, not how many transactions made it up.
+  _count: { _all: number };
 }
 interface CashboxSourceRow {
   cashboxId: string | null;
@@ -77,6 +73,7 @@ export class ReportsService {
           by: ['categoryId', 'subcategoryId', 'type'] as const,
           where: { ...where, type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: end },
           _sum: { amount: true },
+          _count: { _all: true },
         }),
         tx.transaction.groupBy({
           by: ['cashboxId', 'cashboxLabel', 'type'] as const,
@@ -144,7 +141,7 @@ export class ReportsService {
     const rangeEnd = windowEnd.getTime() > decOfYear.getTime() ? windowEnd : decOfYear;
 
     // A single `groupBy` call (unlike `getMonthly`'s `$transaction`-wrapped tuple above) keeps
-    // Prisma's precise literal return type, which doesn't structurally overlap `YearlyRow[]`
+    // Prisma's precise literal return type, which doesn't structurally overlap `WindowRow[]`
     // enough for a direct assertion — same shape, so the `unknown` hop is just to satisfy that.
     // `subcategoryId` rides along so a category's rows can be split into a subcategory breakdown
     // without a second query; the root matrix still rolls every subcategory back up into its
@@ -153,7 +150,7 @@ export class ReportsService {
       by: ['categoryId', 'subcategoryId', 'referenceMonth', 'type'] as const,
       where: { userId, status: 'CONFIRMED', type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: { gte: rangeStart, lte: rangeEnd } },
       _sum: { amount: true },
-    })) as unknown as YearlyRow[];
+    })) as unknown as WindowRow[];
 
     const categoryIds = new Set<string>();
     for (const row of rows) if (row.categoryId) categoryIds.add(row.categoryId);
@@ -184,7 +181,7 @@ export class ReportsService {
   /** Folds grouped rows for one calendar year into matrix cells (zero-filled) and column totals. Shared by the requested year and, when `compare` is set, the prior one. */
   private buildYearMatrix(
     targetYear: number,
-    rows: YearlyRow[],
+    rows: WindowRow[],
     categoryLookup: CategoryLookup,
   ): {
     months: YearlyReportDto['months'];
@@ -240,7 +237,7 @@ export class ReportsService {
   /** Attaches each category's rolling average, computed over `windowEnd`'s twelve-month window rather than the matrix year — the two can diverge for the current year. */
   private withMonthlyAverage(
     categories: ReturnType<ReportsService['buildYearMatrix']>['categories'],
-    rows: YearlyRow[],
+    rows: WindowRow[],
     windowEnd: Date,
   ): Omit<YearlyReportDto['categories'][number], 'subcategories'>[] {
     const averageMonths = monthsEndingAt(windowEnd);
@@ -257,7 +254,7 @@ export class ReportsService {
     categoryId: string | null,
     kind: IncomeOrExpense,
     targetYear: number,
-    rows: YearlyRow[],
+    rows: WindowRow[],
     categoryLookup: CategoryLookup,
   ): YearlyReportDto['categories'][number]['subcategories'] {
     const matching = rows.filter((row) => row.categoryId === categoryId && row.type === kind && row.referenceMonth.getUTCFullYear() === targetYear);
@@ -328,6 +325,9 @@ export class ReportsService {
 
         const byMonth = sumByMonth(windowRows, (row) => row.categoryId === bucket.categoryId && row.type === bucket.kind);
         const rollingSeries = monthStarts.map((monthStart) => byMonth.get(monthStart.getTime()) ?? 0);
+        const count = subcategoryRows
+          .filter((row) => row.categoryId === bucket.categoryId && row.type === bucket.kind)
+          .reduce((sum, row) => sum + row._count._all, 0);
 
         return {
           categoryId: bucket.categoryId,
@@ -337,6 +337,7 @@ export class ReportsService {
           amount: bucket.amount,
           percentage: percentageByKey.get(key) ?? 0,
           rollingAverage: rollingAverage(rollingSeries),
+          count,
           subcategories: this.buildSubcategories(bucket.categoryId, bucket.kind, bucket.amount, subcategoryRows, windowRows, categoryLookup, monthStarts),
         };
       })
@@ -356,28 +357,32 @@ export class ReportsService {
     const matching = subcategoryRows.filter((row) => row.categoryId === categoryId && row.type === kind);
     if (matching.length === 0) return [];
 
-    const buckets = new Map<string | null, number>();
+    const buckets = new Map<string | null, { amount: number; count: number }>();
     for (const row of matching) {
-      buckets.set(row.subcategoryId, (buckets.get(row.subcategoryId) ?? 0) + (row._sum.amount ?? 0));
+      const bucket = buckets.get(row.subcategoryId) ?? { amount: 0, count: 0 };
+      bucket.amount += row._sum.amount ?? 0;
+      bucket.count += row._count._all;
+      buckets.set(row.subcategoryId, bucket);
     }
 
     const entries = [...buckets.entries()];
     const percentages = distributePercentages(
-      entries.map(([, amount]) => amount),
+      entries.map(([, bucket]) => bucket.amount),
       categoryAmount,
     );
 
     return entries
-      .map(([subcategoryId, amount], index) => {
+      .map(([subcategoryId, bucket], index) => {
         const byMonth = sumByMonth(windowRows, (row) => row.categoryId === categoryId && row.subcategoryId === subcategoryId && row.type === kind);
         const rollingSeries = monthStarts.map((monthStart) => byMonth.get(monthStart.getTime()) ?? 0);
 
         return {
           subcategoryId,
           name: subcategoryId ? (categoryLookup.get(subcategoryId)?.name ?? null) : null,
-          amount,
+          amount: bucket.amount,
           percentage: percentages[index] ?? 0,
           rollingAverage: rollingAverage(rollingSeries),
+          count: bucket.count,
         };
       })
       .sort((a, b) => b.amount - a.amount);

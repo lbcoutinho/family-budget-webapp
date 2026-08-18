@@ -1,12 +1,11 @@
 import { CategoryKind, useGetYearlyReport, type YearlyReportCategoryDto, type YearlyReportComparisonCategoryDto } from '@family-budget/api-client';
 import { AlertCircleIcon, ChevronRightIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -18,6 +17,7 @@ import {
   hasSubcategoryBreakdown,
   isFutureMonth,
 } from '@/features/reports/report-format';
+import { ReportsErrorState, ReportsSkeleton, useExpandedRows } from '@/features/reports/report-shell';
 import { formatMonthAbbreviation, monthPath } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
@@ -163,8 +163,8 @@ function YearlyTable({
             const name = category.name ?? t('reports.uncategorizedCategory');
 
             return (
-              <>
-                <TableRow key={key} className="[&>td:first-child]:p-0">
+              <Fragment key={key}>
+                <TableRow className="[&>td:first-child]:p-0">
                   <TableCell className={STICKY_CELL}>
                     <span className="flex items-center gap-1 px-2 py-2">
                       {expandable ? (
@@ -216,7 +216,7 @@ function YearlyTable({
                       />
                     ))
                   : null}
-              </>
+              </Fragment>
             );
           })}
         </TableBody>
@@ -237,56 +237,20 @@ function YearlyTable({
   );
 }
 
-function ReportsYearlySkeleton() {
-  return (
-    <div className="space-y-4" aria-label="Loading">
-      {Array.from({ length: 2 }, (_, index) => (
-        <div key={index} className="space-y-px rounded-lg border p-3">
-          <Skeleton className="h-9 w-full" />
-          {Array.from({ length: 3 }, (_, row) => (
-            <Skeleton key={row} className="h-11 w-full" />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /** The yearly view of `/reports` (M6-T03 step 3) — `10-reports-yearly.html`. */
 export function ReportsYearly({ year, compare }: ReportsYearlyProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const [expanded, toggle] = useExpandedRows();
   const query = useGetYearlyReport({ year, compare });
-
-  const toggle = (key: string) =>
-    setExpanded((previous) => {
-      const next = new Set(previous);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
 
   const openMonth = (categoryId: string, monthIndex: number) => {
     void navigate(`${monthPath(new Date(year, monthIndex, 1))}?categoryId=${encodeURIComponent(categoryId)}`);
   };
 
-  if (query.isPending) return <ReportsYearlySkeleton />;
+  if (query.isPending) return <ReportsSkeleton />;
 
-  if (query.isError) {
-    return (
-      <EmptyState
-        icon={AlertCircleIcon}
-        title={t('reports.error.title')}
-        description={t('reports.error.description')}
-        action={
-          <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-            {t('common.retry')}
-          </Button>
-        }
-      />
-    );
-  }
+  if (query.isError) return <ReportsErrorState onRetry={() => void query.refetch()} />;
 
   const data = query.data;
   const expenseCategories = data.categories.filter((category) => category.kind === CategoryKind.EXPENSE);

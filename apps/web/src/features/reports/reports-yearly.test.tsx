@@ -6,11 +6,12 @@ import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ReportsPage } from './reports-page';
-
+import { routes } from '@/app/router';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { MonthPage } from '@/features/transactions/month-page';
+import { AuthContext } from '@/features/auth/auth-context';
 import { server } from '@/test/server';
+
+const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' as const };
 
 const MONTHS = Array.from({ length: 12 }, (_, index) => ({ month: index + 1, income: 0, expense: 0, balance: 0 }));
 
@@ -43,15 +44,11 @@ const YEARLY_REPORT: YearlyReportDto = {
   },
 };
 
+/** The real route table, so cell navigation is exercised against the routes the application
+ * actually ships — including `ProtectedRoute`/`AppLayout` — rather than a hand-rolled copy. */
 function renderReports(initialEntry = '/reports?view=yearly&year=2026') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createMemoryRouter(
-    [
-      { path: '/reports', element: <ReportsPage /> },
-      { path: '/month/:year/:month', element: <MonthPage /> },
-    ],
-    { initialEntries: [initialEntry] },
-  );
+  const router = createMemoryRouter(routes, { initialEntries: [initialEntry] });
 
   return {
     user: userEvent.setup(),
@@ -59,7 +56,9 @@ function renderReports(initialEntry = '/reports?view=yearly&year=2026') {
     ...render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <RouterProvider router={router} />
+          <AuthContext value={{ user: USER, logout: () => Promise.resolve() }}>
+            <RouterProvider router={router} />
+          </AuthContext>
         </TooltipProvider>
       </QueryClientProvider>,
     ),

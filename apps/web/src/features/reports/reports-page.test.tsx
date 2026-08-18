@@ -6,11 +6,12 @@ import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ReportsPage } from './reports-page';
-
+import { routes } from '@/app/router';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { MonthPage } from '@/features/transactions/month-page';
+import { AuthContext } from '@/features/auth/auth-context';
 import { server } from '@/test/server';
+
+const USER = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' as const };
 
 const EMPTY_MONTHLY: MonthlyReportDto = {
   year: 2026,
@@ -36,9 +37,10 @@ const MONTHLY_REPORT: MonthlyReportDto = {
       amount: 115_000,
       percentage: 86.5,
       rollingAverage: 102_800,
+      count: 4,
       subcategories: [
-        { subcategoryId: 'sub-rent', name: 'Renda', amount: 95_000, percentage: 82.6, rollingAverage: 95_000 },
-        { subcategoryId: 'sub-utilities', name: 'Água, luz e gás', amount: 20_000, percentage: 17.4, rollingAverage: 15_600 },
+        { subcategoryId: 'sub-rent', name: 'Renda', amount: 95_000, percentage: 82.6, rollingAverage: 95_000, count: 1 },
+        { subcategoryId: 'sub-utilities', name: 'Água, luz e gás', amount: 20_000, percentage: 17.4, rollingAverage: 15_600, count: 3 },
       ],
     },
     {
@@ -49,6 +51,7 @@ const MONTHLY_REPORT: MonthlyReportDto = {
       amount: 18_000,
       percentage: 13.5,
       rollingAverage: 21_400,
+      count: 4,
       subcategories: [],
     },
     {
@@ -59,6 +62,7 @@ const MONTHLY_REPORT: MonthlyReportDto = {
       amount: 320_000,
       percentage: 100,
       rollingAverage: 320_000,
+      count: 1,
       subcategories: [],
     },
   ],
@@ -70,15 +74,11 @@ const MONTHLY_REPORT: MonthlyReportDto = {
   },
 };
 
+/** The real route table, so cell/row navigation is exercised against the routes the application
+ * actually ships — including `ProtectedRoute`/`AppLayout` — rather than a hand-rolled copy. */
 function renderReports(initialEntry = '/reports?year=2026&month=7') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createMemoryRouter(
-    [
-      { path: '/reports', element: <ReportsPage /> },
-      { path: '/month/:year/:month', element: <MonthPage /> },
-    ],
-    { initialEntries: [initialEntry] },
-  );
+  const router = createMemoryRouter(routes, { initialEntries: [initialEntry] });
 
   return {
     user: userEvent.setup(),
@@ -86,7 +86,9 @@ function renderReports(initialEntry = '/reports?year=2026&month=7') {
     ...render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <RouterProvider router={router} />
+          <AuthContext value={{ user: USER, logout: () => Promise.resolve() }}>
+            <RouterProvider router={router} />
+          </AuthContext>
         </TooltipProvider>
       </QueryClientProvider>,
     ),

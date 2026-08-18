@@ -438,6 +438,7 @@
       "average": "Contra a média",
       "averageValue": "média {{value}}",
       "averageTooltip": "Média dos doze meses que terminam no mês exibido, dividida só pelos meses que tiveram movimento — nunca por doze fixos.",
+      "count": "Lanç.",
       "expand": "Ver subcategorias de {{name}}",
       "cashboxes": "Caixinhas no mês",
       "cashboxesHint": "Movimento de caixinha não é despesa, então não entra em nenhuma das tabelas acima. Transferência entre caixinhas aparece nas duas linhas envolvidas e se anula no total.",

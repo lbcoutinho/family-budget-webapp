@@ -8,7 +8,7 @@ const catB = '33333333-3333-3333-3333-333333333333';
 const sub1 = '44444444-4444-4444-4444-444444444444';
 const sub2 = '55555555-5555-5555-5555-555555555555';
 
-const row = (amount: number) => ({ _sum: { amount } });
+const row = (amount: number, count = 1) => ({ _sum: { amount }, _count: { _all: count } });
 
 /** `$transaction` runs the callback against the same `groupBy` double, `Promise.all`-style — same convention as `BalancesService`'s spec. */
 const prismaDouble = (): { prisma: PrismaService; groupBy: jest.Mock; categoryFindMany: jest.Mock; cashboxFindMany: jest.Mock } => {
@@ -43,8 +43,8 @@ describe('ReportsService', () => {
       groupBy
         .mockResolvedValueOnce([{ referenceMonth: end, categoryId: catA, type: 'EXPENSE', ...row(1_000) }])
         .mockResolvedValueOnce([
-          { categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600) },
-          { categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400) },
+          { categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600, 2) },
+          { categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400, 3) },
         ])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
@@ -59,10 +59,12 @@ describe('ReportsService', () => {
       expect(result.categories).toHaveLength(1);
       const [category] = result.categories;
       expect(category!.amount).toBe(1_000);
+      // The category's own count is every subcategory's count summed — 2 + 3 = 5.
+      expect(category!.count).toBe(5);
       expect(category!.subcategories).toEqual(
         expect.arrayContaining([
-          { subcategoryId: sub1, name: 'Supermarket', amount: 600, percentage: 60, rollingAverage: 0 },
-          { subcategoryId: sub2, name: 'Butcher', amount: 400, percentage: 40, rollingAverage: 0 },
+          { subcategoryId: sub1, name: 'Supermarket', amount: 600, percentage: 60, rollingAverage: 0, count: 2 },
+          { subcategoryId: sub2, name: 'Butcher', amount: 400, percentage: 40, rollingAverage: 0, count: 3 },
         ]),
       );
       const percentageSum = category!.subcategories.reduce((sum, s) => sum + s.percentage, 0);

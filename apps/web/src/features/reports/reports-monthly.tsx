@@ -5,18 +5,18 @@ import {
   type MonthlyReportCashboxesDto,
   type MonthlyReportSubcategoryDto,
 } from '@family-budget/api-client';
-import { AlertCircleIcon, ChevronRightIcon, PiggyBankIcon } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronRightIcon, PiggyBankIcon } from 'lucide-react';
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AVERAGE_TONE_CLASS, averageDelta, categoryColor, formatPercent, formatSignedPercent, hasSubcategoryBreakdown } from '@/features/reports/report-format';
+import { ReportsErrorState, ReportsSkeleton, useExpandedRows } from '@/features/reports/report-shell';
 import { type TranslationKey } from '@/i18n';
 import { monthPath } from '@/lib/date';
 import { formatCents } from '@/lib/money';
@@ -66,8 +66,8 @@ function CategoryRows({
         const name = category.name ?? t('reports.uncategorizedCategory');
 
         return (
-          <>
-            <TableRow key={key}>
+          <Fragment key={key}>
+            <TableRow>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {expandable ? (
@@ -108,6 +108,7 @@ function CategoryRows({
               <TableCell className="text-right">
                 <AverageCell amount={category.amount} average={category.rollingAverage} kind={kind} />
               </TableCell>
+              <TableCell className="num text-right">{category.count}</TableCell>
             </TableRow>
             {isOpen
               ? category.subcategories.map((subcategory: MonthlyReportSubcategoryDto) => (
@@ -130,10 +131,11 @@ function CategoryRows({
                     <TableCell className="text-right">
                       <AverageCell amount={subcategory.amount} average={subcategory.rollingAverage} kind={kind} />
                     </TableCell>
+                    <TableCell className="num text-right">{subcategory.count}</TableCell>
                   </TableRow>
                 ))
               : null}
-          </>
+          </Fragment>
         );
       })}
     </>
@@ -183,6 +185,7 @@ function CategoryTable({
                 <TooltipContent>{t('reports.monthly.averageTooltip')}</TooltipContent>
               </Tooltip>
             </TableHead>
+            <TableHead className="text-right">{t('reports.monthly.count')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -194,6 +197,7 @@ function CategoryTable({
             <TableCell className={`num text-right ${tone}`}>{formatCents(signedTotal, { sign: true })}</TableCell>
             <TableCell>{formatPercent(100)}</TableCell>
             <TableCell className="text-right">—</TableCell>
+            <TableCell className="num text-right">{categories.reduce((sum, category) => sum + category.count, 0)}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>
@@ -253,56 +257,20 @@ function CashboxBlock({ cashboxes }: { cashboxes: MonthlyReportCashboxesDto }) {
   );
 }
 
-function ReportsMonthlySkeleton() {
-  return (
-    <div className="space-y-4" aria-label="Loading">
-      {Array.from({ length: 2 }, (_, index) => (
-        <div key={index} className="space-y-px rounded-lg border p-3">
-          <Skeleton className="h-9 w-full" />
-          {Array.from({ length: 3 }, (_, row) => (
-            <Skeleton key={row} className="h-11 w-full" />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /** The monthly view of `/reports` (M6-T03 step 2) — `09-reports-monthly.html`. */
 export function ReportsMonthly({ year, month }: ReportsMonthlyProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const [expanded, toggle] = useExpandedRows();
   const query = useGetMonthlyReport({ year, month });
-
-  const toggle = (key: string) =>
-    setExpanded((previous) => {
-      const next = new Set(previous);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
 
   const openCategory = (categoryId: string) => {
     void navigate(`${monthPath(new Date(year, month - 1, 1))}?categoryId=${encodeURIComponent(categoryId)}`);
   };
 
-  if (query.isPending) return <ReportsMonthlySkeleton />;
+  if (query.isPending) return <ReportsSkeleton />;
 
-  if (query.isError) {
-    return (
-      <EmptyState
-        icon={AlertCircleIcon}
-        title={t('reports.error.title')}
-        description={t('reports.error.description')}
-        action={
-          <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-            {t('common.retry')}
-          </Button>
-        }
-      />
-    );
-  }
+  if (query.isError) return <ReportsErrorState onRetry={() => void query.refetch()} />;
 
   const data = query.data;
   const expenseCategories = data.categories.filter((category) => category.kind === CategoryKind.EXPENSE);
