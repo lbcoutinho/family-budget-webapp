@@ -133,6 +133,9 @@ export class ReportsService {
     const rangeStart = [janOfYear, windowStart, ...(compare ? [janOfPriorYear] : [])].reduce((min, date) => (date.getTime() < min.getTime() ? date : min));
     const rangeEnd = windowEnd.getTime() > decOfYear.getTime() ? windowEnd : decOfYear;
 
+    // A single `groupBy` call (unlike `getMonthly`'s `$transaction`-wrapped tuple above) keeps
+    // Prisma's precise literal return type, which doesn't structurally overlap `WindowRow[]`
+    // enough for a direct assertion — same shape, so the `unknown` hop is just to satisfy that.
     const rows = (await this.prisma.transaction.groupBy({
       by: ['categoryId', 'referenceMonth', 'type'] as const,
       where: { userId, status: 'CONFIRMED', type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: { gte: rangeStart, lte: rangeEnd } },

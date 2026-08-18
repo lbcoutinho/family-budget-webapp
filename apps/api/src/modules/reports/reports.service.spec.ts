@@ -242,6 +242,25 @@ describe('ReportsService', () => {
       expect(groceries.total).toBe(500);
     });
 
+    it('rolls subcategory amounts up under their root category, same as the monthly report', async () => {
+      const { prisma, groupBy, categoryFindMany } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      // Two transactions under different subcategories of the same root catA, same month. The
+      // query never groups by subcategoryId, so both land under one categoryId=catA row.
+      groupBy.mockResolvedValueOnce([
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(300) },
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(200) },
+      ]);
+      categoryFindMany.mockResolvedValue([{ id: catA, name: 'Groceries', color: '#ff0000' }]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      expect(result.categories).toHaveLength(1);
+      expect(result.categories[0]).toMatchObject({ categoryId: catA, monthly: [0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0], total: 500 });
+    });
+
     it('omits a category with no activity anywhere in the requested year', async () => {
       const { prisma, groupBy } = prismaDouble();
       const service = new ReportsService(prisma);

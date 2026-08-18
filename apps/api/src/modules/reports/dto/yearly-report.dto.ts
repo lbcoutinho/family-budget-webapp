@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 import { CategoryKind } from '../../../generated/prisma/client';
 
@@ -67,27 +67,12 @@ class YearlyReportCategoryDto {
   monthlyAverage!: number;
 }
 
-/** Same shape as `YearlyReportCategoryDto` minus `monthlyAverage` — the query range for `?compare=true` only fetches the prior year's own twelve months, not
- * a further rolling window behind it, so a genuine rolling average isn't available for the comparison year. */
-class YearlyReportComparisonCategoryDto {
-  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: '`null` for the uncategorized bucket.' })
-  categoryId!: string | null;
-
-  @ApiProperty({ type: String, nullable: true, description: '`null` when `categoryId` is `null`.' })
-  name!: string | null;
-
-  @ApiProperty({ type: String, nullable: true })
-  color!: string | null;
-
-  @ApiProperty({ enum: CategoryKind, enumName: 'CategoryKind' })
-  kind!: CategoryKind;
-
-  @ApiProperty({ type: Number, isArray: true, description: 'Cents, 12 entries, index 0 = January.' })
-  monthly!: number[];
-
-  @ApiProperty({ type: Number, description: 'Cents, sum of `monthly`.' })
-  total!: number;
-}
+/**
+ * `YearlyReportCategoryDto` minus `monthlyAverage` — the query range for `?compare=true` only
+ * fetches the prior year's own twelve months, not a further rolling window behind it, so a genuine
+ * rolling average isn't available for the comparison year.
+ */
+class YearlyReportComparisonCategoryDto extends OmitType(YearlyReportCategoryDto, ['monthlyAverage'] as const) {}
 
 class YearlyReportComparisonDto {
   @ApiProperty({ type: Number, example: 2025 })

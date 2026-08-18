@@ -20,9 +20,10 @@ export interface YearlyReportComparisonCategoryDto {
   name: string | null;
   /** @nullable */
   color: string | null;
+  /** Which side of the report this row belongs to. */
   kind: CategoryKind;
-  /** Cents, 12 entries, index 0 = January. */
+  /** Cents, 12 entries, index 0 = January. Zero for a month with no activity. */
   monthly: number[];
-  /** Cents, sum of `monthly`. */
+  /** Cents, sum of `monthly` — the row total. */
   total: number;
 }
