@@ -1,6 +1,6 @@
 # 11 — Charts
 
-Status: approved — **drawn in v2 on 2026-08-17**, under design review — show every category, never group into "Outras".
+Status: **approved on both gates** on 2026-08-17, file in `approved/` — unblocks M6-T04 and M6-T05 — show every category, never group into "Outras".
 
 - **Turning a category off in the legend recalculates the donut's centre total**, decided 2026-08-17 against the
   prototype's proposal that the centre keep the month's full total: otherwise the slices do not add up to the number

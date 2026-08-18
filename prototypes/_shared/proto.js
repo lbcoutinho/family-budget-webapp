@@ -96,6 +96,7 @@ const APPROVED = new Set([
   '08-cashbox-operations.html',
   '09-reports-monthly.html',
   '10-reports-yearly.html',
+  '11-reports-charts.html',
   '14-settings-general.html',
 ]);
 
