@@ -84,7 +84,21 @@ const SOON = 'Sem protótipo ainda — chega com as telas restantes';
    to know which side of that boundary each end is on. Keeping the list here
    means a file that gets approved is a one-line change, not a sweep through
    every page's navigation. */
-const APPROVED = new Set(['00-design-system.html', '01-login.html', '02-app-shell.html', '06-month.html', '14-settings-general.html']);
+const APPROVED = new Set([
+  '00-design-system.html',
+  '01-login.html',
+  '02-app-shell.html',
+  '03-accounts.html',
+  '04-categories.html',
+  '05-cashboxes.html',
+  '06-month.html',
+  '07-entry-form.html',
+  '08-cashbox-operations.html',
+  '09-reports-monthly.html',
+  '10-reports-yearly.html',
+  '11-reports-charts.html',
+  '14-settings-general.html',
+]);
 
 function protoHref(file) {
   const here = location.pathname.includes('/approved/');
