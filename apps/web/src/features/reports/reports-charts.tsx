@@ -15,6 +15,7 @@ import { Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, ResponsiveContaine
 
 import { EmptyState } from '@/components/empty-state';
 import { categoryColor } from '@/features/reports/category-color';
+import { formatPercent } from '@/features/reports/report-format';
 import { ReportsErrorState, ReportsSkeleton } from '@/features/reports/report-shell';
 import { formatMonth, formatMonthAbbreviation, monthPath } from '@/lib/date';
 import { formatCents } from '@/lib/money';
@@ -31,6 +32,10 @@ interface CategorySlice {
   name: string;
   color: string;
   amount: number;
+  /** Of the month's expense total, straight from the API — the donut's baseline reading. Only
+   * recomputed client-side once a legend toggle changes what the centre total counts. Absent for
+   * slices that never need one (the stacked bar's categories). */
+  percentage?: number;
 }
 
 function categoryKey(categoryId: string | null): string {
@@ -98,7 +103,7 @@ function TooltipCard({ rows, total }: { rows: { name: string; color: string; amo
           <span className="size-2 flex-none rounded-sm" style={{ background: row.color }} />
           <span className="flex-1">{row.name}</span>
           <span className="num font-medium">{formatCents(row.amount)}</span>
-          {row.percentage !== undefined ? <span className="num text-muted-foreground">{row.percentage.toFixed(1)}%</span> : null}
+          {row.percentage !== undefined ? <span className="num text-muted-foreground">{formatPercent(row.percentage)}</span> : null}
         </div>
       ))}
     </div>
@@ -115,23 +120,32 @@ function DonutCard({
   year,
   month,
   categories,
+  apiTotal,
   onOpenCategory,
 }: {
   year: number;
   month: number;
   categories: CategorySlice[];
+  /** `MonthlyReportDto.expenseTotal` — the reading while nothing is toggled off. */
+  apiTotal: number;
   onOpenCategory: (categoryId: string) => void;
 }) {
   const { t } = useTranslation();
   const [hidden, toggle] = useHiddenSeries();
 
   const visible = categories.filter((category) => !hidden.has(category.key));
-  const total = visible.reduce((sum, category) => sum + category.amount, 0);
   const max = Math.max(...categories.map((category) => category.amount), 1);
 
   if (categories.length === 0) {
     return <EmptyState icon={PiggyBankIcon} title={t('reports.empty.title')} description={t('reports.empty.description')} />;
   }
+
+  // Nothing hidden: the total and every slice's share come straight from the API
+  // (`expenseTotal`, `category.percentage`) — untouched, they are never recomputed. A legend
+  // toggle changes what the centre sums, so from then on the total and the visible slices'
+  // shares are derived from the already-fetched amounts instead (`prototypes/memory/11-charts.md`).
+  const total = hidden.size > 0 ? visible.reduce((sum, category) => sum + category.amount, 0) : apiTotal;
+  const percentageOf = (category: CategorySlice): number => (hidden.size > 0 ? (total > 0 ? (category.amount / total) * 100 : 0) : (category.percentage ?? 0));
 
   const referenceDate = new Date(year, month - 1, 1);
 
@@ -141,7 +155,15 @@ function DonutCard({
         <div className="relative hidden size-[220px] flex-none sm:block">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={visible} dataKey="amount" nameKey="name" innerRadius="68%" outerRadius="100%" paddingAngle={visible.length > 1 ? 1 : 0} stroke="none">
+              <Pie
+                data={visible.map((category) => ({ ...category, displayPercentage: percentageOf(category) }))}
+                dataKey="amount"
+                nameKey="name"
+                innerRadius="68%"
+                outerRadius="100%"
+                paddingAngle={visible.length > 1 ? 1 : 0}
+                stroke="none"
+              >
                 {visible.map((category) => (
                   <Cell
                     key={category.key}
@@ -154,9 +176,8 @@ function DonutCard({
               <RechartsTooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
-                  const slice = payload[0]!.payload as CategorySlice;
-                  const percentage = total > 0 ? (slice.amount / total) * 100 : 0;
-                  return <TooltipCard rows={[{ name: slice.name, color: slice.color, amount: slice.amount, percentage }]} />;
+                  const slice = payload[0]!.payload as CategorySlice & { displayPercentage: number };
+                  return <TooltipCard rows={[{ name: slice.name, color: slice.color, amount: slice.amount, percentage: slice.displayPercentage }]} />;
                 }}
               />
             </PieChart>
@@ -197,15 +218,13 @@ function DonutCard({
         <div className="hidden min-w-[240px] flex-1 sm:block">
           {categories.map((category) => {
             const isHidden = hidden.has(category.key);
-            const percentage = isHidden ? null : total > 0 ? (category.amount / total) * 100 : 0;
+            const percentage = isHidden ? null : percentageOf(category);
             return (
               <div key={category.key} className={cn('flex items-center gap-2 border-b py-1.5 last:border-0', isHidden && 'opacity-45 line-through')}>
                 <span className="size-2.5 flex-none rounded-sm" style={{ background: category.color }} />
                 <span className="flex-1 truncate text-[12.5px]">{category.name}</span>
                 <span className="num font-medium">{formatCents(category.amount)}</span>
-                <span className="num w-12 flex-none text-right text-[12px] text-muted-foreground">
-                  {percentage === null ? '—' : `${percentage.toFixed(1)}%`}
-                </span>
+                <span className="num w-12 flex-none text-right text-[12px] text-muted-foreground">{percentage === null ? '—' : formatPercent(percentage)}</span>
               </div>
             );
           })}
@@ -361,6 +380,7 @@ export function ReportsCharts({ year, month }: ReportsChartsProps) {
         name: category.name ?? t('reports.uncategorizedCategory'),
         color: categoryColor(category.categoryId, category.color),
         amount: category.amount,
+        percentage: category.percentage,
       }));
   }, [monthlyQuery.data, t]);
 
@@ -416,7 +436,7 @@ export function ReportsCharts({ year, month }: ReportsChartsProps) {
             {t('reports.charts.donutTitle', { month: formatMonth(new Date(year, month - 1, 1)) })}
           </h2>
         </div>
-        <DonutCard year={year} month={month} categories={donutSlices} onOpenCategory={openCategory} />
+        <DonutCard year={year} month={month} categories={donutSlices} apiTotal={monthlyQuery.data.expenseTotal} onOpenCategory={openCategory} />
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">

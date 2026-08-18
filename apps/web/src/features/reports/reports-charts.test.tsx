@@ -124,6 +124,19 @@ describe('ReportsPage — charts view', () => {
     expect(within(donut).getAllByText('Lazer').length).toBeGreaterThan(0);
   });
 
+  it('reads the untouched donut total and percentages straight from the API, not recomputed from the category amounts', async () => {
+    // expenseTotal deliberately does not equal the sum of the two categories' amounts (133_000):
+    // if the centre total were recomputed client-side it would read 1.330,00 €, not this value.
+    server.use(http.get('/api/reports/monthly', () => HttpResponse.json({ ...MONTHLY_REPORT, expenseTotal: 140_000 })));
+
+    renderReports();
+
+    const donut = (await screen.findByRole('heading', { name: /Distribuição de Julho de 2026/ })).closest('section')!;
+    expect(within(donut).getByTestId('donut-total')).toHaveTextContent('1.400,00 €');
+    // Moradia's percentage (86.5) comes straight from the fixture, not (115_000 / 140_000) * 100.
+    expect(within(donut).getByText('86,5%')).toBeInTheDocument();
+  });
+
   it('hides a category everywhere when its legend entry is toggled off, and recalculates the donut total', async () => {
     const { user } = renderReports();
 
