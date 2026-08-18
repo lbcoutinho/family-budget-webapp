@@ -69,7 +69,7 @@ const NAV = [
   { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: '05-cashboxes.html' },
   { id: 'reports', label: 'Relatórios', icon: 'chart', href: '09-reports-monthly.html' },
   { id: 'voice', label: 'Lançar por voz', icon: 'mic', href: null },
-  { id: 'recurrences', label: 'Recorrências', icon: 'repeat', href: null },
+  { id: 'recurrences', label: 'Recorrências', icon: 'repeat', href: '12-recurrences.html' },
 ];
 
 const NAV_SETTINGS = [

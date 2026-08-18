@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>12 — Recorrências (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* ==================================================================
+         Uma tela sobre o futuro — a única do aplicativo que não olha para
+         um mês que já aconteceu. Duas coisas moram na mesma tabela porque
+         são a mesma coisa (um molde que produz lançamentos) e se separam
+         numa coluna só: "sem fim" contra "4/12".
+
+         O desenho gira em torno de uma desconfiança legítima: automação
+         que grava no histórico precisa mostrar o que vai gravar *antes*
+         de gravar. Daí a prévia ser obrigatória nos dois formulários, e
+         não um extra atrás de um botão.
+         ================================================================== */
+
+      /* --- a coluna de progresso ---------------------------------------
+         Uma regra sem fim não tem barra: não há fração de nada. Desenhar
+         uma barra vazia ali sugeriria um fim que não existe. */
+      .prog {
+        min-width: 108px;
+      }
+      .prog .lbl {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+      .prog .progress {
+        height: 4px;
+      }
+      .endless {
+        color: var(--ink-soft);
+        font-size: 12.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .endless svg {
+        width: 13px;
+        height: 13px;
+        color: var(--ink-faint);
+      }
+
+      .rule-name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+      /* O ponto da categoria, do mesmo jeito que na 06 e na 09: a cor é da
+         categoria, nunca do tipo de regra. */
+      .rule-name .dot {
+        flex: none;
+      }
+      .rule-name .t {
+        min-width: 0;
+      }
+      .rule-name b {
+        display: block;
+        font-weight: 600;
+      }
+      tr.off td,
+      tr.off .rule-name b {
+        color: var(--ink-faint);
+      }
+      tr.off .rule-name b {
+        font-weight: 500;
+      }
+      .acts {
+        display: flex;
+        gap: 2px;
+        justify-content: flex-end;
+        opacity: 0.5;
+        transition: opacity var(--fast) var(--ease);
+      }
+      tr:hover .acts,
+      .acts:focus-within {
+        opacity: 1;
+      }
+
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec + p {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 12px;
+        max-width: 78ch;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 14px;
+      }
+      .states h3 {
+        margin-bottom: 6px;
+      }
+
+      /* --- formulário + prévia lado a lado ------------------------------
+         A prévia não é um passo seguinte, é a metade direita do formulário.
+         Um passo seguinte pode ser pulado; uma metade, não. */
+      .form-preview {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+        gap: 14px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .form-preview {
+          grid-template-columns: 1fr;
+        }
+      }
+      .dlg-body {
+        padding: 16px;
+        display: grid;
+        gap: 13px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 620px) {
+        .two,
+        .three {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* --- lista de ocorrências ----------------------------------------
+         Datas e valores em coluna, alinhados, porque a pergunta que a
+         prévia responde é "quanto, e quando" — e as duas se leem varrendo. */
+      .occ {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .occ li {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 7px 16px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .occ li:first-child {
+        border-top: 0;
+      }
+      .occ .d {
+        width: 78px;
+        flex: none;
+        color: var(--ink-soft);
+      }
+      .occ .n {
+        width: 30px;
+        flex: none;
+        color: var(--ink-faint);
+        font-size: 11.5px;
+      }
+      .occ .v {
+        margin-left: auto;
+        font-weight: 600;
+      }
+      .occ .clamped .d {
+        color: var(--cashbox);
+      }
+      .occ-foot {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 16px;
+        border-top: 1px solid var(--line-strong);
+        background: var(--wash);
+        font-size: 12.5px;
+      }
+      .preview-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .preview-head .xs {
+        color: var(--ink-faint);
+      }
+
+      /* O aviso de arredondamento aparece só quando existe sobra — um
+         aviso permanente sobre um caso que quase nunca ocorre deixa de
+         ser lido no dia em que ocorre. */
+      .rest {
+        color: var(--cashbox);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="12 — Recorrências" data-ticket="M7-T06 · API nos M7-T03 e M7-T04"></div>
+
+    <div class="proto-note">
+      <strong>A única tela que fala do futuro.</strong> Regras fixas e parcelamentos dividem a mesma tabela — são o mesmo objeto, um molde que produz
+      lançamentos — e se distinguem na coluna de progresso: <em>sem fim</em> contra <em>4/12</em>. Os dois formulários mostram a prévia enquanto você digita e
+      nada é gravado até salvar. <strong>Editar uma regra nunca mexe no que ela já gerou:</strong> o valor é copiado no momento da geração, e a tela diz isso
+      onde a dúvida aparece.
+    </div>
+
+    <div data-shell="recurrences">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Recorrências</span>
+          </div>
+          <div class="row">
+            <label class="row xs muted" style="gap: 7px; cursor: pointer">
+              <button class="switch" role="switch" aria-checked="true" aria-label="Mostrar inativas"></button>
+              Mostrar inativas
+            </label>
+            <button class="btn outline sm" data-open="dlg-inst"><span data-icon="card"></span> Novo parcelamento</button>
+            <button class="btn sm" data-open="dlg-rule"><span data-icon="plus"></span> Nova regra fixa</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- ===== o que já está comprometido ===== -->
+          <div class="stats">
+            <div class="stat">
+              <span class="k">Despesa fixa em agosto</span>
+              <span class="v num out">− 1.162,16 €</span>
+            </div>
+            <div class="stat">
+              <span class="k">Receita fixa em agosto</span>
+              <span class="v num in">+ 3.200,00 €</span>
+            </div>
+            <div class="stat">
+              <span class="k">Parcelas em aberto</span>
+              <span class="v num">1.048,00 €</span>
+            </div>
+            <div class="stat total">
+              <span class="k">Próxima geração</span>
+              <span class="v num">01/08/2026</span>
+            </div>
+          </div>
+          <p class="small muted" style="margin: 9px 0 0">
+            O horizonte é de três meses: o job diário materializa até 31/10/2026 e nada além disso existe no banco. "Parcelas em aberto" soma o que falta pagar
+            de todos os parcelamentos ativos, inclusive as parcelas que ainda não foram geradas.
+          </p>
+
+          <!-- ===== a tabela ===== -->
+          <h2 class="sec">Regras e parcelamentos</h2>
+          <p>
+            Uma tabela só. O que separa as duas coisas é a coluna <em>Progresso</em> — e é a única diferença que importa no dia a dia, porque tudo mais
+            (categoria, conta, valor, dia) se comporta igual nas duas.
+          </p>
+          <div class="card">
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Regra</th>
+                    <th>Conta</th>
+                    <th class="n">Valor</th>
+                    <th>Quando</th>
+                    <th>Progresso</th>
+                    <th>Próxima</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c9)"></span>
+                        <span class="t"><b>Salário</b><span class="xs muted">Trabalho › Salário</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Millennium</td>
+                    <td class="n num in strong">+ 3.200,00 €</td>
+                    <td class="muted num">Mensal, dia 3</td>
+                    <td class="prog">
+                      <span class="endless"><span data-icon="repeat"></span> sem fim</span>
+                    </td>
+                    <td class="num muted">03/08/2026</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Gerar agora" data-open="dlg-gen"><span data-icon="repeat"></span></button>
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-rule"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar" data-open="dlg-off"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c1)"></span>
+                        <span class="t"><b>Renda</b><span class="xs muted">Moradia › Renda</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Millennium</td>
+                    <td class="n num out strong">− 950,00 €</td>
+                    <td class="muted num">Mensal, dia 1</td>
+                    <td class="prog">
+                      <span class="endless"><span data-icon="repeat"></span> sem fim</span>
+                    </td>
+                    <td class="num muted">01/08/2026</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Gerar agora" data-open="dlg-gen"><span data-icon="repeat"></span></button>
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-rule"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar" data-open="dlg-off"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c2)"></span>
+                        <span class="t"><b>Seguro do carro</b><span class="xs muted">Transporte › Seguro</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Millennium</td>
+                    <td class="n num out strong">− 62,50 €</td>
+                    <td class="muted num">Mensal, dia 10</td>
+                    <td class="prog">
+                      <span class="lbl"><span class="num">4/12</span><span class="muted num">500,00 € a pagar</span></span>
+                      <span class="progress"><span style="width: 33%"></span></span>
+                    </td>
+                    <td class="num muted">10/08/2026</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Gerar agora" data-open="dlg-gen"><span data-icon="repeat"></span></button>
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-rule"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Cancelar parcelas futuras" data-open="dlg-cancel"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c1)"></span>
+                        <span class="t"><b>Seguro da casa</b><span class="xs muted">Moradia › Seguros</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Millennium</td>
+                    <td class="n num out strong">− 289,00 €</td>
+                    <td class="muted num">Anual, 15/11</td>
+                    <td class="prog">
+                      <span class="endless"><span data-icon="repeat"></span> sem fim</span>
+                    </td>
+                    <td class="num muted">15/11/2026</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Gerar agora" data-open="dlg-gen"><span data-icon="repeat"></span></button>
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-rule"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Desativar" data-open="dlg-off"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c10)"></span>
+                        <span class="t"
+                          ><b>Colchão Ikea</b><span class="xs muted">Outros · <span class="badge draft">gera rascunho</span></span></span
+                        >
+                      </span>
+                    </td>
+                    <td class="muted">Revolut</td>
+                    <td class="n num out strong">− 149,66 €</td>
+                    <td class="muted num">Mensal, dia 5</td>
+                    <td class="prog">
+                      <span class="lbl"><span class="num">0/3</span><span class="muted num">449,00 € a pagar</span></span>
+                      <span class="progress"><span style="width: 0%"></span></span>
+                    </td>
+                    <td class="num muted">05/08/2026</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Gerar agora" data-open="dlg-gen"><span data-icon="repeat"></span></button>
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-inst"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Cancelar parcelas futuras" data-open="dlg-cancel"><span data-icon="x"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="off">
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c10)"></span>
+                        <span class="t"><b>Portátil Lenovo</b><span class="xs muted">Outros</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Millennium</td>
+                    <td class="n num strong">− 74,90 €</td>
+                    <td class="muted num">Mensal, dia 20</td>
+                    <td class="prog">
+                      <span class="lbl"><span class="num">12/12</span><span class="muted">concluído</span></span>
+                      <span class="progress"><span style="width: 100%"></span></span>
+                    </td>
+                    <td class="faint num">—</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Editar" data-open="dlg-inst"><span data-icon="pencil"></span></button>
+                        <button class="btn icon ghost" title="Apagar" data-open="dlg-del"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="off">
+                    <td>
+                      <span class="rule-name">
+                        <span class="dot" style="background: var(--c5)"></span>
+                        <span class="t"><b>Netflix</b> <span class="badge">inativa</span><span class="xs muted">Lazer › Assinaturas</span></span>
+                      </span>
+                    </td>
+                    <td class="muted">Revolut</td>
+                    <td class="n num strong">− 13,99 €</td>
+                    <td class="muted num">Mensal, dia 8</td>
+                    <td class="prog"><span class="endless">parada em 05/2026</span></td>
+                    <td class="faint num">—</td>
+                    <td>
+                      <div class="acts">
+                        <button class="btn icon ghost" title="Reativar"><span data-icon="check"></span></button>
+                        <button class="btn icon ghost" title="Apagar" data-open="dlg-del"><span data-icon="trash"></span></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 9px">
+            "Seguro do carro" é a regra que produziu o lançamento marcado com <span data-icon="repeat" style="width: 13px; height: 13px"></span> na
+            <a href="approved/06-month.html">tela do mês</a>, em 10/07/2026 — parcela 4 de 12. É o mesmo objeto visto dos dois lados.
+          </p>
+
+          <!-- ===== regra fixa ===== -->
+          <h2 class="sec">Nova regra fixa</h2>
+          <p>
+            Formulário à esquerda, prévia à direita, recalculada a cada tecla — e não atrás de um botão "Pré-visualizar", que dá para não apertar.
+            <strong>Mexa nos campos:</strong> ponha dia 31 para ver fevereiro cair no dia 28, ou troque a frequência para anual.
+          </p>
+          <div class="form-preview">
+            <div class="card">
+              <div class="card-head"><h2>Nova regra fixa</h2></div>
+              <div class="dlg-body">
+                <div class="field">
+                  <label for="r-desc">Descrição</label>
+                  <input class="input" id="r-desc" value="Renda" />
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="r-amount">Valor</label>
+                    <input class="input num" id="r-amount" value="950,00" inputmode="decimal" />
+                    <span class="hint">Aceita 1.234,56 e 1234.56.</span>
+                  </div>
+                  <div class="field">
+                    <label for="r-kind">Tipo</label>
+                    <select class="select" id="r-kind">
+                      <option value="out">Despesa</option>
+                      <option value="in">Receita</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="r-acc">Conta</label>
+                    <select class="select" id="r-acc">
+                      <option>Millennium</option>
+                      <option>Revolut</option>
+                      <option>Dinheiro</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="r-cat">Categoria</label>
+                    <select class="select" id="r-cat">
+                      <option>Moradia › Renda</option>
+                      <option>Transporte › Seguro</option>
+                      <option>Lazer › Assinaturas</option>
+                      <option>Trabalho › Salário</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="three">
+                  <div class="field">
+                    <label for="r-freq">Frequência</label>
+                    <select class="select" id="r-freq">
+                      <option value="M">Mensal</option>
+                      <option value="Y">Anual</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="r-day">Dia do mês</label>
+                    <input class="input num" id="r-day" type="number" min="1" max="31" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="r-start">Início</label>
+                    <input class="input num" id="r-start" type="month" value="2026-08" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="r-end">Fim <span class="muted">(opcional)</span></label>
+                  <input class="input num" id="r-end" type="month" />
+                  <span class="hint">Em branco, a regra não termina — é o caso normal de uma despesa fixa.</span>
+                </div>
+                <label class="row" style="gap: 9px; align-items: flex-start; cursor: pointer">
+                  <button class="switch" role="switch" aria-checked="true" aria-label="Confirmar automaticamente" id="r-auto"></button>
+                  <span>
+                    <span class="strong">Confirmar automaticamente</span><br />
+                    <span class="xs muted">Desligado, os lançamentos nascem como rascunho e não entram em saldo nem em relatório até você aprovar.</span>
+                  </span>
+                </label>
+                <div class="callout">
+                  <span data-icon="info"></span>
+                  <span>Mudar o valor depois só vale para o que ainda não foi gerado. O que já entrou no histórico fica como está.</span>
+                </div>
+              </div>
+              <div class="card-foot">
+                <button class="btn outline sm">Cancelar</button>
+                <button class="btn sm">Salvar regra</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <span class="preview-head grow">
+                  <h2>Prévia</h2>
+                  <span class="xs">nada é gravado até salvar</span>
+                </span>
+              </div>
+              <ul class="occ" id="rule-occ"></ul>
+              <div class="occ-foot">
+                <span class="muted" id="rule-note">Próximas 6 ocorrências</span>
+                <span class="num strong" id="rule-total"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== parcelamento ===== -->
+          <h2 class="sec">Novo parcelamento</h2>
+          <p>
+            Outro botão e outro formulário, não um interruptor dentro do primeiro: as perguntas são diferentes. Aqui se digita o <em>total</em> e o número de
+            parcelas, e a divisão em centavos é feita na frente de quem está preenchendo — <strong>a última parcela absorve a sobra</strong>, de modo que a soma
+            bate no centavo. Troque para 100,00 em 3 e veja 33,33 / 33,33 / 33,34.
+          </p>
+          <div class="form-preview">
+            <div class="card">
+              <div class="card-head"><h2>Novo parcelamento</h2></div>
+              <div class="dlg-body">
+                <div class="field">
+                  <label for="i-desc">Descrição</label>
+                  <input class="input" id="i-desc" value="Colchão Ikea" />
+                  <span class="hint">Cada parcela recebe o número no fim: "Colchão Ikea (1/3)".</span>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="i-total">Valor total</label>
+                    <input class="input num" id="i-total" value="449,00" inputmode="decimal" />
+                  </div>
+                  <div class="field">
+                    <label for="i-count">Parcelas</label>
+                    <input class="input num" id="i-count" type="number" min="2" max="60" value="3" />
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="i-first">Primeira cobrança</label>
+                    <input class="input num" id="i-first" type="date" value="2026-08-05" />
+                    <span class="hint">É a data em que a parcela cai na fatura — e o mês em que ela aparece no relatório.</span>
+                  </div>
+                  <div class="field">
+                    <label for="i-buy">Data da compra</label>
+                    <input class="input num" id="i-buy" type="date" value="2026-07-22" />
+                    <span class="hint">Guardada nas observações; nenhum dos dois campos de data a preserva.</span>
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="i-acc">Conta</label>
+                    <select class="select" id="i-acc">
+                      <option>Revolut</option>
+                      <option>Millennium</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="i-cat">Categoria</label>
+                    <select class="select" id="i-cat">
+                      <option>Outros</option>
+                      <option>Moradia › Mobiliário</option>
+                      <option>Transporte › Seguro</option>
+                    </select>
+                  </div>
+                </div>
+                <label class="row" style="gap: 9px; align-items: flex-start; cursor: pointer">
+                  <button class="switch" role="switch" aria-checked="false" aria-label="Confirmar automaticamente"></button>
+                  <span>
+                    <span class="strong">Confirmar automaticamente</span><br />
+                    <span class="xs muted">Desligado neste exemplo: as três parcelas nascem como rascunho.</span>
+                  </span>
+                </label>
+                <div class="callout warn">
+                  <span data-icon="alert"></span>
+                  <span>
+                    As <b id="i-n">3</b> parcelas são gravadas <strong>agora, todas de uma vez</strong> — não só as dos próximos três meses. É o que faz o
+                    compromisso futuro aparecer no relatório anual no dia em que a compra acontece.
+                  </span>
+                </div>
+              </div>
+              <div class="card-foot">
+                <button class="btn outline sm">Cancelar</button>
+                <button class="btn sm">Criar <span id="i-n2">3</span> parcelas</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <span class="preview-head grow">
+                  <h2>Prévia</h2>
+                  <span class="xs">nada é gravado até salvar</span>
+                </span>
+              </div>
+              <ul class="occ" id="inst-occ"></ul>
+              <div class="occ-foot">
+                <span class="muted" id="inst-note"></span>
+                <span class="num strong" id="inst-total"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== gerar agora ===== -->
+          <h2 class="sec">Gerar agora, desativar, cancelar</h2>
+          <p>
+            Três ações que precisam dizer exatamente o que fizeram — automação silenciosa é automação em que não se confia. "Gerar agora" é idempotente: rodar
+            de novo no mesmo minuto não cria nada, e a tela prefere dizer "nada a gerar" a fingir que trabalhou.
+          </p>
+          <div class="states">
+            <div>
+              <h3>Gerar agora — houve o que gerar</h3>
+              <div class="card">
+                <div class="card-head"><h2>Renda</h2></div>
+                <div class="dlg-body">
+                  <div class="callout">
+                    <span data-icon="check"></span>
+                    <span
+                      ><strong>3 lançamentos criados</strong> — 01/08, 01/09 e 01/10 de 2026, confirmados, de 950,00 € cada. O horizonte vai até 31/10.</span
+                    >
+                  </div>
+                </div>
+                <div class="card-foot"><button class="btn sm">Fechar</button></div>
+              </div>
+            </div>
+            <div>
+              <h3>Gerar agora — não havia</h3>
+              <div class="card">
+                <div class="card-head"><h2>Renda</h2></div>
+                <div class="dlg-body">
+                  <div class="callout">
+                    <span data-icon="info"></span>
+                    <span><strong>Nada a gerar.</strong> Esta regra já está materializada até 31/10/2026. Rodar de novo não duplica nada.</span>
+                  </div>
+                </div>
+                <div class="card-foot"><button class="btn sm">Fechar</button></div>
+              </div>
+            </div>
+            <div>
+              <h3>Desativar uma regra sem fim</h3>
+              <div class="card">
+                <div class="card-head"><h2>Desativar "Netflix"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout">
+                    <span data-icon="info"></span>
+                    <span>
+                      Os 14 lançamentos já gerados ficam onde estão e continuam contando no saldo e nos relatórios. O que para é a geração daqui para a frente.
+                      Dá para reativar depois.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Cancelar um parcelamento</h3>
+              <div class="card">
+                <div class="card-head"><h2>Cancelar "Seguro do carro"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout warn">
+                    <span data-icon="alert"></span>
+                    <span>
+                      Some as <strong>8 parcelas futuras ainda não confirmadas</strong> (de 08/2026 a 03/2027, 500,00 €). As 4 já confirmadas ficam — elas foram
+                      pagas.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Voltar</button>
+                  <button class="btn danger sm">Cancelar parcelas futuras</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Apagar, e o 409 que costuma vir</h3>
+              <div class="card">
+                <div class="card-head"><h2>Apagar "Portátil Lenovo"?</h2></div>
+                <div class="dlg-body">
+                  <div class="callout error">
+                    <span data-icon="alert"></span>
+                    <span>
+                      <strong>Não é possível apagar.</strong> A regra já gerou 12 lançamentos. Desative em vez disso — o histórico continua inteiro e ela some
+                      da lista ativa.
+                    </span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Fechar</button>
+                  <button class="btn sm">Desativar</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Categoria inativa na regra</h3>
+              <div class="card">
+                <div class="card-head"><h2>Salvar regra</h2></div>
+                <div class="dlg-body">
+                  <div class="field">
+                    <label for="e-cat">Categoria</label>
+                    <select class="select input error" id="e-cat">
+                      <option>Lazer › Assinaturas (inativa)</option>
+                    </select>
+                    <span class="field-error">Categoria inativa não pode ser usada numa regra nova. Reative a categoria ou escolha outra.</span>
+                  </div>
+                </div>
+                <div class="card-foot">
+                  <button class="btn outline sm">Cancelar</button>
+                  <button class="btn sm" disabled>Salvar regra</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== estados ===== -->
+          <h2 class="sec">Carregando, vazia, com erro</h2>
+          <p>Os quatro estados de sempre. O vazio explica o conceito, porque "recorrência" é a única palavra do aplicativo que precisa de explicação.</p>
+          <div class="states">
+            <div>
+              <h3>Carregando</h3>
+              <div class="card">
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead>
+                      <tr>
+                        <th>Regra</th>
+                        <th class="n">Valor</th>
+                        <th>Progresso</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="skeleton" style="width: 128px"></div></td>
+                        <td><div class="skeleton" style="width: 68px; margin-left: auto"></div></td>
+                        <td><div class="skeleton" style="width: 84px"></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="skeleton" style="width: 96px"></div></td>
+                        <td><div class="skeleton" style="width: 76px; margin-left: auto"></div></td>
+                        <td><div class="skeleton" style="width: 60px"></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="skeleton" style="width: 142px"></div></td>
+                        <td><div class="skeleton" style="width: 62px; margin-left: auto"></div></td>
+                        <td><div class="skeleton" style="width: 92px"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Nenhuma regra ainda</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="repeat"></span>
+                  <h3>Nenhuma recorrência</h3>
+                  <p class="small muted" style="max-width: 44ch">
+                    Uma regra lança sozinha o que se repete todo mês — renda, seguro, assinatura — e um parcelamento divide uma compra nas prestações que ela
+                    vai ter. Nos dois casos você preenche uma vez.
+                  </p>
+                  <div class="row" style="gap: 8px; margin-top: 4px">
+                    <button class="btn outline sm"><span data-icon="card"></span> Parcelamento</button>
+                    <button class="btn sm"><span data-icon="plus"></span> Regra fixa</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Erro ao carregar</h3>
+              <div class="card">
+                <div class="empty">
+                  <span data-icon="alert"></span>
+                  <h3>Não foi possível carregar as recorrências</h3>
+                  <p class="small muted">Verifique a conexão e tente de novo.</p>
+                  <button class="btn outline sm" style="margin-top: 4px">Tentar de novo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== decisões ===== -->
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>
+              O conceito desta tela já foi aprovado por inteiro, o interruptor de confirmação automática incluído. O que segue é o que o desenho obrigou a
+              decidir por cima disso — e uma pendência que atinge uma tela já aprovada.
+            </p>
+            <ol>
+              <li>
+                <b>A prévia é a metade direita do formulário, não um passo seguinte.</b>
+                <span>
+                  O M7-T06 pede "prévia das próximas ocorrências antes de salvar". Um botão "Pré-visualizar" cumpriria a letra e seria pulado; uma coluna que
+                  recalcula a cada tecla, não. O custo é largura: abaixo de 900 px ela desce para baixo do formulário, e aí volta a ser um passo seguinte na
+                  prática. <strong>A proposta é aceitar isso</strong> — no celular, rolar até a prévia é barato.
+                </span>
+              </li>
+              <li>
+                <b>A tabela tem uma linha de "Próxima" e não uma agenda.</b>
+                <span>
+                  Chegou-se a desenhar uma faixa dos próximos três meses com todas as ocorrências de todas as regras. Ficou uma segunda tela do mês, pior que a
+                  primeira, e sem responder nada que a coluna "Próxima" já não responda. Se faltar visão de conjunto, o lugar dela é o relatório anual, que já
+                  mostra o comprometido mês a mês.
+                </span>
+              </li>
+              <li>
+                <b>Os quatro números do topo — e "Parcelas em aberto" inclui o que ainda não foi gerado.</b>
+                <span>
+                  É o único número da tela que não corresponde a linhas no banco: as parcelas de 11/2026 em diante ainda não existem. Ele responde "quanto eu
+                  ainda devo", que é a pergunta que um parcelamento levanta. A alternativa é somar só o materializado, e aí o número muda sozinho toda vez que o
+                  job roda — pior.
+                </span>
+              </li>
+              <li>
+                <b>Duas ações destrutivas com nomes diferentes: "Desativar" numa regra sem fim, "Cancelar parcelas futuras" num parcelamento.</b>
+                <span>
+                  Não são a mesma operação: desativar para a geração de algo infinito; cancelar apaga linhas que já existem no banco (as futuras não
+                  confirmadas). Chamar as duas de "desativar" esconderia um apagamento. Apagar de vez continua existindo e continua sendo recusado quando há
+                  histórico, como nos outros cadastros.
+                </span>
+              </li>
+              <li>
+                <b>A sobra da divisão vai na última parcela, e a prévia mostra isso em âmbar.</b>
+                <span>
+                  100,00 € em 3 dá 33,33 / 33,33 / 33,34. O âmbar é o mesmo tom de caixinha, usado aqui como "olhe para este número", não como categoria. Se
+                  soar como erro, sai a cor e fica só a nota no rodapé da prévia.
+                </span>
+              </li>
+              <li>
+                <b>Dia 31 cai para o último dia do mês, e a prévia pinta a data ajustada.</b>
+                <span>
+                  Fevereiro vira 28 (ou 29). É a regra do M7-T02; o que se decide aqui é só mostrá-la em vez de deixar o usuário descobrir em fevereiro. Ponha
+                  31 no campo "Dia do mês" para ver.
+                </span>
+              </li>
+              <li>
+                <b>Pendência numa tela aprovada: a 06 marca uma regra e deveria marcar três.</b>
+                <span>
+                  A <a href="approved/06-month.html">tela do mês</a> já desenha o ícone <span data-icon="repeat" style="width: 13px; height: 13px"></span> e o
+                  usa em "Seguro do carro (parcela 4 de 12)". Mas "Renda de julho" e "Salário" também saem de regras fixas nesta tela e lá aparecem sem marca —
+                  os dados das duas telas não fecham. <strong>A proposta é corrigir a 06 no mesmo PR</strong>, marcando as duas linhas: é uma edição de duas
+                  linhas num protótipo aprovado, permitida quando o desenho revela um problema, e declarada aqui em vez de feita em silêncio. A alternativa é
+                  tirar as duas regras desta tela, o que seria deixar a tela mentir para não mexer na outra.
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== diálogos (os botões do topo e da tabela abrem estes) ===== -->
+    <div class="scrim" id="dlg-rule">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Nova regra fixa">
+        <div class="card-head">
+          <h2>Nova regra fixa</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body">
+          <p class="small muted">
+            O mesmo formulário desenhado acima, aqui só para conferir que ele cabe num diálogo — com a prévia embaixo, e não ao lado, quando a largura acaba.
+          </p>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline sm" data-close>Cancelar</button>
+          <button class="btn sm" data-close>Salvar regra</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="dlg-inst">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Novo parcelamento">
+        <div class="card-head">
+          <h2>Novo parcelamento</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body"><p class="small muted">Idem — o formulário de parcelamento desenhado acima.</p></div>
+        <div class="card-foot">
+          <button class="btn outline sm" data-close>Cancelar</button>
+          <button class="btn sm" data-close>Criar parcelas</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="dlg-gen">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Gerar agora">
+        <div class="card-head">
+          <h2>Gerar agora</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body">
+          <div class="callout">
+            <span data-icon="check"></span>
+            <span><strong>3 lançamentos criados</strong> — 01/08, 01/09 e 01/10 de 2026. Rodar de novo não cria nada.</span>
+          </div>
+        </div>
+        <div class="card-foot"><button class="btn sm" data-close>Fechar</button></div>
+      </div>
+    </div>
+    <div class="scrim" id="dlg-off">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Desativar regra">
+        <div class="card-head">
+          <h2>Desativar regra?</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body">
+          <div class="callout">
+            <span data-icon="info"></span>
+            <span>O que já foi gerado fica. O que para é a geração daqui para a frente.</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline sm" data-close>Cancelar</button>
+          <button class="btn sm" data-close>Desativar</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="dlg-cancel">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Cancelar parcelas futuras">
+        <div class="card-head">
+          <h2>Cancelar parcelas futuras?</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body">
+          <div class="callout warn">
+            <span data-icon="alert"></span>
+            <span>Some só o que ainda não foi confirmado. As parcelas já pagas ficam no histórico.</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline sm" data-close>Voltar</button>
+          <button class="btn danger sm" data-close>Cancelar parcelas</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="dlg-del">
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Apagar regra">
+        <div class="card-head">
+          <h2>Apagar regra?</h2>
+          <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dlg-body">
+          <div class="callout error">
+            <span data-icon="alert"></span>
+            <span><strong>Não é possível apagar.</strong> A regra já gerou lançamentos. Desative em vez disso.</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline sm" data-close>Fechar</button>
+          <button class="btn sm" data-close>Desativar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================================
+         As duas prévias. Elas existem para provar duas regras do domínio que
+         são fáceis de escrever errado e caras de descobrir tarde:
+
+           1. dia 31 num mês curto cai para o último dia (M7-T02);
+           2. a soma das parcelas bate no total, no centavo (M7-T04).
+
+         Por isso são calculadas de verdade, em centavos inteiros, e não
+         digitadas à mão. Um número de mentira aqui não provaria nada.
+         ================================================================== */
+
+      const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const pad = (n) => String(n).padStart(2, '0');
+
+      /* Centavos inteiros em todo lugar, como no domínio. Aceita 1.234,56 e
+         1234.56 — a mesma regra do input de dinheiro das outras telas. */
+      function cents(str) {
+        const s = String(str).trim();
+        const norm = s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s;
+        const n = Number(norm);
+        return Number.isFinite(n) ? Math.round(n * 100) : 0;
+      }
+      function money(c) {
+        return (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      }
+      function lastDay(y, m) {
+        return new Date(y, m + 1, 0).getDate();
+      }
+      function fmt(d) {
+        return `${pad(d.getDate())}/${MESES[d.getMonth()]}/${d.getFullYear()}`;
+      }
+
+      /* --- regra fixa ------------------------------------------------------ */
+      const rq = (id) => document.getElementById(id);
+
+      function renderRule() {
+        const day = Math.min(31, Math.max(1, Number(rq('r-day').value) || 1));
+        const freq = rq('r-freq').value;
+        const [sy, sm] = rq('r-start').value.split('-').map(Number);
+        const end = rq('r-end').value ? rq('r-end').value.split('-').map(Number) : null;
+        const amount = cents(rq('r-amount').value);
+        const kind = rq('r-kind').value;
+        const step = freq === 'Y' ? 12 : 1;
+
+        const rows = [];
+        for (let i = 0; i < 6; i++) {
+          const abs = (sm - 1 || 0) + i * step;
+          const y = (sy || 2026) + Math.floor(abs / 12);
+          const m = ((abs % 12) + 12) % 12;
+          if (end && (y > end[0] || (y === end[0] && m + 1 > end[1]))) break;
+          const max = lastDay(y, m);
+          rows.push({ date: new Date(y, m, Math.min(day, max)), clamped: day > max });
+        }
+
+        rq('rule-occ').innerHTML =
+          rows
+            .map(
+              (r) => `<li class="${r.clamped ? 'clamped' : ''}">
+                <span class="d num">${fmt(r.date)}</span>
+                <span class="muted">${r.clamped ? 'ajustado — o mês não tem dia ' + day : 'referência ' + MESES[r.date.getMonth()] + '/' + r.date.getFullYear()}</span>
+                <span class="v num ${kind}">${kind === 'in' ? '+' : '−'} ${money(amount)}</span>
+              </li>`,
+            )
+            .join('') || '<li class="muted">O fim escolhido é anterior ao início — nada seria gerado.</li>';
+
+        const clamped = rows.filter((r) => r.clamped).length;
+        rq('rule-note').innerHTML = clamped
+          ? `<span class="rest">${clamped} de ${rows.length} ocorrências caem no último dia do mês.</span>`
+          : `Próximas ${rows.length} ocorrências${freq === 'Y' ? ', uma por ano' : ''}`;
+        rq('rule-total').textContent = rows.length ? money(amount * rows.length) + ' no período' : '';
+      }
+
+      /* --- parcelamento ---------------------------------------------------- */
+      function renderInst() {
+        const total = cents(rq('i-total').value);
+        const n = Math.min(60, Math.max(1, Number(rq('i-count').value) || 1));
+        const desc = rq('i-desc').value || 'Compra';
+        const [fy, fm, fd] = rq('i-first').value.split('-').map(Number);
+        const buy = rq('i-buy').value.split('-').map(Number);
+
+        /* A divisão que precisa fechar: todas iguais, a última leva a sobra. */
+        const base = Math.floor(total / n);
+        const rest = total - base * n;
+
+        const rows = [];
+        for (let i = 0; i < n; i++) {
+          const abs = fm - 1 + i;
+          const y = fy + Math.floor(abs / 12);
+          const m = ((abs % 12) + 12) % 12;
+          const date = new Date(y, m, Math.min(fd, lastDay(y, m)));
+          rows.push({ date, v: i === n - 1 ? base + rest : base, last: i === n - 1 && rest > 0, i: i + 1 });
+        }
+
+        const shown = rows.length > 8 ? rows.slice(0, 4).concat([null]).concat(rows.slice(-2)) : rows;
+        rq('inst-occ').innerHTML = shown
+          .map((r) =>
+            r === null
+              ? `<li class="muted"><span class="n"></span><span class="d"></span>… ${rows.length - 6} parcelas</li>`
+              : `<li>
+                  <span class="n num">${r.i}/${n}</span>
+                  <span class="d num">${fmt(r.date)}</span>
+                  <span class="muted" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc} (${r.i}/${n})</span>
+                  <span class="v num out ${r.last ? 'rest' : ''}">− ${money(r.v)}</span>
+                </li>`,
+          )
+          .join('');
+
+        rq('inst-note').innerHTML =
+          (rest > 0 ? `<span class="rest">A última parcela leva ${money(rest)} a mais</span> · ` : '') +
+          `observações: "Comprado em ${pad(buy[2])}/${pad(buy[1])}/${buy[0]}"`;
+        rq('inst-total').textContent = `soma ${money(rows.reduce((a, r) => a + r.v, 0))}`;
+        rq('i-n').textContent = n;
+        rq('i-n2').textContent = n;
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        ['r-desc', 'r-amount', 'r-kind', 'r-freq', 'r-day', 'r-start', 'r-end'].forEach((id) => {
+          rq(id).addEventListener('input', renderRule);
+          rq(id).addEventListener('change', renderRule);
+        });
+        ['i-desc', 'i-total', 'i-count', 'i-first', 'i-buy'].forEach((id) => {
+          rq(id).addEventListener('input', renderInst);
+          rq(id).addEventListener('change', renderInst);
+        });
+        renderRule();
+        renderInst();
+      });
+    </script>
+  </body>
+</html>
