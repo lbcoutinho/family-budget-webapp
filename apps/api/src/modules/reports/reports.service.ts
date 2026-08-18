@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BalancesService, CASHBOX_SIGN } from '../transactions/balances.service';
 import { startOfMonthUtc } from '../transactions/reference-month';
 
+import { CashboxesReportDto } from './dto/cashboxes-report.dto';
 import { MonthlyReportDto } from './dto/monthly-report.dto';
 import { YearlyReportDto } from './dto/yearly-report.dto';
 import { averageWindow, distributePercentages, monthsEndingAt, rollingAverage } from './report-math';
@@ -43,6 +45,22 @@ interface CashboxDestinationRow {
   _sum: { amount: number | null };
 }
 
+/** One month's folded movement for one `cashboxes()` bucket — `signedDelta` already carries `CASHBOX_SIGN`, ready to accumulate into a running balance. */
+interface CashboxMonthEntry {
+  deposits: number;
+  withdrawals: number;
+  transfersIn: number;
+  transfersOut: number;
+  signedDelta: number;
+}
+
+/** One cashbox (or one deleted cashbox's label) across the whole query range — `months` keyed by `referenceMonth.getTime()`, spanning years before the requested one too (folded into the opening balance). */
+interface CashboxBucket {
+  cashboxId: string | null;
+  label: string;
+  months: Map<number, CashboxMonthEntry>;
+}
+
 /**
  * Builds the monthly-by-category report (M6-T01, #181). Like `BalancesService`, all aggregation is
  * pushed into Prisma `groupBy` — this class only reshapes grouped rows into the response tree
@@ -55,7 +73,10 @@ interface CashboxDestinationRow {
  */
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly balances: BalancesService,
+  ) {}
 
   async getMonthly(userId: string, year: number, month: number): Promise<MonthlyReportDto> {
     const end = new Date(Date.UTC(year, month - 1, 1));
@@ -389,6 +410,116 @@ export class ReportsService {
         };
       })
       .sort((a, b) => b.amount - a.amount);
+  }
+
+  /**
+   * `GET /reports/cashboxes` (M6-T05, #185) — cashboxes are excluded from expense reports by
+   * construction, so they get their own report. Grouping key is `cashboxId ?? \`label:${cashboxLabel}\`
+   * (ADR-0019): a deleted cashbox has no id left, but two distinct deleted cashboxes must stay two
+   * rows, not collapse into one. Every live cashbox is included even with zero movement all year —
+   * `BalancesService.monthlyByCashbox` only returns rows with activity, so the gap is filled from
+   * `prisma.cashbox.findMany` afterwards.
+   */
+  async cashboxes(userId: string, year: number): Promise<CashboxesReportDto> {
+    const { source, destination } = await this.balances.monthlyByCashbox(userId, year);
+    const liveCashboxes = await this.prisma.cashbox.findMany({
+      where: { userId },
+      select: { id: true, name: true, isActive: true, targetAmount: true },
+    });
+
+    const buckets = new Map<string, CashboxBucket>();
+    const bucketFor = (id: string | null, label: string | null): CashboxBucket => {
+      const key = id ?? `label:${label ?? ''}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = { cashboxId: id, label: label ?? '', months: new Map() };
+        buckets.set(key, bucket);
+      }
+      return bucket;
+    };
+    const monthEntry = (bucket: CashboxBucket, referenceMonth: Date): CashboxMonthEntry => {
+      const time = referenceMonth.getTime();
+      let entry = bucket.months.get(time);
+      if (!entry) {
+        entry = { deposits: 0, withdrawals: 0, transfersIn: 0, transfersOut: 0, signedDelta: 0 };
+        bucket.months.set(time, entry);
+      }
+      return entry;
+    };
+
+    for (const row of source) {
+      const bucket = bucketFor(row.cashboxId, row.cashboxLabel);
+      const entry = monthEntry(bucket, row.referenceMonth);
+      const amount = row._sum.amount ?? 0;
+      if (row.type === 'CASHBOX_IN') entry.deposits += amount;
+      else if (row.type === 'CASHBOX_OUT') entry.withdrawals += amount;
+      else entry.transfersOut += amount;
+      entry.signedDelta += amount * CASHBOX_SIGN[row.type];
+    }
+    for (const row of destination) {
+      const bucket = bucketFor(row.destinationCashboxId, row.destinationCashboxLabel);
+      const entry = monthEntry(bucket, row.referenceMonth);
+      const amount = row._sum.amount ?? 0;
+      entry.transfersIn += amount;
+      entry.signedDelta += amount;
+    }
+
+    for (const live of liveCashboxes) bucketFor(live.id, null);
+
+    const liveById = new Map(liveCashboxes.map((cashbox) => [cashbox.id, cashbox]));
+    const janOfYear = new Date(Date.UTC(year, 0, 1)).getTime();
+
+    const cashboxes = [...buckets.values()]
+      .map((bucket) => this.buildCashboxRow(bucket, janOfYear, year, liveById))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return { year, cashboxes };
+  }
+
+  /** Folds one bucket's monthly entries into a report row: opening balance from everything before January, a running balance per month, truncated at a deleted cashbox's last active month. */
+  private buildCashboxRow(
+    bucket: CashboxBucket,
+    janOfYear: number,
+    year: number,
+    liveById: Map<string, { id: string; name: string; isActive: boolean; targetAmount: number | null }>,
+  ): CashboxesReportDto['cashboxes'][number] {
+    let openingBalance = 0;
+    for (const [time, entry] of bucket.months) {
+      if (time < janOfYear) openingBalance += entry.signedDelta;
+    }
+
+    const monthIndexEntries = Array.from({ length: 12 }, (_, index) => {
+      const time = new Date(Date.UTC(year, index, 1)).getTime();
+      return bucket.months.get(time) ?? { deposits: 0, withdrawals: 0, transfersIn: 0, transfersOut: 0, signedDelta: 0 };
+    });
+
+    const isDeleted = bucket.cashboxId === null;
+    const lastActiveIndex = isDeleted
+      ? monthIndexEntries.reduce((last, entry, index) => (entry.deposits || entry.withdrawals || entry.transfersIn || entry.transfersOut ? index : last), -1)
+      : 11;
+
+    let runningBalance = openingBalance;
+    const months = monthIndexEntries.map((entry, index) => {
+      runningBalance += entry.signedDelta;
+      return { month: index + 1, deposits: entry.deposits, withdrawals: entry.withdrawals, balance: index <= lastActiveIndex ? runningBalance : null };
+    });
+
+    const closingBalance = months[lastActiveIndex >= 0 ? lastActiveIndex : 0]?.balance ?? openingBalance;
+    const live = bucket.cashboxId ? liveById.get(bucket.cashboxId) : undefined;
+
+    return {
+      cashboxId: bucket.cashboxId,
+      name: live?.name ?? bucket.label,
+      isActive: live?.isActive ?? null,
+      targetAmount: live?.targetAmount ?? null,
+      openingBalance,
+      deposits: monthIndexEntries.reduce((sum, entry) => sum + entry.deposits, 0),
+      withdrawals: monthIndexEntries.reduce((sum, entry) => sum + entry.withdrawals, 0),
+      transfersIn: monthIndexEntries.reduce((sum, entry) => sum + entry.transfersIn, 0),
+      transfersOut: monthIndexEntries.reduce((sum, entry) => sum + entry.transfersOut, 0),
+      closingBalance,
+      months,
+    };
   }
 
   /** Merges the source side (CASHBOX_IN/OUT/TRANSFER) and destination side (CASHBOX_TRANSFER receipt) into one bucket per cashbox. */

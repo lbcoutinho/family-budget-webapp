@@ -103,4 +103,38 @@ describe('BalancesService', () => {
       expect((balances.get(cashboxId) ?? 0) + (balances.get(otherCashboxId) ?? 0)).toBe(0);
     });
   });
+
+  describe('monthlyByCashbox', () => {
+    it('bounds the query at December 1st of the requested year, with no lower bound', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new BalancesService(prisma);
+      groupBy.mockResolvedValue([]);
+
+      await service.monthlyByCashbox(userId, 2026);
+
+      const calls = groupBy.mock.calls as [{ where: Record<string, unknown> }][];
+      expect(calls[0]![0].where).toEqual({
+        userId,
+        status: 'CONFIRMED',
+        referenceMonth: { lte: new Date(Date.UTC(2026, 11, 1)) },
+        type: { in: ['CASHBOX_IN', 'CASHBOX_OUT', 'CASHBOX_TRANSFER'] },
+      });
+      expect(calls[1]![0].where).toEqual({ userId, status: 'CONFIRMED', referenceMonth: { lte: new Date(Date.UTC(2026, 11, 1)) }, type: 'CASHBOX_TRANSFER' });
+    });
+
+    it('returns the raw grouped rows from both sides, unshaped', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new BalancesService(prisma);
+      const month = new Date(Date.UTC(2026, 4, 1));
+
+      groupBy
+        .mockResolvedValueOnce([{ ...row(800), cashboxId, cashboxLabel: null, type: 'CASHBOX_IN', referenceMonth: month }])
+        .mockResolvedValueOnce([{ ...row(200), destinationCashboxId: otherCashboxId, destinationCashboxLabel: null, referenceMonth: month }]);
+
+      const result = await service.monthlyByCashbox(userId, 2026);
+
+      expect(result.source).toEqual([{ ...row(800), cashboxId, cashboxLabel: null, type: 'CASHBOX_IN', referenceMonth: month }]);
+      expect(result.destination).toEqual([{ ...row(200), destinationCashboxId: otherCashboxId, destinationCashboxLabel: null, referenceMonth: month }]);
+    });
+  });
 });
