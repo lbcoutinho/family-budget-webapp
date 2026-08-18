@@ -153,7 +153,10 @@ export class ReportsService {
     })) as unknown as WindowRow[];
 
     const categoryIds = new Set<string>();
-    for (const row of rows) if (row.categoryId) categoryIds.add(row.categoryId);
+    for (const row of rows) {
+      if (row.categoryId) categoryIds.add(row.categoryId);
+      if (row.subcategoryId) categoryIds.add(row.subcategoryId);
+    }
 
     const categoryRows = categoryIds.size
       ? await this.prisma.category.findMany({ where: { id: { in: [...categoryIds] } }, select: { id: true, name: true, color: true } })
