@@ -147,4 +147,152 @@ describe('ReportsService', () => {
       });
     });
   });
+
+  describe('getYearly', () => {
+    it('queries December of a complete past year as the average window end, so the average reconciles with the matrix', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1)); // current month is well past 2026
+
+      await service.getYearly(userId, 2026, false, now);
+
+      const calls = groupBy.mock.calls as [{ where: { referenceMonth: { gte: Date; lte: Date } } }][];
+      const call = calls[0]![0];
+      // Window end is Dec 2026 -> window start is Jan 2026 -> range covers exactly Jan-Dec 2026.
+      expect(call.where.referenceMonth).toEqual({ gte: new Date(Date.UTC(2026, 0, 1)), lte: new Date(Date.UTC(2026, 11, 1)) });
+    });
+
+    it('queries back into the prior year when the requested year is the current, unfinished one', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2026, 2, 15)); // "today" is March 2026
+
+      await service.getYearly(userId, 2026, false, now);
+
+      const calls = groupBy.mock.calls as [{ where: { referenceMonth: { gte: Date; lte: Date } } }][];
+      const call = calls[0]![0];
+      // Window end is the current month (March 2026) -> window start reaches back to April 2025.
+      expect(call.where.referenceMonth).toEqual({ gte: new Date(Date.UTC(2025, 3, 1)), lte: new Date(Date.UTC(2026, 11, 1)) });
+    });
+
+    it('reaches back to January of the prior year, and no further, when compare is set', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      await service.getYearly(userId, 2026, true, now);
+
+      const calls = groupBy.mock.calls as [{ where: { referenceMonth: { gte: Date; lte: Date } } }][];
+      const call = calls[0]![0];
+      expect(call.where.referenceMonth).toEqual({ gte: new Date(Date.UTC(2025, 0, 1)), lte: new Date(Date.UTC(2026, 11, 1)) });
+    });
+
+    it('reports the averageWindow so the UI can label the column', async () => {
+      const { prisma } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2026, 2, 15));
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      expect(result.averageWindow).toEqual({ from: '2025-04-01', to: '2026-03-01' });
+    });
+
+    it('folds twelve monthly rows into one zero-filled row per category, with the row total and column totals matching', async () => {
+      const { prisma, groupBy, categoryFindMany } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      groupBy.mockResolvedValueOnce([
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 0, 1)), type: 'EXPENSE', ...row(1_000) },
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 5, 1)), type: 'EXPENSE', ...row(500) },
+        { categoryId: catB, referenceMonth: new Date(Date.UTC(2026, 2, 1)), type: 'INCOME', ...row(2_000) },
+      ]);
+      categoryFindMany.mockResolvedValue([
+        { id: catA, name: 'Groceries', color: '#ff0000' },
+        { id: catB, name: 'Salary', color: null },
+      ]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      const groceries = result.categories.find((c) => c.categoryId === catA)!;
+      expect(groceries.monthly).toEqual([1_000, 0, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0]);
+      expect(groceries.total).toBe(1_500);
+
+      expect(result.months[0]).toMatchObject({ month: 1, expense: 1_000 });
+      expect(result.months[2]).toMatchObject({ month: 3, income: 2_000 });
+      expect(result.totals).toEqual({ income: 2_000, expense: 1_500, balance: 500 });
+    });
+
+    it('computes the rolling average over months with movement in the average window, not the twelve matrix columns', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2026, 2, 15)); // window: Apr 2025 - Mar 2026
+
+      groupBy.mockResolvedValueOnce([
+        // Inside the average window but before the requested year -> counts toward monthlyAverage, not toward the matrix/total.
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2025, 11, 1)), type: 'EXPENSE', ...row(900) },
+        // Inside the requested year -> counts toward the matrix/total; outside the average window (after March 2026), so it doesn't affect monthlyAverage.
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 5, 1)), type: 'EXPENSE', ...row(500) },
+      ]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      const groceries = result.categories.find((c) => c.categoryId === catA)!;
+      expect(groceries.monthlyAverage).toBe(900);
+      expect(groceries.total).toBe(500);
+    });
+
+    it('omits a category with no activity anywhere in the requested year', async () => {
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      groupBy.mockResolvedValueOnce([{ categoryId: catA, referenceMonth: new Date(Date.UTC(2025, 5, 1)), type: 'EXPENSE', ...row(300) }]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      expect(result.categories).toEqual([]);
+    });
+
+    it('includes a comparison block for the prior year when compare is true, without a monthlyAverage on its rows', async () => {
+      const { prisma, groupBy, categoryFindMany } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      groupBy.mockResolvedValueOnce([
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 0, 1)), type: 'EXPENSE', ...row(1_000) },
+        { categoryId: catA, referenceMonth: new Date(Date.UTC(2025, 0, 1)), type: 'EXPENSE', ...row(700) },
+      ]);
+      categoryFindMany.mockResolvedValue([{ id: catA, name: 'Groceries', color: '#ff0000' }]);
+
+      const result = await service.getYearly(userId, 2026, true, now);
+
+      expect(result.comparison).toBeDefined();
+      expect(result.comparison!.year).toBe(2025);
+      const comparisonRow = result.comparison!.categories.find((c) => c.categoryId === catA)!;
+      expect(comparisonRow.total).toBe(700);
+      expect(comparisonRow).not.toHaveProperty('monthlyAverage');
+    });
+
+    it('omits the comparison block when compare is false', async () => {
+      const { prisma } = prismaDouble();
+      const service = new ReportsService(prisma);
+
+      const result = await service.getYearly(userId, 2026, false, new Date(Date.UTC(2027, 5, 1)));
+
+      expect(result.comparison).toBeUndefined();
+    });
+
+    it('returns the zeroed structure for a year with no data', async () => {
+      const { prisma } = prismaDouble();
+      const service = new ReportsService(prisma);
+
+      const result = await service.getYearly(userId, 2026, false, new Date(Date.UTC(2027, 5, 1)));
+
+      expect(result.categories).toEqual([]);
+      expect(result.months).toHaveLength(12);
+      expect(result.months.every((m) => m.income === 0 && m.expense === 0 && m.balance === 0)).toBe(true);
+      expect(result.totals).toEqual({ income: 0, expense: 0, balance: 0 });
+    });
+  });
 });

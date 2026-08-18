@@ -6,6 +6,8 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { MonthlyReportQueryDto } from './dto/monthly-report-query.dto';
 import { MonthlyReportDto } from './dto/monthly-report.dto';
+import { YearlyReportQueryDto } from './dto/yearly-report-query.dto';
+import { YearlyReportDto } from './dto/yearly-report.dto';
 import { ReportsService } from './reports.service';
 
 /**
@@ -28,5 +30,14 @@ export class ReportsController {
   @Get('monthly')
   getMonthly(@CurrentUser() user: AuthenticatedUser, @Query() query: MonthlyReportQueryDto): Promise<MonthlyReportDto> {
     return this.reports.getMonthly(user.id, query.year, query.month);
+  }
+
+  @ApiOperation({ operationId: 'getYearlyReport', summary: 'Income and expense by category across a year, as a month-by-category matrix' })
+  @ApiQuery({ name: 'year', type: Number, required: true, schema: { minimum: 2000, maximum: 2100 } })
+  @ApiQuery({ name: 'compare', type: Boolean, required: false })
+  @ApiOkResponse({ type: YearlyReportDto })
+  @Get('yearly')
+  getYearly(@CurrentUser() user: AuthenticatedUser, @Query() query: YearlyReportQueryDto): Promise<YearlyReportDto> {
+    return this.reports.getYearly(user.id, query.year, query.compare ?? false);
   }
 }

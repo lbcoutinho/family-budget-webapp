@@ -1,4 +1,4 @@
-import { distributePercentages, rollingAverage } from './report-math';
+import { averageWindow, distributePercentages, monthsEndingAt, rollingAverage } from './report-math';
 
 const sumOf = (values: number[]) => values.reduce((total, value) => total + value, 0);
 
@@ -34,5 +34,31 @@ describe('rollingAverage', () => {
     ['a sum/count that does not divide evenly rounds the result', [100, 100, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0], 100],
   ])('%s', (_label, amountsByMonth, expected) => {
     expect(rollingAverage(amountsByMonth as number[])).toBe(expected);
+  });
+});
+
+describe('monthsEndingAt', () => {
+  it('returns twelve month-starts ending with the supplied month, crossing the year boundary', () => {
+    const months = monthsEndingAt(new Date(Date.UTC(2027, 2, 1)));
+
+    expect(months).toHaveLength(12);
+    expect(months[0]).toEqual(new Date(Date.UTC(2026, 3, 1)));
+    expect(months[11]).toEqual(new Date(Date.UTC(2027, 2, 1)));
+  });
+});
+
+describe('averageWindow', () => {
+  it('spans from 11 months before endMonth to endMonth, inclusive', () => {
+    expect(averageWindow(new Date(Date.UTC(2026, 11, 1)))).toEqual({
+      from: new Date(Date.UTC(2026, 0, 1)),
+      to: new Date(Date.UTC(2026, 11, 1)),
+    });
+  });
+
+  it('crosses the year boundary the same way monthsEndingAt does', () => {
+    expect(averageWindow(new Date(Date.UTC(2027, 2, 1)))).toEqual({
+      from: new Date(Date.UTC(2026, 3, 1)),
+      to: new Date(Date.UTC(2027, 2, 1)),
+    });
   });
 });
