@@ -14,6 +14,16 @@ class MonthlyReportSubcategoryDto {
 
   @ApiProperty({ type: Number, description: 'Of the parent category row, 2 decimals, rounding handled so the set sums to 100.00.' })
   percentage!: number;
+
+  @ApiProperty({
+    type: Number,
+    description:
+      'Cents, rounded. Same rolling definition as the parent category: the twelve months ending with the requested one, divided by the months with movement.',
+  })
+  rollingAverage!: number;
+
+  @ApiProperty({ type: Number, description: 'Number of transactions folded into this row this month.' })
+  count!: number;
 }
 
 class MonthlyReportCategoryDto {
@@ -37,6 +47,9 @@ class MonthlyReportCategoryDto {
 
   @ApiProperty({ type: Number, description: 'Cents, rounded. Sum over the twelve months ending with the requested one, divided by the months with movement.' })
   rollingAverage!: number;
+
+  @ApiProperty({ type: Number, description: 'Number of transactions folded into this row this month, across every subcategory.' })
+  count!: number;
 
   @ApiProperty({ type: MonthlyReportSubcategoryDto, isArray: true })
   subcategories!: MonthlyReportSubcategoryDto[];

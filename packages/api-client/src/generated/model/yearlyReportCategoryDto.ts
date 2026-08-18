@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CategoryKind } from './categoryKind';
+import type { YearlyReportSubcategoryDto } from './yearlyReportSubcategoryDto';
 
 export interface YearlyReportCategoryDto {
   /**
@@ -28,4 +29,6 @@ export interface YearlyReportCategoryDto {
   total: number;
   /** Cents, rounded. Sum over `averageWindow`, divided by the months in it with movement — not `total / 12`. For a past, complete year this equals the average of the row above; for the current year the window reaches into the prior year, so it will not reconcile with `total / 12`. */
   monthlyAverage: number;
+  /** Rolled up into this row already; empty when the category has none. */
+  subcategories: YearlyReportSubcategoryDto[];
 }

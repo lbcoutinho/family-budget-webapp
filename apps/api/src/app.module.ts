@@ -23,6 +23,9 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true, validate, envFilePath: ['.env', '../../.env'] }),
     LoggerModule.forRoot({
       pinoHttp: {
+        // Quiets request-completed noise in test runs (e2e prints one line per request); still
+        // surfaces real problems since warn/error pass through.
+        level: process.env.NODE_ENV === 'test' ? 'warn' : 'info',
         // Secrets must never reach the logs. Redaction covers auth headers and any `password`
         // field regardless of nesting depth.
         redact: {

@@ -21,4 +21,8 @@ export interface MonthlyReportSubcategoryDto {
   amount: number;
   /** Of the parent category row, 2 decimals, rounding handled so the set sums to 100.00. */
   percentage: number;
+  /** Cents, rounded. Same rolling definition as the parent category: the twelve months ending with the requested one, divided by the months with movement. */
+  rollingAverage: number;
+  /** Number of transactions folded into this row this month. */
+  count: number;
 }

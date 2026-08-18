@@ -29,5 +29,7 @@ export interface MonthlyReportCategoryDto {
   percentage: number;
   /** Cents, rounded. Sum over the twelve months ending with the requested one, divided by the months with movement. */
   rollingAverage: number;
+  /** Number of transactions folded into this row this month, across every subcategory. */
+  count: number;
   subcategories: MonthlyReportSubcategoryDto[];
 }

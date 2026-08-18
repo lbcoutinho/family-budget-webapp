@@ -8,7 +8,7 @@ const catB = '33333333-3333-3333-3333-333333333333';
 const sub1 = '44444444-4444-4444-4444-444444444444';
 const sub2 = '55555555-5555-5555-5555-555555555555';
 
-const row = (amount: number) => ({ _sum: { amount } });
+const row = (amount: number, count = 1) => ({ _sum: { amount }, _count: { _all: count } });
 
 /** `$transaction` runs the callback against the same `groupBy` double, `Promise.all`-style — same convention as `BalancesService`'s spec. */
 const prismaDouble = (): { prisma: PrismaService; groupBy: jest.Mock; categoryFindMany: jest.Mock; cashboxFindMany: jest.Mock } => {
@@ -43,8 +43,8 @@ describe('ReportsService', () => {
       groupBy
         .mockResolvedValueOnce([{ referenceMonth: end, categoryId: catA, type: 'EXPENSE', ...row(1_000) }])
         .mockResolvedValueOnce([
-          { categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600) },
-          { categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400) },
+          { categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600, 2) },
+          { categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400, 3) },
         ])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
@@ -59,14 +59,52 @@ describe('ReportsService', () => {
       expect(result.categories).toHaveLength(1);
       const [category] = result.categories;
       expect(category!.amount).toBe(1_000);
+      // The category's own count is every subcategory's count summed — 2 + 3 = 5.
+      expect(category!.count).toBe(5);
       expect(category!.subcategories).toEqual(
         expect.arrayContaining([
-          { subcategoryId: sub1, name: 'Supermarket', amount: 600, percentage: 60 },
-          { subcategoryId: sub2, name: 'Butcher', amount: 400, percentage: 40 },
+          { subcategoryId: sub1, name: 'Supermarket', amount: 600, percentage: 60, rollingAverage: 0, count: 2 },
+          { subcategoryId: sub2, name: 'Butcher', amount: 400, percentage: 40, rollingAverage: 0, count: 3 },
         ]),
       );
       const percentageSum = category!.subcategories.reduce((sum, s) => sum + s.percentage, 0);
       expect(percentageSum).toBe(100);
+    });
+
+    it("computes each subcategory's own rolling average over the same twelve-month window as its parent category", async () => {
+      const { prisma, groupBy, categoryFindMany } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const end = new Date(Date.UTC(2026, 7, 1));
+
+      groupBy
+        .mockResolvedValueOnce([
+          // The requested month, split by subcategory.
+          { referenceMonth: end, categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600) },
+          { referenceMonth: end, categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400) },
+          // A prior month in the window, same category, different subcategories sharing that
+          // month — regression guard for the map-overwrite bug: both must be counted.
+          { referenceMonth: new Date(Date.UTC(2026, 5, 1)), categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(200) },
+          { referenceMonth: new Date(Date.UTC(2026, 5, 1)), categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(100) },
+        ])
+        .mockResolvedValueOnce([
+          { categoryId: catA, subcategoryId: sub1, type: 'EXPENSE', ...row(600) },
+          { categoryId: catA, subcategoryId: sub2, type: 'EXPENSE', ...row(400) },
+        ])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      categoryFindMany.mockResolvedValue([
+        { id: catA, name: 'Groceries', color: '#ff0000' },
+        { id: sub1, name: 'Supermarket', color: null },
+        { id: sub2, name: 'Butcher', color: null },
+      ]);
+
+      const result = await service.getMonthly(userId, 2026, 8);
+
+      // Root category's own average still sums both subcategories per month: (1000 + 300) / 2 = 650.
+      expect(result.categories[0]!.rollingAverage).toBe(650);
+      const [butcher, supermarket] = [...result.categories[0]!.subcategories].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+      expect(butcher).toMatchObject({ name: 'Butcher', rollingAverage: 250 }); // (400 + 100) / 2
+      expect(supermarket).toMatchObject({ name: 'Supermarket', rollingAverage: 400 }); // (600 + 200) / 2
     });
 
     it('keeps two deleted cashboxes with distinct labels as separate rows', async () => {
@@ -248,10 +286,11 @@ describe('ReportsService', () => {
       const now = new Date(Date.UTC(2027, 5, 1));
 
       // Two transactions under different subcategories of the same root catA, same month. The
-      // query never groups by subcategoryId, so both land under one categoryId=catA row.
+      // query groups by subcategoryId too, but the root matrix row still folds both back under
+      // one categoryId=catA row regardless.
       groupBy.mockResolvedValueOnce([
-        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(300) },
-        { categoryId: catA, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(200) },
+        { categoryId: catA, subcategoryId: sub1, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(300) },
+        { categoryId: catA, subcategoryId: sub2, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(200) },
       ]);
       categoryFindMany.mockResolvedValue([{ id: catA, name: 'Groceries', color: '#ff0000' }]);
 
@@ -259,6 +298,55 @@ describe('ReportsService', () => {
 
       expect(result.categories).toHaveLength(1);
       expect(result.categories[0]).toMatchObject({ categoryId: catA, monthly: [0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0], total: 500 });
+    });
+
+    it('nests two subcategory rows under their category, each with its own zero-filled twelve-month series', async () => {
+      const { prisma, groupBy, categoryFindMany } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2027, 5, 1));
+
+      groupBy.mockResolvedValueOnce([
+        { categoryId: catA, subcategoryId: sub1, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(300) },
+        { categoryId: catA, subcategoryId: sub2, referenceMonth: new Date(Date.UTC(2026, 3, 1)), type: 'EXPENSE', ...row(200) },
+        { categoryId: catA, subcategoryId: sub1, referenceMonth: new Date(Date.UTC(2026, 7, 1)), type: 'EXPENSE', ...row(100) },
+      ]);
+      categoryFindMany.mockResolvedValue([
+        { id: catA, name: 'Groceries', color: '#ff0000' },
+        { id: sub1, name: 'Supermarket', color: null },
+        { id: sub2, name: 'Butcher', color: null },
+      ]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      const [category] = result.categories;
+      expect(category!.subcategories).toEqual(
+        expect.arrayContaining([
+          { subcategoryId: sub1, name: 'Supermarket', monthly: [0, 0, 0, 300, 0, 0, 0, 100, 0, 0, 0, 0], total: 400 },
+          { subcategoryId: sub2, name: 'Butcher', monthly: [0, 0, 0, 200, 0, 0, 0, 0, 0, 0, 0, 0], total: 200 },
+        ]),
+      );
+    });
+
+    it('still reports the correct rolling average when two subcategories of the same category share a month', async () => {
+      // Regression guard: folding subcategory-split rows into the monthly-average series must sum
+      // same-month amounts rather than let one subcategory's row silently overwrite the other's.
+      const { prisma, groupBy } = prismaDouble();
+      const service = new ReportsService(prisma);
+      const now = new Date(Date.UTC(2026, 2, 15)); // window: Apr 2025 - Mar 2026
+
+      groupBy.mockResolvedValueOnce([
+        { categoryId: catA, subcategoryId: sub1, referenceMonth: new Date(Date.UTC(2025, 11, 1)), type: 'EXPENSE', ...row(300) },
+        { categoryId: catA, subcategoryId: sub2, referenceMonth: new Date(Date.UTC(2025, 11, 1)), type: 'EXPENSE', ...row(600) },
+        // June 2026 is inside the requested year (so the category isn't omitted from `categories`
+        // entirely) but outside the Apr 2025-Mar 2026 average window, so it doesn't affect the
+        // average asserted below.
+        { categoryId: catA, subcategoryId: sub1, referenceMonth: new Date(Date.UTC(2026, 5, 1)), type: 'EXPENSE', ...row(50) },
+      ]);
+
+      const result = await service.getYearly(userId, 2026, false, now);
+
+      const groceries = result.categories.find((c) => c.categoryId === catA)!;
+      expect(groceries.monthlyAverage).toBe(900); // Dec 2025's one month of movement, 300 + 600
     });
 
     it('omits a category with no activity anywhere in the requested year', async () => {

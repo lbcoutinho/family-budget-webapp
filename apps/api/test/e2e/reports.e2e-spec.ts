@@ -147,14 +147,34 @@ describe('Reports API (e2e)', () => {
 
     expect(body).toMatchObject({ incomeTotal: 5_000, expenseTotal: 2_000, balance: 3_000 });
 
-    expect(body.categories.find((c) => c.categoryId === incomeCategoryId)).toMatchObject({ kind: 'INCOME', amount: 5_000, percentage: 100 });
-    expect(body.categories.find((c) => c.categoryId === expenseCategoryId)).toMatchObject({ kind: 'EXPENSE', amount: 2_000, percentage: 100 });
+    expect(body.categories.find((c) => c.categoryId === incomeCategoryId)).toMatchObject({ kind: 'INCOME', amount: 5_000, percentage: 100, count: 1 });
+    expect(body.categories.find((c) => c.categoryId === expenseCategoryId)).toMatchObject({ kind: 'EXPENSE', amount: 2_000, percentage: 100, count: 1 });
 
     // CASHBOX_IN(800) deposit; CASHBOX_OUT(300) + CASHBOX_TRANSFER-source(200) withdrawals -> balance 300.
     expect(body.cashboxes.items.find((c) => c.cashboxId === cashboxId)).toMatchObject({ deposits: 800, withdrawals: 500, balance: 300 });
     // CASHBOX_TRANSFER-destination(200) deposit only -> balance 200.
     expect(body.cashboxes.items.find((c) => c.cashboxId === otherCashboxId)).toMatchObject({ deposits: 200, withdrawals: 0, balance: 200 });
     expect(body.cashboxes).toMatchObject({ depositsTotal: 1_000, withdrawalsTotal: 500, balance: 500 });
+  });
+
+  it('counts every transaction folded into a category and its subcategory', async () => {
+    const subcategory = await prisma.category.create({
+      data: { userId, name: 'Supermercado', kind: CategoryKind.EXPENSE, parentId: expenseCategoryId },
+      select: { id: true },
+    });
+
+    await Promise.all([
+      seed({ type: 'EXPENSE', amount: 500, accountId, categoryId: expenseCategoryId, subcategoryId: subcategory.id }),
+      seed({ type: 'EXPENSE', amount: 700, accountId, categoryId: expenseCategoryId, subcategoryId: subcategory.id }),
+      seed({ type: 'EXPENSE', amount: 300, accountId, categoryId: expenseCategoryId }),
+    ]);
+
+    const body = (await authed('get', '/reports/monthly?year=2026&month=5').expect(200)).body as MonthlyReportDto;
+
+    const category = body.categories.find((c) => c.categoryId === expenseCategoryId)!;
+    expect(category.count).toBe(3);
+    expect(category.subcategories.find((s) => s.subcategoryId === subcategory.id)).toMatchObject({ count: 2 });
+    expect(category.subcategories.find((s) => s.subcategoryId === null)).toMatchObject({ count: 1 });
   });
 
   it('reports a credit-card transaction under its referenceMonth, not its date', async () => {
@@ -314,6 +334,37 @@ describe('Reports API (e2e)', () => {
 
       expect(body.months[3]).toMatchObject({ month: 4, expense: 0 }); // April: the transaction's date
       expect(body.months[4]).toMatchObject({ month: 5, expense: 1_500 }); // May: its referenceMonth
+    });
+
+    it('nests a subcategory breakdown under its root category, each with its own twelve-month series', async () => {
+      const subcategory = await prisma.category.create({
+        data: { userId, name: 'Supermercado', kind: CategoryKind.EXPENSE, parentId: expenseCategoryId },
+        select: { id: true },
+      });
+
+      await Promise.all([
+        seed({
+          type: 'EXPENSE',
+          amount: 600,
+          accountId,
+          categoryId: expenseCategoryId,
+          subcategoryId: subcategory.id,
+          date: new Date('2020-03-10'),
+          referenceMonth: new Date('2020-03-01'),
+        }),
+        seed({ type: 'EXPENSE', amount: 400, accountId, categoryId: expenseCategoryId, date: new Date('2020-03-10'), referenceMonth: new Date('2020-03-01') }),
+      ]);
+
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      const category = body.categories.find((c) => c.categoryId === expenseCategoryId)!;
+      expect(category.total).toBe(1_000);
+      expect(category.subcategories).toEqual(
+        expect.arrayContaining([
+          { subcategoryId: subcategory.id, name: 'Supermercado', monthly: [0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 600 },
+          { subcategoryId: null, name: null, monthly: [0, 0, 400, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 400 },
+        ]),
+      );
     });
 
     it('includes the prior year under comparison when ?compare=true, and omits it otherwise', async () => {
