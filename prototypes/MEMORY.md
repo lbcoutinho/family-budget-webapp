@@ -31,8 +31,8 @@ this table and that screen's own file, nothing else.
 | 06  | Month                       | **approved**           | [memory/06-month.md](memory/06-month.md)                                     |
 | 07  | Income / expense / transfer | **approved**           | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
 | 08  | Cashbox operations          | **approved**           | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
-| 09  | Monthly report              | approved — drawn in v2 | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
-| 10  | Yearly report               | approved — drawn in v2 | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
+| 09  | Monthly report              | **approved**           | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
+| 10  | Yearly report               | **approved**           | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
 | 11  | Charts                      | approved — drawn in v2 | [memory/11-charts.md](memory/11-charts.md)                                   |
 | 12  | Recurrences                 | approved, in full      | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
 | 13  | Voice                       | approved, in full      | [memory/13-voice.md](memory/13-voice.md)                                     |
@@ -40,7 +40,7 @@ this table and that screen's own file, nothing else.
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
 type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,
-06, 07, 08 and 14 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
+06, 07, 08, 09, 10 and 14 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
 
 **14 is a new screen, added for M3-T13, outside the original thirteen-screen inventory.** Its ticket
 (issue #73) asked for `prototypes/07-settings-general.html`, but 07 is already the entry-form dialog

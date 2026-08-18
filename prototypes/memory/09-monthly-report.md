@@ -1,6 +1,6 @@
 # 09 — Monthly report
 
-Status: approved — **drawn in v2** — CSV gone, against-the-average column drawn, composition band
+Status: **approved on both gates** on 2026-08-17, file in `approved/` — unblocks M6-T03 — CSV gone, against-the-average column drawn, composition band
 added.
 
 - **No CSV export** — system-wide rule, see [global-rules.md](global-rules.md#settled--applies-everywhere).

@@ -229,8 +229,8 @@
           <div class="row">
             <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
             <div class="segmented">
-              <button aria-selected="false" onclick="location.href = '09-reports-monthly.html'">Mensal</button>
-              <button aria-selected="false" onclick="location.href = '10-reports-yearly.html'">Anual</button>
+              <button aria-selected="false" onclick="location.href = 'approved/09-reports-monthly.html'">Mensal</button>
+              <button aria-selected="false" onclick="location.href = 'approved/10-reports-yearly.html'">Anual</button>
               <button aria-selected="true">Gráficos</button>
             </div>
           </div>
@@ -253,8 +253,8 @@
                 <div class="donut">
                   <svg viewBox="0 0 120 120" id="donut"></svg>
                   <div class="mid">
-                    <b class="num">2.358,00 €</b>
-                    <span>despesas do mês</span>
+                    <b class="num" id="donutTotal">2.358,00 €</b>
+                    <span id="donutTotalLabel">despesas do mês</span>
                   </div>
                 </div>
                 <div style="flex: 1; min-width: 240px">
@@ -426,9 +426,10 @@
                 </span>
               </li>
               <li>
-                <b>Desligar uma série na legenda não recalcula os totais.</b>
+                <b>Desligar uma série recalcula o total no centro, e a categoria desligada continua na lista, riscada.</b>
                 <span>
-                  A rosca redistribui as fatias, mas o total no centro continua sendo o do mês. Esconder série é filtro de leitura, não filtro de dados.
+                  Clique em Moradia na legenda: a rosca redistribui, o número no meio passa a ser a soma do que ficou ligado — senão as fatias não fecham com o
+                  total — e a linha da Moradia fica riscada ao lado, com o valor ainda à vista. Desligar tira da rosca, não da leitura.
                 </span>
               </li>
               <li>
@@ -488,27 +489,39 @@
             })
             .join('');
 
+          /* O total no centro é recalculado: desligar uma categoria muda o
+             que a rosca soma, e um total que não acompanha faz as fatias não
+             fecharem com o número no meio. */
+          document.getElementById('donutTotal').textContent = eur(soma, { sign: false });
+          document.getElementById('donutTotalLabel').textContent = off.size
+            ? `${shown.length} de ${CATS.filter((c) => c.v[MES]).length} categorias`
+            : 'despesas do mês';
+
           /* O rótulo com valor ao lado da rosca é o que substitui casar cor
-             com legenda — sem ele, doze fatias em dez cores não se leem. */
-          document.getElementById('donutLabels').innerHTML = shown
-            .map(
-              (c) =>
-                `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--line)">
+             com legenda — sem ele, doze fatias em dez cores não se leem. A
+             categoria desligada continua na lista, riscada: sai da rosca, não
+             da leitura, e o valor dela continua à vista. */
+          document.getElementById('donutLabels').innerHTML = CATS.filter((c) => c.v[MES])
+            .map((c) => {
+              const hidden = off.has(c.name);
+              return `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--line);${
+                hidden ? 'opacity:.45;text-decoration:line-through' : ''
+              }">
                   <i class="dot" style="background:${c.color}"></i>
                   <span style="flex:1">${c.name}</span>
                   <b class="num">${int(c.v[MES])} €</b>
-                  <span class="num muted" style="width:52px;text-align:right">${((c.v[MES] / soma) * 100).toFixed(1)}%</span>
-                </div>`,
-            )
+                  <span class="num muted" style="width:52px;text-align:right">${hidden ? '—' : `${((c.v[MES] / soma) * 100).toFixed(1)}%`}</span>
+                </div>`;
+            })
             .join('');
 
           const max = Math.max(...shown.map((c) => c.v[MES]), 1);
-          document.getElementById('donutList').innerHTML = shown
+          document.getElementById('donutList').innerHTML = CATS.filter((c) => c.v[MES])
             .map(
-              (c) => `<div class="li">
+              (c) => `<div class="li"${off.has(c.name) ? ' style="opacity:.45;text-decoration:line-through"' : ''}>
                 <span><i class="dot" style="background:${c.color}"></i> ${c.name}</span>
                 <b class="num">${int(c.v[MES])} €</b>
-                <div class="bar"><span style="width:${(c.v[MES] / max) * 100}%;background:${c.color}"></span></div>
+                <div class="bar"><span style="width:${off.has(c.name) ? 0 : (c.v[MES] / max) * 100}%;background:${c.color}"></span></div>
               </div>`,
             )
             .join('');
