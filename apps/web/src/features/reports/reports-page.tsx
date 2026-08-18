@@ -6,11 +6,12 @@ import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ReportsCharts } from '@/features/reports/reports-charts';
 import { ReportsMonthly } from '@/features/reports/reports-monthly';
 import { ReportsYearly } from '@/features/reports/reports-yearly';
 import { MonthPicker } from '@/features/transactions/month-page';
 
-type ReportView = 'monthly' | 'yearly';
+type ReportView = 'monthly' | 'yearly' | 'charts';
 
 function parseInRange(value: string | null, min: number, max: number, fallback: number): number {
   const parsed = value === null ? NaN : Number(value);
@@ -18,17 +19,17 @@ function parseInRange(value: string | null, min: number, max: number, fallback: 
 }
 
 /**
- * `/reports` — M6-T03. State lives entirely in the URL (`?view=&year=&month=&compare=`), not in
- * `useState`: that is what makes a linked cell (Step 4) and a reloaded or shared `/reports` URL
- * restore the same screen. The segmented control only offers monthly/yearly today — charts land in
- * M6-T04 — but `ReportView` is already the open union a third tab extends.
+ * `/reports` — M6-T03/M6-T04. State lives entirely in the URL (`?view=&year=&month=&compare=`),
+ * not in `useState`: that is what makes a linked cell restore the same screen on reload or share.
+ * Charts (`?view=charts`) reuse the monthly view's month picker — the donut is a single month, the
+ * stacked bars and the income/expense line always draw that month's whole year.
  */
 export function ReportsPage() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
 
-  const view: ReportView = searchParams.get('view') === 'yearly' ? 'yearly' : 'monthly';
+  const view: ReportView = searchParams.get('view') === 'yearly' ? 'yearly' : searchParams.get('view') === 'charts' ? 'charts' : 'monthly';
   const year = parseInRange(searchParams.get('year'), 2000, 2100, now.getFullYear());
   const month = parseInRange(searchParams.get('month'), 1, 12, now.getMonth() + 1);
   const compare = searchParams.get('compare') === '1';
@@ -61,21 +62,12 @@ export function ReportsPage() {
             <TabsList>
               <TabsTrigger value="monthly">{t('reports.view.monthly')}</TabsTrigger>
               <TabsTrigger value="yearly">{t('reports.view.yearly')}</TabsTrigger>
+              <TabsTrigger value="charts">{t('reports.view.charts')}</TabsTrigger>
             </TabsList>
           </Tabs>
         }
         actions={
-          view === 'monthly' ? (
-            <span className="flex items-center gap-1">
-              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
-                <ChevronLeftIcon />
-              </Button>
-              <MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />
-              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
-                <ChevronRightIcon />
-              </Button>
-            </span>
-          ) : (
+          view === 'yearly' ? (
             <div className="flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
                 <Checkbox checked={compare} onCheckedChange={(checked) => update({ compare: checked === true ? '1' : undefined })} />
@@ -91,11 +83,27 @@ export function ReportsPage() {
                 </Button>
               </span>
             </div>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
+                <ChevronLeftIcon />
+              </Button>
+              <MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />
+              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
+                <ChevronRightIcon />
+              </Button>
+            </span>
           )
         }
       />
       <PageContent className="space-y-4">
-        {view === 'monthly' ? <ReportsMonthly year={year} month={month} /> : <ReportsYearly year={year} compare={compare} />}
+        {view === 'monthly' ? (
+          <ReportsMonthly year={year} month={month} />
+        ) : view === 'yearly' ? (
+          <ReportsYearly year={year} compare={compare} />
+        ) : (
+          <ReportsCharts year={year} month={month} />
+        )}
       </PageContent>
     </>
   );
