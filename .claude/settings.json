@@ -43,6 +43,7 @@
   },
   "enabledPlugins": {
     "security-guidance@claude-plugins-official": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "typescript-lsp@claude-plugins-official": true
   }
 }

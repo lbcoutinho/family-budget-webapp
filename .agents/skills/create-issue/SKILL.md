@@ -2,7 +2,6 @@
 name: create-issue
 description: Create or mirror a single ticket/issue. Use to create an issue by user request or use to mirror issue from project's plan/spec documents onto GitHub.
 model: haiku
-effort: medium
 ---
 
 # Usages
