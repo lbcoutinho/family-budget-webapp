@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -119,7 +119,9 @@ function transactionDetail(transaction: TransactionListItemDto): string {
   return [category, account].filter(Boolean).join(' — ');
 }
 
-function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) => void }) {
+/** Exported so the reports feature can reuse the same prev/next-plus-grid control over its own URL
+ * state instead of `/month`'s route (`plans/screens/AGENTS.md` §M6-T03 step 1). */
+export function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next: Date) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(month.getFullYear());
@@ -300,7 +302,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType>();
-  const [categoryFilter, setCategoryFilter] = useState<string>();
+  // `?categoryId=` is what makes a report's category link real (M6-T03): read once on mount, same
+  // as every other filter here, which all live in local state rather than the URL.
+  const [searchParams] = useSearchParams();
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(() => searchParams.get('categoryId') ?? undefined);
   const [accountFilter, setAccountFilter] = useState<string>();
   const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
   const [selectedDay, setSelectedDay] = useState<string>();

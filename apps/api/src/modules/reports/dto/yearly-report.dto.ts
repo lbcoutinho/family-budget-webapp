@@ -39,6 +39,20 @@ class YearlyReportAverageWindowDto {
   to!: string;
 }
 
+class YearlyReportSubcategoryDto {
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: '`null` for the amount with no subcategory chosen.' })
+  subcategoryId!: string | null;
+
+  @ApiProperty({ type: String, nullable: true, description: '`null` when `subcategoryId` is `null`.' })
+  name!: string | null;
+
+  @ApiProperty({ type: Number, isArray: true, description: 'Cents, 12 entries, index 0 = January. Zero for a month with no activity.' })
+  monthly!: number[];
+
+  @ApiProperty({ type: Number, description: 'Cents, sum of `monthly` — the row total.' })
+  total!: number;
+}
+
 class YearlyReportCategoryDto {
   @ApiProperty({ type: String, format: 'uuid', nullable: true, description: '`null` for the uncategorized bucket.' })
   categoryId!: string | null;
@@ -65,14 +79,18 @@ class YearlyReportCategoryDto {
       'average of the row above; for the current year the window reaches into the prior year, so it will not reconcile with `total / 12`.',
   })
   monthlyAverage!: number;
+
+  @ApiProperty({ type: YearlyReportSubcategoryDto, isArray: true, description: 'Rolled up into this row already; empty when the category has none.' })
+  subcategories!: YearlyReportSubcategoryDto[];
 }
 
 /**
- * `YearlyReportCategoryDto` minus `monthlyAverage` — the query range for `?compare=true` only
- * fetches the prior year's own twelve months, not a further rolling window behind it, so a genuine
- * rolling average isn't available for the comparison year.
+ * `YearlyReportCategoryDto` minus `monthlyAverage` and `subcategories` — the query range for
+ * `?compare=true` only fetches the prior year's own twelve months, not a further rolling window
+ * behind it, so a genuine rolling average isn't available for the comparison year, and the
+ * comparison never drives its own expandable rows (`10-reports-yearly.html`).
  */
-class YearlyReportComparisonCategoryDto extends OmitType(YearlyReportCategoryDto, ['monthlyAverage'] as const) {}
+class YearlyReportComparisonCategoryDto extends OmitType(YearlyReportCategoryDto, ['monthlyAverage', 'subcategories'] as const) {}
 
 class YearlyReportComparisonDto {
   @ApiProperty({ type: Number, example: 2025 })

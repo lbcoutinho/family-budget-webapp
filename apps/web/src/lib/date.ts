@@ -42,6 +42,28 @@ function monthName(locale: string): Intl.DateTimeFormat {
   return formatter;
 }
 
+const monthAbbreviationFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function monthAbbreviation(locale: string): Intl.DateTimeFormat {
+  const existing = monthAbbreviationFormatters.get(locale);
+
+  if (existing) {
+    return existing;
+  }
+
+  const formatter = new Intl.DateTimeFormat(locale, { month: 'short' });
+  monthAbbreviationFormatters.set(locale, formatter);
+
+  return formatter;
+}
+
+/** `formatMonthAbbreviation(new Date(2026, 6, 1))` → `"jul"`. The yearly report matrix's twelve
+ * column headers — short enough that twelve of them still fit a table. Defaults to the active
+ * language. */
+export function formatMonthAbbreviation(date: Date, locale: string = i18n.language): string {
+  return monthAbbreviation(locale).format(date).replace('.', '');
+}
+
 /** The first day of the month the date falls in, at midnight. This is `referenceMonth`'s shape. */
 export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);

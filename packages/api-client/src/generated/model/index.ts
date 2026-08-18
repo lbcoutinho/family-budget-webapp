@@ -61,4 +61,5 @@ export * from './yearlyReportComparisonCategoryDto';
 export * from './yearlyReportComparisonDto';
 export * from './yearlyReportDto';
 export * from './yearlyReportMonthDto';
+export * from './yearlyReportSubcategoryDto';
 export * from './yearlyReportTotalsDto';

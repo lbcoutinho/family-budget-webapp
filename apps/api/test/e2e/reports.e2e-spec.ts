@@ -316,6 +316,37 @@ describe('Reports API (e2e)', () => {
       expect(body.months[4]).toMatchObject({ month: 5, expense: 1_500 }); // May: its referenceMonth
     });
 
+    it('nests a subcategory breakdown under its root category, each with its own twelve-month series', async () => {
+      const subcategory = await prisma.category.create({
+        data: { userId, name: 'Supermercado', kind: CategoryKind.EXPENSE, parentId: expenseCategoryId },
+        select: { id: true },
+      });
+
+      await Promise.all([
+        seed({
+          type: 'EXPENSE',
+          amount: 600,
+          accountId,
+          categoryId: expenseCategoryId,
+          subcategoryId: subcategory.id,
+          date: new Date('2020-03-10'),
+          referenceMonth: new Date('2020-03-01'),
+        }),
+        seed({ type: 'EXPENSE', amount: 400, accountId, categoryId: expenseCategoryId, date: new Date('2020-03-10'), referenceMonth: new Date('2020-03-01') }),
+      ]);
+
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      const category = body.categories.find((c) => c.categoryId === expenseCategoryId)!;
+      expect(category.total).toBe(1_000);
+      expect(category.subcategories).toEqual(
+        expect.arrayContaining([
+          { subcategoryId: subcategory.id, name: 'Supermercado', monthly: [0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 600 },
+          { subcategoryId: null, name: null, monthly: [0, 0, 400, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 400 },
+        ]),
+      );
+    });
+
     it('includes the prior year under comparison when ?compare=true, and omits it otherwise', async () => {
       await Promise.all([
         seed({ type: 'EXPENSE', amount: 900, accountId, categoryId: expenseCategoryId, date: new Date('2020-06-10'), referenceMonth: new Date('2020-06-01') }),

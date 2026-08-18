@@ -18,6 +18,17 @@ beforeEach(() => {
     http.get('/api/transactions', () =>
       HttpResponse.json({ items: [], total: 0, incomeTotal: 0, expenseTotal: 0, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null }),
     ),
+    http.get('/api/reports/monthly', () =>
+      HttpResponse.json({
+        year: 2026,
+        month: 1,
+        incomeTotal: 0,
+        expenseTotal: 0,
+        balance: 0,
+        categories: [],
+        cashboxes: { items: [], depositsTotal: 0, withdrawalsTotal: 0, balance: 0 },
+      }),
+    ),
   );
 });
 
@@ -82,7 +93,7 @@ describe('AppLayout', () => {
 
     await user.click(screen.getByRole('link', { name: 'Relatórios' }));
 
-    expect(screen.getByRole('heading', { name: 'Relatórios' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Mensal' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Relatórios' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Mês' })).not.toHaveAttribute('aria-current');
   });

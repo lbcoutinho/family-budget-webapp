@@ -410,6 +410,56 @@
     "cashboxes": "Cashboxes",
     "total": "Consolidated total"
   },
+  "reports": {
+    "view": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "uncategorizedCategory": "No category",
+    "noSubcategory": "No subcategory",
+    "empty": {
+      "title": "No activity in this period",
+      "description": "As soon as there's income, expenses, or cashbox movement, they show up here."
+    },
+    "error": {
+      "title": "Couldn't load the report",
+      "description": "Check your connection and try again."
+    },
+    "monthly": {
+      "expenseTitle": "Expenses by category",
+      "expenseHint": "a category with no movement this month doesn't appear",
+      "incomeTitle": "Income by category",
+      "incomeHint": "separate table: mixing the two would make the % column ambiguous",
+      "totalExpense": "Total expenses",
+      "totalIncome": "Total income",
+      "category": "Category",
+      "amount": "Amount",
+      "percentage": "% of total",
+      "average": "Against the average",
+      "averageValue": "average {{value}}",
+      "averageTooltip": "Average over the twelve months ending with the month shown, divided only by the months with movement — never a flat twelve.",
+      "expand": "Show {{name}}'s subcategories",
+      "cashboxes": "Cashboxes this month",
+      "cashboxesHint": "Cashbox movement isn't an expense, so it isn't part of either table above. A transfer between cashboxes appears on both rows involved and cancels out in the total.",
+      "cashboxesVariation": "Change in what's set aside",
+      "informational": "informational",
+      "cashbox": "Cashbox",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
+      "variation": "Change",
+      "deletedCashbox": "deleted"
+    },
+    "yearly": {
+      "compare": "Compare with {{year}}",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
+      "total": "Total",
+      "average": "12-month average",
+      "averageTooltip": "Average over the twelve months ending in December of the year shown, divided only by the months with movement — never a flat twelve. For the current year the window reaches into the prior year, so this column may not reconcile with the twelve cells beside it.",
+      "wholeEurosHint": "whole-euro values — cents stay in the monthly view",
+      "comparisonValue": "{{year}}: {{value}}"
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Language",

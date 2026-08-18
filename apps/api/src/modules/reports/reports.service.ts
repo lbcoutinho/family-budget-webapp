@@ -16,10 +16,20 @@ type CashboxLookup = Map<string, { name: string }>;
 interface WindowRow {
   referenceMonth: Date;
   categoryId: string | null;
+  // Rides along so a category's rolling average can be split by subcategory too (mirrors
+  // `buildSubcategories`'s own amount split, which uses `SubcategoryRow` for the requested month).
+  subcategoryId: string | null;
   type: IncomeOrExpense;
   _sum: { amount: number | null };
 }
 interface SubcategoryRow {
+  categoryId: string | null;
+  subcategoryId: string | null;
+  type: IncomeOrExpense;
+  _sum: { amount: number | null };
+}
+interface YearlyRow {
+  referenceMonth: Date;
   categoryId: string | null;
   subcategoryId: string | null;
   type: IncomeOrExpense;
@@ -59,7 +69,7 @@ export class ReportsService {
     const [windowRows, subcategoryRows, cashboxSourceRows, cashboxDestinationRows] = (await this.prisma.$transaction((tx) =>
       Promise.all([
         tx.transaction.groupBy({
-          by: ['referenceMonth', 'categoryId', 'type'] as const,
+          by: ['referenceMonth', 'categoryId', 'subcategoryId', 'type'] as const,
           where: { ...where, type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: { gte: start, lte: end } },
           _sum: { amount: true },
         }),
@@ -134,13 +144,16 @@ export class ReportsService {
     const rangeEnd = windowEnd.getTime() > decOfYear.getTime() ? windowEnd : decOfYear;
 
     // A single `groupBy` call (unlike `getMonthly`'s `$transaction`-wrapped tuple above) keeps
-    // Prisma's precise literal return type, which doesn't structurally overlap `WindowRow[]`
+    // Prisma's precise literal return type, which doesn't structurally overlap `YearlyRow[]`
     // enough for a direct assertion — same shape, so the `unknown` hop is just to satisfy that.
+    // `subcategoryId` rides along so a category's rows can be split into a subcategory breakdown
+    // without a second query; the root matrix still rolls every subcategory back up into its
+    // category, same as before.
     const rows = (await this.prisma.transaction.groupBy({
-      by: ['categoryId', 'referenceMonth', 'type'] as const,
+      by: ['categoryId', 'subcategoryId', 'referenceMonth', 'type'] as const,
       where: { userId, status: 'CONFIRMED', type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: { gte: rangeStart, lte: rangeEnd } },
       _sum: { amount: true },
-    })) as unknown as WindowRow[];
+    })) as unknown as YearlyRow[];
 
     const categoryIds = new Set<string>();
     for (const row of rows) if (row.categoryId) categoryIds.add(row.categoryId);
@@ -151,7 +164,11 @@ export class ReportsService {
     const categoryLookup: CategoryLookup = new Map(categoryRows.map((c) => [c.id, { name: c.name, color: c.color }]));
 
     const primary = this.buildYearMatrix(year, rows, categoryLookup);
-    const categories = this.withMonthlyAverage(primary.categories, rows, windowEnd);
+    const withAverage = this.withMonthlyAverage(primary.categories, rows, windowEnd);
+    const categories = withAverage.map((category) => ({
+      ...category,
+      subcategories: this.buildYearSubcategories(category.categoryId, category.kind, year, rows, categoryLookup),
+    }));
     const comparison = compare ? this.buildYearMatrix(year - 1, rows, categoryLookup) : undefined;
 
     return {
@@ -167,7 +184,7 @@ export class ReportsService {
   /** Folds grouped rows for one calendar year into matrix cells (zero-filled) and column totals. Shared by the requested year and, when `compare` is set, the prior one. */
   private buildYearMatrix(
     targetYear: number,
-    rows: WindowRow[],
+    rows: YearlyRow[],
     categoryLookup: CategoryLookup,
   ): {
     months: YearlyReportDto['months'];
@@ -223,20 +240,47 @@ export class ReportsService {
   /** Attaches each category's rolling average, computed over `windowEnd`'s twelve-month window rather than the matrix year — the two can diverge for the current year. */
   private withMonthlyAverage(
     categories: ReturnType<ReportsService['buildYearMatrix']>['categories'],
-    rows: WindowRow[],
+    rows: YearlyRow[],
     windowEnd: Date,
-  ): YearlyReportDto['categories'] {
+  ): Omit<YearlyReportDto['categories'][number], 'subcategories'>[] {
     const averageMonths = monthsEndingAt(windowEnd);
 
     return categories.map((category) => {
-      const byMonth = new Map(
-        rows
-          .filter((row) => row.categoryId === category.categoryId && row.type === category.kind)
-          .map((row) => [row.referenceMonth.getTime(), row._sum.amount ?? 0]),
-      );
+      const byMonth = sumByMonth(rows, (row) => row.categoryId === category.categoryId && row.type === category.kind);
       const series = averageMonths.map((month) => byMonth.get(month.getTime()) ?? 0);
       return { ...category, monthlyAverage: rollingAverage(series) };
     });
+  }
+
+  /** A category's own amounts split by subcategory for one calendar year, same zero-filled twelve-month shape as the root row. Mirrors `buildSubcategories` for the monthly report. */
+  private buildYearSubcategories(
+    categoryId: string | null,
+    kind: IncomeOrExpense,
+    targetYear: number,
+    rows: YearlyRow[],
+    categoryLookup: CategoryLookup,
+  ): YearlyReportDto['categories'][number]['subcategories'] {
+    const matching = rows.filter((row) => row.categoryId === categoryId && row.type === kind && row.referenceMonth.getUTCFullYear() === targetYear);
+    if (matching.length === 0) return [];
+
+    const buckets = new Map<string | null, number[]>();
+    for (const row of matching) {
+      let monthly = buckets.get(row.subcategoryId);
+      if (!monthly) {
+        monthly = new Array(12).fill(0) as number[];
+        buckets.set(row.subcategoryId, monthly);
+      }
+      monthly[row.referenceMonth.getUTCMonth()] = (monthly[row.referenceMonth.getUTCMonth()] ?? 0) + (row._sum.amount ?? 0);
+    }
+
+    return [...buckets.entries()]
+      .map(([subcategoryId, monthly]) => ({
+        subcategoryId,
+        name: subcategoryId ? (categoryLookup.get(subcategoryId)?.name ?? null) : null,
+        monthly,
+        total: monthly.reduce((sum, amount) => sum + amount, 0),
+      }))
+      .sort((a, b) => b.total - a.total);
   }
 
   /** One row per (categoryId, kind) with activity this month, percentages independent per kind, subcategories and rolling average nested in. */
@@ -282,8 +326,7 @@ export class ReportsService {
         const key = `${bucket.categoryId ?? ''}|${bucket.kind}`;
         const category = bucket.categoryId ? categoryLookup.get(bucket.categoryId) : undefined;
 
-        const rollingAmounts = windowRows.filter((row) => row.categoryId === bucket.categoryId && row.type === bucket.kind);
-        const byMonth = new Map(rollingAmounts.map((row) => [row.referenceMonth.getTime(), row._sum.amount ?? 0]));
+        const byMonth = sumByMonth(windowRows, (row) => row.categoryId === bucket.categoryId && row.type === bucket.kind);
         const rollingSeries = monthStarts.map((monthStart) => byMonth.get(monthStart.getTime()) ?? 0);
 
         return {
@@ -294,19 +337,21 @@ export class ReportsService {
           amount: bucket.amount,
           percentage: percentageByKey.get(key) ?? 0,
           rollingAverage: rollingAverage(rollingSeries),
-          subcategories: this.buildSubcategories(bucket.categoryId, bucket.kind, bucket.amount, subcategoryRows, categoryLookup),
+          subcategories: this.buildSubcategories(bucket.categoryId, bucket.kind, bucket.amount, subcategoryRows, windowRows, categoryLookup, monthStarts),
         };
       })
       .sort((a, b) => (a.kind === b.kind ? b.amount - a.amount : a.kind.localeCompare(b.kind)));
   }
 
-  /** Subcategory buckets (including the "no subcategory chosen" null bucket) under one category+kind, percentages against that category's own amount. */
+  /** Subcategory buckets (including the "no subcategory chosen" null bucket) under one category+kind, percentages against that category's own amount, each with its own rolling average over the same window as the parent. */
   private buildSubcategories(
     categoryId: string | null,
     kind: IncomeOrExpense,
     categoryAmount: number,
     subcategoryRows: SubcategoryRow[],
+    windowRows: WindowRow[],
     categoryLookup: CategoryLookup,
+    monthStarts: Date[],
   ): MonthlyReportDto['categories'][number]['subcategories'] {
     const matching = subcategoryRows.filter((row) => row.categoryId === categoryId && row.type === kind);
     if (matching.length === 0) return [];
@@ -323,12 +368,18 @@ export class ReportsService {
     );
 
     return entries
-      .map(([subcategoryId, amount], index) => ({
-        subcategoryId,
-        name: subcategoryId ? (categoryLookup.get(subcategoryId)?.name ?? null) : null,
-        amount,
-        percentage: percentages[index] ?? 0,
-      }))
+      .map(([subcategoryId, amount], index) => {
+        const byMonth = sumByMonth(windowRows, (row) => row.categoryId === categoryId && row.subcategoryId === subcategoryId && row.type === kind);
+        const rollingSeries = monthStarts.map((monthStart) => byMonth.get(monthStart.getTime()) ?? 0);
+
+        return {
+          subcategoryId,
+          name: subcategoryId ? (categoryLookup.get(subcategoryId)?.name ?? null) : null,
+          amount,
+          percentage: percentages[index] ?? 0,
+          rollingAverage: rollingAverage(rollingSeries),
+        };
+      })
       .sort((a, b) => b.amount - a.amount);
   }
 
@@ -382,6 +433,20 @@ export class ReportsService {
 
 function sumWhere(rows: WindowRow[], predicate: (row: WindowRow) => boolean): number {
   return rows.filter(predicate).reduce((sum, row) => sum + (row._sum.amount ?? 0), 0);
+}
+
+/** Sums `_sum.amount` per `referenceMonth`, for rows matching `predicate`. More than one grouped row
+ * can share a month once `subcategoryId` splits the group (one row per subcategory in use that
+ * month) — summing here, rather than building a `Map` straight from `[time, amount]` entries, is
+ * what keeps every subcategory's amount instead of only the last one written to a given key. */
+function sumByMonth<T extends { referenceMonth: Date; _sum: { amount: number | null } }>(rows: T[], predicate: (row: T) => boolean): Map<number, number> {
+  const byMonth = new Map<number, number>();
+  for (const row of rows) {
+    if (!predicate(row)) continue;
+    const time = row.referenceMonth.getTime();
+    byMonth.set(time, (byMonth.get(time) ?? 0) + (row._sum.amount ?? 0));
+  }
+  return byMonth;
 }
 
 /** `@db.Date` columns render as plain `YYYY-MM-DD` in responses — same convention as `TransactionsService`. */

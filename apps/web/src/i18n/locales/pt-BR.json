@@ -410,6 +410,56 @@
     "cashboxes": "Caixinhas",
     "total": "Total consolidado"
   },
+  "reports": {
+    "view": {
+      "monthly": "Mensal",
+      "yearly": "Anual"
+    },
+    "uncategorizedCategory": "Sem categoria",
+    "noSubcategory": "Sem subcategoria",
+    "empty": {
+      "title": "Nenhum movimento no período",
+      "description": "Assim que houver receitas, despesas ou movimento de caixinha, eles aparecem aqui."
+    },
+    "error": {
+      "title": "Não foi possível carregar o relatório",
+      "description": "Verifique a conexão e tente de novo."
+    },
+    "monthly": {
+      "expenseTitle": "Despesas por categoria",
+      "expenseHint": "categoria sem movimento no mês não aparece",
+      "incomeTitle": "Receitas por categoria",
+      "incomeHint": "tabela separada: misturar as duas tornaria a coluna de % ambígua",
+      "totalExpense": "Total de despesas",
+      "totalIncome": "Total de receitas",
+      "category": "Categoria",
+      "amount": "Valor",
+      "percentage": "% do total",
+      "average": "Contra a média",
+      "averageValue": "média {{value}}",
+      "averageTooltip": "Média dos doze meses que terminam no mês exibido, dividida só pelos meses que tiveram movimento — nunca por doze fixos.",
+      "expand": "Ver subcategorias de {{name}}",
+      "cashboxes": "Caixinhas no mês",
+      "cashboxesHint": "Movimento de caixinha não é despesa, então não entra em nenhuma das tabelas acima. Transferência entre caixinhas aparece nas duas linhas envolvidas e se anula no total.",
+      "cashboxesVariation": "Variação do reservado",
+      "informational": "informativo",
+      "cashbox": "Caixinha",
+      "deposits": "Depósitos",
+      "withdrawals": "Resgates",
+      "variation": "Variação",
+      "deletedCashbox": "apagada"
+    },
+    "yearly": {
+      "compare": "Comparar com {{year}}",
+      "previousYear": "Ano anterior",
+      "nextYear": "Próximo ano",
+      "total": "Total",
+      "average": "Média 12 meses",
+      "averageTooltip": "Média dos doze meses que terminam em dezembro do ano exibido, dividida só pelos meses que tiveram movimento — nunca por doze fixos. Para o ano corrente a janela entra no ano anterior, então esta coluna pode não fechar com as doze células ao lado.",
+      "wholeEurosHint": "valores em euros inteiros — os cêntimos ficam na visão mensal",
+      "comparisonValue": "{{year}}: {{value}}"
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Idioma",
