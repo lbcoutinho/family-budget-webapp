@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { startOfMonthUtc } from '../transactions/reference-month';
 
 import { MonthlyReportDto } from './dto/monthly-report.dto';
-import { distributePercentages, rollingAverage } from './report-math';
+import { YearlyReportDto } from './dto/yearly-report.dto';
+import { averageWindow, distributePercentages, monthsEndingAt, rollingAverage } from './report-math';
 
 type IncomeOrExpense = 'INCOME' | 'EXPENSE';
 type CategoryLookup = Map<string, { name: string; color: string | null }>;
@@ -51,7 +53,7 @@ export class ReportsService {
 
   async getMonthly(userId: string, year: number, month: number): Promise<MonthlyReportDto> {
     const end = new Date(Date.UTC(year, month - 1, 1));
-    const start = new Date(Date.UTC(year, month - 1 - 11, 1));
+    const { from: start } = averageWindow(end);
     const where: Prisma.TransactionWhereInput = { userId, status: 'CONFIRMED' };
 
     const [windowRows, subcategoryRows, cashboxSourceRows, cashboxDestinationRows] = (await this.prisma.$transaction((tx) =>
@@ -106,9 +108,135 @@ export class ReportsService {
       incomeTotal,
       expenseTotal,
       balance: incomeTotal - expenseTotal,
-      categories: this.buildCategories(monthRows, windowRows, subcategoryRows, categoryLookup, incomeTotal, expenseTotal, year, month),
+      categories: this.buildCategories(monthRows, windowRows, subcategoryRows, categoryLookup, incomeTotal, expenseTotal, end),
       cashboxes: this.buildCashboxes(cashboxSourceRows, cashboxDestinationRows, cashboxLookup),
     };
+  }
+
+  /**
+   * Builds the yearly-by-category matrix (M6-T02, #182). One `groupBy` covers the requested year,
+   * the average window (which reaches back before January for the current year) and, when
+   * `compare` is set, the prior year — `now` defaults to the real clock and is only ever overridden
+   * from a test, to make the past-year-vs-current-year window selection deterministic.
+   */
+  async getYearly(userId: string, year: number, compare: boolean, now: Date = new Date()): Promise<YearlyReportDto> {
+    const janOfYear = new Date(Date.UTC(year, 0, 1));
+    const decOfYear = new Date(Date.UTC(year, 11, 1));
+    const currentMonthStart = startOfMonthUtc(now);
+    // Complete past year -> window ends in December of that year, so the average reconciles with
+    // the matrix's own twelve columns. Current year -> window ends at the current month, reaching
+    // back into the prior year.
+    const windowEnd = currentMonthStart.getTime() < decOfYear.getTime() ? currentMonthStart : decOfYear;
+    const { from: windowStart } = averageWindow(windowEnd);
+
+    const janOfPriorYear = new Date(Date.UTC(year - 1, 0, 1));
+    const rangeStart = [janOfYear, windowStart, ...(compare ? [janOfPriorYear] : [])].reduce((min, date) => (date.getTime() < min.getTime() ? date : min));
+    const rangeEnd = windowEnd.getTime() > decOfYear.getTime() ? windowEnd : decOfYear;
+
+    // A single `groupBy` call (unlike `getMonthly`'s `$transaction`-wrapped tuple above) keeps
+    // Prisma's precise literal return type, which doesn't structurally overlap `WindowRow[]`
+    // enough for a direct assertion — same shape, so the `unknown` hop is just to satisfy that.
+    const rows = (await this.prisma.transaction.groupBy({
+      by: ['categoryId', 'referenceMonth', 'type'] as const,
+      where: { userId, status: 'CONFIRMED', type: { in: ['INCOME', 'EXPENSE'] }, referenceMonth: { gte: rangeStart, lte: rangeEnd } },
+      _sum: { amount: true },
+    })) as unknown as WindowRow[];
+
+    const categoryIds = new Set<string>();
+    for (const row of rows) if (row.categoryId) categoryIds.add(row.categoryId);
+
+    const categoryRows = categoryIds.size
+      ? await this.prisma.category.findMany({ where: { id: { in: [...categoryIds] } }, select: { id: true, name: true, color: true } })
+      : [];
+    const categoryLookup: CategoryLookup = new Map(categoryRows.map((c) => [c.id, { name: c.name, color: c.color }]));
+
+    const primary = this.buildYearMatrix(year, rows, categoryLookup);
+    const categories = this.withMonthlyAverage(primary.categories, rows, windowEnd);
+    const comparison = compare ? this.buildYearMatrix(year - 1, rows, categoryLookup) : undefined;
+
+    return {
+      year,
+      averageWindow: { from: dateOnly(windowStart), to: dateOnly(windowEnd) },
+      months: primary.months,
+      categories,
+      totals: primary.totals,
+      ...(comparison ? { comparison: { year: year - 1, ...comparison } } : {}),
+    };
+  }
+
+  /** Folds grouped rows for one calendar year into matrix cells (zero-filled) and column totals. Shared by the requested year and, when `compare` is set, the prior one. */
+  private buildYearMatrix(
+    targetYear: number,
+    rows: WindowRow[],
+    categoryLookup: CategoryLookup,
+  ): {
+    months: YearlyReportDto['months'];
+    categories: { categoryId: string | null; name: string | null; color: string | null; kind: IncomeOrExpense; monthly: number[]; total: number }[];
+    totals: YearlyReportDto['totals'];
+  } {
+    const monthStarts = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(targetYear, i, 1)));
+    const yearRows = rows.filter((row) => row.referenceMonth.getUTCFullYear() === targetYear);
+
+    const buckets = new Map<string, { categoryId: string | null; kind: IncomeOrExpense; monthly: number[] }>();
+    for (const row of yearRows) {
+      const key = `${row.categoryId ?? ''}|${row.type}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = { categoryId: row.categoryId, kind: row.type, monthly: new Array(12).fill(0) as number[] };
+        buckets.set(key, bucket);
+      }
+      const index = row.referenceMonth.getUTCMonth();
+      bucket.monthly[index] = (bucket.monthly[index] ?? 0) + (row._sum.amount ?? 0);
+    }
+
+    const categories = [...buckets.values()]
+      .map((bucket) => {
+        const category = bucket.categoryId ? categoryLookup.get(bucket.categoryId) : undefined;
+        return {
+          categoryId: bucket.categoryId,
+          name: category?.name ?? null,
+          color: category?.color ?? null,
+          kind: bucket.kind,
+          monthly: bucket.monthly,
+          total: bucket.monthly.reduce((sum, amount) => sum + amount, 0),
+        };
+      })
+      .sort((a, b) => (a.kind === b.kind ? b.total - a.total : a.kind.localeCompare(b.kind)));
+
+    const months = monthStarts.map((monthStart, index) => {
+      const income = sumWhere(yearRows, (row) => row.type === 'INCOME' && row.referenceMonth.getTime() === monthStart.getTime());
+      const expense = sumWhere(yearRows, (row) => row.type === 'EXPENSE' && row.referenceMonth.getTime() === monthStart.getTime());
+      return { month: index + 1, income, expense, balance: income - expense };
+    });
+
+    return {
+      months,
+      categories,
+      totals: {
+        income: months.reduce((sum, m) => sum + m.income, 0),
+        expense: months.reduce((sum, m) => sum + m.expense, 0),
+        balance: months.reduce((sum, m) => sum + m.balance, 0),
+      },
+    };
+  }
+
+  /** Attaches each category's rolling average, computed over `windowEnd`'s twelve-month window rather than the matrix year — the two can diverge for the current year. */
+  private withMonthlyAverage(
+    categories: ReturnType<ReportsService['buildYearMatrix']>['categories'],
+    rows: WindowRow[],
+    windowEnd: Date,
+  ): YearlyReportDto['categories'] {
+    const averageMonths = monthsEndingAt(windowEnd);
+
+    return categories.map((category) => {
+      const byMonth = new Map(
+        rows
+          .filter((row) => row.categoryId === category.categoryId && row.type === category.kind)
+          .map((row) => [row.referenceMonth.getTime(), row._sum.amount ?? 0]),
+      );
+      const series = averageMonths.map((month) => byMonth.get(month.getTime()) ?? 0);
+      return { ...category, monthlyAverage: rollingAverage(series) };
+    });
   }
 
   /** One row per (categoryId, kind) with activity this month, percentages independent per kind, subcategories and rolling average nested in. */
@@ -119,8 +247,7 @@ export class ReportsService {
     categoryLookup: CategoryLookup,
     incomeTotal: number,
     expenseTotal: number,
-    year: number,
-    month: number,
+    end: Date,
   ): MonthlyReportDto['categories'] {
     // Fold key is categoryId + kind, never categoryId alone: a category could in principle carry
     // both income and expense rows, and each side's percentage/total must stay on its own side.
@@ -148,7 +275,7 @@ export class ReportsService {
     incomeRows.forEach((row, index) => percentageByKey.set(`${row.categoryId ?? ''}|${row.kind}`, incomePercentages[index] ?? 0));
     expenseRows.forEach((row, index) => percentageByKey.set(`${row.categoryId ?? ''}|${row.kind}`, expensePercentages[index] ?? 0));
 
-    const monthStarts = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(year, month - 1 - (11 - i), 1)));
+    const monthStarts = monthsEndingAt(end);
 
     return rows
       .map((bucket) => {
@@ -255,4 +382,9 @@ export class ReportsService {
 
 function sumWhere(rows: WindowRow[], predicate: (row: WindowRow) => boolean): number {
   return rows.filter(predicate).reduce((sum, row) => sum + (row._sum.amount ?? 0), 0);
+}
+
+/** `@db.Date` columns render as plain `YYYY-MM-DD` in responses — same convention as `TransactionsService`. */
+function dateOnly(date: Date): string {
+  return date.toISOString().slice(0, 10);
 }

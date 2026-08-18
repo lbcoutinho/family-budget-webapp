@@ -10,6 +10,7 @@ import { CategoryKind, type Prisma, type TransactionType } from '../../src/gener
 import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
 import { type MonthlyReportDto } from '../../src/modules/reports/dto/monthly-report.dto';
+import { type YearlyReportDto } from '../../src/modules/reports/dto/yearly-report.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /**
@@ -189,5 +190,145 @@ describe('Reports API (e2e)', () => {
     const otherBody = (await authed('get', '/reports/monthly?year=2026&month=5', otherToken).expect(200)).body as MonthlyReportDto;
 
     expect(otherBody).toMatchObject({ incomeTotal: 0, expenseTotal: 0, categories: [] });
+  });
+
+  describe('GET /reports/yearly', () => {
+    it('answers 401 without a token', async () => {
+      await request(server).get('/api/reports/yearly?year=2026').expect(401);
+    });
+
+    it('answers 400 for an out-of-range year', async () => {
+      await authed('get', '/reports/yearly?year=1999').expect(400);
+    });
+
+    it('returns the zeroed structure for a year with no fixtures', async () => {
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      expect(body.year).toBe(2020);
+      expect(body.categories).toEqual([]);
+      expect(body.months).toHaveLength(12);
+      expect(body.months.every((m) => m.income === 0 && m.expense === 0 && m.balance === 0)).toBe(true);
+      expect(body.totals).toEqual({ income: 0, expense: 0, balance: 0 });
+    });
+
+    it('matches the sum of the year’s twelve monthly summaries for a complete past year', async () => {
+      await Promise.all([
+        seed({ type: 'INCOME', amount: 5_000, accountId, categoryId: incomeCategoryId, date: new Date('2020-02-10'), referenceMonth: new Date('2020-02-01') }),
+        seed({
+          type: 'EXPENSE',
+          amount: 1_200,
+          accountId,
+          categoryId: expenseCategoryId,
+          date: new Date('2020-02-10'),
+          referenceMonth: new Date('2020-02-01'),
+        }),
+        seed({ type: 'EXPENSE', amount: 800, accountId, categoryId: expenseCategoryId, date: new Date('2020-09-10'), referenceMonth: new Date('2020-09-01') }),
+      ]);
+
+      const yearly = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      const [febRes, sepRes] = await Promise.all([
+        authed('get', '/reports/monthly?year=2020&month=2').expect(200),
+        authed('get', '/reports/monthly?year=2020&month=9').expect(200),
+      ]);
+      const feb = febRes.body as MonthlyReportDto;
+      const sep = sepRes.body as MonthlyReportDto;
+
+      expect(yearly.totals).toEqual({ income: feb.incomeTotal, expense: feb.expenseTotal + sep.expenseTotal, balance: feb.balance + sep.balance });
+      expect(yearly.months[1]).toMatchObject({ month: 2, income: feb.incomeTotal, expense: feb.expenseTotal });
+      expect(yearly.months[8]).toMatchObject({ month: 9, income: 0, expense: sep.expenseTotal });
+
+      // A complete past year's own average reconciles with its own twelve columns.
+      const groceries = yearly.categories.find((c) => c.categoryId === expenseCategoryId)!;
+      expect(groceries.monthlyAverage).toBe(1_000); // (1_200 + 800) / 2 months with movement
+    });
+
+    it('sums every one of the 6 transaction types, excluding TRANSFER and CASHBOX_* from income/expense', async () => {
+      await Promise.all([
+        seed({ type: 'INCOME', amount: 5_000, accountId, categoryId: incomeCategoryId, date: new Date('2020-05-15'), referenceMonth: new Date('2020-05-01') }),
+        seed({
+          type: 'EXPENSE',
+          amount: 2_000,
+          accountId,
+          categoryId: expenseCategoryId,
+          date: new Date('2020-05-15'),
+          referenceMonth: new Date('2020-05-01'),
+        }),
+        seed({
+          type: 'TRANSFER',
+          amount: 1_000,
+          accountId,
+          destinationAccountId: otherAccountId,
+          date: new Date('2020-05-15'),
+          referenceMonth: new Date('2020-05-01'),
+        }),
+        seed({ type: 'CASHBOX_IN', amount: 800, accountId, cashboxId, date: new Date('2020-05-15'), referenceMonth: new Date('2020-05-01') }),
+        seed({ type: 'CASHBOX_OUT', amount: 300, accountId, cashboxId, date: new Date('2020-05-15'), referenceMonth: new Date('2020-05-01') }),
+        seed({
+          type: 'CASHBOX_TRANSFER',
+          amount: 200,
+          cashboxId,
+          destinationCashboxId: otherCashboxId,
+          date: new Date('2020-05-15'),
+          referenceMonth: new Date('2020-05-01'),
+        }),
+      ]);
+
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      expect(body.totals).toEqual({ income: 5_000, expense: 2_000, balance: 3_000 });
+      expect(body.categories.find((c) => c.categoryId === incomeCategoryId)).toMatchObject({ kind: 'INCOME', total: 5_000 });
+      expect(body.categories.find((c) => c.categoryId === expenseCategoryId)).toMatchObject({ kind: 'EXPENSE', total: 2_000 });
+    });
+
+    it('excludes a DRAFT transaction from every total', async () => {
+      await seed({
+        type: 'INCOME',
+        amount: 1_000_000,
+        accountId,
+        categoryId: incomeCategoryId,
+        status: 'DRAFT',
+        source: 'VOICE',
+        date: new Date('2020-05-15'),
+        referenceMonth: new Date('2020-05-01'),
+      });
+
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      expect(body.totals).toEqual({ income: 0, expense: 0, balance: 0 });
+      expect(body.categories).toEqual([]);
+    });
+
+    it('reports a credit-card transaction under its referenceMonth column, not the month of its date', async () => {
+      await seed({
+        type: 'EXPENSE',
+        amount: 1_500,
+        accountId,
+        categoryId: expenseCategoryId,
+        isCreditCard: true,
+        date: new Date('2020-04-20'),
+        referenceMonth: new Date('2020-05-01'),
+      });
+
+      const body = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+
+      expect(body.months[3]).toMatchObject({ month: 4, expense: 0 }); // April: the transaction's date
+      expect(body.months[4]).toMatchObject({ month: 5, expense: 1_500 }); // May: its referenceMonth
+    });
+
+    it('includes the prior year under comparison when ?compare=true, and omits it otherwise', async () => {
+      await Promise.all([
+        seed({ type: 'EXPENSE', amount: 900, accountId, categoryId: expenseCategoryId, date: new Date('2020-06-10'), referenceMonth: new Date('2020-06-01') }),
+        seed({ type: 'EXPENSE', amount: 400, accountId, categoryId: expenseCategoryId, date: new Date('2019-06-10'), referenceMonth: new Date('2019-06-01') }),
+      ]);
+
+      const withoutCompare = (await authed('get', '/reports/yearly?year=2020').expect(200)).body as YearlyReportDto;
+      expect(withoutCompare.comparison).toBeUndefined();
+
+      const withCompare = (await authed('get', '/reports/yearly?year=2020&compare=true').expect(200)).body as YearlyReportDto;
+      expect(withCompare.comparison?.year).toBe(2019);
+      expect(withCompare.comparison?.totals).toEqual({ income: 0, expense: 400, balance: -400 });
+      expect(withCompare.totals).toEqual({ income: 0, expense: 900, balance: -900 });
+    });
   });
 });

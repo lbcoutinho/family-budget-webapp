@@ -22,7 +22,9 @@ import type {
 
 import type {
   GetMonthlyReportParams,
-  MonthlyReportDto
+  GetYearlyReportParams,
+  MonthlyReportDto,
+  YearlyReportDto
 } from '../model';
 
 import { customInstance } from '../../lib/axios';
@@ -128,6 +130,99 @@ export function useGetMonthlyReport<TData = Awaited<ReturnType<typeof getMonthly
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMonthlyReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Income and expense by category across a year, as a month-by-category matrix
+ */
+export const getYearlyReport = (
+    params: GetYearlyReportParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<YearlyReportDto>(
+      {url: `/reports/yearly`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetYearlyReportQueryKey = (params?: GetYearlyReportParams,) => {
+    return [
+    `/reports/yearly`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetYearlyReportQueryOptions = <TData = Awaited<ReturnType<typeof getYearlyReport>>, TError = ErrorType<unknown>>(params: GetYearlyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetYearlyReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getYearlyReport>>> = ({ signal }) => getYearlyReport(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetYearlyReportQueryResult = NonNullable<Awaited<ReturnType<typeof getYearlyReport>>>
+export type GetYearlyReportQueryError = ErrorType<unknown>
+
+
+export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyReport>>, TError = ErrorType<unknown>>(
+ params: GetYearlyReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getYearlyReport>>,
+          TError,
+          Awaited<ReturnType<typeof getYearlyReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyReport>>, TError = ErrorType<unknown>>(
+ params: GetYearlyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getYearlyReport>>,
+          TError,
+          Awaited<ReturnType<typeof getYearlyReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyReport>>, TError = ErrorType<unknown>>(
+ params: GetYearlyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Income and expense by category across a year, as a month-by-category matrix
+ */
+
+export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyReport>>, TError = ErrorType<unknown>>(
+ params: GetYearlyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getYearlyReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetYearlyReportQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
