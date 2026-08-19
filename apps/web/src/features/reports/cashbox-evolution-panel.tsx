@@ -15,7 +15,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CATEGORY_PALETTE } from '@/features/categories/category-colors';
+import { paletteColor } from '@/features/reports/category-color';
 import { ReportsErrorState, ReportsSkeleton } from '@/features/reports/report-shell';
 import { Legend, TooltipCard, useHiddenSeries } from '@/features/reports/reports-charts';
 import { formatMonthAbbreviation } from '@/lib/date';
@@ -30,15 +30,6 @@ interface CashboxSeries {
   key: string;
   color: string;
   cashbox: CashboxesReportCashboxDto;
-}
-
-/** Deterministic pick from the category palette, keyed by id when live or by name when the
- * cashbox was deleted (it has no id left) — same idea as `category-color.ts`'s fallback, so two
- * cashboxes reliably land on different swatches instead of both defaulting to the same grey. */
-function cashboxColor(key: string): string {
-  let hash = 0;
-  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) | 0;
-  return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length]!;
 }
 
 function ProgressCell({ closingBalance, targetAmount }: { closingBalance: number; targetAmount: number | null }) {
@@ -72,7 +63,7 @@ export function CashboxEvolutionPanel({ year }: CashboxEvolutionPanelProps) {
     () =>
       (query.data?.cashboxes ?? []).map((cashbox) => {
         const key = cashbox.cashboxId ?? `label:${cashbox.name}`;
-        return { key, color: cashboxColor(key), cashbox };
+        return { key, color: paletteColor(key), cashbox };
       }),
     [query.data],
   );
