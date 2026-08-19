@@ -26,8 +26,11 @@ import type {
 
 import type {
   ApiErrorDto,
+  CancelInstallmentPlanResultDto,
+  CreateInstallmentPlanDto,
   CreateRecurrenceRuleDto,
   GenerateRecurrenceRuleResultDto,
+  InstallmentPlanDto,
   ListRecurrenceRulesParams,
   PreviewRecurrenceRuleDto,
   PreviewRecurrenceRuleParams,
@@ -594,3 +597,129 @@ export function usePreviewRecurrenceRule<TData = Awaited<ReturnType<typeof previ
 
 
 
+/**
+ * @summary Create an installment plan, materializing every installment up front
+ */
+export const createInstallmentPlan = (
+    createInstallmentPlanDto: BodyType<CreateInstallmentPlanDto>,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<InstallmentPlanDto>(
+      {url: `/recurrence-rules/installment`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createInstallmentPlanDto, signal
+    },
+      );
+    }
+
+
+
+
+export const getCreateInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext> => {
+
+const mutationKey = ['createInstallmentPlan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInstallmentPlan>>, {data: BodyType<CreateInstallmentPlanDto>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createInstallmentPlan(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateInstallmentPlanMutationResult = NonNullable<Awaited<ReturnType<typeof createInstallmentPlan>>>
+    export type CreateInstallmentPlanMutationBody = BodyType<CreateInstallmentPlanDto>
+    export type CreateInstallmentPlanMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Create an installment plan, materializing every installment up front
+ */
+export const useCreateInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createInstallmentPlan>>,
+        TError,
+        {data: BodyType<CreateInstallmentPlanDto>},
+        TContext
+      > => {
+      return useMutation(getCreateInstallmentPlanMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule
+ */
+export const cancelInstallmentPlan = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CancelInstallmentPlanResultDto>(
+      {url: `/recurrence-rules/${id}/cancel-installments`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+
+export const getCancelInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelInstallmentPlan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelInstallmentPlan>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelInstallmentPlan(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelInstallmentPlanMutationResult = NonNullable<Awaited<ReturnType<typeof cancelInstallmentPlan>>>
+
+    export type CancelInstallmentPlanMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule
+ */
+export const useCancelInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelInstallmentPlan>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelInstallmentPlanMutationOptions(options), queryClient);
+    }
