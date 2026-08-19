@@ -1,14 +1,21 @@
 import { Module } from '@nestjs/common';
 
+import { TransactionsModule } from '../transactions/transactions.module';
+
 import { RecurrenceGeneratorService } from './recurrence-generator.service';
+import { RecurrenceRulesController } from './recurrence-rules.controller';
+import { RecurrenceRulesService } from './recurrence-rules.service';
 
 /**
- * `PrismaModule` is global, so nothing needs importing here. No controller yet — #197 adds CRUD/
- * preview/manual-generation endpoints on top of `RecurrenceGeneratorService`, exported so #197/#199
- * can inject it without a controller-to-controller dependency.
+ * `PrismaModule` is global, so nothing needs importing here. `TransactionsModule` is imported for
+ * its exported `TransactionValidator`, which `RecurrenceRulesService` reuses for cross-field
+ * reference validation (M7-T03). `RecurrenceGeneratorService` stays exported for #199 (the
+ * scheduled generation job).
  */
 @Module({
-  providers: [RecurrenceGeneratorService],
+  imports: [TransactionsModule],
+  controllers: [RecurrenceRulesController],
+  providers: [RecurrenceGeneratorService, RecurrenceRulesService],
   exports: [RecurrenceGeneratorService],
 })
 export class RecurrenceModule {}
