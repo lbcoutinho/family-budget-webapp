@@ -8,6 +8,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { RecurrenceModule } from './modules/recurrence/recurrence.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
@@ -41,6 +42,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AccountsModule,
     CashboxesModule,
     CategoriesModule,
+    RecurrenceModule,
     ReportsModule,
     TransactionsModule,
     UsersModule,
