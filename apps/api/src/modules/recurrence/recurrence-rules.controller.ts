@@ -5,13 +5,17 @@ import { ApiErrorDto } from '../../common/api-error';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
+import { CancelInstallmentPlanResultDto } from './dto/cancel-installment-plan-result.dto';
+import { CreateInstallmentPlanDto } from './dto/create-installment-plan.dto';
 import { CreateRecurrenceRuleDto } from './dto/create-recurrence-rule.dto';
 import { GenerateRecurrenceRuleResultDto } from './dto/generate-recurrence-rule-result.dto';
+import { InstallmentPlanDto } from './dto/installment-plan.dto';
 import { ListRecurrenceRulesQueryDto } from './dto/list-recurrence-rules-query.dto';
 import { PreviewQueryDto } from './dto/preview-query.dto';
 import { PreviewRecurrenceRuleDto } from './dto/preview-recurrence-rule.dto';
 import { RecurrenceRuleDto } from './dto/recurrence-rule.dto';
 import { UpdateRecurrenceRuleDto } from './dto/update-recurrence-rule.dto';
+import { InstallmentsService } from './installments.service';
 import { RecurrenceRulesService } from './recurrence-rules.service';
 
 /**
@@ -30,7 +34,10 @@ import { RecurrenceRulesService } from './recurrence-rules.service';
 @ApiNotFoundResponse({ type: ApiErrorDto, description: 'No such recurrence rule — or it belongs to another user.' })
 @Controller('recurrence-rules')
 export class RecurrenceRulesController {
-  constructor(private readonly recurrenceRules: RecurrenceRulesService) {}
+  constructor(
+    private readonly recurrenceRules: RecurrenceRulesService,
+    private readonly installments: InstallmentsService,
+  ) {}
 
   @ApiOperation({ operationId: 'listRecurrenceRules', summary: "List the user's recurrence rules" })
   @ApiQuery({ name: 'includeInactive', type: Boolean, required: false, description: 'Include deactivated rules. Off by default.' })
@@ -92,5 +99,27 @@ export class RecurrenceRulesController {
   @Get(':id/preview')
   preview(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Query() query: PreviewQueryDto): Promise<PreviewRecurrenceRuleDto> {
     return this.recurrenceRules.preview(user.id, id, query.months);
+  }
+
+  @ApiOperation({
+    operationId: 'createInstallmentPlan',
+    summary: 'Create an installment plan, materializing every installment up front',
+  })
+  @ApiBody({ type: CreateInstallmentPlanDto })
+  @ApiCreatedResponse({ type: InstallmentPlanDto })
+  @Post('installment')
+  createInstallmentPlan(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInstallmentPlanDto): Promise<InstallmentPlanDto> {
+    return this.installments.createPlan(user.id, dto);
+  }
+
+  @ApiOperation({
+    operationId: 'cancelInstallmentPlan',
+    summary: 'Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule',
+  })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiOkResponse({ type: CancelInstallmentPlanResultDto })
+  @Post(':id/cancel-installments')
+  cancelInstallmentPlan(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<CancelInstallmentPlanResultDto> {
+    return this.installments.cancelPlan(user.id, id);
   }
 }
