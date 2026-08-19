@@ -473,6 +473,18 @@
       "income": "Receitas",
       "expense": "Despesas",
       "toggleSeries": "Ligar ou desligar {{name}}"
+    },
+    "cashboxes": {
+      "title": "Caixinhas em {{year}}",
+      "badge": "fora das despesas",
+      "warning": "Depósito em caixinha não é despesa e resgate não é receita — por isso nada aqui aparece nos gráficos acima. Transferência entre caixinhas move as duas linhas e não muda o total reservado.",
+      "cashbox": "Caixinha",
+      "deposits": "Depósitos",
+      "withdrawals": "Resgates",
+      "closingBalance": "Saldo em {{month}}",
+      "target": "Meta",
+      "noTarget": "sem meta",
+      "progress": "{{percent}}% de {{target}}"
     }
   },
   "settingsGeneral": {

@@ -4,7 +4,10 @@
  * client-side recomputation of amounts or percentages beyond what a legend toggle forces (see
  * `DonutCard` below).
  *
- * The cashbox chart (`11-reports-charts.html`'s bottom block) is out of scope — that is #185.
+ * The cashbox chart (`11-reports-charts.html`'s bottom block, M6-T05, #185) lives in
+ * `cashbox-evolution-panel.tsx`, rendered by `ReportsPage` below this component — kept apart from
+ * the expense charts, same as the prototype. `useHiddenSeries`/`Legend`/`TooltipCard` are exported
+ * from here for it to reuse, rather than duplicating the toggle/legend/tooltip chrome.
  */
 import { CategoryKind, useGetMonthlyReport, useGetYearlyReport, type MonthlyReportCategoryDto, type YearlyReportCategoryDto } from '@family-budget/api-client';
 import { PiggyBankIcon } from 'lucide-react';
@@ -14,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis } from 'recharts';
 
 import { EmptyState } from '@/components/empty-state';
+import { CashboxEvolutionPanel } from '@/features/reports/cashbox-evolution-panel';
 import { categoryColor } from '@/features/reports/category-color';
 import { formatPercent } from '@/features/reports/report-format';
 import { ReportsErrorState, ReportsSkeleton } from '@/features/reports/report-shell';
@@ -44,7 +48,7 @@ function categoryKey(categoryId: string | null): string {
 
 /** Session-only hidden-series state — `useState`, never the URL, never persisted
  * (`prototypes/memory/11-charts.md`). */
-function useHiddenSeries(): [ReadonlySet<string>, (key: string) => void] {
+export function useHiddenSeries(): [ReadonlySet<string>, (key: string) => void] {
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
 
   const toggle = (key: string) =>
@@ -58,7 +62,7 @@ function useHiddenSeries(): [ReadonlySet<string>, (key: string) => void] {
   return [hidden, toggle];
 }
 
-function Legend({
+export function Legend({
   items,
   hidden,
   onToggle,
@@ -94,7 +98,7 @@ function Legend({
   );
 }
 
-function TooltipCard({ rows, total }: { rows: { name: string; color: string; amount: number; percentage?: number }[]; total?: string }) {
+export function TooltipCard({ rows, total }: { rows: { name: string; color: string; amount: number; percentage?: number }[]; total?: string }) {
   return (
     <div className="rounded-md border bg-popover p-2 text-[12px] shadow-md">
       {total ? <div className="mb-1 font-medium">{total}</div> : null}
@@ -457,6 +461,8 @@ export function ReportsCharts({ year, month }: ReportsChartsProps) {
           <IncomeExpenseCard months={incomeExpenseMonths} />
         </section>
       </div>
+
+      <CashboxEvolutionPanel year={year} />
     </div>
   );
 }

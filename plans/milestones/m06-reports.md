@@ -138,28 +138,4 @@ Visual reading of distribution and trend, complementing the table.
 
 ## M6-T05 — Cashbox evolution panel
 
-### Why this is needed
-Cashboxes are excluded from expense reports by construction, so they need a view of their own.
-
-### Implementation notes
-- A section on `/reports`, or a tab on the cashboxes screen
-- Line chart of each cashbox's balance across the year
-- Table of deposits, withdrawals and closing balance per cashbox for the period
-- Progress against `targetAmount` where defined
-- `GET /reports/cashboxes?year=` returning the time series
-- A cashbox deleted during the period (zero balance, ADR-0019) still has a row for the months it
-  was active in, labeled from `cashboxLabel`, ending at its last month of activity — it has no
-  entity to link to, so its row is not clickable. Grouping is by `cashboxId`, falling back to
-  `cashboxLabel` when it is null — otherwise every deleted cashbox collapses into a single row
-
-### Acceptance criteria
-- [ ] Monthly balance evolution shown per cashbox
-- [ ] Deposits and withdrawals summed correctly for the period
-- [ ] Cashbox transfers are reflected in both cashboxes involved
-- [ ] Progress against the goal is shown where applicable
-- [ ] An inactive cashbox with history still appears in the report
-- [ ] A deleted cashbox still appears in the report for the months it was active, named from
-  `cashboxLabel`
-
-### Tests
-- Integration: time series including cashbox transfers; an inactive cashbox with history
+Done — see #185.

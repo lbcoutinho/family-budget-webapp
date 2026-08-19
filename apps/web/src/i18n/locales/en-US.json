@@ -473,6 +473,18 @@
       "income": "Income",
       "expense": "Expenses",
       "toggleSeries": "Toggle {{name}}"
+    },
+    "cashboxes": {
+      "title": "Cashboxes in {{year}}",
+      "badge": "not an expense",
+      "warning": "A cashbox deposit isn't an expense and a withdrawal isn't income — that's why nothing here shows up in the charts above. A transfer between cashboxes moves both rows and doesn't change the total set aside.",
+      "cashbox": "Cashbox",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
+      "closingBalance": "Balance at {{month}}",
+      "target": "Target",
+      "noTarget": "no target",
+      "progress": "{{percent}}% of {{target}}"
     }
   },
   "settingsGeneral": {
