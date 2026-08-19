@@ -46,10 +46,11 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  accounts     Account[]
-  categories   Category[]
-  cashboxes    Cashbox[]
-  transactions Transaction[]
+  accounts        Account[]
+  categories      Category[]
+  cashboxes       Cashbox[]
+  transactions    Transaction[]
+  recurrenceRules RecurrenceRule[]
 
   @@map("users")
 }
@@ -79,8 +80,9 @@ model Account {
 
   // Restrict, not Cascade: an account with transactions cannot be deleted (ADR-0015), only
   // deactivated. Two named relations because a `TRANSFER` references an account on both sides.
-  transactions            Transaction[] @relation("TransactionAccount")
-  destinationTransactions Transaction[] @relation("TransactionDestinationAccount")
+  transactions            Transaction[]    @relation("TransactionAccount")
+  destinationTransactions Transaction[]    @relation("TransactionDestinationAccount")
+  recurrenceRules         RecurrenceRule[]
 
   @@unique([userId, name])
   @@index([userId, isActive])
@@ -137,8 +139,10 @@ model Category {
   // Restrict, not Cascade: a category with transactions cannot be deleted (ADR-0015), only
   // deactivated. Two named relations because a transaction carries both a root `categoryId` and,
   // optionally, a child `subcategoryId`.
-  transactions            Transaction[] @relation("TransactionCategory")
-  subcategoryTransactions Transaction[] @relation("TransactionSubcategory")
+  transactions               Transaction[]    @relation("TransactionCategory")
+  subcategoryTransactions    Transaction[]    @relation("TransactionSubcategory")
+  recurrenceRules            RecurrenceRule[] @relation("RecurrenceRuleCategory")
+  subcategoryRecurrenceRules RecurrenceRule[] @relation("RecurrenceRuleSubcategory")
 
   // Subcategories only — see the note above on NULL and the partial index that covers roots.
   @@unique([userId, parentId, name])
@@ -217,6 +221,84 @@ enum TransactionSource {
   @@map("transaction_source")
 }
 
+/// How often a `RecurrenceRule` fires. `interval` multiplies the unit — e.g. `MONTHLY` with
+/// `interval = 2` is bimonthly (M7-T01, `docs/adr/0014-unified-recurrence-and-installments.md`).
+enum Frequency {
+  MONTHLY
+  YEARLY
+
+  @@map("frequency")
+}
+
+/// A template that produces transactions over time — long-running fixed expenses and purchase
+/// installments are the same structural problem (ADR-0014): `totalOccurrences` tells them apart,
+/// null for open-ended recurrence, a value for installments. The rule is a template, not a live
+/// binding: fields are copied onto each generated transaction, so editing the rule never rewrites
+/// history already produced.
+///
+/// `generatedUntil` and the unique index on `Transaction(recurrenceRuleId, referenceMonth)`
+/// (hand-written into the migration) are the two idempotency guards ADR-0014 calls for; the
+/// generator that advances `generatedUntil` lands in M7-T02.
+model RecurrenceRule {
+  id     String          @id @default(uuid()) @db.Uuid
+  /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
+  userId String          @map("user_id") @db.Uuid
+  /// Reuses `TransactionType`; `CASHBOX_*`/`TRANSFER` are left to service-level validation, same
+  /// as `Transaction` (M7-T02/T03).
+  type   TransactionType
+  /// Always positive, in **cents** (ADR-0005) — copied onto each generated transaction.
+  amount Int
+
+  /// Copied onto each generated transaction's `description`.
+  description String
+  notes       String?
+
+  /// Default account for generated entries.
+  accountId     String? @map("account_id") @db.Uuid
+  /// Root category.
+  categoryId    String? @map("category_id") @db.Uuid
+  /// Child of `categoryId`.
+  subcategoryId String? @map("subcategory_id") @db.Uuid
+
+  frequency  Frequency
+  /// Every N months/years, per `frequency`.
+  interval   Int       @default(1)
+  /// 1–31 (CHECK below); a day that doesn't exist in the target month — 31 in February — falls
+  /// back to the last day of that month, in the generator (ADR-0014).
+  dayOfMonth Int       @map("day_of_month")
+
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+
+  /// Null = open-ended recurrence; a value = installments, and must be >= 1 (CHECK below).
+  totalOccurrences Int? @map("total_occurrences")
+
+  /// Whether a generated entry starts as `CONFIRMED` (fixed amount) or `DRAFT` (variable amount,
+  /// e.g. a utility bill) — ADR-0014.
+  autoConfirm Boolean @default(true) @map("auto_confirm")
+  isActive    Boolean @default(true) @map("is_active")
+
+  /// Rolling generation horizon watermark; null means the rule has never been generated.
+  generatedUntil DateTime? @map("generated_until") @db.Date
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Restrict, not Cascade: an account/category with rules is deactivated, not deleted (ADR-0015).
+  account     Account?  @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category    Category? @relation("RecurrenceRuleCategory", fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  subcategory Category? @relation("RecurrenceRuleSubcategory", fields: [subcategoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  transactions Transaction[]
+
+  @@index([userId, isActive])
+  @@index([userId, isActive, generatedUntil])
+  @@map("recurrence_rules")
+}
+
 /// The domain core: every deposit, expense, transfer and cashbox movement is one row here, typed by
 /// `type` (M4-T04 enforces which fields each type actually uses; the foreign keys themselves stay
 /// nullable at the schema level because the constraint is per-type, not universal).
@@ -271,6 +353,14 @@ model Transaction {
   cashboxLabel            String? @map("cashbox_label")
   destinationCashboxLabel String? @map("destination_cashbox_label")
 
+  /// The rule that generated this transaction, if any (M7). `SetNull`: deleting a rule must never
+  /// delete the history it produced (ADR-0014) — see the model doc comment above for the family.
+  recurrenceRuleId  String? @map("recurrence_rule_id") @db.Uuid
+  /// This entry's position among the rule's installments, e.g. 3 of 12. Null on a manual entry.
+  installmentNumber Int?    @map("installment_number")
+  /// The rule's `totalOccurrences` at generation time. Null on a manual entry.
+  installmentTotal  Int?    @map("installment_total")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -286,6 +376,9 @@ model Transaction {
   // SetNull here, and only here — see the model doc comment above for why (ADR-0019).
   cashbox            Cashbox? @relation("TransactionCashbox", fields: [cashboxId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   destinationCashbox Cashbox? @relation("TransactionDestinationCashbox", fields: [destinationCashboxId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // SetNull, not Restrict: deleting a rule must never delete the history it produced (ADR-0014).
+  recurrenceRule RecurrenceRule? @relation(fields: [recurrenceRuleId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([userId, referenceMonth, status])
   @@index([userId, type, referenceMonth])
