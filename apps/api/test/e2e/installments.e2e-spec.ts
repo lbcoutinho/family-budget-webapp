@@ -166,7 +166,13 @@ describe('Installments API (e2e)', () => {
       expect(await balanceOf()).toBe(before);
     });
 
-    it('leaves no rule and no transaction when creation fails (atomicity)', async () => {
+    it('leaves no rule and no transaction when a request fails', async () => {
+      // A DTO/reference-validation failure — the only failure this black-box HTTP test can force
+      // deterministically. `InstallmentsService.createPlan` runs `TransactionValidator.validate` and
+      // `splitInstallments` before ever opening `prisma.$transaction`, so this never touches the
+      // database; a genuine mid-`$transaction` rollback is covered at the unit level instead
+      // (`installments.service.spec.ts`: "validates references before writing anything" asserts
+      // `prisma.$transaction` is never called).
       await authed('post', '/recurrence-rules/installment')
         .send(validBody({ categoryId: undefined, subcategoryId: undefined, type: 'TRANSFER' }))
         .expect(400);
@@ -218,7 +224,7 @@ describe('Installments API (e2e)', () => {
         data: { status: 'CONFIRMED' },
       });
 
-      const result = (await authed('post', `/recurrence-rules/${plan.rule.id}/cancel-installments`).expect(201)).body as CancelInstallmentPlanResultDto;
+      const result = (await authed('post', `/recurrence-rules/${plan.rule.id}/cancel-installments`).expect(200)).body as CancelInstallmentPlanResultDto;
       expect(result.deleted).toBe(8);
 
       const remaining = await prisma.transaction.findMany({ where: { recurrenceRuleId: plan.rule.id }, orderBy: { installmentNumber: 'asc' } });

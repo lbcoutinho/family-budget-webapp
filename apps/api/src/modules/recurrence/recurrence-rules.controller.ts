@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { ApiErrorDto } from '../../common/api-error';
@@ -118,6 +118,7 @@ export class RecurrenceRulesController {
   })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({ type: CancelInstallmentPlanResultDto })
+  @HttpCode(HttpStatus.OK)
   @Post(':id/cancel-installments')
   cancelInstallmentPlan(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<CancelInstallmentPlanResultDto> {
     return this.installments.cancelPlan(user.id, id);
