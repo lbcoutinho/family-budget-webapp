@@ -49,6 +49,8 @@ export const ERROR_CODES = [
   'CASHBOX_NOT_EMPTY',
   /** A `RecurrenceRule.type` outside `INCOME`/`EXPENSE` reached the generator (M7-T02). */
   'RECURRENCE_TYPE_NOT_ALLOWED',
+  /** `endDate` at or before `startDate` on a `RecurrenceRule` (M7-T03). */
+  'RECURRENCE_END_BEFORE_START',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
