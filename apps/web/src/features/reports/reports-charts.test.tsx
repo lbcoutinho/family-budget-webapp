@@ -1,4 +1,4 @@
-import { type MonthlyReportDto, type YearlyReportDto } from '@family-budget/api-client';
+import { type CashboxesReportDto, type MonthlyReportDto, type YearlyReportDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -81,6 +81,8 @@ const YEARLY_REPORT: YearlyReportDto = {
 
 const EMPTY_YEARLY: YearlyReportDto = { ...YEARLY_REPORT, months: MONTHS, categories: [], totals: { income: 0, expense: 0, balance: 0 } };
 
+const EMPTY_CASHBOXES: CashboxesReportDto = { year: 2026, cashboxes: [] };
+
 function renderReports(initialEntry = '/reports?view=charts&year=2026&month=7') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter(routes, { initialEntries: [initialEntry] });
@@ -106,6 +108,7 @@ describe('ReportsPage — charts view', () => {
     server.use(
       http.get('/api/reports/monthly', () => HttpResponse.json(MONTHLY_REPORT)),
       http.get('/api/reports/yearly', () => HttpResponse.json(YEARLY_REPORT)),
+      http.get('/api/reports/cashboxes', () => HttpResponse.json(EMPTY_CASHBOXES)),
     );
   });
 

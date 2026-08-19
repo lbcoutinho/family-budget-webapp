@@ -21,6 +21,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CashboxesReportDto,
+  GetCashboxesReportParams,
   GetMonthlyReportParams,
   GetYearlyReportParams,
   MonthlyReportDto,
@@ -223,6 +225,99 @@ export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyRe
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetYearlyReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Each cashbox's monthly balance evolution across a year, deposits/withdrawals and progress toward its target
+ */
+export const getCashboxesReport = (
+    params: GetCashboxesReportParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CashboxesReportDto>(
+      {url: `/reports/cashboxes`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetCashboxesReportQueryKey = (params?: GetCashboxesReportParams,) => {
+    return [
+    `/reports/cashboxes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCashboxesReportQueryOptions = <TData = Awaited<ReturnType<typeof getCashboxesReport>>, TError = ErrorType<unknown>>(params: GetCashboxesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashboxesReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashboxesReport>>> = ({ signal }) => getCashboxesReport(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashboxesReportQueryResult = NonNullable<Awaited<ReturnType<typeof getCashboxesReport>>>
+export type GetCashboxesReportQueryError = ErrorType<unknown>
+
+
+export function useGetCashboxesReport<TData = Awaited<ReturnType<typeof getCashboxesReport>>, TError = ErrorType<unknown>>(
+ params: GetCashboxesReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashboxesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getCashboxesReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashboxesReport<TData = Awaited<ReturnType<typeof getCashboxesReport>>, TError = ErrorType<unknown>>(
+ params: GetCashboxesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashboxesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getCashboxesReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashboxesReport<TData = Awaited<ReturnType<typeof getCashboxesReport>>, TError = ErrorType<unknown>>(
+ params: GetCashboxesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Each cashbox's monthly balance evolution across a year, deposits/withdrawals and progress toward its target
+ */
+
+export function useGetCashboxesReport<TData = Awaited<ReturnType<typeof getCashboxesReport>>, TError = ErrorType<unknown>>(
+ params: GetCashboxesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashboxesReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashboxesReportQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

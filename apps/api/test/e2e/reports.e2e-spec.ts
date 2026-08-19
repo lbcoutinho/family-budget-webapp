@@ -9,6 +9,7 @@ import { configureApp } from '../../src/app.setup';
 import { CategoryKind, type Prisma, type TransactionType } from '../../src/generated/prisma/client';
 import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
+import { type CashboxesReportDto } from '../../src/modules/reports/dto/cashboxes-report.dto';
 import { type MonthlyReportDto } from '../../src/modules/reports/dto/monthly-report.dto';
 import { type YearlyReportDto } from '../../src/modules/reports/dto/yearly-report.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -380,6 +381,109 @@ describe('Reports API (e2e)', () => {
       expect(withCompare.comparison?.year).toBe(2019);
       expect(withCompare.comparison?.totals).toEqual({ income: 0, expense: 400, balance: -400 });
       expect(withCompare.totals).toEqual({ income: 0, expense: 900, balance: -900 });
+    });
+  });
+
+  describe('GET /reports/cashboxes', () => {
+    it('answers 401 without a token', async () => {
+      await request(server).get('/api/reports/cashboxes?year=2026').expect(401);
+    });
+
+    it('answers 400 for an out-of-range year', async () => {
+      await authed('get', '/reports/cashboxes?year=1999').expect(400);
+    });
+
+    it('includes every live cashbox with zeros for a year with no fixtures', async () => {
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      expect(body.year).toBe(2026);
+      expect(body.cashboxes).toHaveLength(2);
+      const carro = body.cashboxes.find((c) => c.cashboxId === cashboxId)!;
+      expect(carro).toMatchObject({ name: 'Carro', isActive: true, targetAmount: null, openingBalance: 0, deposits: 0, withdrawals: 0, closingBalance: 0 });
+      expect(carro.months).toHaveLength(12);
+      expect(carro.months.every((m) => m.deposits === 0 && m.withdrawals === 0 && m.balance === 0)).toBe(true);
+    });
+
+    it('carries a prior year balance into the opening balance and the running monthly balance', async () => {
+      await Promise.all([
+        seed({ type: 'CASHBOX_IN', amount: 5_000, cashboxId, date: new Date('2025-11-10'), referenceMonth: new Date('2025-11-01') }),
+        seed({ type: 'CASHBOX_IN', amount: 1_000, cashboxId, date: new Date('2026-03-10'), referenceMonth: new Date('2026-03-01') }),
+        seed({ type: 'CASHBOX_OUT', amount: 400, cashboxId, date: new Date('2026-03-10'), referenceMonth: new Date('2026-03-01') }),
+      ]);
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      const carro = body.cashboxes.find((c) => c.cashboxId === cashboxId)!;
+      expect(carro.openingBalance).toBe(5_000);
+      expect(carro.deposits).toBe(1_000);
+      expect(carro.withdrawals).toBe(400);
+      expect(carro.months[1]).toMatchObject({ month: 2, deposits: 0, withdrawals: 0, balance: 5_000 });
+      expect(carro.months[2]).toMatchObject({ month: 3, deposits: 1_000, withdrawals: 400, balance: 5_600 });
+      expect(carro.closingBalance).toBe(5_600);
+    });
+
+    it('nets a CASHBOX_TRANSFER to zero across the two cashboxes it moves money between, in transfersIn/transfersOut', async () => {
+      await seed({
+        type: 'CASHBOX_TRANSFER',
+        amount: 700,
+        cashboxId,
+        destinationCashboxId: otherCashboxId,
+        date: new Date('2026-06-10'),
+        referenceMonth: new Date('2026-06-01'),
+      });
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      const source = body.cashboxes.find((c) => c.cashboxId === cashboxId)!;
+      const destination = body.cashboxes.find((c) => c.cashboxId === otherCashboxId)!;
+      expect(source).toMatchObject({ transfersOut: 700, deposits: 0, withdrawals: 0, closingBalance: -700 });
+      expect(destination).toMatchObject({ transfersIn: 700, deposits: 0, withdrawals: 0, closingBalance: 700 });
+    });
+
+    it('keeps an inactive cashbox with history in the report, still clickable', async () => {
+      await prisma.cashbox.update({ where: { id: cashboxId }, data: { isActive: false } });
+      await seed({ type: 'CASHBOX_IN', amount: 300, cashboxId, date: new Date('2026-02-10'), referenceMonth: new Date('2026-02-01') });
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      expect(body.cashboxes.find((c) => c.cashboxId === cashboxId)).toMatchObject({ isActive: false, deposits: 300 });
+    });
+
+    it('shows progress toward targetAmount when set', async () => {
+      await prisma.cashbox.update({ where: { id: cashboxId }, data: { targetAmount: 10_000 } });
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      expect(body.cashboxes.find((c) => c.cashboxId === cashboxId)).toMatchObject({ targetAmount: 10_000 });
+    });
+
+    it("keeps a deleted cashbox's row for the months it was active, named from its label snapshot, not clickable, ending at its last active month", async () => {
+      await seed({ type: 'CASHBOX_IN', amount: 900, cashboxId, cashboxLabel: 'Carro', date: new Date('2026-04-10'), referenceMonth: new Date('2026-04-01') });
+      await seed({ type: 'CASHBOX_OUT', amount: 900, cashboxId, cashboxLabel: 'Carro', date: new Date('2026-04-10'), referenceMonth: new Date('2026-04-01') });
+      await prisma.cashbox.delete({ where: { id: cashboxId } });
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      const deleted = body.cashboxes.find((c) => c.cashboxId === null)!;
+      expect(deleted).toMatchObject({ name: 'Carro', isActive: null, targetAmount: null, closingBalance: 0 });
+      expect(deleted.months[3]).toMatchObject({ month: 4, balance: 0 });
+      expect(deleted.months[4]).toMatchObject({ month: 5, balance: null });
+    });
+
+    it('excludes a DRAFT transaction from every total', async () => {
+      await seed({ type: 'CASHBOX_IN', amount: 1_000_000, cashboxId, status: 'DRAFT', source: 'VOICE' });
+
+      const body = (await authed('get', '/reports/cashboxes?year=2026').expect(200)).body as CashboxesReportDto;
+
+      expect(body.cashboxes.find((c) => c.cashboxId === cashboxId)).toMatchObject({ deposits: 0, closingBalance: 0 });
+    });
+
+    it("never lets another user's transactions leak into the caller's report", async () => {
+      await seed({ type: 'CASHBOX_IN', amount: 999_999, cashboxId });
+
+      const otherBody = (await authed('get', '/reports/cashboxes?year=2026', otherToken).expect(200)).body as CashboxesReportDto;
+
+      expect(otherBody.cashboxes).toEqual([]);
     });
   });
 });
