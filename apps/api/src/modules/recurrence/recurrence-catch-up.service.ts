@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -24,17 +23,18 @@ const LOCK_NAMESPACE = 199_00;
  */
 @Injectable()
 export class RecurrenceCatchUpService {
+  private readonly logger = new Logger(RecurrenceCatchUpService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly generator: RecurrenceGeneratorService,
-    @InjectPinoLogger(RecurrenceCatchUpService.name) private readonly logger: PinoLogger,
   ) {}
 
   async runForUser(userId: string): Promise<RecurrenceCatchUpResultDto> {
     const locked = await this.tryLock(userId);
 
     if (!locked) {
-      this.logger.warn({ userId }, 'Recurrence catch-up skipped: already running for this user');
+      this.logger.warn({ msg: 'Recurrence catch-up skipped: already running for this user', userId });
       return { rulesProcessed: 0, created: 0, failed: [], skippedLocked: true };
     }
 
@@ -67,14 +67,14 @@ export class RecurrenceCatchUpService {
         created += result.created;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        this.logger.error({ userId, ruleId: rule.id, err: error }, 'Recurrence catch-up failed for rule');
+        this.logger.error({ msg: 'Recurrence catch-up failed for rule', userId, ruleId: rule.id, err: message });
         failed.push({ ruleId: rule.id, message });
       }
     }
 
     const result: RecurrenceCatchUpResultDto = { rulesProcessed: rules.length, created, failed, skippedLocked: false };
 
-    this.logger.info({ userId, ...result }, 'Recurrence catch-up run complete');
+    this.logger.log({ msg: 'Recurrence catch-up run complete', userId, ...result });
 
     return result;
   }

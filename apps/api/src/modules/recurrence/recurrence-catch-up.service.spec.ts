@@ -1,5 +1,3 @@
-import { type PinoLogger } from 'nestjs-pino';
-
 import { type Prisma, type RecurrenceRule } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
 
@@ -47,11 +45,10 @@ function setup(options: { locked?: boolean; rules?: RecurrenceRule[] } = {}) {
   const prisma = { recurrenceRule: { findMany }, $queryRaw: queryRaw } as unknown as PrismaService;
   const generate = jest.fn().mockResolvedValue({ created: 1, generatedUntil: new Date('2026-04-30T00:00:00.000Z') });
   const generator = { generate } as unknown as RecurrenceGeneratorService;
-  const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), trace: jest.fn(), fatal: jest.fn() } as unknown as PinoLogger;
 
-  const service = new RecurrenceCatchUpService(prisma, generator, logger);
+  const service = new RecurrenceCatchUpService(prisma, generator);
 
-  return { service, findMany, queryRaw, generate, logger };
+  return { service, findMany, queryRaw, generate };
 }
 
 describe('RecurrenceCatchUpService', () => {
