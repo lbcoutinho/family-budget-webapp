@@ -487,6 +487,13 @@
       "progress": "{{percent}}% of {{target}}"
     }
   },
+  "recurrence": {
+    "catchUp": {
+      "created_one": "{{count}} recurring entry created",
+      "created_other": "{{count}} recurring entries created",
+      "error": "Couldn't generate recurring entries right now."
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Language",
