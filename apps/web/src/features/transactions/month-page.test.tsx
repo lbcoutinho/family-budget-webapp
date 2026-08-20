@@ -63,6 +63,7 @@ const CONFIRMED: TransactionListItemDto = {
 };
 
 const DRAFT: TransactionListItemDto = { ...CONFIRMED, id: 'draft-1', status: TransactionStatus.DRAFT, description: 'Voice draft', isCreditCard: false };
+const RECURRING: TransactionListItemDto = { ...CONFIRMED, id: 'recurring-1', source: 'RECURRING', description: 'Rent' };
 const CASHBOX_TRANSFER: TransactionListItemDto = {
   ...CONFIRMED,
   id: 'cashbox-transfer-1',
@@ -170,6 +171,19 @@ describe('MonthPage', () => {
     expect(badge).toHaveClass('text-cashbox');
     expect(screen.getByText('500,00 €')).toHaveClass('text-transfer');
     expect(badge.closest('article')).toHaveStyle({ borderLeftColor: 'var(--transfer)' });
+  });
+
+  it('marks recurring entries without marking manual entries', async () => {
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([CONFIRMED, RECURRING])),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByLabelText('Lançamento recorrente')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Lançamento recorrente')).toHaveLength(1);
   });
 
   it('debounces the server-side description search', async () => {

@@ -274,6 +274,7 @@
     "previousYear": "Previous year",
     "nextYear": "Next year",
     "creditCard": "Credit card",
+    "recurring": "Recurring entry",
     "purchaseOn": "purchased on {{date}}",
     "balancePlaceholder": "Balance unavailable",
     "dailyExpense": {
