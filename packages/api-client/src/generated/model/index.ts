@@ -56,6 +56,8 @@ export * from './monthlyReportDto';
 export * from './monthlyReportSubcategoryDto';
 export * from './previewRecurrenceRuleDto';
 export * from './previewRecurrenceRuleParams';
+export * from './previewRecurrenceRulePayloadDto';
+export * from './previewRecurrenceRulePayloadDtoFrequency';
 export * from './recurrenceRuleDto';
 export * from './recurrenceRuleDtoFrequency';
 export * from './recurrenceRuleDtoType';

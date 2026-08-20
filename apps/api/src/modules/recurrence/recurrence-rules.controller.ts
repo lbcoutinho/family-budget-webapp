@@ -12,6 +12,7 @@ import { GenerateRecurrenceRuleResultDto } from './dto/generate-recurrence-rule-
 import { InstallmentPlanDto } from './dto/installment-plan.dto';
 import { ListRecurrenceRulesQueryDto } from './dto/list-recurrence-rules-query.dto';
 import { PreviewQueryDto } from './dto/preview-query.dto';
+import { PreviewRecurrenceRulePayloadDto } from './dto/preview-recurrence-rule-payload.dto';
 import { PreviewRecurrenceRuleDto } from './dto/preview-recurrence-rule.dto';
 import { RecurrenceRuleDto } from './dto/recurrence-rule.dto';
 import { UpdateRecurrenceRuleDto } from './dto/update-recurrence-rule.dto';
@@ -99,6 +100,30 @@ export class RecurrenceRulesController {
   @Get(':id/preview')
   preview(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Query() query: PreviewQueryDto): Promise<PreviewRecurrenceRuleDto> {
     return this.recurrenceRules.preview(user.id, id, query.months);
+  }
+
+  @ApiOperation({
+    operationId: 'previewRecurrenceRulePayload',
+    summary: 'Preview upcoming occurrences for an unsaved rule payload — persists nothing',
+  })
+  @ApiBody({ type: PreviewRecurrenceRulePayloadDto })
+  @ApiOkResponse({ type: PreviewRecurrenceRuleDto })
+  @HttpCode(HttpStatus.OK)
+  @Post('preview')
+  previewPayload(@Body() dto: PreviewRecurrenceRulePayloadDto): PreviewRecurrenceRuleDto {
+    return this.recurrenceRules.previewPayload(dto);
+  }
+
+  @ApiOperation({
+    operationId: 'deactivateRecurrenceRule',
+    summary: 'Deactivate a recurrence rule, keeping it and its generated transactions',
+  })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiOkResponse({ type: RecurrenceRuleDto })
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/deactivate')
+  deactivate(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<RecurrenceRuleDto> {
+    return this.recurrenceRules.deactivate(user.id, id);
   }
 
   @ApiOperation({

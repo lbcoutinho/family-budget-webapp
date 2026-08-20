@@ -9,6 +9,7 @@ import { type TransactionRefInput, TransactionValidator } from '../transactions/
 import { CreateRecurrenceRuleDto } from './dto/create-recurrence-rule.dto';
 import { type GenerateRecurrenceRuleResultDto } from './dto/generate-recurrence-rule-result.dto';
 import { ListRecurrenceRulesQueryDto } from './dto/list-recurrence-rules-query.dto';
+import { type PreviewRecurrenceRulePayloadDto } from './dto/preview-recurrence-rule-payload.dto';
 import { type PreviewRecurrenceRuleDto } from './dto/preview-recurrence-rule.dto';
 import { RecurrenceRuleDto } from './dto/recurrence-rule.dto';
 import { UpdateRecurrenceRuleDto } from './dto/update-recurrence-rule.dto';
@@ -158,6 +159,47 @@ export class RecurrenceRulesService {
     const occurrences = computeOccurrences(rule, this.rollingHorizon(months), alreadyGenerated);
 
     return { occurrences: occurrences.map((date) => date.toISOString().slice(0, 10)) };
+  }
+
+  /**
+   * `POST /recurrence-rules/preview` — the same pure occurrence calculator, but for a form payload
+   * that has never been persisted (#208): no `id` to load, no Prisma read at all. `generatedUntil` is
+   * always `null` and `alreadyGenerated` is always `0` since an unsaved rule cannot have generated
+   * anything yet.
+   */
+  previewPayload(dto: PreviewRecurrenceRulePayloadDto): PreviewRecurrenceRuleDto {
+    this.assertDateRange(dto.startDate, dto.endDate ?? null);
+
+    const rule = {
+      frequency: dto.frequency,
+      interval: dto.interval ?? 1,
+      dayOfMonth: dto.dayOfMonth,
+      startDate: dto.startDate,
+      endDate: dto.endDate ?? null,
+      totalOccurrences: dto.totalOccurrences ?? null,
+      generatedUntil: null,
+      isActive: true,
+    };
+
+    const occurrences = computeOccurrences(rule, this.rollingHorizon(dto.months ?? 12), 0);
+
+    return { occurrences: occurrences.map((date) => date.toISOString().slice(0, 10)) };
+  }
+
+  /**
+   * `POST /recurrence-rules/:id/deactivate` — the explicit, always-keep-history counterpart to
+   * `remove` (#208): unlike `DELETE`, this never drops the row, so the recurrence screen (#200) can
+   * call it without risking losing a rule that happens to have no generated transactions yet.
+   * Idempotent: deactivating an already-inactive rule just returns it unchanged.
+   */
+  async deactivate(userId: string, id: string): Promise<RecurrenceRuleDto> {
+    const current = await this.load(userId, id);
+
+    if (!current.isActive) {
+      return toDto(current);
+    }
+
+    return toDto(await this.prisma.recurrenceRule.update({ where: { id }, data: { isActive: false } }));
   }
 
   private async load(userId: string, id: string): Promise<RecurrenceRule> {

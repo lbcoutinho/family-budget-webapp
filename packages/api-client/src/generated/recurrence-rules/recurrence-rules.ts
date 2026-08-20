@@ -34,6 +34,7 @@ import type {
   ListRecurrenceRulesParams,
   PreviewRecurrenceRuleDto,
   PreviewRecurrenceRuleParams,
+  PreviewRecurrenceRulePayloadDto,
   RecurrenceRuleDto,
   UpdateRecurrenceRuleDto
 } from '../model';
@@ -598,6 +599,132 @@ export function usePreviewRecurrenceRule<TData = Awaited<ReturnType<typeof previ
 
 
 /**
+ * @summary Preview upcoming occurrences for an unsaved rule payload — persists nothing
+ */
+export const previewRecurrenceRulePayload = (
+    previewRecurrenceRulePayloadDto: BodyType<PreviewRecurrenceRulePayloadDto>,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<PreviewRecurrenceRuleDto>(
+      {url: `/recurrence-rules/preview`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: previewRecurrenceRulePayloadDto, signal
+    },
+      );
+    }
+
+
+
+
+export const getPreviewRecurrenceRulePayloadMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext> => {
+
+const mutationKey = ['previewRecurrenceRulePayload'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, {data: BodyType<PreviewRecurrenceRulePayloadDto>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewRecurrenceRulePayload(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewRecurrenceRulePayloadMutationResult = NonNullable<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>>
+    export type PreviewRecurrenceRulePayloadMutationBody = BodyType<PreviewRecurrenceRulePayloadDto>
+    export type PreviewRecurrenceRulePayloadMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Preview upcoming occurrences for an unsaved rule payload — persists nothing
+ */
+export const usePreviewRecurrenceRulePayload = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewRecurrenceRulePayload>>,
+        TError,
+        {data: BodyType<PreviewRecurrenceRulePayloadDto>},
+        TContext
+      > => {
+      return useMutation(getPreviewRecurrenceRulePayloadMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Deactivate a recurrence rule, keeping it and its generated transactions
+ */
+export const deactivateRecurrenceRule = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecurrenceRuleDto>(
+      {url: `/recurrence-rules/${id}/deactivate`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+
+export const getDeactivateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deactivateRecurrenceRule'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deactivateRecurrenceRule(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivateRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateRecurrenceRule>>>
+
+    export type DeactivateRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Deactivate a recurrence rule, keeping it and its generated transactions
+ */
+export const useDeactivateRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivateRecurrenceRule>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeactivateRecurrenceRuleMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Create an installment plan, materializing every installment up front
  */
 export const createInstallmentPlan = (
