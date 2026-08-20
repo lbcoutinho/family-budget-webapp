@@ -697,6 +697,12 @@ code {
   letter-spacing: -0.03em;
   margin-top: 1px;
 }
+.stat .sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
 
 /* --- tables --------------------------------------------------------------- */
 
@@ -885,6 +891,16 @@ table.data.freeze tfoot td:first-child {
   background: var(--expense-wash);
   border-left-color: var(--expense);
   color: #8f2430;
+}
+.callout.info {
+  background: var(--transfer-wash);
+  border-left-color: var(--transfer);
+  color: var(--transfer);
+}
+.callout.success {
+  background: var(--income-wash);
+  border-left-color: var(--income);
+  color: var(--income);
 }
 
 .empty {
