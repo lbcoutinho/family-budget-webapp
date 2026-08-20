@@ -21,8 +21,13 @@ function hashId(id: string): number {
   return Math.abs(hash);
 }
 
+/** Deterministic pick from a palette, keyed by a stable id/string — no randomness across renders. Shared by `categoryColor` below and `cashbox-evolution-panel.tsx`'s per-cashbox line colour. */
+export function paletteColor(key: string, palette: readonly string[] = CATEGORY_PALETTE): string {
+  return palette[hashId(key) % palette.length]!;
+}
+
 export function categoryColor(id: string | null, color: string | null): string {
   if (color) return color;
   if (id === null) return AUTOMATIC_CATEGORY_COLOR!;
-  return CATEGORY_PALETTE[hashId(id) % CATEGORY_PALETTE.length]!;
+  return paletteColor(id);
 }

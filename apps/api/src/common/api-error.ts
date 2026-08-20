@@ -47,6 +47,16 @@ export const ERROR_CODES = [
   'CASHBOX_INSUFFICIENT_FUNDS',
   /** Delete refused because the cashbox still holds money (M4-T09, ADR-0019). */
   'CASHBOX_NOT_EMPTY',
+  /** A `RecurrenceRule.type` outside `INCOME`/`EXPENSE` reached the generator (M7-T02). */
+  'RECURRENCE_TYPE_NOT_ALLOWED',
+  /** `endDate` at or before `startDate` on a `RecurrenceRule` (M7-T03). */
+  'RECURRENCE_END_BEFORE_START',
+  /** `installments < 1` reached `splitInstallments` — the DTO's `@Min(2)` should already have caught it (M7-T04). */
+  'INSTALLMENT_COUNT_INVALID',
+  /** `totalAmount < installments` — an installment cannot be 0 cents (M7-T04). */
+  'INSTALLMENT_AMOUNT_TOO_LOW',
+  /** `POST /recurrence-rules/:id/cancel-installments` on a rule with `totalOccurrences = null` — that's an open-ended rule, deactivated through `DELETE` instead (M7-T04). */
+  'RECURRENCE_NOT_INSTALLMENT_PLAN',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
