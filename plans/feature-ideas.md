@@ -1,7 +1,13 @@
+# Doc ideas
+
+- diagrama com endpoints existentes, para que servem e onde são usados
+- diagram das estrutura do backend - mermaid?
+
 # Feature Ideas
 
 Ideas recorded for future features — no milestone or deadline defined yet. Prioritization and brainstorming will be done at a later stage.
 
+- Export database.
 - Import bank/account statement (format TBD — CSV, XML or other): user uploads a statement file; system detects entries already registered to avoid duplicates; new entries are created as `DRAFT` transactions for the user to review, categorize, and approve.
 - Personal note field on transactions: separate from the statement/imported description (which stays as-is from the bank), a free-text field for the user's own explanation of what the expense was, to help them remember it later.
 - Toggle on the transactions screen to switch the displayed text between the personal note and the real transaction description; when a transaction has no personal note, keep showing the normal description.
@@ -15,7 +21,9 @@ Ideas recorded for future features — no milestone or deadline defined yet. Pri
   - Ordenar rascunhos e confirmados como uma lista única (hoje os rascunhos ficam fixos acima, e a ordenação vale dentro de cada grupo).
   - Persistir filtros e ordenação na URL ou entre navegações de mês (hoje ambos resetam ao trocar de mês).
 
-
+# Improv Business Rules
+- saldo exibido na tela Mês no fim da tabela, deveria ser saldo em conta. For ex, tem entrada de 1000 e um deposito em caixinha de 500, então saldo em conta é 500. Dinheiro na caixinha não conta como despesa, mas ao mesmo tempo deve ser subtraído do saldo em conta corrente. O oposto para resgate de caixinha, irá aumentar o saldo em conta corrente. Transferêcia entre caixinhas ou entre contas não afeta o saldo total em contas.
+- Resumo fim da tabela poderia exibir: Receitas, Despesas, Resgates de Caixinha, Depósitos em Caixinha. Soma de todos é o saldo em conta corrente.
 
 # Tests
 
@@ -39,7 +47,8 @@ Ideas recorded for future features — no milestone or deadline defined yet. Pri
   - Ordenação - apenas 1 tipo - new ticket
   - Editar e remover lançamento - sem ação - #156
   - Saldo da conta após aplicar lançamento (valor abaixo do valor da transação) - sem ação - #157
-
+- Remove "Aceita 1.234,56 e 1234.56." de todas as telas
+- Todas as hints de campos ficam em tooltip ao inves de ficar abaixo do campo
 # Bugs
 
 - 
