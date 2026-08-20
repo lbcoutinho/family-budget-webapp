@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
       /* ==================================================================
          Uma tela sobre o futuro — a única do aplicativo que não olha para
@@ -31,11 +31,11 @@
       .prog {
         min-width: 108px;
       }
-      .prog .lbl {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        font-size: 12px;
+      .prog .num,
+      .prog .xs {
+        display: block;
+      }
+      .prog .xs {
         margin-bottom: 4px;
       }
       .prog .progress {
@@ -240,16 +240,16 @@
           <!-- ===== o que já está comprometido ===== -->
           <div class="stats">
             <div class="stat">
-              <span class="k">Despesa fixa em agosto</span>
+              <span class="k">Despesas recorrentes em agosto</span>
               <span class="v num out">− 1.162,16 €</span>
             </div>
             <div class="stat">
-              <span class="k">Receita fixa em agosto</span>
+              <span class="k">Receitas recorrentes em agosto</span>
               <span class="v num in">+ 3.200,00 €</span>
             </div>
             <div class="stat">
               <span class="k">Parcelas em aberto</span>
-              <span class="v num">1.048,00 €</span>
+              <span class="v num">949,00 €</span>
             </div>
             <div class="stat total">
               <span class="k">Próxima geração</span>
@@ -257,8 +257,9 @@
             </div>
           </div>
           <p class="small muted" style="margin: 9px 0 0">
-            O horizonte é de três meses: o job diário materializa até 31/10/2026 e nada além disso existe no banco. "Parcelas em aberto" soma o que falta pagar
-            de todos os parcelamentos ativos, inclusive as parcelas que ainda não foram geradas.
+            Não há job rodando 24/7: a geração acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que
+            faltar, com um toast dizendo quantos lançamentos foram criados. "Parcelas em aberto" soma o que falta pagar de todos os parcelamentos ativos
+            (que sempre têm fim), inclusive as parcelas que ainda não foram geradas; regras sem fim não entram nessa soma.
           </p>
 
           <!-- ===== a tabela ===== -->
@@ -286,7 +287,7 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c9)"></span>
-                        <span class="t"><b>Salário</b><span class="xs muted">Trabalho › Salário</span></span>
+                        <span class="t"><b>Salário</b><span class="xs muted">Trabalho · Salário</span></span>
                       </span>
                     </td>
                     <td class="muted">Millennium</td>
@@ -308,7 +309,7 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c1)"></span>
-                        <span class="t"><b>Renda</b><span class="xs muted">Moradia › Renda</span></span>
+                        <span class="t"><b>Renda</b><span class="xs muted">Moradia · Renda</span></span>
                       </span>
                     </td>
                     <td class="muted">Millennium</td>
@@ -330,14 +331,15 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c2)"></span>
-                        <span class="t"><b>Seguro do carro</b><span class="xs muted">Transporte › Seguro</span></span>
+                        <span class="t"><b>Seguro do carro</b><span class="xs muted">Transporte · Seguro</span></span>
                       </span>
                     </td>
                     <td class="muted">Millennium</td>
                     <td class="n num out strong">− 62,50 €</td>
                     <td class="muted num">Mensal, dia 10</td>
                     <td class="prog">
-                      <span class="lbl"><span class="num">4/12</span><span class="muted num">500,00 € a pagar</span></span>
+                      <span class="num strong">4/12</span>
+                      <span class="xs muted num">500,00 € a pagar</span>
                       <span class="progress"><span style="width: 33%"></span></span>
                     </td>
                     <td class="num muted">10/08/2026</td>
@@ -353,7 +355,7 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c1)"></span>
-                        <span class="t"><b>Seguro da casa</b><span class="xs muted">Moradia › Seguros</span></span>
+                        <span class="t"><b>Seguro da casa</b><span class="xs muted">Moradia · Seguros</span></span>
                       </span>
                     </td>
                     <td class="muted">Millennium</td>
@@ -376,7 +378,7 @@
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c10)"></span>
                         <span class="t"
-                          ><b>Colchão Ikea</b><span class="xs muted">Outros · <span class="badge draft">gera rascunho</span></span></span
+                          ><b>Colchão Ikea <span class="badge draft">gera rascunho</span></b><span class="xs muted">Outros</span></span
                         >
                       </span>
                     </td>
@@ -384,7 +386,8 @@
                     <td class="n num out strong">− 149,66 €</td>
                     <td class="muted num">Mensal, dia 5</td>
                     <td class="prog">
-                      <span class="lbl"><span class="num">0/3</span><span class="muted num">449,00 € a pagar</span></span>
+                      <span class="num strong">0/3</span>
+                      <span class="xs muted num">449,00 € a pagar</span>
                       <span class="progress"><span style="width: 0%"></span></span>
                     </td>
                     <td class="num muted">05/08/2026</td>
@@ -407,7 +410,8 @@
                     <td class="n num strong">− 74,90 €</td>
                     <td class="muted num">Mensal, dia 20</td>
                     <td class="prog">
-                      <span class="lbl"><span class="num">12/12</span><span class="muted">concluído</span></span>
+                      <span class="num strong">12/12</span>
+                      <span class="xs muted">concluído</span>
                       <span class="progress"><span style="width: 100%"></span></span>
                     </td>
                     <td class="faint num">—</td>
@@ -422,7 +426,7 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c5)"></span>
-                        <span class="t"><b>Netflix</b> <span class="badge">inativa</span><span class="xs muted">Lazer › Assinaturas</span></span>
+                        <span class="t"><b>Netflix <span class="badge">inativa</span></b><span class="xs muted">Lazer · Assinaturas</span></span>
                       </span>
                     </td>
                     <td class="muted">Revolut</td>
@@ -443,7 +447,7 @@
           </div>
           <p class="small muted" style="margin-top: 9px">
             "Seguro do carro" é a regra que produziu o lançamento marcado com <span data-icon="repeat" style="width: 13px; height: 13px"></span> na
-            <a href="approved/06-month.html">tela do mês</a>, em 10/07/2026 — parcela 4 de 12. É o mesmo objeto visto dos dois lados.
+            <a href="06-month.html">tela do mês</a>, em 10/07/2026 — parcela 4 de 12. É o mesmo objeto visto dos dois lados.
           </p>
 
           <!-- ===== regra fixa ===== -->
@@ -456,25 +460,12 @@
             <div class="card">
               <div class="card-head"><h2>Nova regra fixa</h2></div>
               <div class="dlg-body">
-                <div class="field">
-                  <label for="r-desc">Descrição</label>
-                  <input class="input" id="r-desc" value="Renda" />
+                <div class="segmented" id="r-kind-control" role="group" aria-label="Tipo">
+                  <button type="button" aria-selected="true" data-kind="out">Despesa</button>
+                  <button type="button" aria-selected="false" data-kind="in">Receita</button>
                 </div>
-                <div class="two">
-                  <div class="field">
-                    <label for="r-amount">Valor</label>
-                    <input class="input num" id="r-amount" value="950,00" inputmode="decimal" />
-                    <span class="hint">Aceita 1.234,56 e 1234.56.</span>
-                  </div>
-                  <div class="field">
-                    <label for="r-kind">Tipo</label>
-                    <select class="select" id="r-kind">
-                      <option value="out">Despesa</option>
-                      <option value="in">Receita</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="two">
+                <input type="hidden" id="r-kind" value="out" />
+                <div class="three">
                   <div class="field">
                     <label for="r-acc">Conta</label>
                     <select class="select" id="r-acc">
@@ -483,17 +474,6 @@
                       <option>Dinheiro</option>
                     </select>
                   </div>
-                  <div class="field">
-                    <label for="r-cat">Categoria</label>
-                    <select class="select" id="r-cat">
-                      <option>Moradia › Renda</option>
-                      <option>Transporte › Seguro</option>
-                      <option>Lazer › Assinaturas</option>
-                      <option>Trabalho › Salário</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="three">
                   <div class="field">
                     <label for="r-freq">Frequência</label>
                     <select class="select" id="r-freq">
@@ -505,24 +485,54 @@
                     <label for="r-day">Dia do mês</label>
                     <input class="input num" id="r-day" type="number" min="1" max="31" value="1" />
                   </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="r-cat">Categoria</label>
+                    <select class="select" id="r-cat">
+                      <option>Moradia</option>
+                      <option>Transporte</option>
+                      <option>Lazer</option>
+                      <option>Trabalho</option>
+                      <option>Outros</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="r-subcat">Subcategoria</label>
+                    <select class="select" id="r-subcat"></select>
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="r-desc">Descrição</label>
+                    <input class="input" id="r-desc" value="Renda" />
+                  </div>
+                  <div class="field">
+                    <label for="r-amount">Valor</label>
+                    <input class="input num" id="r-amount" value="950,00" inputmode="decimal" />
+                  </div>
+                </div>
+                <div class="two">
                   <div class="field">
                     <label for="r-start">Início</label>
                     <input class="input num" id="r-start" type="month" value="2026-08" />
                   </div>
+                  <div class="field">
+                    <label for="r-end"
+                      ><span class="tip" tabindex="0"
+                        >Fim (opcional)<span>Em branco, a regra não termina — é o caso normal de uma despesa fixa.</span></span
+                      ></label
+                    >
+                    <input class="input num" id="r-end" type="month" />
+                  </div>
                 </div>
-                <div class="field">
-                  <label for="r-end">Fim <span class="muted">(opcional)</span></label>
-                  <input class="input num" id="r-end" type="month" />
-                  <span class="hint">Em branco, a regra não termina — é o caso normal de uma despesa fixa.</span>
-                </div>
-                <label class="row" style="gap: 9px; align-items: flex-start; cursor: pointer">
+                <label class="row" style="gap: 9px; align-items: center; cursor: pointer">
                   <button class="switch" role="switch" aria-checked="true" aria-label="Confirmar automaticamente" id="r-auto"></button>
-                  <span>
-                    <span class="strong">Confirmar automaticamente</span><br />
-                    <span class="xs muted">Desligado, os lançamentos nascem como rascunho e não entram em saldo nem em relatório até você aprovar.</span>
-                  </span>
+                  <span class="tip" tabindex="0"
+                    >Confirmar automaticamente<span>Desligado, os lançamentos nascem como rascunho e não entram em saldo nem em relatório até você aprovar.</span></span
+                  >
                 </label>
-                <div class="callout">
+                <div class="callout info">
                   <span data-icon="info"></span>
                   <span>Mudar o valor depois só vale para o que ainda não foi gerado. O que já entrou no histórico fica como está.</span>
                 </div>
@@ -559,33 +569,6 @@
             <div class="card">
               <div class="card-head"><h2>Novo parcelamento</h2></div>
               <div class="dlg-body">
-                <div class="field">
-                  <label for="i-desc">Descrição</label>
-                  <input class="input" id="i-desc" value="Colchão Ikea" />
-                  <span class="hint">Cada parcela recebe o número no fim: "Colchão Ikea (1/3)".</span>
-                </div>
-                <div class="two">
-                  <div class="field">
-                    <label for="i-total">Valor total</label>
-                    <input class="input num" id="i-total" value="449,00" inputmode="decimal" />
-                  </div>
-                  <div class="field">
-                    <label for="i-count">Parcelas</label>
-                    <input class="input num" id="i-count" type="number" min="2" max="60" value="3" />
-                  </div>
-                </div>
-                <div class="two">
-                  <div class="field">
-                    <label for="i-first">Primeira cobrança</label>
-                    <input class="input num" id="i-first" type="date" value="2026-08-05" />
-                    <span class="hint">É a data em que a parcela cai na fatura — e o mês em que ela aparece no relatório.</span>
-                  </div>
-                  <div class="field">
-                    <label for="i-buy">Data da compra</label>
-                    <input class="input num" id="i-buy" type="date" value="2026-07-22" />
-                    <span class="hint">Guardada nas observações; nenhum dos dois campos de data a preserva.</span>
-                  </div>
-                </div>
                 <div class="two">
                   <div class="field">
                     <label for="i-acc">Conta</label>
@@ -595,12 +578,54 @@
                     </select>
                   </div>
                   <div class="field">
+                    <label for="i-buy"
+                      ><span class="tip" tabindex="0"
+                        >Data da compra<span>Guardada nas observações; nenhum dos dois campos de data a preserva.</span></span
+                      ></label
+                    >
+                    <input class="input num" id="i-buy" type="date" value="2026-07-22" />
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="i-count">Parcelas</label>
+                    <input class="input num" id="i-count" type="number" min="2" max="60" value="3" />
+                  </div>
+                  <div class="field">
+                    <label for="i-first"
+                      ><span class="tip" tabindex="0"
+                        >Primeira cobrança<span>É a data em que a parcela cai na fatura — e o mês em que ela aparece no relatório.</span></span
+                      ></label
+                    >
+                    <input class="input num" id="i-first" type="date" value="2026-08-05" />
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
                     <label for="i-cat">Categoria</label>
                     <select class="select" id="i-cat">
                       <option>Outros</option>
-                      <option>Moradia › Mobiliário</option>
-                      <option>Transporte › Seguro</option>
+                      <option>Moradia</option>
+                      <option>Transporte</option>
                     </select>
+                  </div>
+                  <div class="field">
+                    <label for="i-subcat">Subcategoria</label>
+                    <select class="select" id="i-subcat"></select>
+                  </div>
+                </div>
+                <div class="two">
+                  <div class="field">
+                    <label for="i-desc"
+                      ><span class="tip" tabindex="0"
+                        >Descrição<span>Cada parcela recebe o número no fim: "Colchão Ikea (1/3)".</span></span
+                      ></label
+                    >
+                    <input class="input" id="i-desc" value="Colchão Ikea" />
+                  </div>
+                  <div class="field">
+                    <label for="i-total">Valor total</label>
+                    <input class="input num" id="i-total" value="449,00" inputmode="decimal" />
                   </div>
                 </div>
                 <label class="row" style="gap: 9px; align-items: flex-start; cursor: pointer">
@@ -610,8 +635,8 @@
                     <span class="xs muted">Desligado neste exemplo: as três parcelas nascem como rascunho.</span>
                   </span>
                 </label>
-                <div class="callout warn">
-                  <span data-icon="alert"></span>
+                <div class="callout info">
+                  <span data-icon="info"></span>
                   <span>
                     As <b id="i-n">3</b> parcelas são gravadas <strong>agora, todas de uma vez</strong> — não só as dos próximos três meses. É o que faz o
                     compromisso futuro aparecer no relatório anual no dia em que a compra acontece.
@@ -651,7 +676,7 @@
               <div class="card">
                 <div class="card-head"><h2>Renda</h2></div>
                 <div class="dlg-body">
-                  <div class="callout">
+                  <div class="callout success">
                     <span data-icon="check"></span>
                     <span
                       ><strong>3 lançamentos criados</strong> — 01/08, 01/09 e 01/10 de 2026, confirmados, de 950,00 € cada. O horizonte vai até 31/10.</span
@@ -666,7 +691,7 @@
               <div class="card">
                 <div class="card-head"><h2>Renda</h2></div>
                 <div class="dlg-body">
-                  <div class="callout">
+                  <div class="callout info">
                     <span data-icon="info"></span>
                     <span><strong>Nada a gerar.</strong> Esta regra já está materializada até 31/10/2026. Rodar de novo não duplica nada.</span>
                   </div>
@@ -679,7 +704,7 @@
               <div class="card">
                 <div class="card-head"><h2>Desativar "Netflix"?</h2></div>
                 <div class="dlg-body">
-                  <div class="callout">
+                  <div class="callout info">
                     <span data-icon="info"></span>
                     <span>
                       Os 14 lançamentos já gerados ficam onde estão e continuam contando no saldo e nos relatórios. O que para é a geração daqui para a frente.
@@ -739,7 +764,7 @@
                   <div class="field">
                     <label for="e-cat">Categoria</label>
                     <select class="select input error" id="e-cat">
-                      <option>Lazer › Assinaturas (inativa)</option>
+                      <option>Lazer · Assinaturas (inativa)</option>
                     </select>
                     <span class="field-error">Categoria inativa não pode ser usada numa regra nova. Reative a categoria ou escolha outra.</span>
                   </div>
@@ -847,8 +872,8 @@
                 <b>Os quatro números do topo — e "Parcelas em aberto" inclui o que ainda não foi gerado.</b>
                 <span>
                   É o único número da tela que não corresponde a linhas no banco: as parcelas de 11/2026 em diante ainda não existem. Ele responde "quanto eu
-                  ainda devo", que é a pergunta que um parcelamento levanta. A alternativa é somar só o materializado, e aí o número muda sozinho toda vez que o
-                  job roda — pior.
+                  ainda devo", que é a pergunta que um parcelamento levanta. A alternativa é somar só o materializado, e aí o número muda sozinho a cada login
+                  — pior.
                 </span>
               </li>
               <li>
@@ -876,7 +901,7 @@
               <li>
                 <b>Pendência numa tela aprovada: a 06 marca uma regra e deveria marcar três.</b>
                 <span>
-                  A <a href="approved/06-month.html">tela do mês</a> já desenha o ícone <span data-icon="repeat" style="width: 13px; height: 13px"></span> e o
+                  A <a href="06-month.html">tela do mês</a> já desenha o ícone <span data-icon="repeat" style="width: 13px; height: 13px"></span> e o
                   usa em "Seguro do carro (parcela 4 de 12)". Mas "Renda de julho" e "Salário" também saem de regras fixas nesta tela e lá aparecem sem marca —
                   os dados das duas telas não fecham. <strong>A proposta é corrigir a 06 no mesmo PR</strong>, marcando as duas linhas: é uma edição de duas
                   linhas num protótipo aprovado, permitida quando o desenho revela um problema, e declarada aqui em vez de feita em silêncio. A alternativa é
@@ -927,7 +952,7 @@
           <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
         </div>
         <div class="dlg-body">
-          <div class="callout">
+          <div class="callout success">
             <span data-icon="check"></span>
             <span><strong>3 lançamentos criados</strong> — 01/08, 01/09 e 01/10 de 2026. Rodar de novo não cria nada.</span>
           </div>
@@ -942,7 +967,7 @@
           <button class="btn icon ghost" data-close title="Fechar"><span data-icon="x"></span></button>
         </div>
         <div class="dlg-body">
-          <div class="callout">
+          <div class="callout info">
             <span data-icon="info"></span>
             <span>O que já foi gerado fica. O que para é a geração daqui para a frente.</span>
           </div>
@@ -1106,6 +1131,21 @@
         rq('i-n2').textContent = n;
       }
 
+      /* --- categoria/subcategoria em cascata, mesma fixture da 07 --------- */
+      const CATS = {
+        Moradia: ['Renda', 'Seguros', 'Mobiliário'],
+        Transporte: ['Seguro', 'Combustível'],
+        Lazer: ['Assinaturas', 'Esporte'],
+        Trabalho: ['Salário'],
+        Outros: [],
+      };
+      function populateSubcat(catId, subcatId, preselect) {
+        const cat = rq(catId).value;
+        const subs = CATS[cat] || [];
+        rq(subcatId).innerHTML = subs.map((s) => `<option${s === preselect ? ' selected' : ''}>${s}</option>`).join('') || '<option>—</option>';
+        rq(subcatId).disabled = subs.length === 0;
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         ['r-desc', 'r-amount', 'r-kind', 'r-freq', 'r-day', 'r-start', 'r-end'].forEach((id) => {
           rq(id).addEventListener('input', renderRule);
@@ -1115,6 +1155,24 @@
           rq(id).addEventListener('input', renderInst);
           rq(id).addEventListener('change', renderInst);
         });
+
+        rq('r-kind-control')
+          .querySelectorAll('button')
+          .forEach((btn) => {
+            btn.addEventListener('click', () => {
+              rq('r-kind-control')
+                .querySelectorAll('button')
+                .forEach((b) => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+              rq('r-kind').value = btn.dataset.kind;
+              renderRule();
+            });
+          });
+
+        populateSubcat('r-cat', 'r-subcat', 'Renda');
+        rq('r-cat').addEventListener('change', () => populateSubcat('r-cat', 'r-subcat'));
+        populateSubcat('i-cat', 'i-subcat', 'Mobiliário');
+        rq('i-cat').addEventListener('change', () => populateSubcat('i-cat', 'i-subcat'));
+
         renderRule();
         renderInst();
       });

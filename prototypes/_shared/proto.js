@@ -97,6 +97,7 @@ const APPROVED = new Set([
   '09-reports-monthly.html',
   '10-reports-yearly.html',
   '11-reports-charts.html',
+  '12-recurrences.html',
   '14-settings-general.html',
 ]);
 
