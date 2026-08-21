@@ -64,3 +64,10 @@ settled:
 - The prototype's June 30 opening balances are picked backwards so the month closes exactly on the
   five balance cards at the top (Millennium 3.482,15 · Revolut 412,90 · Dinheiro −35,00 · caixinhas
   4.150,00 · total 8.010,05). Verified, not assumed.
+
+## Draft confirmation, settled 2026-08-21
+
+**Variant A was chosen** from the three-way prototype: DRAFT rows get a compact filled action-green
+check icon in the row actions, before Edit. Only ready/valid drafts confirm directly; incomplete
+drafts must be completed first. Confirmation removes the draft state and makes the entry eligible
+for balances and reports. Variants B and C remain in commit `96ca12d` as reference.

@@ -1,4 +1,3 @@
-<!-- PROTOTYPE THROWAWAY — question: how should a DRAFT transaction be confirmed from the month screen? N=3 variants via ?variant=A|B|C. -->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -279,63 +278,14 @@
       .acts:focus-within {
         opacity: 1;
       }
-      .confirm-icon,
-      .confirm-label,
-      .resolution-strip .btn {
+      .confirm-icon {
         background: var(--action);
         border-color: var(--action);
         color: #fff;
       }
-      .confirm-icon:hover,
-      .confirm-label:hover,
-      .resolution-strip .btn:hover {
+      .confirm-icon:hover {
         background: var(--action-hover);
         border-color: var(--action-hover);
-      }
-      .resolution-strip {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 12px;
-        padding: 8px 16px;
-        background: var(--action-wash);
-        border-bottom: 1px solid var(--line);
-        color: var(--action);
-        font-size: 12px;
-      }
-      .resolution-strip span:first-child {
-        margin-right: auto;
-      }
-
-      .prototype-switcher {
-        position: fixed;
-        z-index: 100;
-        left: 50%;
-        bottom: 18px;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 260px;
-        padding: 6px;
-        border: 1px solid var(--ink);
-        border-radius: 10px;
-        background: var(--ink);
-        color: #fff;
-        box-shadow: 0 8px 24px rgb(20 22 26 / 24%);
-      }
-      .prototype-switcher .btn {
-        color: #fff;
-      }
-      .prototype-switcher .btn:hover {
-        background: rgb(255 255 255 / 14%);
-      }
-      .prototype-switcher output {
-        flex: 1;
-        text-align: center;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
       }
 
       .entries > footer {
@@ -383,13 +333,6 @@
         }
         .strip {
           height: 84px;
-        }
-        .resolution-strip {
-          align-items: flex-start;
-          gap: 8px;
-        }
-        .resolution-strip span:first-child {
-          max-width: 22ch;
         }
       }
     </style>
@@ -571,16 +514,6 @@
       </div>
     </div>
 
-    <div class="prototype-switcher" role="group" aria-label="Alternar variante do protótipo">
-      <button class="btn icon ghost" type="button" data-variant-step="-1" title="Variante anterior">
-        <span data-icon="chevronLeft"></span>
-      </button>
-      <output id="variantLabel" aria-live="polite"></output>
-      <button class="btn icon ghost" type="button" data-variant-step="1" title="Próxima variante">
-        <span data-icon="chevronRight"></span>
-      </button>
-    </div>
-
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         /* ---- categorias: cor é identidade permanente ---- */
@@ -663,72 +596,69 @@
            faria ruído. O negativo leva, porque aí é informação. */
         const saldo = (v) => (v < 0 ? '− ' : '') + eur(v, { sign: false });
 
-        /* Cronológico, sempre — a ordenação da lista não pode mudar o saldo. */
-        const bal = { ...START };
-        E.slice()
-          .sort((a, b) => a.d - b.d)
-          .forEach((e) => {
-            const s = sides(e);
-            s.forEach((x) => (bal[x.acc] = (bal[x.acc] ?? 0) + x.delta));
-            /* mostra-se o saldo da origem: é a conta de onde o dinheiro saiu */
-            if (s.length) e.bal = { acc: s[0].acc, v: bal[s[0].acc] };
-          });
-
         /* Só EXPENSE confirmado conta como despesa. Rascunho não entra em nada. */
         const isExpense = (e) => e.k === 'out' && !e.draft;
         const isIncome = (e) => e.k === 'in' && !e.draft;
 
-        /* ---- a faixa, derivada dos lançamentos ---- */
-        const byDay = [];
-        for (let d = 1; d <= DAYS; d++) {
-          const items = E.filter((e) => e.d === d && isExpense(e));
-          const parts = {};
-          items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + Math.abs(e.v)));
-          byDay.push({
-            d,
-            total: items.reduce((s, e) => s + Math.abs(e.v), 0),
-            /* da maior para a menor: a base da coluna é sempre o que mais
-               pesou, e é ela que continua legível quando a fatia de cima
-               fica com um pixel */
-            parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
-          });
+        function recompute() {
+          /* Cronológico, sempre — a ordenação da lista não pode mudar o saldo. */
+          const bal = { ...START };
+          E.forEach((e) => delete e.bal);
+          E.slice()
+            .sort((a, b) => a.d - b.d)
+            .forEach((e) => {
+              const s = sides(e);
+              s.forEach((x) => (bal[x.acc] = (bal[x.acc] ?? 0) + x.delta));
+              /* mostra-se o saldo da origem: é a conta de onde o dinheiro saiu */
+              if (s.length) e.bal = { acc: s[0].acc, v: bal[s[0].acc] };
+            });
+
+          /* ---- a faixa, derivada dos lançamentos ---- */
+          const byDay = [];
+          for (let d = 1; d <= DAYS; d++) {
+            const items = E.filter((e) => e.d === d && isExpense(e));
+            const parts = {};
+            items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + Math.abs(e.v)));
+            byDay.push({
+              d,
+              total: items.reduce((s, e) => s + Math.abs(e.v), 0),
+              /* da maior para a menor: a base da coluna é sempre o que mais
+                 pesou, e é ela que continua legível quando a fatia de cima
+                 fica com um pixel */
+              parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
+            });
+          }
+          const peak = Math.max(...byDay.map((x) => x.total));
+
+          document.getElementById('strip').innerHTML = byDay
+            .map((x, i) => {
+              if (!x.total) {
+                return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
+                  title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
+              }
+              /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
+              const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
+              const segs = x.parts
+                .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
+                .reverse()
+                .join('');
+              const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
+              return `<button class="day" data-day="${x.d}" aria-pressed="false"
+                title="${x.d} de julho — ${eur(-x.total)} — ${detail}">
+                <span class="bar" style="height:${h}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
+            })
+            .join('');
+
+          /* A legenda carrega o total de cada categoria: a cor agrupa, o número nomeia. */
+          const totals = {};
+          E.filter(isExpense).forEach((e) => (totals[e.cat] = (totals[e.cat] || 0) + Math.abs(e.v)));
+          document.getElementById('legend').innerHTML = Object.entries(totals)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, v]) => `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, { sign: false })}</b></span>`)
+            .join('');
         }
-        const peak = Math.max(...byDay.map((x) => x.total));
 
-        document.getElementById('strip').innerHTML = byDay
-          .map((x, i) => {
-            if (!x.total) {
-              return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
-                title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
-            }
-            /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
-            const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
-            const segs = x.parts
-              .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
-              .reverse()
-              .join('');
-            const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
-            return `<button class="day" data-day="${x.d}" aria-pressed="false"
-              title="${x.d} de julho — ${eur(-x.total)} — ${detail}">
-              <span class="bar" style="height:${h}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
-          })
-          .join('');
-
-        /* A legenda carrega o total de cada categoria: a cor agrupa, o número
-           nomeia. Ninguém precisa casar swatch com segmento. */
-        const totals = {};
-        E.filter(isExpense).forEach((e) => {
-          totals[e.cat] = (totals[e.cat] || 0) + Math.abs(e.v);
-        });
-        document.getElementById('legend').innerHTML = Object.entries(totals)
-          .sort((a, b) => b[1] - a[1])
-          .map(
-            ([k, v]) =>
-              `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, {
-                sign: false,
-              })}</b></span>`,
-          )
-          .join('');
+        recompute();
 
         /* ---- lista ---- */
         const KIND = {
@@ -750,24 +680,10 @@
           return parts.join(' — ');
         }
 
-        const VARIANTS = {
-          A: 'Ícone compacto',
-          B: 'Botão com rótulo',
-          C: 'Faixa de resolução',
-        };
-        const variantKeys = Object.keys(VARIANTS);
-        let variant = new URLSearchParams(location.search).get('variant')?.toUpperCase();
-        if (!VARIANTS[variant]) variant = 'A';
-
         function confirmAction(e, index) {
-          if (!e.draft) return '';
-          if (variant === 'A') {
-            return `<button class="btn icon confirm-icon" type="button" data-confirm="${index}" title="Confirmar lançamento" aria-label="Confirmar ${e.t}">${icon('check')}</button>`;
-          }
-          if (variant === 'B') {
-            return `<button class="btn sm confirm-label" type="button" data-confirm="${index}">${icon('check')} Confirmar</button>`;
-          }
-          return '';
+          return e.draft
+            ? `<button class="btn icon confirm-icon" type="button" data-confirm="${index}" title="Confirmar lançamento" aria-label="Confirmar ${e.t}">${icon('check')}</button>`
+            : '';
         }
 
         function render(e) {
@@ -796,12 +712,7 @@
               <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
               <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
             </div>
-          </div>
-          ${
-            e.draft && variant === 'C'
-              ? `<div class="resolution-strip"><span>Este rascunho ainda não afeta saldos ou relatórios.</span><button class="btn sm" type="button" data-confirm="${index}">${icon('check')} Confirmar</button></div>`
-              : ''
-          }`;
+          </div>`;
         }
 
         const rowsEl = document.getElementById('rows');
@@ -862,20 +773,6 @@
           fLabel.textContent = day ? 'Saldo do dia' : 'Saldo do mês';
           countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
           clearEl.hidden = !day;
-        }
-
-        function setVariant(next) {
-          variant = next;
-          const url = new URL(location.href);
-          url.searchParams.set('variant', variant);
-          history.replaceState(null, '', url);
-          document.getElementById('variantLabel').textContent = `${variant} — ${VARIANTS[variant]}`;
-          select(selectedDay);
-        }
-
-        function cycleVariant(step) {
-          const next = (variantKeys.indexOf(variant) + step + variantKeys.length) % variantKeys.length;
-          setVariant(variantKeys[next]);
         }
 
         /* ---- o seletor de mês ----
@@ -951,20 +848,11 @@
           const entry = E[Number(button.dataset.confirm)];
           if (!entry.cat || !entry.acc) return alert('Complete categoria e conta antes de confirmar.');
           entry.draft = false;
+          recompute();
           select(selectedDay);
         });
-        document.querySelector('.prototype-switcher').addEventListener('click', (ev) => {
-          const button = ev.target.closest('[data-variant-step]');
-          if (button) cycleVariant(Number(button.dataset.variantStep));
-        });
-        document.addEventListener('keydown', (ev) => {
-          const target = ev.target;
-          if (target.matches('input, textarea, [contenteditable], [contenteditable="true"]')) return;
-          if (ev.key === 'ArrowLeft') cycleVariant(-1);
-          if (ev.key === 'ArrowRight') cycleVariant(1);
-        });
 
-        setVariant(variant);
+        select(null);
       });
     </script>
   </body>
