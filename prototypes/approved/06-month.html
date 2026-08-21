@@ -278,6 +278,15 @@
       .acts:focus-within {
         opacity: 1;
       }
+      .confirm-icon {
+        background: var(--action);
+        border-color: var(--action);
+        color: #fff;
+      }
+      .confirm-icon:hover {
+        background: var(--action-hover);
+        border-color: var(--action-hover);
+      }
 
       .entries > footer {
         background: var(--wash);
@@ -537,7 +546,7 @@
           { d: 11, t: 'Almoço fora', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -48.6, k: 'out' },
           { d: 11, t: 'Consulta no dentista', cat: 'saude', sub: 'Consultas', acc: 'Millennium', v: -66, k: 'out' },
           { d: 12, t: 'Supermercado Pingo Doce', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -96.2, k: 'out' },
-          { d: 12, t: 'Farmácia', acc: null, v: -24.9, k: 'out', draft: true },
+          { d: 12, t: 'Farmácia', cat: 'saude', acc: 'Millennium', v: -24.9, k: 'out', draft: true },
           { d: 14, t: 'Combustível', cat: 'transporte', sub: 'Combustível', acc: 'Millennium', v: -145, k: 'out' },
           { d: 15, t: 'Concerto no Coliseu', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -88, k: 'out' },
           { d: 16, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -62.1, k: 'out' },
@@ -560,7 +569,7 @@
         ];
 
         const DAYS = 31;
-        const PAGE = 12; /* rolagem infinita: a primeira página do cursor */
+        const PAGE = 13; /* rolagem infinita: inclui o rascunho a avaliar */
 
         /* ---- o saldo corrido ----
            Saldo de 30 de junho, escolhido de trás para frente para que o mês
@@ -587,72 +596,69 @@
            faria ruído. O negativo leva, porque aí é informação. */
         const saldo = (v) => (v < 0 ? '− ' : '') + eur(v, { sign: false });
 
-        /* Cronológico, sempre — a ordenação da lista não pode mudar o saldo. */
-        const bal = { ...START };
-        E.slice()
-          .sort((a, b) => a.d - b.d)
-          .forEach((e) => {
-            const s = sides(e);
-            s.forEach((x) => (bal[x.acc] = (bal[x.acc] ?? 0) + x.delta));
-            /* mostra-se o saldo da origem: é a conta de onde o dinheiro saiu */
-            if (s.length) e.bal = { acc: s[0].acc, v: bal[s[0].acc] };
-          });
-
         /* Só EXPENSE confirmado conta como despesa. Rascunho não entra em nada. */
         const isExpense = (e) => e.k === 'out' && !e.draft;
         const isIncome = (e) => e.k === 'in' && !e.draft;
 
-        /* ---- a faixa, derivada dos lançamentos ---- */
-        const byDay = [];
-        for (let d = 1; d <= DAYS; d++) {
-          const items = E.filter((e) => e.d === d && isExpense(e));
-          const parts = {};
-          items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + Math.abs(e.v)));
-          byDay.push({
-            d,
-            total: items.reduce((s, e) => s + Math.abs(e.v), 0),
-            /* da maior para a menor: a base da coluna é sempre o que mais
-               pesou, e é ela que continua legível quando a fatia de cima
-               fica com um pixel */
-            parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
-          });
+        function recompute() {
+          /* Cronológico, sempre — a ordenação da lista não pode mudar o saldo. */
+          const bal = { ...START };
+          E.forEach((e) => delete e.bal);
+          E.slice()
+            .sort((a, b) => a.d - b.d)
+            .forEach((e) => {
+              const s = sides(e);
+              s.forEach((x) => (bal[x.acc] = (bal[x.acc] ?? 0) + x.delta));
+              /* mostra-se o saldo da origem: é a conta de onde o dinheiro saiu */
+              if (s.length) e.bal = { acc: s[0].acc, v: bal[s[0].acc] };
+            });
+
+          /* ---- a faixa, derivada dos lançamentos ---- */
+          const byDay = [];
+          for (let d = 1; d <= DAYS; d++) {
+            const items = E.filter((e) => e.d === d && isExpense(e));
+            const parts = {};
+            items.forEach((e) => (parts[e.cat] = (parts[e.cat] || 0) + Math.abs(e.v)));
+            byDay.push({
+              d,
+              total: items.reduce((s, e) => s + Math.abs(e.v), 0),
+              /* da maior para a menor: a base da coluna é sempre o que mais
+                 pesou, e é ela que continua legível quando a fatia de cima
+                 fica com um pixel */
+              parts: Object.entries(parts).sort((a, b) => b[1] - a[1]),
+            });
+          }
+          const peak = Math.max(...byDay.map((x) => x.total));
+
+          document.getElementById('strip').innerHTML = byDay
+            .map((x, i) => {
+              if (!x.total) {
+                return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
+                  title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
+              }
+              /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
+              const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
+              const segs = x.parts
+                .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
+                .reverse()
+                .join('');
+              const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
+              return `<button class="day" data-day="${x.d}" aria-pressed="false"
+                title="${x.d} de julho — ${eur(-x.total)} — ${detail}">
+                <span class="bar" style="height:${h}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
+            })
+            .join('');
+
+          /* A legenda carrega o total de cada categoria: a cor agrupa, o número nomeia. */
+          const totals = {};
+          E.filter(isExpense).forEach((e) => (totals[e.cat] = (totals[e.cat] || 0) + Math.abs(e.v)));
+          document.getElementById('legend').innerHTML = Object.entries(totals)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, v]) => `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, { sign: false })}</b></span>`)
+            .join('');
         }
-        const peak = Math.max(...byDay.map((x) => x.total));
 
-        document.getElementById('strip').innerHTML = byDay
-          .map((x, i) => {
-            if (!x.total) {
-              return `<button class="day empty" data-day="${x.d}" aria-pressed="false"
-                title="${x.d} de julho — nada saiu"><span class="bar"></span></button>`;
-            }
-            /* raiz quadrada: a renda não pode achatar o resto do mês num traço */
-            const h = Math.max(9, Math.sqrt(x.total / peak) * 100);
-            const segs = x.parts
-              .map(([k, v]) => `<i style="height:${(v / x.total) * 100}%;background:${CAT[k].c}"></i>`)
-              .reverse()
-              .join('');
-            const detail = x.parts.map(([k, v]) => `${CAT[k].n} ${eur(v, { sign: false })}`).join(' · ');
-            return `<button class="day" data-day="${x.d}" aria-pressed="false"
-              title="${x.d} de julho — ${eur(-x.total)} — ${detail}">
-              <span class="bar" style="height:${h}%;animation-delay:${i * 20}ms">${segs}</span></button>`;
-          })
-          .join('');
-
-        /* A legenda carrega o total de cada categoria: a cor agrupa, o número
-           nomeia. Ninguém precisa casar swatch com segmento. */
-        const totals = {};
-        E.filter(isExpense).forEach((e) => {
-          totals[e.cat] = (totals[e.cat] || 0) + Math.abs(e.v);
-        });
-        document.getElementById('legend').innerHTML = Object.entries(totals)
-          .sort((a, b) => b[1] - a[1])
-          .map(
-            ([k, v]) =>
-              `<span><i class="dot" style="background:${CAT[k].c}"></i>${CAT[k].n} <b>${eur(v, {
-                sign: false,
-              })}</b></span>`,
-          )
-          .join('');
+        recompute();
 
         /* ---- lista ---- */
         const KIND = {
@@ -665,7 +671,7 @@
         };
 
         function sub(e) {
-          if (e.draft) return 'Falta a categoria — não entra em saldos nem relatórios';
+          if (e.draft) return 'Pronto para confirmar — ainda não afeta saldos nem relatórios';
           const parts = [];
           if (e.cat) parts.push(CAT[e.cat].n + (e.sub ? ` · ${e.sub}` : ''));
           if (e.acc) parts.push(e.acc);
@@ -674,8 +680,15 @@
           return parts.join(' — ');
         }
 
+        function confirmAction(e, index) {
+          return e.draft
+            ? `<button class="btn icon confirm-icon" type="button" data-confirm="${index}" title="Confirmar lançamento" aria-label="Confirmar ${e.t}">${icon('check')}</button>`
+            : '';
+        }
+
         function render(e) {
           const k = KIND[e.k];
+          const index = E.indexOf(e);
           /* transferência e movimento entre caixinhas não têm sinal: não é
              nem entrada nem saída, é dinheiro mudando de lugar */
           const neutral = e.k === 'tr' || e.k === 'cxtr';
@@ -695,6 +708,7 @@
               ${e.bal ? `<small title="Saldo de ${e.bal.acc} depois deste lançamento">${saldo(e.bal.v)}</small>` : ''}
             </div>
             <div class="acts">
+              ${confirmAction(e, index)}
               <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
               <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
             </div>
@@ -712,6 +726,7 @@
         const fLabel = document.getElementById('fLabel');
 
         let shown = 0; /* último total de despesas exibido, para o contador */
+        let selectedDay = null;
 
         /* Contador só aqui: o total responde a um filtro, não é saldo a
            conferir. Os cartões de saldo acima nunca se mexem. */
@@ -728,6 +743,7 @@
         }
 
         function select(day) {
+          selectedDay = day;
           const items = day ? E.filter((e) => e.d === day) : E;
 
           document.querySelectorAll('.day').forEach((b) => {
@@ -826,6 +842,15 @@
           select(b.getAttribute('aria-pressed') === 'true' ? null : day);
         });
         clearEl.addEventListener('click', () => select(null));
+        rowsEl.addEventListener('click', (ev) => {
+          const button = ev.target.closest('[data-confirm]');
+          if (!button) return;
+          const entry = E[Number(button.dataset.confirm)];
+          if (!entry.cat || !entry.acc) return alert('Complete categoria e conta antes de confirmar.');
+          entry.draft = false;
+          recompute();
+          select(selectedDay);
+        });
 
         select(null);
       });
