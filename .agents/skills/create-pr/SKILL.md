@@ -1,7 +1,6 @@
 ---
 name: create-pr
 description: Template for creating a pull request (PR). Use this whenever opening pull requests or asked to draft/write/open/create a PR.
-context: fork
 ---
 
 # PR title

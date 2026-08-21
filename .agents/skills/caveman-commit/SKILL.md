@@ -2,8 +2,6 @@
 name: caveman-commit
 description: >
   Ultra-compressed commit message generator. Use when user says "write a commit", "commit message", "generate commit", "/commit", or invokes /caveman-commit. Auto-triggers when staging changes.
-context: fork
-background: false
 ---
 
 Write commit messages terse and exact. Conventional Commits format. No fluff. Why over what.
