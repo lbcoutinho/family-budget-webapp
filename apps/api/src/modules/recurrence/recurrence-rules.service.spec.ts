@@ -262,4 +262,59 @@ describe('RecurrenceRulesService', () => {
       expect(result.occurrences).toEqual([]);
     });
   });
+
+  describe('previewPayload', () => {
+    const payload = {
+      frequency: 'MONTHLY' as const,
+      dayOfMonth: 15,
+      startDate: new Date('2026-01-15T00:00:00.000Z'),
+    };
+
+    it('never touches Prisma and returns the same occurrences the persisted-rule calculator would', () => {
+      const result = service.previewPayload({ ...payload, months: 3 });
+
+      expect(result.occurrences.length).toBeGreaterThan(0);
+      expect(recurrenceRule.findUnique).not.toHaveBeenCalled();
+      expect(recurrenceRule.create).not.toHaveBeenCalled();
+      expect(recurrenceRule.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects an endDate at or before startDate before computing anything', () => {
+      expect(() => service.previewPayload({ ...payload, endDate: new Date('2026-01-15T00:00:00.000Z') })).toThrow(BadRequestException);
+    });
+
+    it('defaults months to 12 and interval to 1 when omitted', () => {
+      const withDefaults = service.previewPayload(payload);
+      const explicit = service.previewPayload({ ...payload, interval: 1, months: 12 });
+
+      expect(withDefaults.occurrences).toEqual(explicit.occurrences);
+    });
+  });
+
+  describe('deactivate', () => {
+    it('sets isActive to false and keeps the rule (never deletes it)', async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row());
+      recurrenceRule.update.mockResolvedValue(row({ isActive: false }));
+
+      await expect(service.deactivate(userId, ruleId)).resolves.toMatchObject({ isActive: false });
+
+      expect(recurrenceRule.update).toHaveBeenCalledWith({ where: { id: ruleId }, data: { isActive: false } });
+      expect(recurrenceRule.delete).not.toHaveBeenCalled();
+    });
+
+    it('is idempotent: deactivating an already-inactive rule skips the write', async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row({ isActive: false }));
+
+      await expect(service.deactivate(userId, ruleId)).resolves.toMatchObject({ isActive: false });
+
+      expect(recurrenceRule.update).not.toHaveBeenCalled();
+    });
+
+    it("answers 404, not 403, for another user's rule", async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row({ userId: otherUserId }));
+
+      await expect(service.deactivate(userId, ruleId)).rejects.toThrow(NotFoundException);
+      expect(recurrenceRule.update).not.toHaveBeenCalled();
+    });
+  });
 });

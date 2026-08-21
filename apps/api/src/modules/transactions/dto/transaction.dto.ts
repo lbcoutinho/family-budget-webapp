@@ -72,4 +72,13 @@ export class TransactionDto {
 
   @ApiProperty({ type: String, format: 'date-time' })
   updatedAt!: string;
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'The recurrence rule that generated this transaction. Null for manual entries.' })
+  recurrenceRuleId!: string | null;
+
+  @ApiProperty({ type: Number, nullable: true, example: 3, description: '1-based position within its installment plan. Null outside installment plans.' })
+  installmentNumber!: number | null;
+
+  @ApiProperty({ type: Number, nullable: true, example: 12, description: 'Total installments in the plan. Null outside installment plans.' })
+  installmentTotal!: number | null;
 }

@@ -308,4 +308,88 @@ describe('Recurrence rules API (e2e)', () => {
       expect(rule.generatedUntil).toBeNull();
     });
   });
+
+  describe('POST /recurrence-rules/preview (payload preview)', () => {
+    const payload = { frequency: 'MONTHLY', dayOfMonth: 15, startDate: '2026-01-15', months: 12 };
+
+    it('previews an unsaved payload and matches the persisted-rule calculator, without creating a rule', async () => {
+      const rulesBefore = await prisma.recurrenceRule.count({ where: { userId } });
+
+      const preview = (await authed('post', '/recurrence-rules/preview').send(payload).expect(200)).body as PreviewRecurrenceRuleDto;
+      expect(preview.occurrences.length).toBeGreaterThan(0);
+
+      const created = await createRule(validBody({ frequency: 'MONTHLY', dayOfMonth: 15, startDate: '2026-01-15' }));
+      const persistedPreview = (await authed('get', `/recurrence-rules/${created.id}/preview?months=12`).expect(200)).body as PreviewRecurrenceRuleDto;
+
+      expect(preview.occurrences).toEqual(persistedPreview.occurrences);
+
+      const rulesAfter = await prisma.recurrenceRule.count({ where: { userId } });
+      expect(rulesAfter).toBe(rulesBefore + 1); // only the one rule created explicitly above
+    });
+
+    it('rejects a dayOfMonth outside 1-31 with 400', async () => {
+      await authed('post', '/recurrence-rules/preview')
+        .send({ ...payload, dayOfMonth: 32 })
+        .expect(400);
+    });
+
+    it('rejects an endDate at or before startDate with 400', async () => {
+      await authed('post', '/recurrence-rules/preview')
+        .send({ ...payload, endDate: '2026-01-01' })
+        .expect(400);
+    });
+
+    it('requires no authentication token to be rejected with 401', async () => {
+      await request(server).post('/api/recurrence-rules/preview').send(payload).expect(401);
+    });
+  });
+
+  describe('deactivate', () => {
+    it('deactivates the rule and keeps it, unlike delete', async () => {
+      const created = await createRule(validBody());
+
+      const deactivated = (await authed('post', `/recurrence-rules/${created.id}/deactivate`).expect(200)).body as RecurrenceRuleDto;
+      expect(deactivated.isActive).toBe(false);
+
+      await expect(authed('get', `/recurrence-rules/${created.id}`).expect(200)).resolves.toMatchObject({ body: { id: created.id, isActive: false } });
+    });
+
+    it('is idempotent', async () => {
+      const created = await createRule(validBody());
+
+      await authed('post', `/recurrence-rules/${created.id}/deactivate`).expect(200);
+      const second = (await authed('post', `/recurrence-rules/${created.id}/deactivate`).expect(200)).body as RecurrenceRuleDto;
+      expect(second.isActive).toBe(false);
+    });
+
+    it('preserves generated transactions', async () => {
+      const created = await createRule(validBody());
+
+      await prisma.transaction.create({
+        data: {
+          userId,
+          accountId,
+          categoryId,
+          subcategoryId,
+          type: 'EXPENSE',
+          amount: 1_000,
+          description: 'Rent',
+          date: new Date('2026-01-15'),
+          referenceMonth: new Date('2026-01-01'),
+          recurrenceRuleId: created.id,
+        },
+      });
+
+      await authed('post', `/recurrence-rules/${created.id}/deactivate`).expect(200);
+
+      const stillThere = await prisma.transaction.findMany({ where: { recurrenceRuleId: created.id } });
+      expect(stillThere).toHaveLength(1);
+    });
+
+    it('another user deactivating this rule gets 404', async () => {
+      const created = await createRule(validBody());
+
+      await authed('post', `/recurrence-rules/${created.id}/deactivate`, otherToken).expect(404);
+    });
+  });
 });

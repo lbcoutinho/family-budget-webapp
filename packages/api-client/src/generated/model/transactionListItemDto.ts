@@ -45,6 +45,21 @@ export interface TransactionListItemDto {
   destinationCashboxLabel: string | null;
   createdAt: string;
   updatedAt: string;
+  /**
+     * The recurrence rule that generated this transaction. Null for manual entries.
+     * @nullable
+     */
+  recurrenceRuleId: string | null;
+  /**
+     * 1-based position within its installment plan. Null outside installment plans.
+     * @nullable
+     */
+  installmentNumber: number | null;
+  /**
+     * Total installments in the plan. Null outside installment plans.
+     * @nullable
+     */
+  installmentTotal: number | null;
   /** @nullable */
   account: ListRelationRefDto | null;
   /** @nullable */

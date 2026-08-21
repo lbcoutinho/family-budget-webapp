@@ -283,6 +283,9 @@ function toDto(transaction: Transaction): TransactionDto {
     destinationCashboxLabel: transaction.destinationCashboxLabel,
     createdAt: transaction.createdAt.toISOString(),
     updatedAt: transaction.updatedAt.toISOString(),
+    recurrenceRuleId: transaction.recurrenceRuleId,
+    installmentNumber: transaction.installmentNumber,
+    installmentTotal: transaction.installmentTotal,
   };
 }
 
