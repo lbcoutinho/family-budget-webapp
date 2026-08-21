@@ -29,6 +29,7 @@ const row = (overrides: Partial<RecurrenceRule> = {}): RecurrenceRule => ({
   startDate: new Date('2026-01-15T00:00:00.000Z'),
   endDate: null,
   totalOccurrences: null,
+  totalAmount: null,
   autoConfirm: true,
   isActive: true,
   generatedUntil: null,
@@ -95,6 +96,12 @@ describe('RecurrenceRulesService', () => {
 
       await expect(service.findOne(userId, ruleId)).rejects.toThrow(NotFoundException);
     });
+  });
+
+  it('returns an installment plan total through the recurrence DTO', async () => {
+    recurrenceRule.findUnique.mockResolvedValue(row({ totalOccurrences: 7, totalAmount: 100_000 }));
+
+    await expect(service.findOne(userId, ruleId)).resolves.toMatchObject({ totalOccurrences: 7, totalAmount: 100_000 });
   });
 
   describe('create', () => {

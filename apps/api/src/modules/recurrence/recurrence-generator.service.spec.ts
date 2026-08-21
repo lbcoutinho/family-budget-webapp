@@ -22,6 +22,7 @@ const rule = (overrides: Partial<RecurrenceRule> = {}): RecurrenceRule => ({
   startDate: new Date('2026-01-15T00:00:00.000Z'),
   endDate: null,
   totalOccurrences: null,
+  totalAmount: null,
   autoConfirm: false,
   isActive: true,
   generatedUntil: null,

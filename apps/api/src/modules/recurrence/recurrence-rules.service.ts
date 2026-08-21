@@ -252,6 +252,7 @@ function toDto(rule: RecurrenceRule): RecurrenceRuleDto {
     startDate: rule.startDate.toISOString().slice(0, 10),
     endDate: rule.endDate?.toISOString().slice(0, 10) ?? null,
     totalOccurrences: rule.totalOccurrences,
+    totalAmount: rule.totalAmount,
     autoConfirm: rule.autoConfirm,
     isActive: rule.isActive,
     generatedUntil: rule.generatedUntil?.toISOString().slice(0, 10) ?? null,

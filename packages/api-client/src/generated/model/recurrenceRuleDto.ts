@@ -36,6 +36,11 @@ export interface RecurrenceRuleDto {
      * @nullable
      */
   totalOccurrences: number | null;
+  /**
+     * Exact purchase total for installment plans, in cents. Null for open-ended recurrences.
+     * @nullable
+     */
+  totalAmount: number | null;
   autoConfirm: boolean;
   /** Deactivated rules are kept for history but never generate again. */
   isActive: boolean;

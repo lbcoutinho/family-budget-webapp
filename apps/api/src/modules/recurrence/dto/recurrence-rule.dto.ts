@@ -55,6 +55,14 @@ export class RecurrenceRuleDto {
   @ApiProperty({ type: Number, nullable: true, description: 'Lifetime cap on generated occurrences. Null means open-ended (ADR-0014).' })
   totalOccurrences!: number | null;
 
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    example: 100_000,
+    description: 'Exact purchase total for installment plans, in cents. Null for open-ended recurrences.',
+  })
+  totalAmount!: number | null;
+
   @ApiProperty({ type: Boolean })
   autoConfirm!: boolean;
 

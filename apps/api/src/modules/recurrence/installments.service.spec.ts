@@ -106,6 +106,7 @@ describe('InstallmentsService.createPlan', () => {
     const result = await service.createPlan(userId, validDto({ totalAmount: 10_000, installments: 3 }));
 
     expect(result.installments.map((i) => i.amount)).toEqual([3_333, 3_333, 3_334]);
+    expect(result.rule.totalAmount).toBe(10_000);
   });
 
   it('clamps a plan starting on the 31st to the 28th in February (non-leap year)', async () => {

@@ -274,6 +274,8 @@ model RecurrenceRule {
 
   /// Null = open-ended recurrence; a value = installments, and must be >= 1 (CHECK below).
   totalOccurrences Int? @map("total_occurrences")
+  /// Exact purchase total for installment plans, in cents. Null for open-ended recurrences.
+  totalAmount      Int? @map("total_amount")
 
   /// Whether a generated entry starts as `CONFIRMED` (fixed amount) or `DRAFT` (variable amount,
   /// e.g. a utility bill) — ADR-0014.
