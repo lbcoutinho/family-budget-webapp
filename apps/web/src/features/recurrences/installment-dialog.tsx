@@ -88,6 +88,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
     formState: { errors },
   } = useForm<InstallmentFormValues>({
     resolver: zodResolver(installmentSchema),
+    mode: 'onBlur',
     defaultValues: {
       accountId: '',
       categoryId: '',

@@ -125,6 +125,9 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
     formState: { errors },
   } = useForm<RuleFormValues>({
     resolver: zodResolver(ruleSchema),
+    // Save is disabled until the preview loads, so client-side errors need to surface on their own
+    // — onBlur, rather than waiting for a submit that a disabled button will never let happen.
+    mode: 'onBlur',
     defaultValues: {
       type: 'EXPENSE',
       accountId: '',
