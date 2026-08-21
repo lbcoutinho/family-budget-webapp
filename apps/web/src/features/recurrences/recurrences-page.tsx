@@ -22,18 +22,15 @@ import { toast } from 'sonner';
 import { InstallmentDialog } from './installment-dialog';
 import { RecurrenceDialog } from './recurrence-dialog';
 import { RecurrenceList, RecurrenceListSkeleton } from './recurrence-list';
+import { RecurrencesSummary } from './recurrences-summary';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import i18n, { type TranslationKey } from '@/i18n';
+import i18n, { formKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
-
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
-}
 
 /** Active rules first, each group alphabetical — same convention as `sortCashboxes`. */
 function sortRules(rules: RecurrenceRuleDto[]): RecurrenceRuleDto[] {
@@ -157,6 +154,7 @@ export function RecurrencesPage() {
         }
       />
       <PageContent>
+        {!isPending && !isError && rulesList.length > 0 && <RecurrencesSummary rules={rulesList} />}
         {isPending && <RecurrenceListSkeleton />}
         {isError && (
           <EmptyState

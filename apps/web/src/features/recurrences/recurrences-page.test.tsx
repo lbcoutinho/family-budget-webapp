@@ -117,6 +117,16 @@ describe('RecurrencesPage', () => {
     expect(await screen.findByText('sem fim')).toBeInTheDocument();
   });
 
+  it('shows the top summary stats once rules have loaded', async () => {
+    server.use(http.get('/api/recurrence-rules', () => HttpResponse.json([ENDLESS_RULE])));
+
+    renderPage();
+
+    await screen.findByText('Seguro do carro');
+    expect(screen.getByText('Parcelas em aberto')).toBeInTheDocument();
+    expect(screen.getByText('Próxima geração')).toBeInTheDocument();
+  });
+
   it('shows the empty state explaining the two kinds of recurrence', async () => {
     server.use(http.get('/api/recurrence-rules', () => HttpResponse.json([])));
 
