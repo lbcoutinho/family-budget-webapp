@@ -57,6 +57,10 @@ export const ERROR_CODES = [
   'INSTALLMENT_AMOUNT_TOO_LOW',
   /** `POST /recurrence-rules/:id/cancel-installments` on a rule with `totalOccurrences = null` — that's an open-ended rule, deactivated through `DELETE` instead (M7-T04). */
   'RECURRENCE_NOT_INSTALLMENT_PLAN',
+  /** `amount = null` on a `RecurrenceRule` with `autoConfirm = true` — a rule that auto-confirms must know what it confirms (ADR-0020). */
+  'RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM',
+  /** `amount = null` on a `Transaction` whose `status` is (or would become) `CONFIRMED` (ADR-0020). */
+  'TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

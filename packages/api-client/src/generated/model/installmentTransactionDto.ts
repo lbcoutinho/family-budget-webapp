@@ -14,8 +14,11 @@ export interface InstallmentTransactionDto {
   type: TransactionType;
   status: TransactionStatus;
   source: TransactionSource;
-  /** Always positive, in **cents** (ADR-0005). */
-  amount: number;
+  /**
+     * Always positive when present, in **cents** (ADR-0005). Null means unknown yet; only possible on a DRAFT (ADR-0020).
+     * @nullable
+     */
+  amount: number | null;
   date: string;
   referenceMonth: string;
   description: string;

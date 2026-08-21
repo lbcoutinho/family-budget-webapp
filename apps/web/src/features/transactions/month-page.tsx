@@ -71,7 +71,8 @@ function formatEntryDate(value: string): string {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
-function transactionAmount(transaction: TransactionListItemDto): number {
+function transactionAmount(transaction: TransactionListItemDto): number | null {
+  if (transaction.amount === null) return null;
   if (transaction.type === TransactionType.EXPENSE || transaction.type === TransactionType.CASHBOX_IN) return -transaction.amount;
   if (transaction.type === TransactionType.INCOME || transaction.type === TransactionType.CASHBOX_OUT) return transaction.amount;
 
@@ -86,7 +87,8 @@ function isCashboxOperation(type: TransactionType): boolean {
   return type === TransactionType.CASHBOX_IN || type === TransactionType.CASHBOX_OUT || type === TransactionType.CASHBOX_TRANSFER;
 }
 
-function restorePayload(entry: TransactionListItemDto): CreateTransactionDto {
+/** Only called once the caller has checked `entry.amount !== null` (ADR-0020, no `restorePayload` for an amountless draft). */
+function restorePayload(entry: TransactionListItemDto & { amount: number }): CreateTransactionDto {
   return {
     type: entry.type,
     amount: entry.amount,
@@ -349,12 +351,14 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         setDeleting(undefined);
         invalidateTransactions();
         if (entry?.id !== variables.id) return;
+        const amount = entry.amount;
+        // An amountless draft (ADR-0020) has no `restorePayload`: `POST /transactions` always
+        // creates a CONFIRMED row, and CONFIRMED requires an amount — nothing to replay it with.
         toast.success(t('transactions.deleted'), {
           duration: 10_000,
-          action: {
-            label: t('transactions.undo'),
-            onClick: () => restore.mutate({ data: restorePayload(entry) }),
-          },
+          ...(amount !== null
+            ? { action: { label: t('transactions.undo'), onClick: () => restore.mutate({ data: restorePayload({ ...entry, amount }) }) } }
+            : {}),
         });
       },
       onError: (error) => {

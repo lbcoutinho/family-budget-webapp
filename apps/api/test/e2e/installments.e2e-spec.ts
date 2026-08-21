@@ -112,7 +112,7 @@ describe('Installments API (e2e)', () => {
       const plan = await createPlan(validBody());
 
       expect(plan.installments).toHaveLength(10);
-      expect(plan.installments.reduce((sum, i) => sum + i.amount, 0)).toBe(10_000);
+      expect(plan.installments.reduce((sum, i) => sum + (i.amount ?? 0), 0)).toBe(10_000);
 
       const referenceMonths = plan.installments.map((i) => i.referenceMonth);
       expect(referenceMonths).toEqual([
@@ -136,6 +136,24 @@ describe('Installments API (e2e)', () => {
       expect(plan.installments.every((i) => i.source === 'RECURRING')).toBe(true);
       expect(plan.installments.every((i) => i.recurrenceRuleId === plan.rule.id)).toBe(true);
       expect(plan.rule.generatedUntil).toBe(plan.installments.at(-1)!.date);
+    });
+
+    it('exposes recurrenceRuleId/installmentNumber/installmentTotal on the general transaction detail and list endpoints too', async () => {
+      const plan = await createPlan(validBody());
+      const installment = plan.installments[2]!;
+
+      const detail = (await authed('get', `/transactions/${installment.id}`).expect(200)).body as {
+        recurrenceRuleId: string | null;
+        installmentNumber: number | null;
+        installmentTotal: number | null;
+      };
+      expect(detail).toMatchObject({ recurrenceRuleId: plan.rule.id, installmentNumber: 3, installmentTotal: 10 });
+
+      const list = (await authed('get', `/transactions?referenceMonth=${installment.referenceMonth}`).expect(200)).body as {
+        items: { id: string; recurrenceRuleId: string | null; installmentNumber: number | null; installmentTotal: number | null }[];
+      };
+      const listed = list.items.find((item) => item.id === installment.id);
+      expect(listed).toMatchObject({ recurrenceRuleId: plan.rule.id, installmentNumber: 3, installmentTotal: 10 });
     });
 
     it('splits €100.00 in 3 installments as 3333 / 3333 / 3334', async () => {

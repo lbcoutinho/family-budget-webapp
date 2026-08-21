@@ -10,8 +10,11 @@ import type { CreateRecurrenceRuleDtoType } from './createRecurrenceRuleDtoType'
 
 export interface CreateRecurrenceRuleDto {
   type: CreateRecurrenceRuleDtoType;
-  /** Always positive, in **cents** (ADR-0005) — copied onto each generated transaction. */
-  amount: number;
+  /**
+     * Always positive when present, in **cents** (ADR-0005) — copied onto each generated transaction. Null means a variable amount (e.g. a utility bill); legal only when `autoConfirm` is false (ADR-0020).
+     * @nullable
+     */
+  amount?: number | null;
   /** @maxLength 200 */
   description: string;
   /**

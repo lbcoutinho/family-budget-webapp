@@ -5,11 +5,10 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { UpdateTransactionDtoStatus } from './updateTransactionDtoStatus';
 import type { UpdateTransactionDtoType } from './updateTransactionDtoType';
 
 export interface UpdateTransactionDto {
-  /** Always positive, in **cents** (ADR-0005) — sign is derived from `type`. */
-  amount?: number;
   /** When it happened, `YYYY-MM-DD`. */
   date?: string;
   /** Which month it reports in, `YYYY-MM-DD`. Derived from `date` when omitted, normalized to the 1st when supplied (ADR-0009). */
@@ -32,4 +31,11 @@ export interface UpdateTransactionDto {
   destinationCashboxId?: string;
   /** Rejected: `type` is immutable after creation. */
   type?: UpdateTransactionDtoType;
+  /**
+     * Always positive when present, in **cents** (ADR-0005). Null is only legal while the transaction stays DRAFT.
+     * @nullable
+     */
+  amount?: number | null;
+  /** The confirm action: moves a DRAFT to CONFIRMED. Rejected with `TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED` when amount is still null. */
+  status?: UpdateTransactionDtoStatus;
 }

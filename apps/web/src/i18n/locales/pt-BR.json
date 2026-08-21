@@ -70,7 +70,9 @@
     "TRANSACTION_REFERENCE_INACTIVE": "Uma das contas, categorias, subcategorias ou caixinhas selecionadas está desativada.",
     "TRANSACTION_CATEGORY_KIND_MISMATCH": "A categoria precisa corresponder ao tipo do lançamento.",
     "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada.",
-    "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}."
+    "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}.",
+    "RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM": "Uma regra que confirma automaticamente precisa de um valor.",
+    "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Informe o valor antes de confirmar este lançamento."
   },
   "accounts": {
     "new": "Nova conta",

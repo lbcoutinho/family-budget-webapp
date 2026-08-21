@@ -129,6 +129,13 @@ export class TransactionsService {
       throw badRequest('TRANSACTION_TYPE_IMMUTABLE', 'type cannot be changed after creation.');
     }
 
+    const resultingAmount = dto.amount !== undefined ? dto.amount : current.amount;
+    const resultingStatus = dto.status ?? current.status;
+
+    if (resultingAmount === null && resultingStatus === 'CONFIRMED') {
+      throw badRequest('TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED', 'amount is required to confirm a transaction.');
+    }
+
     // The validator only runs when the patch actually touches a ref field — editing the
     // description of an old transaction must not fail because its category (or cashbox) was since
     // retired (ADR-0015).
@@ -276,6 +283,9 @@ function toDto(transaction: Transaction): TransactionDto {
     destinationCashboxLabel: transaction.destinationCashboxLabel,
     createdAt: transaction.createdAt.toISOString(),
     updatedAt: transaction.updatedAt.toISOString(),
+    recurrenceRuleId: transaction.recurrenceRuleId,
+    installmentNumber: transaction.installmentNumber,
+    installmentTotal: transaction.installmentTotal,
   };
 }
 

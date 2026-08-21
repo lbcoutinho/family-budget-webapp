@@ -57,6 +57,9 @@ function makeTransaction(overrides: Partial<ApiClient.TransactionListItemDto> = 
     destinationCashboxLabel: null,
     createdAt: '2026-08-15T00:00:00.000Z',
     updatedAt: '2026-08-15T00:00:00.000Z',
+    recurrenceRuleId: null,
+    installmentNumber: null,
+    installmentTotal: null,
     account: { id: 'account-1', name: 'Main account' },
     category: null,
     subcategory: null,
@@ -569,6 +572,39 @@ describe('EntryDialog', () => {
     act(() => updateMutationOptions?.mutation.onSuccess());
     expect(toastSuccess).toHaveBeenCalledWith('transactions.form.save');
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('leaves the amount field blank for an amountless DRAFT and allows saving other fields with it still empty (ADR-0020)', async () => {
+    const transaction = makeTransaction({ status: 'DRAFT', amount: null });
+    const { user } = renderDialog(vi.fn(), transaction);
+
+    expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('');
+    await user.clear(screen.getByLabelText('transactions.form.description'));
+    await user.type(screen.getByLabelText('transactions.form.description'), 'Electricity bill');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(screen.queryByText('transactions.form.invalidAmount')).not.toBeInTheDocument();
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { description: 'Electricity bill' } });
+  });
+
+  it('fills in the amount on an amountless DRAFT and sends it as a patch', async () => {
+    const transaction = makeTransaction({ status: 'DRAFT', amount: null });
+    const { user } = renderDialog(vi.fn(), transaction);
+
+    await user.type(screen.getByLabelText('transactions.form.amount'), '42');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { amount: 4200 } });
+  });
+
+  it('still requires a positive amount when editing an already-CONFIRMED transaction', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ status: 'CONFIRMED' }));
+
+    await user.clear(screen.getByLabelText('transactions.form.amount'));
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(await screen.findByText('transactions.form.invalidAmount')).toBeInTheDocument();
+    expect(updateMutate).not.toHaveBeenCalled();
   });
 
   it('keeps the edit dialog open and shows a toast when update fails', () => {

@@ -246,8 +246,10 @@ model RecurrenceRule {
   /// Reuses `TransactionType`; `CASHBOX_*`/`TRANSFER` are left to service-level validation, same
   /// as `Transaction` (M7-T02/T03).
   type   TransactionType
-  /// Always positive, in **cents** (ADR-0005) — copied onto each generated transaction.
-  amount Int
+  /// Always positive when present, in **cents** (ADR-0005) — copied onto each generated
+  /// transaction. Null means a variable amount (e.g. a utility bill); legal only when
+  /// `autoConfirm = false` (CHECK below, ADR-0020).
+  amount Int?
 
   /// Copied onto each generated transaction's `description`.
   description String
@@ -321,8 +323,9 @@ model Transaction {
   type   TransactionType
   status TransactionStatus @default(CONFIRMED)
   source TransactionSource @default(MANUAL)
-  /// Always positive, in **cents** (ADR-0005) — sign is derived from `type`, never stored.
-  amount Int
+  /// Always positive when present, in **cents** (ADR-0005) — sign is derived from `type`, never
+  /// stored. Null means unknown yet; legal only when `status = 'DRAFT'` (CHECK below, ADR-0020).
+  amount Int?
 
   /// When the purchase happened (ADR-0009).
   date           DateTime @db.Date

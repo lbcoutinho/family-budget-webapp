@@ -11,8 +11,11 @@ import type { RecurrenceRuleDtoType } from './recurrenceRuleDtoType';
 export interface RecurrenceRuleDto {
   id: string;
   type: RecurrenceRuleDtoType;
-  /** Always positive, in **cents** (ADR-0005). */
-  amount: number;
+  /**
+     * Always positive when present, in **cents** (ADR-0005). Null means a variable amount; legal only when `autoConfirm` is false (ADR-0020).
+     * @nullable
+     */
+  amount: number | null;
   description: string;
   /** @nullable */
   notes: string | null;

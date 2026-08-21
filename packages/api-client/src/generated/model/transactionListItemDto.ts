@@ -16,8 +16,11 @@ export interface TransactionListItemDto {
   type: TransactionType;
   status: TransactionStatus;
   source: TransactionSource;
-  /** Always positive, in **cents** (ADR-0005). */
-  amount: number;
+  /**
+     * Always positive when present, in **cents** (ADR-0005). Null means unknown yet; only possible on a DRAFT (ADR-0020).
+     * @nullable
+     */
+  amount: number | null;
   date: string;
   referenceMonth: string;
   description: string;
@@ -42,6 +45,21 @@ export interface TransactionListItemDto {
   destinationCashboxLabel: string | null;
   createdAt: string;
   updatedAt: string;
+  /**
+     * The recurrence rule that generated this transaction. Null for manual entries.
+     * @nullable
+     */
+  recurrenceRuleId: string | null;
+  /**
+     * 1-based position within its installment plan. Null outside installment plans.
+     * @nullable
+     */
+  installmentNumber: number | null;
+  /**
+     * Total installments in the plan. Null outside installment plans.
+     * @nullable
+     */
+  installmentTotal: number | null;
   /** @nullable */
   account: ListRelationRefDto | null;
   /** @nullable */
