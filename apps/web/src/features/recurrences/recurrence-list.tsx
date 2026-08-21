@@ -129,7 +129,7 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                       )
                     ) : (
                       <div className="min-w-[108px]">
-                        <span className="num font-semibold">
+                        <span className="num text-muted-foreground">
                           {progress!.elapsed}/{rule.totalOccurrences}
                         </span>
                         <span className="block text-[11.5px] text-muted-foreground">
