@@ -189,6 +189,20 @@ describe('MonthPage', () => {
     expect(screen.getAllByLabelText('Lançamento recorrente')).toHaveLength(1);
   });
 
+  it('shows the installment progress next to the recurring marker', async () => {
+    const installment: TransactionListItemDto = { ...RECURRING, id: 'installment-1', installmentNumber: 4, installmentTotal: 12 };
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([installment])),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByLabelText('Lançamento recorrente, parcela 4 de 12')).toBeInTheDocument();
+    expect(screen.getByText('4/12')).toBeInTheDocument();
+  });
+
   it('debounces the server-side description search', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const searches: string[] = [];

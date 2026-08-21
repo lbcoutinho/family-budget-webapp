@@ -386,6 +386,8 @@
     "nextYear": "Próximo ano",
     "creditCard": "Cartão de crédito",
     "recurring": "Lançamento recorrente",
+    "recurringInstallment": "Lançamento recorrente, parcela {{index}} de {{total}}",
+    "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "compra em {{date}}",
     "balancePlaceholder": "Saldo indisponível",
     "dailyExpense": {

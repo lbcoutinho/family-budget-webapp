@@ -386,6 +386,8 @@
     "nextYear": "Next year",
     "creditCard": "Credit card",
     "recurring": "Recurring entry",
+    "recurringInstallment": "Recurring entry, installment {{index}} of {{total}}",
+    "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "purchased on {{date}}",
     "balancePlaceholder": "Balance unavailable",
     "dailyExpense": {

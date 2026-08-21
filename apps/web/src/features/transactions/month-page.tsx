@@ -233,7 +233,19 @@ function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
         <span className="truncate text-[14px] font-semibold">{entry.description}</span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.source === TransactionSource.RECURRING ? (
-          <RepeatIcon aria-label={t('transactions.recurring')} className="size-3.5 shrink-0 text-muted-foreground" />
+          <RepeatIcon
+            aria-label={
+              entry.installmentNumber !== null && entry.installmentTotal !== null
+                ? t('transactions.recurringInstallment', { index: entry.installmentNumber, total: entry.installmentTotal })
+                : t('transactions.recurring')
+            }
+            className="size-3.5 shrink-0 text-muted-foreground"
+          />
+        ) : null}
+        {entry.installmentNumber !== null && entry.installmentTotal !== null ? (
+          <span className="num text-[11px] text-muted-foreground">
+            {t('transactions.installmentOf', { index: entry.installmentNumber, total: entry.installmentTotal })}
+          </span>
         ) : null}
         {entry.status === TransactionStatus.DRAFT ? (
           <Badge variant="outline" className="border-dashed text-[10.5px]">
