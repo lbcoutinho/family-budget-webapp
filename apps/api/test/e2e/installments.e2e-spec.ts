@@ -138,6 +138,24 @@ describe('Installments API (e2e)', () => {
       expect(plan.rule.generatedUntil).toBe(plan.installments.at(-1)!.date);
     });
 
+    it('exposes recurrenceRuleId/installmentNumber/installmentTotal on the general transaction detail and list endpoints too', async () => {
+      const plan = await createPlan(validBody());
+      const installment = plan.installments[2]!;
+
+      const detail = (await authed('get', `/transactions/${installment.id}`).expect(200)).body as {
+        recurrenceRuleId: string | null;
+        installmentNumber: number | null;
+        installmentTotal: number | null;
+      };
+      expect(detail).toMatchObject({ recurrenceRuleId: plan.rule.id, installmentNumber: 3, installmentTotal: 10 });
+
+      const list = (await authed('get', `/transactions?referenceMonth=${installment.referenceMonth}`).expect(200)).body as {
+        items: { id: string; recurrenceRuleId: string | null; installmentNumber: number | null; installmentTotal: number | null }[];
+      };
+      const listed = list.items.find((item) => item.id === installment.id);
+      expect(listed).toMatchObject({ recurrenceRuleId: plan.rule.id, installmentNumber: 3, installmentTotal: 10 });
+    });
+
     it('splits €100.00 in 3 installments as 3333 / 3333 / 3334', async () => {
       const plan = await createPlan(validBody({ totalAmount: 10_000, installments: 3 }));
 

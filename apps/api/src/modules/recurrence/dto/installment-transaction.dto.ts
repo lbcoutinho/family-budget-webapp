@@ -1,13 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 import { TransactionDto } from '../../transactions/dto/transaction.dto';
 
 /**
- * `TransactionDto` plus the three installment-only fields (M7-T04). The general transaction listing
- * (M4) deliberately omits these — most rows are not installments — but the plan-creation response
- * hands them back so #200's form can show what it produced without a second round-trip.
+ * `TransactionDto` with `recurrenceRuleId`/`installmentNumber`/`installmentTotal` narrowed from
+ * nullable to required (#208 made them nullable on `TransactionDto` itself for the general listing) —
+ * every row the plan-creation response hands back is one of its own installments, so these three are
+ * always set here. `OmitType` (rather than plain `extends`) sidesteps re-declaring an inherited field
+ * with an incompatible type.
  */
-export class InstallmentTransactionDto extends TransactionDto {
+export class InstallmentTransactionDto extends OmitType(TransactionDto, ['recurrenceRuleId', 'installmentNumber', 'installmentTotal'] as const) {
   @ApiProperty({ type: String, format: 'uuid' })
   recurrenceRuleId!: string;
 

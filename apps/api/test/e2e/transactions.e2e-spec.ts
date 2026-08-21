@@ -201,6 +201,12 @@ describe('Transactions API (e2e)', () => {
     it('answers 404 for a reference belonging to another user', async () => {
       await authed('post', '/transactions', otherToken).send(minimalBody()).expect(404);
     });
+
+    it('returns null recurrence/installment metadata for a manual transaction', async () => {
+      const created = await createTransaction(minimalBody());
+
+      expect(created).toMatchObject({ recurrenceRuleId: null, installmentNumber: null, installmentTotal: null });
+    });
   });
 
   describe('read, update and delete one', () => {
