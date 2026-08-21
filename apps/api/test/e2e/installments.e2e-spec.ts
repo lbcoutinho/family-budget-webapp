@@ -112,7 +112,7 @@ describe('Installments API (e2e)', () => {
       const plan = await createPlan(validBody());
 
       expect(plan.installments).toHaveLength(10);
-      expect(plan.installments.reduce((sum, i) => sum + i.amount, 0)).toBe(10_000);
+      expect(plan.installments.reduce((sum, i) => sum + (i.amount ?? 0), 0)).toBe(10_000);
 
       const referenceMonths = plan.installments.map((i) => i.referenceMonth);
       expect(referenceMonths).toEqual([

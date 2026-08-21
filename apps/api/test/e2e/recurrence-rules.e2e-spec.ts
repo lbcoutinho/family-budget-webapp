@@ -169,6 +169,18 @@ describe('Recurrence rules API (e2e)', () => {
         .expect(400);
     });
 
+    it('creates an amountless rule when autoConfirm is false (ADR-0020)', async () => {
+      const created = await createRule(validBody({ amount: null, autoConfirm: false }));
+
+      expect(created).toMatchObject({ amount: null, autoConfirm: false });
+    });
+
+    it('rejects an amountless rule when autoConfirm is true (the default), with 400', async () => {
+      await authed('post', '/recurrence-rules')
+        .send(validBody({ amount: null }))
+        .expect(400);
+    });
+
     it('rejects a foreign accountId with 404', async () => {
       const foreignAccount = await prisma.account.create({
         data: { userId: (await prisma.user.findUniqueOrThrow({ where: { email: emails[1]! }, select: { id: true } })).id, name: 'Not mine', initialBalance: 0 },
@@ -264,6 +276,19 @@ describe('Recurrence rules API (e2e)', () => {
       const created = await createRule(validBody());
 
       await authed('post', `/recurrence-rules/${created.id}/generate`, otherToken).expect(404);
+    });
+
+    it('materializes an amountless DRAFT transaction for a rule with no amount (ADR-0020)', async () => {
+      const created = await createRule(validBody({ amount: null, autoConfirm: false }));
+
+      await authed('post', `/recurrence-rules/${created.id}/generate`).expect(201);
+
+      const generated = await prisma.transaction.findMany({ where: { recurrenceRuleId: created.id } });
+      expect(generated.length).toBeGreaterThan(0);
+      for (const transaction of generated) {
+        expect(transaction.amount).toBeNull();
+        expect(transaction.status).toBe('DRAFT');
+      }
     });
   });
 

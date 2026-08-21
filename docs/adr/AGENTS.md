@@ -41,3 +41,4 @@ Project's architectural decisions and the reasoning behind them.
 | [0017](0017-prisma-7-with-the-rust-free-client.md) | Prisma 7 with the Rust-free client | Accepted |
 | [0018](0018-internationalization.md) | Internationalization | Accepted |
 | [0019](0019-cashbox-label-snapshot-and-deletion.md) | Cashbox label snapshot and deletion of empty cashboxes | Accepted |
+| [0020](0020-amountless-recurrence-rules.md) | Amountless recurrence rules | Accepted |

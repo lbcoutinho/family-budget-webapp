@@ -333,6 +333,46 @@ describe('TransactionsService', () => {
       expect(doubled.transaction.update).not.toHaveBeenCalled();
     });
 
+    it('accepts a null amount on a DRAFT (ADR-0020)', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ status: TransactionStatus.DRAFT, amount: 1_000 }));
+      doubled.transaction.update.mockResolvedValue(row({ status: TransactionStatus.DRAFT, amount: null }));
+
+      await expect(service.update(userId, transactionId, { amount: null })).resolves.toMatchObject({ amount: null });
+    });
+
+    it('rejects a null amount when the transaction is already CONFIRMED, with 400 TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ status: TransactionStatus.CONFIRMED }));
+
+      await expect(service.update(userId, transactionId, { amount: null })).rejects.toThrow(BadRequestException);
+      expect(doubled.transaction.update).not.toHaveBeenCalled();
+    });
+
+    it('confirms a DRAFT that already has an amount when status is set to CONFIRMED', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ status: TransactionStatus.DRAFT, amount: 1_000 }));
+      doubled.transaction.update.mockResolvedValue(row({ status: TransactionStatus.CONFIRMED, amount: 1_000 }));
+
+      await expect(service.update(userId, transactionId, { status: TransactionStatus.CONFIRMED })).resolves.toMatchObject({
+        status: TransactionStatus.CONFIRMED,
+      });
+    });
+
+    it('rejects confirming a DRAFT that still has a null amount, with 400 TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ status: TransactionStatus.DRAFT, amount: null }));
+
+      await expect(service.update(userId, transactionId, { status: TransactionStatus.CONFIRMED })).rejects.toThrow(BadRequestException);
+      expect(doubled.transaction.update).not.toHaveBeenCalled();
+    });
+
+    it('confirms a DRAFT and sets its amount in the same patch', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ status: TransactionStatus.DRAFT, amount: null }));
+      doubled.transaction.update.mockResolvedValue(row({ status: TransactionStatus.CONFIRMED, amount: 2_500 }));
+
+      await expect(service.update(userId, transactionId, { amount: 2_500, status: TransactionStatus.CONFIRMED })).resolves.toMatchObject({
+        status: TransactionStatus.CONFIRMED,
+        amount: 2_500,
+      });
+    });
+
     it('skips the validator when the patch touches no ref field', async () => {
       doubled.transaction.findUnique.mockResolvedValue(row());
       doubled.transaction.update.mockResolvedValue(row({ description: 'Renamed' }));

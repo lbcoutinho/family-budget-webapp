@@ -74,11 +74,14 @@ function segmentFor(item: TransactionListItemDto, noCategoryLabel: string): Omit
 function accumulate(map: Map<string, Segment>, item: TransactionListItemDto, noCategoryLabel: string): void {
   const { key, name, color } = segmentFor(item, noCategoryLabel);
   const existing = map.get(key);
+  // The strip only ever lists CONFIRMED transactions (the default `listTransactions` filter), and a
+  // CONFIRMED row always has an amount (ADR-0020) — the `?? 0` is type-narrowing, not a real branch.
+  const cents = item.amount ?? 0;
 
   if (existing) {
-    existing.cents += item.amount;
+    existing.cents += cents;
   } else {
-    map.set(key, { key, name, color, cents: item.amount });
+    map.set(key, { key, name, color, cents });
   }
 }
 

@@ -42,11 +42,18 @@ export interface FormatCentsOptions {
 }
 
 /**
- * `formatCents(123456)` → `"1.234,56 €"`, `formatCents(-3500)` → `"−35,00 €"`.
+ * `formatCents(123456)` → `"1.234,56 €"`, `formatCents(-3500)` → `"−35,00 €"`, `formatCents(null)`
+ * → `"—"`.
  *
  * A negative value keeps its minus whatever `sign` says: there it is information, not decoration.
+ * `null` is a variable-amount draft whose amount is not known yet (ADR-0020) — an em dash, never
+ * `€0.00`, which would read as a real recorded amount.
  */
-export function formatCents(cents: number, { sign = false, locale = i18n.language }: FormatCentsOptions = {}): string {
+export function formatCents(cents: number | null, { sign = false, locale = i18n.language }: FormatCentsOptions = {}): string {
+  if (cents === null) {
+    return '—';
+  }
+
   // Cents are integers by contract; rounding here means a value that slipped through arithmetic
   // (a division, an average) still prints as money instead of as `1.234,565 €`.
   const rounded = Math.round(cents);

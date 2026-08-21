@@ -25,6 +25,11 @@ describe('formatCents', () => {
     expect(formatCents(1234.5)).toBe('12,35 €');
     expect(formatCents(-1234.6)).toBe('−12,35 €');
   });
+
+  it('formats null as an em dash, never as €0.00 (ADR-0020)', () => {
+    expect(formatCents(null)).toBe('—');
+    expect(formatCents(null, { sign: true })).toBe('—');
+  });
 });
 
 describe('parseCurrencyInput', () => {
