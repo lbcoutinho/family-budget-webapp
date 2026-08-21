@@ -487,6 +487,13 @@
       "progress": "{{percent}}% de {{target}}"
     }
   },
+  "recurrence": {
+    "catchUp": {
+      "created_one": "{{count}} lançamento recorrente criado",
+      "created_other": "{{count}} lançamentos recorrentes criados",
+      "error": "Não foi possível gerar os lançamentos recorrentes agora."
+    }
+  },
   "settingsGeneral": {
     "language": {
       "heading": "Idioma",

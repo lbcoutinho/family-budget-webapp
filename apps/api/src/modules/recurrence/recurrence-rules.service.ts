@@ -13,11 +13,9 @@ import { type PreviewRecurrenceRulePayloadDto } from './dto/preview-recurrence-r
 import { type PreviewRecurrenceRuleDto } from './dto/preview-recurrence-rule.dto';
 import { RecurrenceRuleDto } from './dto/recurrence-rule.dto';
 import { UpdateRecurrenceRuleDto } from './dto/update-recurrence-rule.dto';
+import { ROLLING_HORIZON_MONTHS, rollingHorizon } from './horizon';
 import { computeOccurrences } from './occurrences';
 import { RecurrenceGeneratorService } from './recurrence-generator.service';
-
-/** The rolling generation horizon (ADR-0014): recurrence generates three months ahead, no further. */
-const ROLLING_HORIZON_MONTHS = 3;
 
 /**
  * CRUD, manual generation and preview for `RecurrenceRule` (M7-T03), on top of `RecurrenceGeneratorService`
@@ -143,7 +141,7 @@ export class RecurrenceRulesService {
   /** `POST /recurrence-rules/:id/generate` — delegates to `RecurrenceGeneratorService`; idempotency is entirely its concern. */
   async generate(userId: string, id: string): Promise<GenerateRecurrenceRuleResultDto> {
     const rule = await this.load(userId, id);
-    const result = await this.generator.generate(userId, rule, this.rollingHorizon(ROLLING_HORIZON_MONTHS));
+    const result = await this.generator.generate(userId, rule, rollingHorizon(ROLLING_HORIZON_MONTHS));
 
     return { created: result.created, generatedUntil: result.generatedUntil?.toISOString().slice(0, 10) ?? null };
   }
@@ -156,7 +154,7 @@ export class RecurrenceRulesService {
     const rule = await this.load(userId, id);
     const alreadyGenerated = await this.prisma.transaction.count({ where: { recurrenceRuleId: id } });
 
-    const occurrences = computeOccurrences(rule, this.rollingHorizon(months), alreadyGenerated);
+    const occurrences = computeOccurrences(rule, rollingHorizon(months), alreadyGenerated);
 
     return { occurrences: occurrences.map((date) => date.toISOString().slice(0, 10)) };
   }
@@ -181,7 +179,7 @@ export class RecurrenceRulesService {
       isActive: true,
     };
 
-    const occurrences = computeOccurrences(rule, this.rollingHorizon(dto.months ?? 12), 0);
+    const occurrences = computeOccurrences(rule, rollingHorizon(dto.months ?? 12), 0);
 
     return { occurrences: occurrences.map((date) => date.toISOString().slice(0, 10)) };
   }
@@ -214,13 +212,6 @@ export class RecurrenceRulesService {
 
   private toRefInput(type: 'INCOME' | 'EXPENSE', input: { accountId?: string; categoryId?: string; subcategoryId?: string }): TransactionRefInput {
     return { type, accountId: input.accountId, categoryId: input.categoryId, subcategoryId: input.subcategoryId };
-  }
-
-  /** Last day of the month that is `months` months from today, UTC. */
-  private rollingHorizon(months: number): Date {
-    const now = new Date();
-
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + months + 1, 0));
   }
 
   private visibility(query: ListRecurrenceRulesQueryDto): Prisma.RecurrenceRuleWhereInput {

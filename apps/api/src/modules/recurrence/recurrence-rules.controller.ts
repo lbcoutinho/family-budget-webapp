@@ -14,9 +14,11 @@ import { ListRecurrenceRulesQueryDto } from './dto/list-recurrence-rules-query.d
 import { PreviewQueryDto } from './dto/preview-query.dto';
 import { PreviewRecurrenceRulePayloadDto } from './dto/preview-recurrence-rule-payload.dto';
 import { PreviewRecurrenceRuleDto } from './dto/preview-recurrence-rule.dto';
+import { RecurrenceCatchUpResultDto } from './dto/recurrence-catch-up-result.dto';
 import { RecurrenceRuleDto } from './dto/recurrence-rule.dto';
 import { UpdateRecurrenceRuleDto } from './dto/update-recurrence-rule.dto';
 import { InstallmentsService } from './installments.service';
+import { RecurrenceCatchUpService } from './recurrence-catch-up.service';
 import { RecurrenceRulesService } from './recurrence-rules.service';
 
 /**
@@ -38,6 +40,7 @@ export class RecurrenceRulesController {
   constructor(
     private readonly recurrenceRules: RecurrenceRulesService,
     private readonly installments: InstallmentsService,
+    private readonly recurrenceCatchUp: RecurrenceCatchUpService,
   ) {}
 
   @ApiOperation({ operationId: 'listRecurrenceRules', summary: "List the user's recurrence rules" })
@@ -147,5 +150,16 @@ export class RecurrenceRulesController {
   @Post(':id/cancel-installments')
   cancelInstallmentPlan(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<CancelInstallmentPlanResultDto> {
     return this.installments.cancelPlan(user.id, id);
+  }
+
+  @ApiOperation({
+    operationId: 'catchUpRecurrences',
+    summary: "Generate every missing entry, up to the rolling horizon, for the caller's active rules",
+  })
+  @ApiOkResponse({ type: RecurrenceCatchUpResultDto })
+  @HttpCode(HttpStatus.OK)
+  @Post('catch-up')
+  catchUp(@CurrentUser() user: AuthenticatedUser): Promise<RecurrenceCatchUpResultDto> {
+    return this.recurrenceCatchUp.runForUser(user.id);
   }
 }

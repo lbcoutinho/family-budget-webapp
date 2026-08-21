@@ -10,6 +10,7 @@ export * from './generated/auth/auth';
 export * from './generated/cashboxes/cashboxes';
 export * from './generated/categories/categories';
 export * from './generated/health/health';
+export * from './generated/recurrence-rules/recurrence-rules';
 export * from './generated/reports/reports';
 export * from './generated/transactions/transactions';
 export * from './generated/users/users';

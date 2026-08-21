@@ -58,6 +58,8 @@ export * from './previewRecurrenceRuleDto';
 export * from './previewRecurrenceRuleParams';
 export * from './previewRecurrenceRulePayloadDto';
 export * from './previewRecurrenceRulePayloadDtoFrequency';
+export * from './recurrenceCatchUpFailureDto';
+export * from './recurrenceCatchUpResultDto';
 export * from './recurrenceRuleDto';
 export * from './recurrenceRuleDtoFrequency';
 export * from './recurrenceRuleDtoType';

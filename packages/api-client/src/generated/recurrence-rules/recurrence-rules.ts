@@ -35,6 +35,7 @@ import type {
   PreviewRecurrenceRuleDto,
   PreviewRecurrenceRuleParams,
   PreviewRecurrenceRulePayloadDto,
+  RecurrenceCatchUpResultDto,
   RecurrenceRuleDto,
   UpdateRecurrenceRuleDto
 } from '../model';
@@ -849,4 +850,66 @@ export const useCancelInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
         TContext
       > => {
       return useMutation(getCancelInstallmentPlanMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Generate every missing entry, up to the rolling horizon, for the caller's active rules
+ */
+export const catchUpRecurrences = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecurrenceCatchUpResultDto>(
+      {url: `/recurrence-rules/catch-up`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+
+export const getCatchUpRecurrencesMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof catchUpRecurrences>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof catchUpRecurrences>>, TError,void, TContext> => {
+
+const mutationKey = ['catchUpRecurrences'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof catchUpRecurrences>>, void> = () => {
+
+
+          return  catchUpRecurrences()
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CatchUpRecurrencesMutationResult = NonNullable<Awaited<ReturnType<typeof catchUpRecurrences>>>
+
+    export type CatchUpRecurrencesMutationError = ErrorType<ApiErrorDto>
+
+    /**
+ * @summary Generate every missing entry, up to the rolling horizon, for the caller's active rules
+ */
+export const useCatchUpRecurrences = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof catchUpRecurrences>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof catchUpRecurrences>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCatchUpRecurrencesMutationOptions(options), queryClient);
     }

@@ -34,7 +34,7 @@ this table and that screen's own file, nothing else.
 | 09  | Monthly report              | **approved**           | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
 | 10  | Yearly report               | **approved**           | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
 | 11  | Charts                      | **approved**           | [memory/11-charts.md](memory/11-charts.md)                                   |
-| 12  | Recurrences                 | approved, in full      | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
+| 12  | Recurrences                 | **approved**           | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
 | 13  | Voice                       | approved, in full      | [memory/13-voice.md](memory/13-voice.md)                                     |
 | 14  | Settings › General          | **approved**           | [memory/14-settings-general.md](memory/14-settings-general.md)               |
 

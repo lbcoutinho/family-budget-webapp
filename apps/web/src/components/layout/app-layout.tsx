@@ -5,6 +5,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './app-sidebar';
 import { SidebarContext, type SidebarContextValue } from './sidebar-context';
 
+import { useRecurrenceCatchUp } from '@/features/recurrence/use-recurrence-catch-up';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 /**
@@ -19,6 +20,7 @@ const COMPACT = '(max-width: 899.98px)';
 
 export function AppLayout() {
   const { t } = useTranslation();
+  useRecurrenceCatchUp();
   const isCompact = useMediaQuery(COMPACT);
   const [isOpen, setIsOpen] = useState(false);
   const { pathname } = useLocation();
