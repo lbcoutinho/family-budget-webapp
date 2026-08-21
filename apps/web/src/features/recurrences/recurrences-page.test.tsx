@@ -123,7 +123,7 @@ describe('RecurrencesPage', () => {
     renderPage();
 
     await screen.findByText('Seguro do carro');
-    expect(screen.getByText('Parcelas em aberto')).toBeInTheDocument();
+    expect(screen.getByText('Soma das parcelas em aberto')).toBeInTheDocument();
     expect(screen.queryByText('Próxima geração')).not.toBeInTheDocument();
   });
 

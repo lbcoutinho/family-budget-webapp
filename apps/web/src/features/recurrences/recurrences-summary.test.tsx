@@ -58,7 +58,7 @@ describe('RecurrencesSummary', () => {
 
     render(<RecurrencesSummary rules={[plan, endless]} />);
 
-    expect(screen.getByText('Parcelas em aberto')).toBeInTheDocument();
+    expect(screen.getByText('Soma das parcelas em aberto')).toBeInTheDocument();
     // 4 of 12 elapsed by 2026-04-15, 8 remain.
     expect(screen.getByText('400,00 €')).toBeInTheDocument();
   });
