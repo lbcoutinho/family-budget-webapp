@@ -1,3 +1,4 @@
+<!-- PROTOTYPE THROWAWAY — question: how should a DRAFT transaction be confirmed from the month screen? N=3 variants via ?variant=A|B|C. -->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -278,6 +279,64 @@
       .acts:focus-within {
         opacity: 1;
       }
+      .confirm-icon,
+      .confirm-label,
+      .resolution-strip .btn {
+        background: var(--action);
+        border-color: var(--action);
+        color: #fff;
+      }
+      .confirm-icon:hover,
+      .confirm-label:hover,
+      .resolution-strip .btn:hover {
+        background: var(--action-hover);
+        border-color: var(--action-hover);
+      }
+      .resolution-strip {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 8px 16px;
+        background: var(--action-wash);
+        border-bottom: 1px solid var(--line);
+        color: var(--action);
+        font-size: 12px;
+      }
+      .resolution-strip span:first-child {
+        margin-right: auto;
+      }
+
+      .prototype-switcher {
+        position: fixed;
+        z-index: 100;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 260px;
+        padding: 6px;
+        border: 1px solid var(--ink);
+        border-radius: 10px;
+        background: var(--ink);
+        color: #fff;
+        box-shadow: 0 8px 24px rgb(20 22 26 / 24%);
+      }
+      .prototype-switcher .btn {
+        color: #fff;
+      }
+      .prototype-switcher .btn:hover {
+        background: rgb(255 255 255 / 14%);
+      }
+      .prototype-switcher output {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
 
       .entries > footer {
         background: var(--wash);
@@ -324,6 +383,13 @@
         }
         .strip {
           height: 84px;
+        }
+        .resolution-strip {
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .resolution-strip span:first-child {
+          max-width: 22ch;
         }
       }
     </style>
@@ -505,6 +571,16 @@
       </div>
     </div>
 
+    <div class="prototype-switcher" role="group" aria-label="Alternar variante do protótipo">
+      <button class="btn icon ghost" type="button" data-variant-step="-1" title="Variante anterior">
+        <span data-icon="chevronLeft"></span>
+      </button>
+      <output id="variantLabel" aria-live="polite"></output>
+      <button class="btn icon ghost" type="button" data-variant-step="1" title="Próxima variante">
+        <span data-icon="chevronRight"></span>
+      </button>
+    </div>
+
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         /* ---- categorias: cor é identidade permanente ---- */
@@ -537,7 +613,7 @@
           { d: 11, t: 'Almoço fora', cat: 'alimentacao', sub: 'Restaurante', acc: 'Dinheiro', v: -48.6, k: 'out' },
           { d: 11, t: 'Consulta no dentista', cat: 'saude', sub: 'Consultas', acc: 'Millennium', v: -66, k: 'out' },
           { d: 12, t: 'Supermercado Pingo Doce', cat: 'alimentacao', sub: 'Supermercado', acc: 'Millennium', v: -96.2, k: 'out' },
-          { d: 12, t: 'Farmácia', acc: null, v: -24.9, k: 'out', draft: true },
+          { d: 12, t: 'Farmácia', cat: 'saude', acc: 'Millennium', v: -24.9, k: 'out', draft: true },
           { d: 14, t: 'Combustível', cat: 'transporte', sub: 'Combustível', acc: 'Millennium', v: -145, k: 'out' },
           { d: 15, t: 'Concerto no Coliseu', cat: 'lazer', sub: 'Espetáculos', acc: 'Revolut', v: -88, k: 'out' },
           { d: 16, t: 'Água, luz e gás', cat: 'moradia', sub: 'Água, luz e gás', acc: 'Millennium', v: -62.1, k: 'out' },
@@ -560,7 +636,7 @@
         ];
 
         const DAYS = 31;
-        const PAGE = 12; /* rolagem infinita: a primeira página do cursor */
+        const PAGE = 13; /* rolagem infinita: inclui o rascunho a avaliar */
 
         /* ---- o saldo corrido ----
            Saldo de 30 de junho, escolhido de trás para frente para que o mês
@@ -665,7 +741,7 @@
         };
 
         function sub(e) {
-          if (e.draft) return 'Falta a categoria — não entra em saldos nem relatórios';
+          if (e.draft) return 'Pronto para confirmar — ainda não afeta saldos nem relatórios';
           const parts = [];
           if (e.cat) parts.push(CAT[e.cat].n + (e.sub ? ` · ${e.sub}` : ''));
           if (e.acc) parts.push(e.acc);
@@ -674,8 +750,29 @@
           return parts.join(' — ');
         }
 
+        const VARIANTS = {
+          A: 'Ícone compacto',
+          B: 'Botão com rótulo',
+          C: 'Faixa de resolução',
+        };
+        const variantKeys = Object.keys(VARIANTS);
+        let variant = new URLSearchParams(location.search).get('variant')?.toUpperCase();
+        if (!VARIANTS[variant]) variant = 'A';
+
+        function confirmAction(e, index) {
+          if (!e.draft) return '';
+          if (variant === 'A') {
+            return `<button class="btn icon confirm-icon" type="button" data-confirm="${index}" title="Confirmar lançamento" aria-label="Confirmar ${e.t}">${icon('check')}</button>`;
+          }
+          if (variant === 'B') {
+            return `<button class="btn sm confirm-label" type="button" data-confirm="${index}">${icon('check')} Confirmar</button>`;
+          }
+          return '';
+        }
+
         function render(e) {
           const k = KIND[e.k];
+          const index = E.indexOf(e);
           /* transferência e movimento entre caixinhas não têm sinal: não é
              nem entrada nem saída, é dinheiro mudando de lugar */
           const neutral = e.k === 'tr' || e.k === 'cxtr';
@@ -695,10 +792,16 @@
               ${e.bal ? `<small title="Saldo de ${e.bal.acc} depois deste lançamento">${saldo(e.bal.v)}</small>` : ''}
             </div>
             <div class="acts">
+              ${confirmAction(e, index)}
               <button class="btn icon ghost" title="Editar">${icon('pencil')}</button>
               <button class="btn icon ghost" title="Excluir">${icon('trash')}</button>
             </div>
-          </div>`;
+          </div>
+          ${
+            e.draft && variant === 'C'
+              ? `<div class="resolution-strip"><span>Este rascunho ainda não afeta saldos ou relatórios.</span><button class="btn sm" type="button" data-confirm="${index}">${icon('check')} Confirmar</button></div>`
+              : ''
+          }`;
         }
 
         const rowsEl = document.getElementById('rows');
@@ -712,6 +815,7 @@
         const fLabel = document.getElementById('fLabel');
 
         let shown = 0; /* último total de despesas exibido, para o contador */
+        let selectedDay = null;
 
         /* Contador só aqui: o total responde a um filtro, não é saldo a
            conferir. Os cartões de saldo acima nunca se mexem. */
@@ -728,6 +832,7 @@
         }
 
         function select(day) {
+          selectedDay = day;
           const items = day ? E.filter((e) => e.d === day) : E;
 
           document.querySelectorAll('.day').forEach((b) => {
@@ -757,6 +862,20 @@
           fLabel.textContent = day ? 'Saldo do dia' : 'Saldo do mês';
           countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
           clearEl.hidden = !day;
+        }
+
+        function setVariant(next) {
+          variant = next;
+          const url = new URL(location.href);
+          url.searchParams.set('variant', variant);
+          history.replaceState(null, '', url);
+          document.getElementById('variantLabel').textContent = `${variant} — ${VARIANTS[variant]}`;
+          select(selectedDay);
+        }
+
+        function cycleVariant(step) {
+          const next = (variantKeys.indexOf(variant) + step + variantKeys.length) % variantKeys.length;
+          setVariant(variantKeys[next]);
         }
 
         /* ---- o seletor de mês ----
@@ -826,8 +945,26 @@
           select(b.getAttribute('aria-pressed') === 'true' ? null : day);
         });
         clearEl.addEventListener('click', () => select(null));
+        rowsEl.addEventListener('click', (ev) => {
+          const button = ev.target.closest('[data-confirm]');
+          if (!button) return;
+          const entry = E[Number(button.dataset.confirm)];
+          if (!entry.cat || !entry.acc) return alert('Complete categoria e conta antes de confirmar.');
+          entry.draft = false;
+          select(selectedDay);
+        });
+        document.querySelector('.prototype-switcher').addEventListener('click', (ev) => {
+          const button = ev.target.closest('[data-variant-step]');
+          if (button) cycleVariant(Number(button.dataset.variantStep));
+        });
+        document.addEventListener('keydown', (ev) => {
+          const target = ev.target;
+          if (target.matches('input, textarea, [contenteditable], [contenteditable="true"]')) return;
+          if (ev.key === 'ArrowLeft') cycleVariant(-1);
+          if (ev.key === 'ArrowRight') cycleVariant(1);
+        });
 
-        select(null);
+        setVariant(variant);
       });
     </script>
   </body>
