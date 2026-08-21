@@ -144,7 +144,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
 
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-      <DialogContent showCloseButton={!isPending} className="sm:max-w-3xl">
+      <DialogContent showCloseButton={!isPending} className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{t(formKey('recurrences.installmentForm.createTitle'))}</DialogTitle>
         </DialogHeader>
