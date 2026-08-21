@@ -114,6 +114,9 @@ describe('RecurrenceList', () => {
 
     expect(screen.getAllByRole('button', { name: 'Desativar' })).toHaveLength(1);
     expect(screen.getAllByRole('button', { name: 'Cancelar parcelas futuras' })).toHaveLength(1);
+    // An installment plan has no edit UI (it's materialized in full at creation, ADR-0014) —
+    // only the endless rule offers "Editar".
+    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(1);
   });
 
   it('hides every action for an inactive rule — no reactivate or delete exists on this screen', () => {

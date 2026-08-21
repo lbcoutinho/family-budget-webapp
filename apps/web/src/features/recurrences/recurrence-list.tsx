@@ -176,9 +176,6 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                         >
                           {generatingId === rule.id ? <Loader2Icon className="animate-spin" /> : <RepeatIcon />}
                         </Button>
-                        <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.edit')} onClick={() => onEdit(rule)}>
-                          <PencilIcon />
-                        </Button>
                         {isInstallment ? (
                           <Button
                             variant="ghost"
@@ -189,9 +186,14 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                             <XIcon />
                           </Button>
                         ) : (
-                          <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.deactivate')} onClick={() => onDeactivate(rule)}>
-                            <XIcon />
-                          </Button>
+                          <>
+                            <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.edit')} onClick={() => onEdit(rule)}>
+                              <PencilIcon />
+                            </Button>
+                            <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.deactivate')} onClick={() => onDeactivate(rule)}>
+                              <XIcon />
+                            </Button>
+                          </>
                         )}
                       </div>
                     ) : null}
