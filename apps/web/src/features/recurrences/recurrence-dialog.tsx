@@ -7,7 +7,7 @@ import {
   usePreviewRecurrenceRulePayload,
 } from '@family-budget/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2Icon } from 'lucide-react';
+import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, useRef, useState, type FocusEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -359,7 +359,10 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 {apiErrorMessage(error, t)}
               </p>
             )}
-            <p className="rounded-md bg-blue-50 p-2.5 text-xs text-blue-700">{t(formKey('recurrences.ruleForm.editNotice'))}</p>
+            <p className="flex items-start gap-2 rounded-md border-l-[3px] border-transfer bg-[#e8eff7] px-3 py-2.5 text-xs text-transfer">
+              <InfoIcon aria-hidden className="mt-px size-[15px] shrink-0" />
+              <span>{t(formKey('recurrences.ruleForm.editNotice'))}</span>
+            </p>
           </div>
 
           <OccurrencePreview
