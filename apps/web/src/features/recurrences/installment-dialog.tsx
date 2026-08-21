@@ -88,7 +88,17 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
     formState: { errors },
   } = useForm<InstallmentFormValues>({
     resolver: zodResolver(installmentSchema),
-    defaultValues: { count: '3', autoConfirm: true, purchaseDate: today(), firstPaymentDate: today() },
+    defaultValues: {
+      accountId: '',
+      categoryId: '',
+      subcategoryId: '',
+      purchaseDate: today(),
+      firstPaymentDate: today(),
+      count: '3',
+      description: '',
+      total: '',
+      autoConfirm: true,
+    },
   });
 
   useEffect(() => {

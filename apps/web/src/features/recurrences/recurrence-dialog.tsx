@@ -125,7 +125,19 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
     formState: { errors },
   } = useForm<RuleFormValues>({
     resolver: zodResolver(ruleSchema),
-    defaultValues: { type: 'EXPENSE', frequency: 'MONTHLY', dayOfMonth: '1', autoConfirm: true },
+    defaultValues: {
+      type: 'EXPENSE',
+      accountId: '',
+      categoryId: '',
+      subcategoryId: '',
+      frequency: 'MONTHLY',
+      dayOfMonth: '1',
+      description: '',
+      amount: '',
+      startMonth: '',
+      endMonth: '',
+      autoConfirm: true,
+    },
   });
 
   useEffect(() => {
