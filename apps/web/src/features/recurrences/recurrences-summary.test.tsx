@@ -20,6 +20,7 @@ function rule(overrides: Partial<RecurrenceRuleDto> = {}): RecurrenceRuleDto {
     startDate: '2026-01-01',
     endDate: null,
     totalOccurrences: null,
+    totalAmount: null,
     autoConfirm: true,
     isActive: true,
     generatedUntil: '2026-08-01',

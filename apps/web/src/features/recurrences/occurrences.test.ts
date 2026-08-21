@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeOccurrences,
   fullOccurrenceList,
+  installmentOwed,
   installmentProgress,
   monthlyRecurringStats,
   nextRollingOccurrence,
@@ -30,7 +31,7 @@ function rule(overrides: Partial<OccurrenceRuleLike> = {}): OccurrenceRuleLike {
 }
 
 function recurringRule(overrides: Partial<RecurringRuleLike> = {}): RecurringRuleLike {
-  return { ...rule(), type: 'EXPENSE', amount: 1000, isActive: true, ...overrides };
+  return { ...rule(), type: 'EXPENSE', amount: 1000, totalAmount: null, isActive: true, ...overrides };
 }
 
 describe('computeOccurrences', () => {
@@ -103,6 +104,20 @@ describe('installmentProgress', () => {
 
     expect(progress.elapsed).toBe(2);
     expect(progress.next).toBeNull();
+  });
+});
+
+describe('installmentOwed', () => {
+  const plan = recurringRule({ amount: 14285, totalAmount: 100000, totalOccurrences: 7 });
+
+  it('keeps the exact final remainder from the purchase total', () => {
+    expect(installmentOwed(plan, 0)).toBe(100000);
+    expect(installmentOwed(plan, 6)).toBe(14290);
+    expect(installmentOwed(plan, 7)).toBe(0);
+  });
+
+  it('retains the per-installment calculation for legacy plans without a total', () => {
+    expect(installmentOwed(recurringRule({ amount: 5000, totalOccurrences: 12 }), 4)).toBe(40000);
   });
 });
 

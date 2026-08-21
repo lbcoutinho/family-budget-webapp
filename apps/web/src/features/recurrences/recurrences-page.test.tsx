@@ -49,6 +49,7 @@ const ENDLESS_RULE: RecurrenceRuleDto = {
   startDate: '2026-01-10',
   endDate: null,
   totalOccurrences: null,
+  totalAmount: null,
   autoConfirm: true,
   isActive: true,
   generatedUntil: '2026-08-10',
