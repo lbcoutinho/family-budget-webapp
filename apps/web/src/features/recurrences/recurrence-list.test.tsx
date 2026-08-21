@@ -104,6 +104,29 @@ describe('RecurrenceList', () => {
     expect(screen.getByText((_, node) => node?.textContent === '4/12')).toBeInTheDocument();
   });
 
+  it('shows the exact remainder owed for a non-divisible installment total', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 1, 15));
+
+    const plan = rule({ id: 'plan-1', totalOccurrences: 3, totalAmount: 10_000, endDate: '2026-03-10', generatedUntil: '2026-03-10' });
+
+    render(
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[plan]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByText('33,34 € a pagar')).toBeInTheDocument();
+  });
+
   it('offers deactivate for an active open-ended rule and cancel-installments for a plan', () => {
     const plan = rule({ id: 'plan-1', description: 'Colchão Ikea', totalOccurrences: 3 });
 
