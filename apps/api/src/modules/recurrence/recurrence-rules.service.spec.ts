@@ -131,6 +131,26 @@ describe('RecurrenceRulesService', () => {
         data: expect.objectContaining({ userId, type: 'EXPENSE', accountId, categoryId, interval: 1, autoConfirm: true }) as unknown,
       });
     });
+
+    it('accepts a null amount when autoConfirm is false (ADR-0020)', async () => {
+      recurrenceRule.create.mockResolvedValue(row({ amount: null, autoConfirm: false }));
+
+      await service.create(userId, { ...dto, amount: null, autoConfirm: false });
+
+      expect(recurrenceRule.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ amount: null, autoConfirm: false }) as unknown,
+      });
+    });
+
+    it('rejects a null amount when autoConfirm is true (the default), with 400 RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM', async () => {
+      await expect(service.create(userId, { ...dto, amount: null })).rejects.toThrow(BadRequestException);
+      expect(recurrenceRule.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a null amount with autoConfirm explicitly true', async () => {
+      await expect(service.create(userId, { ...dto, amount: null, autoConfirm: true })).rejects.toThrow(BadRequestException);
+      expect(recurrenceRule.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('update', () => {
@@ -162,6 +182,27 @@ describe('RecurrenceRulesService', () => {
         { type: 'EXPENSE', accountId, categoryId: newCategoryId, subcategoryId: undefined },
         { requireActive: true },
       );
+    });
+
+    it('accepts clearing amount to null when the rule already has autoConfirm false', async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row({ autoConfirm: false }));
+      recurrenceRule.update.mockResolvedValue(row({ amount: null, autoConfirm: false }));
+
+      await expect(service.update(userId, ruleId, { amount: null })).resolves.toMatchObject({ amount: null });
+    });
+
+    it('rejects clearing amount to null while autoConfirm stays true, with 400 RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM', async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row({ autoConfirm: true }));
+
+      await expect(service.update(userId, ruleId, { amount: null })).rejects.toThrow(BadRequestException);
+      expect(recurrenceRule.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects flipping autoConfirm to true on a rule whose amount is already null', async () => {
+      recurrenceRule.findUnique.mockResolvedValue(row({ amount: null, autoConfirm: false }));
+
+      await expect(service.update(userId, ruleId, { autoConfirm: true })).rejects.toThrow(BadRequestException);
+      expect(recurrenceRule.update).not.toHaveBeenCalled();
     });
   });
 

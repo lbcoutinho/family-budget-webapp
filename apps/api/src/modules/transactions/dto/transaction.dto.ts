@@ -20,8 +20,13 @@ export class TransactionDto {
   @ApiProperty({ enum: TransactionSource, enumName: 'TransactionSource' })
   source!: TransactionSource;
 
-  @ApiProperty({ type: Number, example: 1_000, description: 'Always positive, in **cents** (ADR-0005).' })
-  amount!: number;
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    example: 1_000,
+    description: 'Always positive when present, in **cents** (ADR-0005). Null means unknown yet; only possible on a DRAFT (ADR-0020).',
+  })
+  amount!: number | null;
 
   @ApiProperty({ type: String, format: 'date', example: '2026-03-15' })
   date!: string;

@@ -48,6 +48,7 @@ export class RecurrenceRulesService {
 
   async create(userId: string, dto: CreateRecurrenceRuleDto): Promise<RecurrenceRuleDto> {
     this.assertDateRange(dto.startDate, dto.endDate ?? null);
+    this.assertAmountKnownWhenAutoConfirm(dto.amount ?? null, dto.autoConfirm ?? true);
     await this.validator.validate(userId, this.toRefInput(dto.type, dto), { requireActive: true });
 
     const created = await this.prisma.recurrenceRule.create({
@@ -79,6 +80,10 @@ export class RecurrenceRulesService {
     const startDate = dto.startDate ?? current.startDate;
     const endDate = dto.endDate !== undefined ? dto.endDate : current.endDate;
     this.assertDateRange(startDate, endDate);
+
+    const amount = dto.amount !== undefined ? dto.amount : current.amount;
+    const autoConfirm = dto.autoConfirm ?? current.autoConfirm;
+    this.assertAmountKnownWhenAutoConfirm(amount, autoConfirm);
 
     const type = dto.type ?? (current.type as 'INCOME' | 'EXPENSE');
 
@@ -165,6 +170,13 @@ export class RecurrenceRulesService {
   private assertDateRange(startDate: Date, endDate: Date | null): void {
     if (endDate !== null && endDate.getTime() <= startDate.getTime()) {
       throw badRequest('RECURRENCE_END_BEFORE_START', 'endDate must be after startDate.');
+    }
+  }
+
+  /** A rule that auto-confirms must know what it confirms (ADR-0020). */
+  private assertAmountKnownWhenAutoConfirm(amount: number | null, autoConfirm: boolean): void {
+    if (amount === null && autoConfirm) {
+      throw badRequest('RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM', 'amount is required when autoConfirm is true.');
     }
   }
 

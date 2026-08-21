@@ -14,8 +14,13 @@ export class RecurrenceRuleDto {
   @ApiProperty({ type: String, enum: ['INCOME', 'EXPENSE'], enumName: 'RecurrenceRuleType' })
   type!: 'INCOME' | 'EXPENSE';
 
-  @ApiProperty({ type: Number, example: 1_000, description: 'Always positive, in **cents** (ADR-0005).' })
-  amount!: number;
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    example: 1_000,
+    description: 'Always positive when present, in **cents** (ADR-0005). Null means a variable amount; legal only when `autoConfirm` is false (ADR-0020).',
+  })
+  amount!: number | null;
 
   @ApiProperty({ type: String })
   description!: string;

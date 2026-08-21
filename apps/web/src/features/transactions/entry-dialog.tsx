@@ -50,37 +50,48 @@ interface EntryFormValues {
   referenceMonth: string;
 }
 
-const entrySchema = z
-  .object({
-    type: z.enum(['EXPENSE', 'INCOME', 'TRANSFER']),
-    date: z.string().min(1, 'transactions.form.required'),
-    accountId: z.string().min(1, 'transactions.form.required'),
-    destinationAccountId: z.string(),
-    categoryId: z.string(),
-    subcategoryId: z.string(),
-    description: z.string().trim().min(1, 'transactions.form.required').max(200),
-    amount: z.string().refine((value) => (parseCurrencyInput(value) ?? 0) > 0, 'transactions.form.invalidAmount'),
-    isCreditCard: z.boolean(),
-    referenceMonth: z.string(),
-  })
-  .superRefine((values, context) => {
-    if (values.type === 'TRANSFER') {
-      if (values.destinationAccountId.length === 0) context.addIssue({ code: 'custom', path: ['destinationAccountId'], message: 'transactions.form.required' });
-      if (values.accountId === values.destinationAccountId && values.accountId.length > 0) {
-        context.addIssue({ code: 'custom', path: ['destinationAccountId'], message: 'transactions.form.sameAccount' });
+/**
+ * `allowEmptyAmount` is only true while editing a DRAFT (ADR-0020): a variable-amount rule
+ * materializes with no amount, and the field stays legitimately blank until the bill arrives. A
+ * new entry (always created CONFIRMED — there is no client path to a DRAFT yet) and an edit of an
+ * already-CONFIRMED transaction both keep requiring a positive amount.
+ */
+function buildEntrySchema(allowEmptyAmount: boolean) {
+  return z
+    .object({
+      type: z.enum(['EXPENSE', 'INCOME', 'TRANSFER']),
+      date: z.string().min(1, 'transactions.form.required'),
+      accountId: z.string().min(1, 'transactions.form.required'),
+      destinationAccountId: z.string(),
+      categoryId: z.string(),
+      subcategoryId: z.string(),
+      description: z.string().trim().min(1, 'transactions.form.required').max(200),
+      amount: z
+        .string()
+        .refine((value) => (allowEmptyAmount && value.trim() === '') || (parseCurrencyInput(value) ?? 0) > 0, 'transactions.form.invalidAmount'),
+      isCreditCard: z.boolean(),
+      referenceMonth: z.string(),
+    })
+    .superRefine((values, context) => {
+      if (values.type === 'TRANSFER') {
+        if (values.destinationAccountId.length === 0)
+          context.addIssue({ code: 'custom', path: ['destinationAccountId'], message: 'transactions.form.required' });
+        if (values.accountId === values.destinationAccountId && values.accountId.length > 0) {
+          context.addIssue({ code: 'custom', path: ['destinationAccountId'], message: 'transactions.form.sameAccount' });
+        }
+        return;
       }
-      return;
-    }
 
-    if (values.categoryId.length === 0) {
-      context.addIssue({ code: 'custom', path: ['categoryId'], message: 'transactions.form.required' });
-    } else if (values.subcategoryId.length === 0) {
-      context.addIssue({ code: 'custom', path: ['subcategoryId'], message: 'transactions.form.required' });
-    }
-    if (values.isCreditCard && values.referenceMonth.length === 0) {
-      context.addIssue({ code: 'custom', path: ['referenceMonth'], message: 'transactions.form.required' });
-    }
-  });
+      if (values.categoryId.length === 0) {
+        context.addIssue({ code: 'custom', path: ['categoryId'], message: 'transactions.form.required' });
+      } else if (values.subcategoryId.length === 0) {
+        context.addIssue({ code: 'custom', path: ['subcategoryId'], message: 'transactions.form.required' });
+      }
+      if (values.isCreditCard && values.referenceMonth.length === 0) {
+        context.addIssue({ code: 'custom', path: ['referenceMonth'], message: 'transactions.form.required' });
+      }
+    });
+}
 
 const BUSINESS_CODE_FIELD: Record<string, keyof EntryFormValues | undefined> = {
   TRANSACTION_SAME_ACCOUNT: 'destinationAccountId',
@@ -147,7 +158,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
     clearErrors,
     formState: { errors },
   } = useForm<EntryFormValues>({
-    resolver: zodResolver(entrySchema),
+    resolver: zodResolver(buildEntrySchema(transaction?.status === TransactionStatus.DRAFT)),
     shouldFocusError: false,
     defaultValues: {
       type: (transaction?.type as EntryType | undefined) ?? 'EXPENSE',
@@ -157,7 +168,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       categoryId: transaction?.categoryId ?? '',
       subcategoryId: transaction?.subcategoryId ?? '',
       description: transaction?.description ?? '',
-      amount: transaction ? formatCents(transaction.amount) : '',
+      amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
     },
@@ -296,7 +307,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       categoryId: transaction?.categoryId ?? '',
       subcategoryId: transaction?.subcategoryId ?? '',
       description: transaction?.description ?? '',
-      amount: transaction ? formatCents(transaction.amount) : '',
+      amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
     });
@@ -326,11 +337,15 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
 
   const submit = handleSubmit(
     (values) => {
+      const isDraftEdit = transaction?.status === TransactionStatus.DRAFT;
       const amount = parseCurrencyInput(values.amount);
-      if (amount === null || amount <= 0) return;
-      const payload: CreateTransactionDto = {
+      // A blank amount is only legal while editing a DRAFT (ADR-0020) — `buildEntrySchema` already
+      // enforced that on the field itself; this guard covers a new entry (always CONFIRMED) and an
+      // edit of an already-CONFIRMED transaction, neither of which the schema left an opening for.
+      if (!isDraftEdit && (amount === null || amount <= 0)) return;
+
+      const shared = {
         type: values.type,
-        amount,
         date: values.date,
         description: values.description.trim(),
         isCreditCard: values.type === 'EXPENSE' ? values.isCreditCard : false,
@@ -343,7 +358,11 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               ...(values.isCreditCard ? { referenceMonth: `${values.referenceMonth}-01` } : {}),
             }),
       };
+
       if (!transaction) {
+        // `amount` is guaranteed non-null here: `isDraftEdit` is false for a new entry, so the guard
+        // above already returned on a blank or non-positive field.
+        const payload: CreateTransactionDto = { ...shared, amount: amount! };
         mutation.mutate({ data: payload });
         return;
       }
@@ -352,14 +371,18 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       const changed = <K extends keyof UpdateTransactionDto>(key: K, value: UpdateTransactionDto[K], original: UpdateTransactionDto[K]) => {
         if (value !== original) update[key] = value;
       };
-      changed('amount', payload.amount, transaction.amount);
-      changed('date', payload.date, transaction.date);
-      changed('description', payload.description, transaction.description);
-      changed('isCreditCard', payload.isCreditCard, transaction.isCreditCard);
-      changed('accountId', payload.accountId, transaction.accountId ?? undefined);
-      changed('destinationAccountId', payload.destinationAccountId, transaction.destinationAccountId ?? undefined);
-      changed('categoryId', payload.categoryId, transaction.categoryId ?? undefined);
-      changed('subcategoryId', payload.subcategoryId, transaction.subcategoryId ?? undefined);
+      changed('amount', amount, transaction.amount);
+      changed('date', shared.date, transaction.date);
+      changed('description', shared.description, transaction.description);
+      changed('isCreditCard', shared.isCreditCard, transaction.isCreditCard);
+      changed('accountId', shared.accountId, transaction.accountId ?? undefined);
+      changed(
+        'destinationAccountId',
+        'destinationAccountId' in shared ? shared.destinationAccountId : undefined,
+        transaction.destinationAccountId ?? undefined,
+      );
+      changed('categoryId', 'categoryId' in shared ? shared.categoryId : undefined, transaction.categoryId ?? undefined);
+      changed('subcategoryId', 'subcategoryId' in shared ? shared.subcategoryId : undefined, transaction.subcategoryId ?? undefined);
       if (values.isCreditCard && `${values.referenceMonth}-01` !== transaction.referenceMonth) update.referenceMonth = `${values.referenceMonth}-01`;
       updateMutation.mutate({ id: transaction.id, data: update });
     },

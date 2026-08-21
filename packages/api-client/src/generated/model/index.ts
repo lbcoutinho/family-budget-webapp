@@ -76,6 +76,7 @@ export * from './updateRecurrenceRuleDto';
 export * from './updateRecurrenceRuleDtoFrequency';
 export * from './updateRecurrenceRuleDtoType';
 export * from './updateTransactionDto';
+export * from './updateTransactionDtoStatus';
 export * from './updateTransactionDtoType';
 export * from './updateUserDto';
 export * from './updateUserDtoLocale';

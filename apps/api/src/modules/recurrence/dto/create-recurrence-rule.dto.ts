@@ -22,10 +22,19 @@ export class CreateRecurrenceRuleDto {
   @IsIn(['INCOME', 'EXPENSE'])
   type!: 'INCOME' | 'EXPENSE';
 
-  @ApiProperty({ type: Number, example: 1_000, description: 'Always positive, in **cents** (ADR-0005) — copied onto each generated transaction.' })
+  @ApiProperty({
+    type: Number,
+    required: false,
+    nullable: true,
+    example: 1_000,
+    description:
+      'Always positive when present, in **cents** (ADR-0005) — copied onto each generated transaction. Null means a variable amount (e.g. a utility ' +
+      'bill); legal only when `autoConfirm` is false (ADR-0020).',
+  })
+  @IsOptional()
   @IsInt()
   @Min(1)
-  amount!: number;
+  amount?: number | null;
 
   @ApiProperty({ type: String, maxLength: 200, example: 'Rent' })
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
