@@ -71,7 +71,7 @@ export class InstallmentsService {
         userId,
         type,
         amount: split[index]!,
-        description: `${dto.description} (${index + 1}/${dto.installments})`,
+        description: dto.description,
         notes: `Purchased on ${purchasedOn}`,
         date,
         referenceMonth: startOfMonthUtc(date),

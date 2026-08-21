@@ -128,7 +128,7 @@ describe('Installments API (e2e)', () => {
         '2026-10-01',
       ]);
 
-      expect(plan.installments.map((i) => i.description)).toEqual(Array.from({ length: 10 }, (_, i) => `New sofa (${i + 1}/10)`));
+      expect(plan.installments.map((i) => i.description)).toEqual(Array(10).fill('New sofa'));
       expect(plan.installments.every((i) => i.installmentNumber !== undefined)).toBe(true);
       expect(plan.installments.map((i) => i.installmentNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       expect(plan.installments.every((i) => i.installmentTotal === 10)).toBe(true);

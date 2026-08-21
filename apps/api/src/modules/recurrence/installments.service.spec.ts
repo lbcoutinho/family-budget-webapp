@@ -82,12 +82,12 @@ const setup = (): { service: InstallmentsService; prisma: PrismaService; tx: TxD
 };
 
 describe('InstallmentsService.createPlan', () => {
-  it('numbers descriptions "Description (i/N)" and sets installmentNumber/installmentTotal', async () => {
+  it('keeps the description and sets installmentNumber/installmentTotal', async () => {
     const { service } = setup();
 
     const result = await service.createPlan(userId, validDto({ installments: 3, description: 'New sofa' }));
 
-    expect(result.installments.map((i) => i.description)).toEqual(['New sofa (1/3)', 'New sofa (2/3)', 'New sofa (3/3)']);
+    expect(result.installments.map((i) => i.description)).toEqual(['New sofa', 'New sofa', 'New sofa']);
     expect(result.installments.map((i) => i.installmentNumber)).toEqual([1, 2, 3]);
     expect(result.installments.every((i) => i.installmentTotal === 3)).toBe(true);
   });
