@@ -114,7 +114,7 @@
          Um passo seguinte pode ser pulado; uma metade, não. */
       .form-preview {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
         gap: 14px;
         align-items: start;
       }
@@ -251,15 +251,10 @@
               <span class="k">Parcelas em aberto</span>
               <span class="v num">949,00 €</span>
             </div>
-            <div class="stat total">
-              <span class="k">Próxima geração</span>
-              <span class="v num">01/08/2026</span>
-            </div>
           </div>
           <p class="small muted" style="margin: 9px 0 0">
-            Não há job rodando 24/7: a geração acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que
-            faltar, com um toast dizendo quantos lançamentos foram criados. "Parcelas em aberto" soma o que falta pagar de todos os parcelamentos ativos
-            (que sempre têm fim), inclusive as parcelas que ainda não foram geradas; regras sem fim não entram nessa soma.
+            A geração das recorrências acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar.
+            "Parcelas em aberto" soma o que falta pagar de todos os parcelamentos ativos que têm data de fim.
           </p>
 
           <!-- ===== a tabela ===== -->
@@ -378,7 +373,8 @@
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c10)"></span>
                         <span class="t"
-                          ><b>Colchão Ikea <span class="badge draft">gera rascunho</span></b><span class="xs muted">Outros</span></span
+                          ><b>Colchão Ikea <span class="badge draft">gera rascunho</span></b
+                          ><span class="xs muted">Outros</span></span
                         >
                       </span>
                     </td>
@@ -426,7 +422,10 @@
                     <td>
                       <span class="rule-name">
                         <span class="dot" style="background: var(--c5)"></span>
-                        <span class="t"><b>Netflix <span class="badge">inativa</span></b><span class="xs muted">Lazer · Assinaturas</span></span>
+                        <span class="t"
+                          ><b>Netflix <span class="badge">inativa</span></b
+                          ><span class="xs muted">Lazer · Assinaturas</span></span
+                        >
                       </span>
                     </td>
                     <td class="muted">Revolut</td>
@@ -519,18 +518,14 @@
                   </div>
                   <div class="field">
                     <label for="r-end"
-                      ><span class="tip" tabindex="0"
-                        >Fim (opcional)<span>Em branco, a regra não termina — é o caso normal de uma despesa fixa.</span></span
-                      ></label
+                      ><span class="tip" tabindex="0">Fim<span>Em branco, a regra não termina.</span></span></label
                     >
                     <input class="input num" id="r-end" type="month" />
                   </div>
                 </div>
                 <label class="row" style="gap: 9px; align-items: center; cursor: pointer">
                   <button class="switch" role="switch" aria-checked="true" aria-label="Confirmar automaticamente" id="r-auto"></button>
-                  <span class="tip" tabindex="0"
-                    >Confirmar automaticamente<span>Desligado, os lançamentos nascem como rascunho e não entram em saldo nem em relatório até você aprovar.</span></span
-                  >
+                  <span class="tip" tabindex="0">Confirmar automaticamente<span>Desligado, as parcelas nascem como rascunho.</span></span>
                 </label>
                 <div class="callout info">
                   <span data-icon="info"></span>
@@ -616,11 +611,7 @@
                 </div>
                 <div class="two">
                   <div class="field">
-                    <label for="i-desc"
-                      ><span class="tip" tabindex="0"
-                        >Descrição<span>Cada parcela recebe o número no fim: "Colchão Ikea (1/3)".</span></span
-                      ></label
-                    >
+                    <label for="i-desc">Descrição</label>
                     <input class="input" id="i-desc" value="Colchão Ikea" />
                   </div>
                   <div class="field">
@@ -628,12 +619,9 @@
                     <input class="input num" id="i-total" value="449,00" inputmode="decimal" />
                   </div>
                 </div>
-                <label class="row" style="gap: 9px; align-items: flex-start; cursor: pointer">
+                <label class="row" style="gap: 9px; align-items: center; cursor: pointer">
                   <button class="switch" role="switch" aria-checked="false" aria-label="Confirmar automaticamente"></button>
-                  <span>
-                    <span class="strong">Confirmar automaticamente</span><br />
-                    <span class="xs muted">Desligado neste exemplo: as três parcelas nascem como rascunho.</span>
-                  </span>
+                  <span class="tip" tabindex="0">Confirmar automaticamente<span>Desligado, as parcelas nascem como rascunho.</span></span>
                 </label>
                 <div class="callout info">
                   <span data-icon="info"></span>
@@ -872,8 +860,8 @@
                 <b>Os quatro números do topo — e "Parcelas em aberto" inclui o que ainda não foi gerado.</b>
                 <span>
                   É o único número da tela que não corresponde a linhas no banco: as parcelas de 11/2026 em diante ainda não existem. Ele responde "quanto eu
-                  ainda devo", que é a pergunta que um parcelamento levanta. A alternativa é somar só o materializado, e aí o número muda sozinho a cada login
-                  — pior.
+                  ainda devo", que é a pergunta que um parcelamento levanta. A alternativa é somar só o materializado, e aí o número muda sozinho a cada login —
+                  pior.
                 </span>
               </li>
               <li>
@@ -901,11 +889,11 @@
               <li>
                 <b>Pendência numa tela aprovada: a 06 marca uma regra e deveria marcar três.</b>
                 <span>
-                  A <a href="06-month.html">tela do mês</a> já desenha o ícone <span data-icon="repeat" style="width: 13px; height: 13px"></span> e o
-                  usa em "Seguro do carro (parcela 4 de 12)". Mas "Renda de julho" e "Salário" também saem de regras fixas nesta tela e lá aparecem sem marca —
-                  os dados das duas telas não fecham. <strong>A proposta é corrigir a 06 no mesmo PR</strong>, marcando as duas linhas: é uma edição de duas
-                  linhas num protótipo aprovado, permitida quando o desenho revela um problema, e declarada aqui em vez de feita em silêncio. A alternativa é
-                  tirar as duas regras desta tela, o que seria deixar a tela mentir para não mexer na outra.
+                  A <a href="06-month.html">tela do mês</a> já desenha o ícone <span data-icon="repeat" style="width: 13px; height: 13px"></span> e o usa em
+                  "Seguro do carro (parcela 4 de 12)". Mas "Renda de julho" e "Salário" também saem de regras fixas nesta tela e lá aparecem sem marca — os
+                  dados das duas telas não fecham. <strong>A proposta é corrigir a 06 no mesmo PR</strong>, marcando as duas linhas: é uma edição de duas linhas
+                  num protótipo aprovado, permitida quando o desenho revela um problema, e declarada aqui em vez de feita em silêncio. A alternativa é tirar as
+                  duas regras desta tela, o que seria deixar a tela mentir para não mexer na outra.
                 </span>
               </li>
             </ol>
@@ -1092,7 +1080,6 @@
       function renderInst() {
         const total = cents(rq('i-total').value);
         const n = Math.min(60, Math.max(1, Number(rq('i-count').value) || 1));
-        const desc = rq('i-desc').value || 'Compra';
         const [fy, fm, fd] = rq('i-first').value.split('-').map(Number);
         const buy = rq('i-buy').value.split('-').map(Number);
 
@@ -1113,11 +1100,9 @@
         rq('inst-occ').innerHTML = shown
           .map((r) =>
             r === null
-              ? `<li class="muted"><span class="n"></span><span class="d"></span>… ${rows.length - 6} parcelas</li>`
+              ? `<li class="muted"><span class="d"></span>… ${rows.length - 6} parcelas</li>`
               : `<li>
-                  <span class="n num">${r.i}/${n}</span>
                   <span class="d num">${fmt(r.date)}</span>
-                  <span class="muted" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc} (${r.i}/${n})</span>
                   <span class="v num out ${r.last ? 'rest' : ''}">− ${money(r.v)}</span>
                 </li>`,
           )

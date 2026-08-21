@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InstallmentDialog } from './installment-dialog';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { server } from '@/test/server';
 
 const ACCOUNT: AccountDto = {
@@ -52,7 +53,9 @@ function renderDialog(onSubmit = vi.fn()) {
     onSubmit,
     ...render(
       <QueryClientProvider client={queryClient}>
-        <InstallmentDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />
+        <TooltipProvider>
+          <InstallmentDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />
+        </TooltipProvider>
       </QueryClientProvider>,
     ),
   };

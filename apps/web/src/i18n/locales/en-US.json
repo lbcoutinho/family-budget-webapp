@@ -268,8 +268,7 @@
       "expenseIn": "Recurring expenses in {{month}}",
       "incomeIn": "Recurring income in {{month}}",
       "installmentsOwed": "Open installments",
-      "nextGeneration": "Next generation",
-      "note": "There's no job running 24/7: generation happens when you log in — the app checks the current date against pending rules and materializes what's due, with a toast saying how many entries were created. \"Open installments\" sums what's left to pay across every active installment plan (which always has an end), including installments not yet generated; open-ended rules never enter this sum."
+      "note": "Recurrences are generated when you log in — the app checks the current date against pending rules and materializes what is missing. \"Open installments\" sums what remains to pay across every active installment plan with an end date."
     },
     "table": {
       "rule": "Rule",
@@ -327,8 +326,7 @@
       "occurrences": "Next {{count}} occurrences",
       "clamped": "{{count}} of {{total}} occurrences fall on the last day of the month.",
       "total": "{{amount}} over the period",
-      "remainderNote": "The last installment carries {{amount}} more",
-      "installmentOf": "Installment {{index}} of {{total}}"
+      "remainderNote": "The last installment carries {{amount}} more"
     },
     "ruleForm": {
       "createTitle": "New fixed rule",
@@ -346,10 +344,10 @@
       "amountPlaceholder": "950.00",
       "amountHintVariable": "No fixed amount: entries are created as a draft until you fill it in.",
       "start": "Start",
-      "end": "End (optional)",
-      "endHint": "Left blank, the rule never ends — the normal case for a fixed expense.",
+      "end": "End",
+      "endHint": "Left blank, the rule never ends.",
       "autoConfirm": "Confirm automatically",
-      "autoConfirmHint": "Off, entries are created as a draft and do not count in the balance or reports until you approve them.",
+      "autoConfirmHint": "Off, installments are created as drafts.",
       "editNotice": "Changing the amount later only applies to what has not been generated yet. What is already in the history stays as it is.",
       "required": "Fill in this field.",
       "invalidAmount": "Enter a valid amount.",
@@ -365,7 +363,6 @@
       "firstPaymentDate": "First payment",
       "firstPaymentDateHint": "The date the installment lands on the statement — and the month it shows up in the report.",
       "description": "Description",
-      "descriptionHint": "Each installment gets the number appended: \"Sofa (1/3)\".",
       "total": "Total amount",
       "autoConfirm": "Confirm automatically",
       "autoConfirmHint": "Off, the installments are created as a draft.",

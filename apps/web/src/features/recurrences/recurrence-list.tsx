@@ -8,6 +8,7 @@ import { installmentProgress, nextRollingOccurrence } from './occurrences';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formKey } from '@/i18n';
 import { formatDate, parseDateOnly } from '@/lib/date';
 import { formatCents } from '@/lib/money';
@@ -108,7 +109,11 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                     </div>
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">{rule.accountId ? (accountsById.get(rule.accountId) ?? '—') : '—'}</td>
-                  <td className="num px-4 py-2.5 text-right font-semibold">{formatCents(signedAmount, { sign: true })}</td>
+                  <td
+                    className={`num px-4 py-2.5 text-right font-semibold ${signedAmount === null ? '' : signedAmount < 0 ? 'text-destructive' : 'text-emerald-700'}`}
+                  >
+                    {formatCents(signedAmount, { sign: true })}
+                  </td>
                   <td className="num px-4 py-2.5 text-muted-foreground">{frequencyLabel(rule, t)}</td>
                   <td className="px-4 py-2.5">
                     {!isInstallment ? (
@@ -146,33 +151,53 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                   <td className="num px-4 py-2.5 text-muted-foreground">{next ? formatDate(next) : '—'}</td>
                   <td className="px-4 py-2.5">
                     {rule.isActive ? (
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          aria-label={t('recurrences.actions.generate')}
-                          onClick={() => onGenerate(rule)}
-                          disabled={generatingId === rule.id}
-                        >
-                          {generatingId === rule.id ? <Loader2Icon className="animate-spin" /> : <RepeatIcon />}
-                        </Button>
+                      <div className="flex justify-end gap-0.5">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t('recurrences.actions.generate')}
+                              onClick={() => onGenerate(rule)}
+                              disabled={generatingId === rule.id}
+                            >
+                              {generatingId === rule.id ? <Loader2Icon className="animate-spin" /> : <RepeatIcon />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t('recurrences.actions.generate')}</TooltipContent>
+                        </Tooltip>
                         {isInstallment ? (
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            aria-label={t('recurrences.actions.cancelInstallments')}
-                            onClick={() => onCancelInstallments(rule)}
-                          >
-                            <XIcon />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={t('recurrences.actions.cancelInstallments')}
+                                onClick={() => onCancelInstallments(rule)}
+                              >
+                                <XIcon />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('recurrences.actions.cancelInstallments')}</TooltipContent>
+                          </Tooltip>
                         ) : (
                           <>
-                            <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.edit')} onClick={() => onEdit(rule)}>
-                              <PencilIcon />
-                            </Button>
-                            <Button variant="ghost" size="icon-xs" aria-label={t('recurrences.actions.deactivate')} onClick={() => onDeactivate(rule)}>
-                              <XIcon />
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon-sm" aria-label={t('recurrences.actions.edit')} onClick={() => onEdit(rule)}>
+                                  <PencilIcon />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('recurrences.actions.edit')}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon-sm" aria-label={t('recurrences.actions.deactivate')} onClick={() => onDeactivate(rule)}>
+                                  <XIcon />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('recurrences.actions.deactivate')}</TooltipContent>
+                            </Tooltip>
                           </>
                         )}
                       </div>

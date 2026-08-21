@@ -268,8 +268,7 @@
       "expenseIn": "Despesas recorrentes em {{month}}",
       "incomeIn": "Receitas recorrentes em {{month}}",
       "installmentsOwed": "Parcelas em aberto",
-      "nextGeneration": "Próxima geração",
-      "note": "Não há job rodando 24/7: a geração acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar, com um toast dizendo quantos lançamentos foram criados. \"Parcelas em aberto\" soma o que falta pagar de todos os parcelamentos ativos (que sempre têm fim), inclusive as parcelas que ainda não foram geradas; regras sem fim não entram nessa soma."
+      "note": "A geração das recorrências acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar. \"Parcelas em aberto\" soma o que falta pagar de todos os parcelamentos ativos que têm data de fim."
     },
     "table": {
       "rule": "Regra",
@@ -327,8 +326,7 @@
       "occurrences": "Próximas {{count}} ocorrências",
       "clamped": "{{count}} de {{total}} ocorrências caem no último dia do mês.",
       "total": "{{amount}} no período",
-      "remainderNote": "A última parcela leva {{amount}} a mais",
-      "installmentOf": "Parcela {{index}} de {{total}}"
+      "remainderNote": "A última parcela leva {{amount}} a mais"
     },
     "ruleForm": {
       "createTitle": "Nova regra fixa",
@@ -346,10 +344,10 @@
       "amountPlaceholder": "950,00",
       "amountHintVariable": "Sem valor fixo: os lançamentos nascem como rascunho até você preencher.",
       "start": "Início",
-      "end": "Fim (opcional)",
-      "endHint": "Em branco, a regra não termina — é o caso normal de uma despesa fixa.",
+      "end": "Fim",
+      "endHint": "Em branco, a regra não termina.",
       "autoConfirm": "Confirmar automaticamente",
-      "autoConfirmHint": "Desligado, os lançamentos nascem como rascunho e não entram em saldo nem em relatório até você aprovar.",
+      "autoConfirmHint": "Desligado, as parcelas nascem como rascunho.",
       "editNotice": "Mudar o valor depois só vale para o que ainda não foi gerado. O que já entrou no histórico fica como está.",
       "required": "Preencha este campo.",
       "invalidAmount": "Informe um valor válido.",
@@ -365,7 +363,6 @@
       "firstPaymentDate": "Primeira cobrança",
       "firstPaymentDateHint": "É a data em que a parcela cai na fatura — e o mês em que ela aparece no relatório.",
       "description": "Descrição",
-      "descriptionHint": "Cada parcela recebe o número no fim: \"Colchão Ikea (1/3)\".",
       "total": "Valor total",
       "autoConfirm": "Confirmar automaticamente",
       "autoConfirmHint": "Desligado, as parcelas nascem como rascunho.",

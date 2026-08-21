@@ -142,11 +142,9 @@ export interface MonthlyRecurringStats {
   /** Sum of what's left to pay across installment plans — occurrences not yet elapsed as of
    * `asOf` — never counting an open-ended rule (`prototypes/memory/12-recurrences.md` decision 3). */
   installmentsOwed: number;
-  /** The earliest occurrence, across every active rule, still ahead of `asOf`. Null with no active rules. */
-  nextGeneration: Date | null;
 }
 
-/** The four numbers atop the recurrences screen (`prototypes/approved/12-recurrences.html`). A
+/** The three numbers atop the recurrences screen (`prototypes/approved/12-recurrences.html`). A
  * projection computed from the rule definitions themselves, not from materialized transactions —
  * generation is login-triggered, not a standing job, so "what's committed this month" has to be
  * knowable before anything is actually generated. */
@@ -154,7 +152,6 @@ export function monthlyRecurringStats(rules: RecurringRuleLike[], monthStart: Da
   let expenseTotal = 0;
   let incomeTotal = 0;
   let installmentsOwed = 0;
-  let nextGeneration: Date | null = null;
 
   for (const rule of rules) {
     if (!rule.isActive) continue;
@@ -168,21 +165,12 @@ export function monthlyRecurringStats(rules: RecurringRuleLike[], monthStart: Da
       else incomeTotal += rule.amount;
     }
 
-    let next: Date | null;
-
     if (rule.totalOccurrences !== null) {
       const progress = installmentProgress(rule, asOf);
       const remaining = rule.totalOccurrences - progress.elapsed;
       if (remaining > 0 && rule.amount !== null) installmentsOwed += remaining * rule.amount;
-      next = progress.next;
-    } else {
-      next = nextRollingOccurrence(rule);
-    }
-
-    if (next !== null && (nextGeneration === null || next.getTime() < nextGeneration.getTime())) {
-      nextGeneration = next;
     }
   }
 
-  return { expenseTotal, incomeTotal, installmentsOwed, nextGeneration };
+  return { expenseTotal, incomeTotal, installmentsOwed };
 }

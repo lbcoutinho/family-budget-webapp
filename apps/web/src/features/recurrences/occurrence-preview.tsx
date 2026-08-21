@@ -7,8 +7,6 @@ import { formatCents } from '@/lib/money';
 
 export interface OccurrencePreviewRow {
   date: Date;
-  /** e.g. an installment's "1/12", shown before the date. */
-  index?: string;
   /** e.g. "adjusted — the month has no day 31" or "reference August/2026". */
   note?: string;
   amountCents: number;
@@ -56,7 +54,6 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
         <ul>
           {rows.map((row, index) => (
             <li key={index} className="flex items-baseline gap-2.5 border-t px-4 py-1.5 text-[13px] first:border-t-0">
-              {row.index ? <span className="w-8 shrink-0 text-[11.5px] text-muted-foreground">{row.index}</span> : null}
               <span className={`num w-20 shrink-0 ${row.clamped ? 'text-cashbox' : 'text-muted-foreground'}`}>{formatDate(row.date)}</span>
               {row.note ? <span className="min-w-0 flex-1 truncate text-muted-foreground">{row.note}</span> : null}
               <span className={`num ml-auto font-semibold ${row.amber ? 'text-cashbox' : ''}`}>{formatCents(row.amountCents, { sign: true })}</span>
@@ -67,7 +64,7 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
       {!loading && !error && rows.length > 0 ? (
         <div className="flex items-center justify-between gap-2 border-t bg-muted/50 px-4 py-2.5 text-[12.5px]">
           <span className="text-muted-foreground">{footerNote}</span>
-          {footerTotal ? <span className="num font-semibold">{footerTotal}</span> : null}
+          {footerTotal ? <span className="num ml-auto text-right font-semibold">{footerTotal}</span> : null}
         </div>
       ) : null}
     </div>

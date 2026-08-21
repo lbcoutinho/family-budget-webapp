@@ -162,19 +162,4 @@ describe('monthlyRecurringStats', () => {
     // asOf = 2026-08-15: Jan..Aug 10th have elapsed (8 of 12), 4 remain.
     expect(stats.installmentsOwed).toBe(4 * 5000);
   });
-
-  it('finds the earliest next occurrence across every active rule', () => {
-    const soon = recurringRule({ dayOfMonth: 20, generatedUntil: '2026-08-01' });
-    const later = recurringRule({ dayOfMonth: 25, generatedUntil: '2026-08-01' });
-
-    const stats = monthlyRecurringStats([later, soon], monthStart, monthEnd, asOf);
-
-    expect(stats.nextGeneration?.getDate()).toBe(20);
-  });
-
-  it('returns nextGeneration: null with no active rules', () => {
-    const stats = monthlyRecurringStats([recurringRule({ isActive: false })], monthStart, monthEnd, asOf);
-
-    expect(stats.nextGeneration).toBeNull();
-  });
 });

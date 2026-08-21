@@ -4,6 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { RecurrenceList } from './recurrence-list';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
+
 const ACCOUNT: AccountDto = {
   id: 'acc-1',
   name: 'Millennium',
@@ -61,15 +63,17 @@ describe('RecurrenceList', () => {
 
   it('shows "sem fim" for an open-ended rule and hides the progress bar', () => {
     render(
-      <RecurrenceList
-        rules={[rule()]}
-        accounts={[ACCOUNT]}
-        categories={[CATEGORY]}
-        onEdit={noop}
-        onGenerate={noop}
-        onDeactivate={noop}
-        onCancelInstallments={noop}
-      />,
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[rule()]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.getByText('sem fim')).toBeInTheDocument();
@@ -83,15 +87,17 @@ describe('RecurrenceList', () => {
     const plan = rule({ id: 'plan-1', totalOccurrences: 12, endDate: '2026-12-10', generatedUntil: '2026-12-10' });
 
     render(
-      <RecurrenceList
-        rules={[plan]}
-        accounts={[ACCOUNT]}
-        categories={[CATEGORY]}
-        onEdit={noop}
-        onGenerate={noop}
-        onDeactivate={noop}
-        onCancelInstallments={noop}
-      />,
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[plan]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.getByText((_, node) => node?.textContent === '4/12')).toBeInTheDocument();
@@ -101,15 +107,17 @@ describe('RecurrenceList', () => {
     const plan = rule({ id: 'plan-1', description: 'Colchão Ikea', totalOccurrences: 3 });
 
     render(
-      <RecurrenceList
-        rules={[rule(), plan]}
-        accounts={[ACCOUNT]}
-        categories={[CATEGORY]}
-        onEdit={noop}
-        onGenerate={noop}
-        onDeactivate={noop}
-        onCancelInstallments={noop}
-      />,
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[rule(), plan]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.getAllByRole('button', { name: 'Desativar' })).toHaveLength(1);
@@ -121,15 +129,17 @@ describe('RecurrenceList', () => {
 
   it('hides every action for an inactive rule — no reactivate or delete exists on this screen', () => {
     render(
-      <RecurrenceList
-        rules={[rule({ isActive: false })]}
-        accounts={[ACCOUNT]}
-        categories={[CATEGORY]}
-        onEdit={noop}
-        onGenerate={noop}
-        onDeactivate={noop}
-        onCancelInstallments={noop}
-      />,
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[rule({ isActive: false })]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
@@ -138,15 +148,17 @@ describe('RecurrenceList', () => {
 
   it('shows the draft badge for a rule that does not auto-confirm', () => {
     render(
-      <RecurrenceList
-        rules={[rule({ autoConfirm: false, amount: null })]}
-        accounts={[ACCOUNT]}
-        categories={[CATEGORY]}
-        onEdit={noop}
-        onGenerate={noop}
-        onDeactivate={noop}
-        onCancelInstallments={noop}
-      />,
+      <TooltipProvider>
+        <RecurrenceList
+          rules={[rule({ autoConfirm: false, amount: null })]}
+          accounts={[ACCOUNT]}
+          categories={[CATEGORY]}
+          onEdit={noop}
+          onGenerate={noop}
+          onDeactivate={noop}
+          onCancelInstallments={noop}
+        />
+      </TooltipProvider>,
     );
 
     expect(screen.getByText('gera rascunho')).toBeInTheDocument();

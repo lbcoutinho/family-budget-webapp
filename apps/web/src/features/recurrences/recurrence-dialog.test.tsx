@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RecurrenceDialog } from './recurrence-dialog';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { server } from '@/test/server';
 
 const ACCOUNT: AccountDto = {
@@ -77,7 +78,9 @@ function renderDialog(onSubmit = vi.fn()) {
     onSubmit,
     ...render(
       <QueryClientProvider client={queryClient}>
-        <RecurrenceDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />
+        <TooltipProvider>
+          <RecurrenceDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />
+        </TooltipProvider>
       </QueryClientProvider>,
     ),
   };
@@ -135,7 +138,7 @@ describe('RecurrenceDialog', () => {
     const { user, onSubmit } = renderDialog();
 
     await fillValidForm(user);
-    await user.type(screen.getByLabelText('Fim (opcional)'), '2026-01');
+    await user.type(screen.getByLabelText('Fim'), '2026-01');
     await user.tab();
 
     expect(await screen.findByText('O fim não pode ser antes do início.')).toBeInTheDocument();
@@ -186,13 +189,15 @@ describe('RecurrenceDialog', () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     render(
       <QueryClientProvider client={queryClient}>
-        <RecurrenceDialog
-          open
-          onOpenChange={() => undefined}
-          isPending={false}
-          error={{ response: { data: { code: 'VALIDATION_ERROR' } } }}
-          onSubmit={vi.fn()}
-        />
+        <TooltipProvider>
+          <RecurrenceDialog
+            open
+            onOpenChange={() => undefined}
+            isPending={false}
+            error={{ response: { data: { code: 'VALIDATION_ERROR' } } }}
+            onSubmit={vi.fn()}
+          />
+        </TooltipProvider>
       </QueryClientProvider>,
     );
 

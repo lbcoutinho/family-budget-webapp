@@ -11,6 +11,7 @@ import { splitInstallments } from './installment-split';
 import { OccurrencePreview, type OccurrencePreviewRow } from './occurrence-preview';
 
 import { FieldError } from '@/components/field-error';
+import { HintTooltip } from '@/components/hint-tooltip';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -122,8 +123,6 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
 
   const previewRows: OccurrencePreviewRow[] = dates.map((occurrence, index) => ({
     date: occurrence.date,
-    index: `${index + 1}/${installments}`,
-    note: t(formKey('recurrences.preview.installmentOf'), { index: index + 1, total: installments }),
     amountCents: -(split[index] ?? 0),
     clamped: occurrence.clamped,
     amber: index === installments - 1 && remainder > 0,
@@ -145,12 +144,12 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
 
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-      <DialogContent showCloseButton={!isPending} className="sm:max-w-2xl">
+      <DialogContent showCloseButton={!isPending} className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t(formKey('recurrences.installmentForm.createTitle'))}</DialogTitle>
         </DialogHeader>
 
-        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-2">
+        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)]">
           <div className="grid gap-3.5">
             <div className="grid grid-cols-2 gap-3">
               <div className="grid min-w-0 content-start gap-1.5">
@@ -166,9 +165,11 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 <FieldError error={errors.accountId?.message} />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="installment-purchase-date">{t(formKey('recurrences.installmentForm.purchaseDate'))}</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="installment-purchase-date">{t(formKey('recurrences.installmentForm.purchaseDate'))}</Label>
+                  <HintTooltip>{t(formKey('recurrences.installmentForm.purchaseDateHint'))}</HintTooltip>
+                </div>
                 <Input id="installment-purchase-date" type="date" disabled={isPending} {...register('purchaseDate')} />
-                <p className="text-xs text-muted-foreground">{t(formKey('recurrences.installmentForm.purchaseDateHint'))}</p>
               </div>
             </div>
 
@@ -179,9 +180,11 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 <FieldError error={errors.count?.message} />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="installment-first-payment">{t(formKey('recurrences.installmentForm.firstPaymentDate'))}</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="installment-first-payment">{t(formKey('recurrences.installmentForm.firstPaymentDate'))}</Label>
+                  <HintTooltip>{t(formKey('recurrences.installmentForm.firstPaymentDateHint'))}</HintTooltip>
+                </div>
                 <Input id="installment-first-payment" type="date" disabled={isPending} {...register('firstPaymentDate')} />
-                <p className="text-xs text-muted-foreground">{t(formKey('recurrences.installmentForm.firstPaymentDateHint'))}</p>
               </div>
             </div>
 
@@ -202,7 +205,6 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
               <div className="grid gap-1.5">
                 <Label htmlFor="installment-description">{t(formKey('recurrences.installmentForm.description'))}</Label>
                 <Input id="installment-description" disabled={isPending} {...register('description')} />
-                <p className="text-xs text-muted-foreground">{t(formKey('recurrences.installmentForm.descriptionHint'))}</p>
                 <FieldError error={errors.description?.message} />
               </div>
               <div className="grid gap-1.5">
@@ -223,7 +225,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
               </div>
             </div>
 
-            <label className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <Switch
                 checked={autoConfirm}
                 onCheckedChange={(checked) => setValue('autoConfirm', checked)}
@@ -231,18 +233,15 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 aria-label={t(formKey('recurrences.installmentForm.autoConfirm'))}
               />
               <span className="text-sm">{t(formKey('recurrences.installmentForm.autoConfirm'))}</span>
-            </label>
-            <p className="text-xs text-muted-foreground">{t(formKey('recurrences.installmentForm.autoConfirmHint'))}</p>
-
-            <p className="rounded-md bg-muted/70 p-2.5 text-xs text-muted-foreground">
-              {t(formKey('recurrences.installmentForm.notice'), { count: installments })}
-            </p>
+              <HintTooltip>{t(formKey('recurrences.installmentForm.autoConfirmHint'))}</HintTooltip>
+            </div>
 
             {error !== undefined && error !== null && (
               <p role="alert" className="text-sm text-destructive">
                 {apiErrorMessage(error, t)}
               </p>
             )}
+            <p className="rounded-md bg-blue-50 p-2.5 text-xs text-blue-700">{t(formKey('recurrences.installmentForm.notice'), { count: installments })}</p>
           </div>
 
           <OccurrencePreview

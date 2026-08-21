@@ -124,7 +124,7 @@ describe('RecurrencesPage', () => {
 
     await screen.findByText('Seguro do carro');
     expect(screen.getByText('Parcelas em aberto')).toBeInTheDocument();
-    expect(screen.getByText('Próxima geração')).toBeInTheDocument();
+    expect(screen.queryByText('Próxima geração')).not.toBeInTheDocument();
   });
 
   it('shows the empty state explaining the two kinds of recurrence', async () => {

@@ -16,6 +16,7 @@ import * as z from 'zod';
 import { OccurrencePreview, type OccurrencePreviewRow } from './occurrence-preview';
 
 import { FieldError } from '@/components/field-error';
+import { HintTooltip } from '@/components/hint-tooltip';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -237,12 +238,12 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
 
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-      <DialogContent showCloseButton={!isPending} className="sm:max-w-2xl">
+      <DialogContent showCloseButton={!isPending} className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t(formKey(rule ? 'recurrences.ruleForm.editTitle' : 'recurrences.ruleForm.createTitle'))}</DialogTitle>
         </DialogHeader>
 
-        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-2">
+        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)]">
           <div className="grid gap-3.5">
             <Tabs
               value={type}
@@ -323,7 +324,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                   },
                 })}
               />
-              {!autoConfirm ? <p className="text-xs text-muted-foreground">{t(formKey('recurrences.ruleForm.amountHintVariable'))}</p> : null}
+              {!autoConfirm ? <HintTooltip>{t(formKey('recurrences.ruleForm.amountHintVariable'))}</HintTooltip> : null}
               <FieldError error={errors.amount?.message} />
             </div>
 
@@ -334,14 +335,15 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 <FieldError error={errors.startMonth?.message} />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="rule-end">{t(formKey('recurrences.ruleForm.end'))}</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="rule-end">{t(formKey('recurrences.ruleForm.end'))}</Label>
+                  <HintTooltip>{t(formKey('recurrences.ruleForm.endHint'))}</HintTooltip>
+                </div>
                 <Input id="rule-end" type="month" disabled={isPending} {...register('endMonth')} />
                 <FieldError error={errors.endMonth?.message} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">{t(formKey('recurrences.ruleForm.endHint'))}</p>
-
-            <label className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <Switch
                 checked={autoConfirm}
                 onCheckedChange={(checked) => setValue('autoConfirm', checked)}
@@ -349,16 +351,15 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 aria-label={t(formKey('recurrences.ruleForm.autoConfirm'))}
               />
               <span className="text-sm">{t(formKey('recurrences.ruleForm.autoConfirm'))}</span>
-            </label>
-            <p className="text-xs text-muted-foreground">{t(formKey('recurrences.ruleForm.autoConfirmHint'))}</p>
-
-            <p className="rounded-md bg-muted/70 p-2.5 text-xs text-muted-foreground">{t(formKey('recurrences.ruleForm.editNotice'))}</p>
+              <HintTooltip>{t(formKey('recurrences.ruleForm.autoConfirmHint'))}</HintTooltip>
+            </div>
 
             {error !== undefined && error !== null && (
               <p role="alert" className="text-sm text-destructive">
                 {apiErrorMessage(error, t)}
               </p>
             )}
+            <p className="rounded-md bg-blue-50 p-2.5 text-xs text-blue-700">{t(formKey('recurrences.ruleForm.editNotice'))}</p>
           </div>
 
           <OccurrencePreview
