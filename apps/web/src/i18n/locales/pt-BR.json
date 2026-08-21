@@ -267,8 +267,8 @@
     "summary": {
       "expenseIn": "Despesas recorrentes em {{month}}",
       "incomeIn": "Receitas recorrentes em {{month}}",
-      "installmentsOwed": "Parcelas em aberto",
-      "note": "A geração das recorrências acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar. \"Parcelas em aberto\" soma o que falta pagar de todos os parcelamentos ativos que têm data de fim."
+      "installmentsOwed": "Soma das parcelas em aberto",
+      "note": "A geração das recorrências acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar."
     },
     "table": {
       "rule": "Regra",

@@ -267,8 +267,8 @@
     "summary": {
       "expenseIn": "Recurring expenses in {{month}}",
       "incomeIn": "Recurring income in {{month}}",
-      "installmentsOwed": "Open installments",
-      "note": "Recurrences are generated when you log in — the app checks the current date against pending rules and materializes what is missing. \"Open installments\" sums what remains to pay across every active installment plan with an end date."
+      "installmentsOwed": "Sum of open installments",
+      "note": "Recurrences are generated when you log in — the app checks the current date against pending rules and materializes what is missing."
     },
     "table": {
       "rule": "Rule",
