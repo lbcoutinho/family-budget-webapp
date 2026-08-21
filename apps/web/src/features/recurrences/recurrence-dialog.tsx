@@ -238,7 +238,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
 
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-      <DialogContent showCloseButton={!isPending} className="sm:max-w-3xl">
+      <DialogContent showCloseButton={!isPending} className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{t(formKey(rule ? 'recurrences.ruleForm.editTitle' : 'recurrences.ruleForm.createTitle'))}</DialogTitle>
         </DialogHeader>
@@ -262,7 +262,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
               </TabsList>
             </Tabs>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 md:grid-cols-3">
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="rule-account">{t(formKey('recurrences.ruleForm.account'))}</Label>
                 <NativeSelect id="rule-account" aria-invalid={errors.accountId !== undefined} disabled={isPending} {...register('accountId')}>
@@ -282,50 +282,53 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                   <option value="YEARLY">{t(formKey('recurrences.ruleForm.frequencyYearly'))}</option>
                 </NativeSelect>
               </div>
+              <div className="grid min-w-0 content-start gap-1.5">
+                <Label htmlFor="rule-day">{t(formKey('recurrences.ruleForm.dayOfMonth'))}</Label>
+                <Input id="rule-day" type="number" min={1} max={31} disabled={isPending} {...register('dayOfMonth')} />
+                <FieldError error={errors.dayOfMonth?.message} />
+              </div>
             </div>
 
-            <div className="grid gap-1.5">
-              <Label htmlFor="rule-day">{t(formKey('recurrences.ruleForm.dayOfMonth'))}</Label>
-              <Input id="rule-day" type="number" min={1} max={31} className="w-24" disabled={isPending} {...register('dayOfMonth')} />
-              <FieldError error={errors.dayOfMonth?.message} />
-            </div>
-
-            <CategorySelect
-              kind={type}
-              categoryId={categoryId || undefined}
-              subcategoryId={subcategoryId || undefined}
-              disabled={isPending}
-              categoryError={errors.categoryId?.message}
-              subcategoryError={errors.subcategoryId?.message}
-              onChange={(nextCategory, nextSubcategory) => {
-                setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
-                setValue('subcategoryId', nextSubcategory ?? '');
-              }}
-            />
-
-            <div className="grid gap-1.5">
-              <Label htmlFor="rule-description">{t(formKey('recurrences.ruleForm.description'))}</Label>
-              <Input id="rule-description" disabled={isPending} {...register('description')} />
-              <FieldError error={errors.description?.message} />
-            </div>
-
-            <div className="grid gap-1.5">
-              <Label htmlFor="rule-amount">{t(formKey('recurrences.ruleForm.amount'))}</Label>
-              <Input
-                id="rule-amount"
-                inputMode="decimal"
-                className="text-right tabular-nums"
-                placeholder={t(formKey('recurrences.ruleForm.amountPlaceholder'))}
+            <div className="grid gap-3 md:grid-cols-2">
+              <CategorySelect
+                kind={type}
+                categoryId={categoryId || undefined}
+                subcategoryId={subcategoryId || undefined}
                 disabled={isPending}
-                {...register('amount', {
-                  onBlur: (event: FocusEvent<HTMLInputElement>) => {
-                    const cents = parseCurrencyInput(event.target.value);
-                    if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
-                  },
-                })}
+                categoryError={errors.categoryId?.message}
+                subcategoryError={errors.subcategoryId?.message}
+                onChange={(nextCategory, nextSubcategory) => {
+                  setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
+                  setValue('subcategoryId', nextSubcategory ?? '');
+                }}
               />
-              {!autoConfirm ? <HintTooltip>{t(formKey('recurrences.ruleForm.amountHintVariable'))}</HintTooltip> : null}
-              <FieldError error={errors.amount?.message} />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-1.5">
+                <Label htmlFor="rule-description">{t(formKey('recurrences.ruleForm.description'))}</Label>
+                <Input id="rule-description" disabled={isPending} {...register('description')} />
+                <FieldError error={errors.description?.message} />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="rule-amount">{t(formKey('recurrences.ruleForm.amount'))}</Label>
+                <Input
+                  id="rule-amount"
+                  inputMode="decimal"
+                  className="text-right tabular-nums"
+                  placeholder={t(formKey('recurrences.ruleForm.amountPlaceholder'))}
+                  disabled={isPending}
+                  {...register('amount', {
+                    onBlur: (event: FocusEvent<HTMLInputElement>) => {
+                      const cents = parseCurrencyInput(event.target.value);
+                      if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
+                    },
+                  })}
+                />
+                {!autoConfirm ? <HintTooltip>{t(formKey('recurrences.ruleForm.amountHintVariable'))}</HintTooltip> : null}
+                <FieldError error={errors.amount?.message} />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

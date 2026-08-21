@@ -188,18 +188,20 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
               </div>
             </div>
 
-            <CategorySelect
-              kind="EXPENSE"
-              categoryId={categoryId || undefined}
-              subcategoryId={subcategoryId || undefined}
-              disabled={isPending}
-              categoryError={errors.categoryId?.message}
-              subcategoryError={errors.subcategoryId?.message}
-              onChange={(nextCategory, nextSubcategory) => {
-                setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
-                setValue('subcategoryId', nextSubcategory ?? '');
-              }}
-            />
+            <div className="grid gap-3 md:grid-cols-2">
+              <CategorySelect
+                kind="EXPENSE"
+                categoryId={categoryId || undefined}
+                subcategoryId={subcategoryId || undefined}
+                disabled={isPending}
+                categoryError={errors.categoryId?.message}
+                subcategoryError={errors.subcategoryId?.message}
+                onChange={(nextCategory, nextSubcategory) => {
+                  setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
+                  setValue('subcategoryId', nextSubcategory ?? '');
+                }}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
