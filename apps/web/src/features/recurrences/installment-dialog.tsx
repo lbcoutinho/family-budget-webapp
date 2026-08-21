@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { CategorySelect } from '@/features/transactions/category-select';
-import { type TranslationKey } from '@/i18n';
+import { formKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, parseCurrencyInput } from '@/lib/money';
 
@@ -56,13 +56,25 @@ const installmentSchema = z
     }
   });
 
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
-}
-
 function today(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+/** Shared by `useForm`'s `defaultValues` and the reset-on-open effect — a blank form, purchase and
+ * first-payment dates defaulted to today. */
+function emptyValues(): InstallmentFormValues {
+  return {
+    accountId: '',
+    categoryId: '',
+    subcategoryId: '',
+    purchaseDate: today(),
+    firstPaymentDate: today(),
+    count: '3',
+    description: '',
+    total: '',
+    autoConfirm: true,
+  };
 }
 
 export interface InstallmentDialogProps {
@@ -89,32 +101,12 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
   } = useForm<InstallmentFormValues>({
     resolver: zodResolver(installmentSchema),
     mode: 'onBlur',
-    defaultValues: {
-      accountId: '',
-      categoryId: '',
-      subcategoryId: '',
-      purchaseDate: today(),
-      firstPaymentDate: today(),
-      count: '3',
-      description: '',
-      total: '',
-      autoConfirm: true,
-    },
+    defaultValues: emptyValues(),
   });
 
   useEffect(() => {
     if (!open) return;
-    reset({
-      accountId: '',
-      categoryId: '',
-      subcategoryId: '',
-      purchaseDate: today(),
-      firstPaymentDate: today(),
-      count: '3',
-      description: '',
-      total: '',
-      autoConfirm: true,
-    });
+    reset(emptyValues());
   }, [open, reset]);
 
   const [categoryId, subcategoryId, firstPaymentDate, count, description, total, autoConfirm] = useWatch({

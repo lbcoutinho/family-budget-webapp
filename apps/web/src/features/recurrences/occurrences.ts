@@ -8,6 +8,8 @@
  * deals with the browser's own "today", never a value read back from Prisma.
  */
 
+import { parseDateOnly } from '@/lib/date';
+
 export type OccurrenceFrequency = 'MONTHLY' | 'YEARLY';
 
 export interface OccurrenceRuleLike {
@@ -22,11 +24,6 @@ export interface OccurrenceRuleLike {
   totalOccurrences: number | null;
   /** `YYYY-MM-DD` of the last generated occurrence, or null if never generated. */
   generatedUntil: string | null;
-}
-
-function parseDateOnly(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year!, (month ?? 1) - 1, day ?? 1);
 }
 
 /** `min(dayOfMonth, daysInMonth)` — 31 becomes 28/29 in February, 30 in April. */
@@ -127,4 +124,65 @@ export function nextRollingOccurrence(rule: OccurrenceRuleLike, lookaheadYears =
   const until = new Date(from.getFullYear() + lookaheadYears, from.getMonth(), from.getDate());
 
   return computeOccurrences(rule, until)[0]?.date ?? null;
+}
+
+export interface RecurringRuleLike extends OccurrenceRuleLike {
+  type: 'EXPENSE' | 'INCOME';
+  /** Null means a variable amount (ADR-0020) — excluded from every sum below, since there's
+   * nothing to add. */
+  amount: number | null;
+  isActive: boolean;
+}
+
+export interface MonthlyRecurringStats {
+  /** Sum of active EXPENSE rules with an occurrence in the given month. */
+  expenseTotal: number;
+  /** Sum of active INCOME rules with an occurrence in the given month. */
+  incomeTotal: number;
+  /** Sum of what's left to pay across installment plans — occurrences not yet elapsed as of
+   * `asOf` — never counting an open-ended rule (`prototypes/memory/12-recurrences.md` decision 3). */
+  installmentsOwed: number;
+  /** The earliest occurrence, across every active rule, still ahead of `asOf`. Null with no active rules. */
+  nextGeneration: Date | null;
+}
+
+/** The four numbers atop the recurrences screen (`prototypes/approved/12-recurrences.html`). A
+ * projection computed from the rule definitions themselves, not from materialized transactions —
+ * generation is login-triggered, not a standing job, so "what's committed this month" has to be
+ * knowable before anything is actually generated. */
+export function monthlyRecurringStats(rules: RecurringRuleLike[], monthStart: Date, monthEnd: Date, asOf: Date): MonthlyRecurringStats {
+  let expenseTotal = 0;
+  let incomeTotal = 0;
+  let installmentsOwed = 0;
+  let nextGeneration: Date | null = null;
+
+  for (const rule of rules) {
+    if (!rule.isActive) continue;
+
+    const occursThisMonth = fullOccurrenceList(rule, monthEnd).some(
+      (entry) => entry.date.getTime() >= monthStart.getTime() && entry.date.getTime() <= monthEnd.getTime(),
+    );
+
+    if (occursThisMonth && rule.amount !== null) {
+      if (rule.type === 'EXPENSE') expenseTotal += rule.amount;
+      else incomeTotal += rule.amount;
+    }
+
+    let next: Date | null;
+
+    if (rule.totalOccurrences !== null) {
+      const progress = installmentProgress(rule, asOf);
+      const remaining = rule.totalOccurrences - progress.elapsed;
+      if (remaining > 0 && rule.amount !== null) installmentsOwed += remaining * rule.amount;
+      next = progress.next;
+    } else {
+      next = nextRollingOccurrence(rule);
+    }
+
+    if (next !== null && (nextGeneration === null || next.getTime() < nextGeneration.getTime())) {
+      nextGeneration = next;
+    }
+  }
+
+  return { expenseTotal, incomeTotal, installmentsOwed, nextGeneration };
 }

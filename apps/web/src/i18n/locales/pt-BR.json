@@ -263,6 +263,14 @@
     "newRule": "Nova regra fixa",
     "newInstallment": "Novo parcelamento",
     "showInactive": "Mostrar inativas",
+    "loading": "Carregando recorrências",
+    "summary": {
+      "expenseIn": "Despesas recorrentes em {{month}}",
+      "incomeIn": "Receitas recorrentes em {{month}}",
+      "installmentsOwed": "Parcelas em aberto",
+      "nextGeneration": "Próxima geração",
+      "note": "Não há job rodando 24/7: a geração acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar, com um toast dizendo quantos lançamentos foram criados. \"Parcelas em aberto\" soma o que falta pagar de todos os parcelamentos ativos (que sempre têm fim), inclusive as parcelas que ainda não foram geradas; regras sem fim não entram nessa soma."
+    },
     "table": {
       "rule": "Regra",
       "account": "Conta",

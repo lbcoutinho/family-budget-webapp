@@ -8,27 +8,9 @@ import { installmentProgress, nextRollingOccurrence } from './occurrences';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import i18n, { type TranslationKey } from '@/i18n';
+import { formKey } from '@/i18n';
+import { formatDate, parseDateOnly } from '@/lib/date';
 import { formatCents } from '@/lib/money';
-
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
-}
-
-const dateFormatters = new Map<string, Intl.DateTimeFormat>();
-
-function shortDate(locale: string): Intl.DateTimeFormat {
-  const existing = dateFormatters.get(locale);
-  if (existing) return existing;
-  const formatter = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  dateFormatters.set(locale, formatter);
-  return formatter;
-}
-
-function parseDateOnly(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year!, (month ?? 1) - 1, day ?? 1);
-}
 
 interface CategoryLookup {
   name: string;
@@ -137,9 +119,7 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                         </span>
                       ) : (
                         <span className="text-[12.5px] text-muted-foreground">
-                          {rule.generatedUntil
-                            ? t('recurrences.table.stoppedOn', { date: shortDate(i18n.language).format(parseDateOnly(rule.generatedUntil)) })
-                            : '—'}
+                          {rule.generatedUntil ? t('recurrences.table.stoppedOn', { date: formatDate(parseDateOnly(rule.generatedUntil)) }) : '—'}
                         </span>
                       )
                     ) : (
@@ -163,7 +143,7 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                       </div>
                     )}
                   </td>
-                  <td className="num px-4 py-2.5 text-muted-foreground">{next ? shortDate(i18n.language).format(next) : '—'}</td>
+                  <td className="num px-4 py-2.5 text-muted-foreground">{next ? formatDate(next) : '—'}</td>
                   <td className="px-4 py-2.5">
                     {rule.isActive ? (
                       <div className="flex justify-end gap-1">
@@ -209,8 +189,10 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
 }
 
 export function RecurrenceListSkeleton() {
+  const { t } = useTranslation();
+
   return (
-    <div className="space-y-px rounded-lg border p-3" aria-label="Loading recurrences">
+    <div className="space-y-px rounded-lg border p-3" aria-label={t(formKey('recurrences.loading'))}>
       {Array.from({ length: 4 }, (_, index) => (
         <Skeleton key={index} className="h-12 w-full" />
       ))}

@@ -24,7 +24,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CategorySelect } from '@/features/transactions/category-select';
-import { type TranslationKey } from '@/i18n';
+import { formKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, parseCurrencyInput } from '@/lib/money';
 
@@ -93,10 +93,6 @@ function monthToEndDate(month: string): string {
   const [year, monthNumber] = month.split('-').map(Number);
   const lastDay = new Date(year!, monthNumber!, 0).getDate();
   return `${month}-${String(lastDay).padStart(2, '0')}`;
-}
-
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
 }
 
 export interface RecurrenceDialogProps {

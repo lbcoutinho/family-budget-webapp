@@ -2,7 +2,7 @@ import { Loader2Icon } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import i18n from '@/i18n';
+import { formatDate } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
 export interface OccurrencePreviewRow {
@@ -27,16 +27,6 @@ export interface OccurrencePreviewProps {
   /** Right side of the footer — e.g. "1,900.00 € over the period". */
   footerTotal?: string;
   emptyMessage: string;
-}
-
-const dateFormatters = new Map<string, Intl.DateTimeFormat>();
-
-function shortDate(locale: string): Intl.DateTimeFormat {
-  const existing = dateFormatters.get(locale);
-  if (existing) return existing;
-  const formatter = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  dateFormatters.set(locale, formatter);
-  return formatter;
 }
 
 /** The mandatory "nothing is persisted until save" half of the fixed-rule and installment forms
@@ -67,7 +57,7 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
           {rows.map((row, index) => (
             <li key={index} className="flex items-baseline gap-2.5 border-t px-4 py-1.5 text-[13px] first:border-t-0">
               {row.index ? <span className="w-8 shrink-0 text-[11.5px] text-muted-foreground">{row.index}</span> : null}
-              <span className={`num w-20 shrink-0 ${row.clamped ? 'text-cashbox' : 'text-muted-foreground'}`}>{shortDate(i18n.language).format(row.date)}</span>
+              <span className={`num w-20 shrink-0 ${row.clamped ? 'text-cashbox' : 'text-muted-foreground'}`}>{formatDate(row.date)}</span>
               {row.note ? <span className="min-w-0 flex-1 truncate text-muted-foreground">{row.note}</span> : null}
               <span className={`num ml-auto font-semibold ${row.amber ? 'text-cashbox' : ''}`}>{formatCents(row.amountCents, { sign: true })}</span>
             </li>

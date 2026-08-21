@@ -263,6 +263,14 @@
     "newRule": "New fixed rule",
     "newInstallment": "New installment plan",
     "showInactive": "Show inactive",
+    "loading": "Loading recurrences",
+    "summary": {
+      "expenseIn": "Recurring expenses in {{month}}",
+      "incomeIn": "Recurring income in {{month}}",
+      "installmentsOwed": "Open installments",
+      "nextGeneration": "Next generation",
+      "note": "There's no job running 24/7: generation happens when you log in — the app checks the current date against pending rules and materializes what's due, with a toast saying how many entries were created. \"Open installments\" sums what's left to pay across every active installment plan (which always has an end), including installments not yet generated; open-ended rules never enter this sum."
+    },
     "table": {
       "rule": "Rule",
       "account": "Account",

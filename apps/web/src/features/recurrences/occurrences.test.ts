@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeOccurrences, fullOccurrenceList, installmentProgress, nextRollingOccurrence, type OccurrenceRuleLike } from './occurrences';
+import {
+  computeOccurrences,
+  fullOccurrenceList,
+  installmentProgress,
+  monthlyRecurringStats,
+  nextRollingOccurrence,
+  type OccurrenceRuleLike,
+  type RecurringRuleLike,
+} from './occurrences';
 
 // `Date`s here are local-time (no UTC anchoring, unlike the backend module), so formatting them
 // through `toISOString` would shift the day whenever the test runner's zone is not UTC.
@@ -19,6 +27,10 @@ function rule(overrides: Partial<OccurrenceRuleLike> = {}): OccurrenceRuleLike {
     generatedUntil: null,
     ...overrides,
   };
+}
+
+function recurringRule(overrides: Partial<RecurringRuleLike> = {}): RecurringRuleLike {
+  return { ...rule(), type: 'EXPENSE', amount: 1000, isActive: true, ...overrides };
 }
 
 describe('computeOccurrences', () => {
@@ -106,5 +118,63 @@ describe('nextRollingOccurrence', () => {
     const next = nextRollingOccurrence(rule());
 
     expect(next && ymd(next)).toBe('2026-01-05');
+  });
+});
+
+describe('monthlyRecurringStats', () => {
+  const monthStart = new Date(2026, 7, 1);
+  const monthEnd = new Date(2026, 7, 31);
+  const asOf = new Date(2026, 7, 15);
+
+  it('sums active expense and income rules with an occurrence in the given month', () => {
+    const rent = recurringRule({ type: 'EXPENSE', amount: 95000, dayOfMonth: 1 });
+    const salary = recurringRule({ type: 'INCOME', amount: 320000, dayOfMonth: 3 });
+
+    const stats = monthlyRecurringStats([rent, salary], monthStart, monthEnd, asOf);
+
+    expect(stats.expenseTotal).toBe(95000);
+    expect(stats.incomeTotal).toBe(320000);
+  });
+
+  it('ignores an inactive rule and a rule with no occurrence in the month', () => {
+    const inactive = recurringRule({ type: 'EXPENSE', amount: 1000, isActive: false });
+    const yearly = recurringRule({ type: 'EXPENSE', amount: 2000, frequency: 'YEARLY', startDate: '2026-11-15', dayOfMonth: 15 });
+
+    const stats = monthlyRecurringStats([inactive, yearly], monthStart, monthEnd, asOf);
+
+    expect(stats.expenseTotal).toBe(0);
+  });
+
+  it('skips a variable-amount (amountless) rule instead of adding null', () => {
+    const variable = recurringRule({ type: 'EXPENSE', amount: null, dayOfMonth: 1 });
+
+    const stats = monthlyRecurringStats([variable], monthStart, monthEnd, asOf);
+
+    expect(stats.expenseTotal).toBe(0);
+  });
+
+  it('sums only what remains unpaid across installment plans, never an open-ended rule', () => {
+    const plan = recurringRule({ type: 'EXPENSE', amount: 5000, totalOccurrences: 12, endDate: '2026-12-10', dayOfMonth: 10, startDate: '2026-01-10' });
+    const endless = recurringRule({ type: 'EXPENSE', amount: 6250, dayOfMonth: 10 });
+
+    const stats = monthlyRecurringStats([plan, endless], monthStart, monthEnd, asOf);
+
+    // asOf = 2026-08-15: Jan..Aug 10th have elapsed (8 of 12), 4 remain.
+    expect(stats.installmentsOwed).toBe(4 * 5000);
+  });
+
+  it('finds the earliest next occurrence across every active rule', () => {
+    const soon = recurringRule({ dayOfMonth: 20, generatedUntil: '2026-08-01' });
+    const later = recurringRule({ dayOfMonth: 25, generatedUntil: '2026-08-01' });
+
+    const stats = monthlyRecurringStats([later, soon], monthStart, monthEnd, asOf);
+
+    expect(stats.nextGeneration?.getDate()).toBe(20);
+  });
+
+  it('returns nextGeneration: null with no active rules', () => {
+    const stats = monthlyRecurringStats([recurringRule({ isActive: false })], monthStart, monthEnd, asOf);
+
+    expect(stats.nextGeneration).toBeNull();
   });
 });
