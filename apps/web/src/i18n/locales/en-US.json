@@ -259,6 +259,114 @@
       "description": "Check your connection and try again."
     }
   },
+  "recurrences": {
+    "newRule": "New fixed rule",
+    "newInstallment": "New installment plan",
+    "showInactive": "Show inactive",
+    "table": {
+      "rule": "Rule",
+      "account": "Account",
+      "amount": "Amount",
+      "when": "When",
+      "progress": "Progress",
+      "next": "Next",
+      "endless": "no end",
+      "stoppedOn": "stopped on {{date}}",
+      "completed": "completed",
+      "toPay": "{{amount}} to pay",
+      "draftBadge": "generates a draft",
+      "inactiveBadge": "inactive"
+    },
+    "frequency": {
+      "MONTHLY": "Monthly, day {{day}}",
+      "YEARLY": "Yearly, {{date}}"
+    },
+    "actions": {
+      "generate": "Generate now",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "cancelInstallments": "Cancel future installments"
+    },
+    "generate": {
+      "success": "{{count}} entries created",
+      "nothing": "Nothing to generate",
+      "nothingDescription": "This rule is already materialized up to {{date}}."
+    },
+    "deactivate": {
+      "title": "Deactivate \"{{name}}\"?",
+      "description": "Entries already generated stay where they are and keep counting in the balance and reports. What stops is generation from here on.",
+      "confirm": "Deactivate"
+    },
+    "cancelInstallments": {
+      "title": "Cancel \"{{name}}\"?",
+      "description": "This removes only the future, unconfirmed installments. The ones already confirmed stay — they were paid.",
+      "confirm": "Cancel future installments"
+    },
+    "empty": {
+      "title": "No recurrences yet",
+      "description": "A rule generates by itself whatever repeats every month — income, insurance, a subscription — and an installment plan splits a purchase into the payments it will have. Either way, you fill it in once."
+    },
+    "error": {
+      "title": "Could not load the recurrences",
+      "description": "Check your connection and try again."
+    },
+    "preview": {
+      "title": "Preview",
+      "notPersisted": "nothing is saved until you save",
+      "loading": "Calculating…",
+      "empty": "No occurrence with these values.",
+      "occurrences": "Next {{count}} occurrences",
+      "clamped": "{{count}} of {{total}} occurrences fall on the last day of the month.",
+      "total": "{{amount}} over the period",
+      "remainderNote": "The last installment carries {{amount}} more",
+      "installmentOf": "Installment {{index}} of {{total}}"
+    },
+    "ruleForm": {
+      "createTitle": "New fixed rule",
+      "editTitle": "Edit fixed rule",
+      "expense": "Expense",
+      "income": "Income",
+      "account": "Account",
+      "accountPlaceholder": "Select an account",
+      "frequencyLabel": "Frequency",
+      "frequencyMonthly": "Monthly",
+      "frequencyYearly": "Yearly",
+      "dayOfMonth": "Day of month",
+      "description": "Description",
+      "amount": "Amount",
+      "amountPlaceholder": "950.00",
+      "amountHintVariable": "No fixed amount: entries are created as a draft until you fill it in.",
+      "start": "Start",
+      "end": "End (optional)",
+      "endHint": "Left blank, the rule never ends — the normal case for a fixed expense.",
+      "autoConfirm": "Confirm automatically",
+      "autoConfirmHint": "Off, entries are created as a draft and do not count in the balance or reports until you approve them.",
+      "editNotice": "Changing the amount later only applies to what has not been generated yet. What is already in the history stays as it is.",
+      "required": "Fill in this field.",
+      "invalidAmount": "Enter a valid amount.",
+      "invalidDayOfMonth": "The day must be between 1 and 31.",
+      "endBeforeStart": "The end cannot be before the start."
+    },
+    "installmentForm": {
+      "createTitle": "New installment plan",
+      "account": "Account",
+      "purchaseDate": "Purchase date",
+      "purchaseDateHint": "Kept in the notes; neither date field preserves it.",
+      "count": "Installments",
+      "firstPaymentDate": "First payment",
+      "firstPaymentDateHint": "The date the installment lands on the statement — and the month it shows up in the report.",
+      "description": "Description",
+      "descriptionHint": "Each installment gets the number appended: \"Sofa (1/3)\".",
+      "total": "Total amount",
+      "autoConfirm": "Confirm automatically",
+      "autoConfirmHint": "Off, the installments are created as a draft.",
+      "notice": "The {{count}} installments are saved now, all at once — not just the next few months'. That is what makes the future commitment show up in the yearly report on the day the purchase happens.",
+      "submit": "Create {{count}} installments",
+      "required": "Fill in this field.",
+      "invalidAmount": "Enter a valid amount.",
+      "invalidCount": "Needs at least 2 installments."
+    }
+  },
   "transactions": {
     "entries": "Month entries",
     "new": "New entry",
