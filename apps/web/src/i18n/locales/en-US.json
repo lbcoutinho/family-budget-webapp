@@ -300,7 +300,8 @@
     "cancelInstallments": {
       "title": "Cancel \"{{name}}\"?",
       "description": "This removes only the future, unconfirmed installments. The ones already confirmed stay — they were paid.",
-      "confirm": "Cancel future installments"
+      "confirm": "Cancel future installments",
+      "success": "{{count}} future installments removed"
     },
     "empty": {
       "title": "No recurrences yet",

@@ -300,7 +300,8 @@
     "cancelInstallments": {
       "title": "Cancelar \"{{name}}\"?",
       "description": "Some só o que ainda não foi confirmado. As parcelas já confirmadas ficam — elas foram pagas.",
-      "confirm": "Cancelar parcelas futuras"
+      "confirm": "Cancelar parcelas futuras",
+      "success": "{{count}} parcelas futuras removidas"
     },
     "empty": {
       "title": "Nenhuma recorrência ainda",
