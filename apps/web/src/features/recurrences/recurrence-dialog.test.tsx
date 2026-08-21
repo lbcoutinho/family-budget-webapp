@@ -44,6 +44,31 @@ const CATEGORY: CategoryDto = {
   children: [SUBCATEGORY],
 };
 
+const INCOME_SUBCATEGORY: CategoryDto = {
+  id: 'sub-2',
+  parentId: 'cat-2',
+  name: 'Salário',
+  kind: 'INCOME',
+  color: null,
+  isActive: true,
+  sortOrder: 0,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const INCOME_CATEGORY: CategoryDto = {
+  id: 'cat-2',
+  parentId: null,
+  name: 'Trabalho',
+  kind: 'INCOME',
+  color: null,
+  isActive: true,
+  sortOrder: 0,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  children: [INCOME_SUBCATEGORY],
+};
+
 function renderDialog(onSubmit = vi.fn()) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 
@@ -76,7 +101,7 @@ describe('RecurrenceDialog', () => {
   beforeEach(() => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([ACCOUNT])),
-      http.get('/api/categories', () => HttpResponse.json([CATEGORY])),
+      http.get('/api/categories', () => HttpResponse.json([CATEGORY, INCOME_CATEGORY])),
       http.post('/api/recurrence-rules/preview', () => HttpResponse.json({ occurrences: ['2026-08-01', '2026-09-01', '2026-10-01'] })),
     );
   });
@@ -114,6 +139,24 @@ describe('RecurrenceDialog', () => {
     await user.tab();
 
     expect(await screen.findByText('O fim não pode ser antes do início.')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('clears the category/subcategory form value when switching between Despesa and Receita, not just the visible label', async () => {
+    const { user, onSubmit } = renderDialog();
+
+    // Without a reset, `categoryId` would silently keep pointing at Moradia (EXPENSE) after the
+    // switch — invisible in the trigger (`CategorySelect` filters its roots by kind, so nothing
+    // matches and it renders the placeholder) but still non-empty, so a submit right after
+    // switching — before touching the category field again — would sail through validation and
+    // send a category whose kind no longer matches the rule's type.
+    await fillValidForm(user);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled(), { timeout: 3000 });
+
+    await user.click(screen.getByRole('tab', { name: 'Receita' }));
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('Preencha este campo.')).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

@@ -248,7 +248,17 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
 
         <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-2">
           <div className="grid gap-3.5">
-            <Tabs value={type} onValueChange={(value) => setValue('type', value as RuleKind, { shouldValidate: true })}>
+            <Tabs
+              value={type}
+              onValueChange={(value) => {
+                setValue('type', value as RuleKind, { shouldValidate: true });
+                // The category picker filters its roots by kind (`CategorySelect`), so a category
+                // chosen under the old kind would otherwise submit as a mismatched, invisible
+                // selection under the new one.
+                setValue('categoryId', '');
+                setValue('subcategoryId', '');
+              }}
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="EXPENSE">{t(formKey('recurrences.ruleForm.expense'))}</TabsTrigger>
                 <TabsTrigger value="INCOME">{t(formKey('recurrences.ruleForm.income'))}</TabsTrigger>
