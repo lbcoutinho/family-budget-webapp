@@ -64,6 +64,35 @@ export function formatMonthAbbreviation(date: Date, locale: string = i18n.langua
   return monthAbbreviation(locale).format(date).replace('.', '');
 }
 
+const fullDateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function fullDate(locale: string): Intl.DateTimeFormat {
+  const existing = fullDateFormatters.get(locale);
+
+  if (existing) {
+    return existing;
+  }
+
+  const formatter = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+  fullDateFormatters.set(locale, formatter);
+
+  return formatter;
+}
+
+/** `formatDate(new Date(2026, 7, 10))` → `"10/08/2026"`. The recurrences screen's occurrence
+ * preview and its rules/plans table both show a full day/month/year date — this is the one place
+ * that formats it. Defaults to the active language. */
+export function formatDate(date: Date, locale: string = i18n.language): string {
+  return fullDate(locale).format(date);
+}
+
+/** Parses only `YYYY-MM-DD` as a local-time date — not an instant, so no UTC/timezone shift. Every
+ * recurrence-rule date field (`startDate`, `endDate`, `generatedUntil`) is this shape. */
+export function parseDateOnly(value: string): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year!, (month ?? 1) - 1, day ?? 1);
+}
+
 /** The first day of the month the date falls in, at midnight. This is `referenceMonth`'s shape. */
 export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);

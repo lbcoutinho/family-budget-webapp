@@ -7,6 +7,7 @@ import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
 import { CashboxesPage } from '@/features/cashboxes/cashboxes-page';
 import { CategoriesPage } from '@/features/categories/categories-page';
+import { RecurrencesPage } from '@/features/recurrences/recurrences-page';
 import { ReportsPage } from '@/features/reports/reports-page';
 import { GeneralSettingsPage } from '@/features/settings/general-settings-page';
 import { MonthPage } from '@/features/transactions/month-page';
@@ -41,7 +42,7 @@ export const routes = [
       { path: 'cashboxes', element: <CashboxesPage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },
-      { path: 'recurrences', element: <RoutePlaceholder titleKey="nav.recurrences" ticket="M7-T06" /> },
+      { path: 'recurrences', element: <RecurrencesPage /> },
       { path: 'accounts', element: <AccountsPage /> },
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'settings/general', element: <GeneralSettingsPage /> },

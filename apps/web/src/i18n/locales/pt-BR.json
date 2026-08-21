@@ -259,6 +259,120 @@
       "description": "Verifique a conexão e tente de novo."
     }
   },
+  "recurrences": {
+    "newRule": "Nova regra fixa",
+    "newInstallment": "Novo parcelamento",
+    "showInactive": "Mostrar inativas",
+    "loading": "Carregando recorrências",
+    "summary": {
+      "expenseIn": "Despesas recorrentes em {{month}}",
+      "incomeIn": "Receitas recorrentes em {{month}}",
+      "installmentsOwed": "Soma das parcelas em aberto",
+      "note": "A geração das recorrências acontece quando você faz login — o app verifica a data atual contra as regras pendentes e materializa o que faltar."
+    },
+    "table": {
+      "rule": "Regra",
+      "account": "Conta",
+      "amount": "Valor",
+      "when": "Quando",
+      "progress": "Progresso",
+      "next": "Próxima",
+      "endless": "sem fim",
+      "stoppedOn": "parada em {{date}}",
+      "completed": "concluído",
+      "toPay": "{{amount}} a pagar",
+      "draftBadge": "gera rascunho",
+      "inactiveBadge": "inativa"
+    },
+    "frequency": {
+      "MONTHLY": "Mensal, dia {{day}}",
+      "YEARLY": "Anual, {{date}}"
+    },
+    "actions": {
+      "generate": "Gerar agora",
+      "edit": "Editar",
+      "deactivate": "Desativar",
+      "cancelInstallments": "Cancelar parcelas futuras"
+    },
+    "generate": {
+      "success": "{{count}} lançamentos criados",
+      "nothing": "Nada a gerar",
+      "nothingDescription": "Esta regra já está materializada até {{date}}."
+    },
+    "deactivate": {
+      "title": "Desativar \"{{name}}\"?",
+      "description": "Os lançamentos já gerados ficam onde estão e continuam contando no saldo e nos relatórios. O que para é a geração daqui para a frente.",
+      "confirm": "Desativar"
+    },
+    "cancelInstallments": {
+      "title": "Cancelar \"{{name}}\"?",
+      "description": "Some só o que ainda não foi confirmado. As parcelas já confirmadas ficam — elas foram pagas.",
+      "confirm": "Cancelar parcelas futuras",
+      "success": "{{count}} parcelas futuras removidas"
+    },
+    "empty": {
+      "title": "Nenhuma recorrência ainda",
+      "description": "Uma regra lança sozinha o que se repete todo mês — renda, seguro, assinatura — e um parcelamento divide uma compra nas prestações que ela vai ter. Nos dois casos você preenche uma vez."
+    },
+    "error": {
+      "title": "Não foi possível carregar as recorrências",
+      "description": "Verifique a conexão e tente de novo."
+    },
+    "preview": {
+      "title": "Prévia",
+      "notPersisted": "nada é gravado até salvar",
+      "loading": "Calculando…",
+      "empty": "Nenhuma ocorrência com esses valores.",
+      "occurrences": "Próximas {{count}} ocorrências",
+      "clamped": "{{count}} de {{total}} ocorrências caem no último dia do mês.",
+      "total": "{{amount}} no período",
+      "remainderNote": "A última parcela leva {{amount}} a mais"
+    },
+    "ruleForm": {
+      "createTitle": "Nova regra fixa",
+      "editTitle": "Editar regra fixa",
+      "expense": "Despesa",
+      "income": "Receita",
+      "account": "Conta",
+      "accountPlaceholder": "Selecione uma conta",
+      "frequencyLabel": "Frequência",
+      "frequencyMonthly": "Mensal",
+      "frequencyYearly": "Anual",
+      "dayOfMonth": "Dia do mês",
+      "description": "Descrição",
+      "amount": "Valor",
+      "amountPlaceholder": "950,00",
+      "amountHintVariable": "Sem valor fixo: os lançamentos nascem como rascunho até você preencher.",
+      "start": "Início",
+      "end": "Fim",
+      "endHint": "Em branco, a regra não termina.",
+      "autoConfirm": "Confirmar automaticamente",
+      "autoConfirmHint": "Desligado, as parcelas nascem como rascunho.",
+      "editNotice": "Mudar o valor depois só vale para o que ainda não foi gerado. O que já entrou no histórico fica como está.",
+      "required": "Preencha este campo.",
+      "invalidAmount": "Informe um valor válido.",
+      "invalidDayOfMonth": "O dia deve ser entre 1 e 31.",
+      "endBeforeStart": "O fim não pode ser antes do início."
+    },
+    "installmentForm": {
+      "createTitle": "Novo parcelamento",
+      "account": "Conta",
+      "purchaseDate": "Data da compra",
+      "purchaseDateHint": "Guardada nas observações; nenhum dos dois campos de data a preserva.",
+      "count": "Parcelas",
+      "firstPaymentDate": "Primeira cobrança",
+      "firstPaymentDateHint": "É a data em que a parcela cai na fatura — e o mês em que ela aparece no relatório.",
+      "description": "Descrição",
+      "total": "Valor total",
+      "autoConfirm": "Confirmar automaticamente",
+      "autoConfirmHint": "Desligado, as parcelas nascem como rascunho.",
+      "notice": "As {{count}} parcelas são gravadas agora, todas de uma vez — não só as dos próximos meses. É o que faz o compromisso futuro aparecer no relatório anual no dia em que a compra acontece.",
+      "submit": "Criar {{count}} parcelas",
+      "required": "Preencha este campo.",
+      "invalidAmount": "Informe um valor válido.",
+      "invalidCount": "Precisa de ao menos 2 parcelas."
+    }
+  },
   "transactions": {
     "entries": "Lançamentos do mês",
     "new": "Novo lançamento",
@@ -276,6 +390,9 @@
     "previousYear": "Ano anterior",
     "nextYear": "Próximo ano",
     "creditCard": "Cartão de crédito",
+    "recurring": "Lançamento recorrente",
+    "recurringInstallment": "Lançamento recorrente, parcela {{index}} de {{total}}",
+    "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "compra em {{date}}",
     "balancePlaceholder": "Saldo indisponível",
     "dailyExpense": {

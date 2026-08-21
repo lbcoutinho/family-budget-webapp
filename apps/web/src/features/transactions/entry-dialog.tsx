@@ -31,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { type TranslationKey } from '@/i18n';
+import { formKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, parseCurrencyInput } from '@/lib/money';
 
@@ -126,10 +126,6 @@ function today(): string {
 
 function referenceMonthFromDate(date: string): string {
   return date ? `${date.slice(0, 7)}-01` : '';
-}
-
-function formKey(key: string): TranslationKey {
-  return key as TranslationKey;
 }
 
 export interface EntryDialogProps {

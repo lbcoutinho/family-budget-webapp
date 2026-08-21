@@ -15,6 +15,13 @@ import ptBR from './locales/pt-BR.json';
 /** Anything `t()` accepts. What a component stores when it holds a key instead of a string. */
 export type TranslationKey = ParseKeys;
 
+/** A key built at runtime (string interpolation, a lookup table) instead of a literal — `t()`'s
+ * generic can't check those statically, so this is the one place that casts, instead of every
+ * call site defining its own identical cast. */
+export function formKey(key: string): TranslationKey {
+  return key as TranslationKey;
+}
+
 export const SUPPORTED_LOCALES = ['pt-BR', 'en-US'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
