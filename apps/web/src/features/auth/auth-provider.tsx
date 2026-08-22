@@ -74,8 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // fallback), so a second device wakes up in the account's language rather than the browser's.
   // Depends on `user?.locale` only, not `user`: swapping any other field must not re-trigger this.
   useEffect(() => {
-    if (session?.user.locale !== i18n.language && isSupportedLocale(session?.user.locale ?? '')) {
-      void i18n.changeLanguage(session.user.locale);
+    const locale = session?.user.locale;
+    if (locale && locale !== i18n.language && isSupportedLocale(locale)) {
+      void i18n.changeLanguage(locale);
     }
   }, [session?.user.locale]);
 

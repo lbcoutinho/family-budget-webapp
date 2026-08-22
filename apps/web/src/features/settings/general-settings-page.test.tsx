@@ -147,7 +147,7 @@ describe('GeneralSettingsPage', () => {
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Gerar e baixar' }));
 
     await vi.waitFor(() => expect(click).toHaveBeenCalledOnce());
-    expect(click.mock.instances[0]?.download).toBe('family-budget-backup-2026-08-22T12-00-00Z.dump');
+    expect((click.mock.instances[0] as HTMLAnchorElement | undefined)?.download).toBe('family-budget-backup-2026-08-22T12-00-00Z.dump');
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:backup');
   });
