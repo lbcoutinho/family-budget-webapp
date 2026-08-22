@@ -65,7 +65,12 @@ export class AuthService {
 
   /** Mint the access token and the account payload that go into the response body. */
   issueSession(user: AuthUserDto): SessionDto {
-    return { accessToken: this.signAccessToken(user).token, user };
+    return { accessToken: this.signAccessToken(user).token, user, isAdmin: this.isAdmin(user.email) };
+  }
+
+  /** Reused by administrator-only operations; email matching follows login's trim-insensitive rule. */
+  isAdmin(email: string): boolean {
+    return email.trim().localeCompare(this.config.getOrThrow<string>('ADMIN_EMAIL'), undefined, { sensitivity: 'accent' }) === 0;
   }
 
   /**

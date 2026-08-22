@@ -12,4 +12,6 @@ export interface SessionDto {
   accessToken: string;
   /** The authenticated account, without its password hash. */
   user: AuthUserDto;
+  /** Whether this session belongs to the configured administrator. */
+  isAdmin: boolean;
 }

@@ -9,6 +9,7 @@ const validEnv = (): Record<string, unknown> => ({
   REFRESH_TOKEN_SECRET: 'refresh-secret',
   REFRESH_TOKEN_EXPIRES_IN: '7d',
   CORS_ORIGIN: 'http://localhost:5173',
+  ADMIN_EMAIL: 'admin@example.com',
 });
 
 describe('validate (environment)', () => {
@@ -29,5 +30,14 @@ describe('validate (environment)', () => {
 
   it('rejects a non-numeric PORT', () => {
     expect(() => validate({ ...validEnv(), PORT: 'not-a-number' })).toThrow(/PORT/);
+  });
+
+  it('normalizes a valid ADMIN_EMAIL and rejects missing or malformed values', () => {
+    expect(validate({ ...validEnv(), ADMIN_EMAIL: ' Admin@example.com ' }).ADMIN_EMAIL).toBe('Admin@example.com');
+    expect(() => validate({ ...validEnv(), ADMIN_EMAIL: 'not-an-email' })).toThrow(/ADMIN_EMAIL/);
+
+    const withoutAdmin = validEnv();
+    delete withoutAdmin.ADMIN_EMAIL;
+    expect(() => validate(withoutAdmin)).toThrow(/ADMIN_EMAIL/);
   });
 });
