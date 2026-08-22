@@ -27,23 +27,20 @@
         color: var(--ink-soft);
         font-size: 12.5px;
       }
-      .field-row,
-      .backup-row {
+      .field-row {
         display: grid;
         grid-template-columns: minmax(120px, 1.5fr) minmax(0, 1fr);
         align-items: center;
         gap: 7px 14px;
         padding: 15px 17px;
       }
-      .field-row h3,
-      .backup-row h3 {
+      .field-row h3 {
         margin: 0;
       }
       .field-row .select {
         width: 160px;
       }
-      .field-row .row-note,
-      .backup-row .row-note {
+      .field-row .row-note {
         grid-column: 1 / -1;
       }
       .variant {
@@ -76,8 +73,20 @@
         width: 15px;
         height: 15px;
       }
-      .backup-row .btn {
-        justify-self: start;
+      .admin-option {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+        padding: 15px 17px;
+      }
+      .admin-option h3 {
+        margin: 0;
+      }
+      .admin-option p {
+        margin-top: 3px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
       }
       .backup-heading {
         display: flex;
@@ -153,7 +162,7 @@
           flex-direction: column;
         }
         .field-row,
-        .backup-row {
+        .admin-option {
           grid-template-columns: 1fr;
         }
       }
@@ -162,7 +171,8 @@
   <body>
     <div data-proto="Protótipo — Backup dos dados" data-ticket="#220"></div>
     <div class="proto-note">
-      <strong>Pergunta:</strong> qual ação de backup é discreta sem ficar escondida? Três variantes na mesma tela; troque pela barra inferior ou use ←/→.
+      <strong>Em avaliação:</strong> a variante B foi evoluída para uma área de Administração. Troque pela barra inferior ou use ←/→ para comparar com as
+      alternativas anteriores.
     </div>
 
     <div data-shell="general">
@@ -195,13 +205,14 @@
           </section>
 
           <section class="variant" data-variant="b">
-            <h2 class="sec">Backup dos dados</h2>
-            <p>Gera e baixa um backup completo do sistema.</p>
+            <h2 class="sec">Administração</h2>
             <div class="card" style="max-width: 620px">
-              <div class="backup-row">
-                <h3>Backup completo</h3>
+              <div class="admin-option">
+                <div>
+                  <h3>Backup dos dados</h3>
+                  <p>Gera e baixa um backup completo do sistema.</p>
+                </div>
                 <button class="btn outline sm" data-open="backup-confirmation"><span data-icon="download"></span>Gerar backup</button>
-                <p class="small muted row-note">Use quando precisar guardar uma cópia externa dos dados.</p>
               </div>
             </div>
           </section>
@@ -218,7 +229,7 @@
             <h2>O que comparar</h2>
             <ol>
               <li><b>A — link textual:</b> quase sem peso visual; parece uma preferência rara.</li>
-              <li><b>B — linha de configuração:</b> mantém a ação agrupada em um cartão, mas com botão contornado e pequeno.</li>
+              <li><b>B — administração:</b> agrupa opções administrativas em um cartão; título e descrição ficam juntos, com botão contornado e pequeno.</li>
               <li><b>C — ação no cabeçalho:</b> a seção fica compacta e o botão aparece ao lado do título, sem virar uma faixa.</li>
             </ol>
           </div>
@@ -253,7 +264,7 @@
     <script>
       const variants = ['a', 'b', 'c'];
       const current = new URLSearchParams(location.search).get('variant');
-      const active = variants.includes(current) ? current : 'a';
+      const active = variants.includes(current) ? current : 'b';
 
       document.querySelector(`[data-variant="${active}"]`).dataset.active = 'true';
       document.querySelector(`[data-variant-link="${active}"]`).setAttribute('aria-current', 'page');
