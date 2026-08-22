@@ -100,11 +100,7 @@ export class InstallmentsService {
     return { rule: toRuleDto(rule), installments: installments.map(toInstallmentDto) };
   }
 
-  /**
-   * Deletes future, non-`CONFIRMED` installments and deactivates the rule. Confirmed installments and
-   * past months are history — never touched (ADR-0015's deactivate-don't-delete applies to the rule
-   * itself, not the transactions it already produced).
-   */
+  /** Deletes installments after today and deactivates the rule; today and past transactions stay. */
   async cancelPlan(userId: string, ruleId: string): Promise<CancelInstallmentPlanResultDto> {
     const rule = assertOwnership(await this.prisma.recurrenceRule.findUnique({ where: { id: ruleId } }), userId);
 
@@ -112,11 +108,11 @@ export class InstallmentsService {
       throw badRequest('RECURRENCE_NOT_INSTALLMENT_PLAN', 'This rule is open-ended; deactivate it through DELETE /recurrence-rules/:id instead.');
     }
 
-    const currentMonth = startOfMonthUtc(new Date());
+    const cancellationDate = new Date();
 
     const deleted = await this.prisma.$transaction(async (tx) => {
       const result = await tx.transaction.deleteMany({
-        where: { recurrenceRuleId: ruleId, status: { not: 'CONFIRMED' }, referenceMonth: { gte: currentMonth } },
+        where: { recurrenceRuleId: ruleId, date: { gt: cancellationDate } },
       });
 
       await tx.recurrenceRule.update({ where: { id: ruleId }, data: { isActive: false } });

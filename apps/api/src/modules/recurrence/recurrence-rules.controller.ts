@@ -142,7 +142,7 @@ export class RecurrenceRulesController {
 
   @ApiOperation({
     operationId: 'cancelInstallmentPlan',
-    summary: 'Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule',
+    summary: 'Cancel an installment plan: remove installments after today and deactivate the rule',
   })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({ type: CancelInstallmentPlanResultDto })
