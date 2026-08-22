@@ -35,26 +35,9 @@ cp .env.example .env               # fill in real secrets before running anythin
 docker compose up -d postgres postgres_test
 pnpm --filter api db:migrate
 pnpm --filter api db:seed
-
-# 3. CodeGraph (code intelligence used by Claude Code)
-npm install -g @colbymchenry/codegraph
-codegraph init
-
-# 4. shadcn MCP server token (rate limits only, no scopes needed)
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
-
-# 5. Claude Code plugins — marketplaces are per-machine, not cloned with the repo
-claude plugin marketplace add DietrichGebert/ponytail
-claude plugin install ponytail@ponytail
-
-claude plugin marketplace add anthropics/claude-plugins-official
-claude plugin install security-guidance@claude-plugins-official
-
-claude   # inside the session: /reload-plugins
 ```
 
-The MCP servers (`codegraph`, `shadcn`) and the skills under `.claude/skills/` (emilkowalski's
-animation/React/deploy skills, impeccable, pick-ui-library, prototype, …) need none of this —
+The MCP servers (`codegraph`, `shadcn`) and the skills under `.claude/skills/` need none of this —
 they're declared in [`.mcp.json`](.mcp.json) or vendored as files, so they work right after
 `git clone` with no extra install step.
 
@@ -128,7 +111,6 @@ scripts). `typecheck` does not: every workspace is expected to define it. `lint`
 ## Documentation
 
 - [`plans/0001-overview.md`](plans/0001-overview.md) — architecture, domain model, formulas
-- [`plans/milestones/`](plans/milestones/) — the 8 milestones and their tasks
 - [`docs/adr/`](docs/adr/AGENTS.md) — architecture decision records
 - [`AGENTS.md`](AGENTS.md) — working conventions for this repository
 
