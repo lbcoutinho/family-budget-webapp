@@ -28,9 +28,10 @@ export class DatabaseBackupService {
 
   private async assertPgDumpAvailable(): Promise<void> {
     const version = await this.run(['--version']);
+    const majorVersion = Number(/PostgreSQL\) (\d+)\./.exec(version)?.[1]);
 
-    if (!version.includes('PostgreSQL) 16.')) {
-      throw new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.');
+    if (!Number.isInteger(majorVersion) || majorVersion < 16) {
+      throw new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.');
     }
   }
 
@@ -80,7 +81,7 @@ export class DatabaseBackupService {
         if (code === 0) {
           resolve(Buffer.concat(chunks).toString());
         } else {
-          reject(new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.'));
+          reject(new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.'));
         }
       });
     });
@@ -88,7 +89,7 @@ export class DatabaseBackupService {
 
   private pgDumpError(error: NodeJS.ErrnoException): ServiceUnavailableException {
     if (error.code === 'ENOENT') {
-      return new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.');
+      return new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.');
     }
 
     return new ServiceUnavailableException('Unable to start pg_dump for the database backup.');

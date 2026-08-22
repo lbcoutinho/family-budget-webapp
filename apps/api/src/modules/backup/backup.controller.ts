@@ -21,7 +21,7 @@ export class BackupController {
   @ApiOkResponse({ description: 'PostgreSQL custom-format dump attachment.', schema: { type: 'string', format: 'binary' } })
   @ApiForbiddenResponse({ description: 'Only the configured administrator can create backups.' })
   @ApiConflictResponse({ description: 'A backup is already in progress.' })
-  @ApiServiceUnavailableResponse({ description: 'PostgreSQL 16 client tools are unavailable.' })
+  @ApiServiceUnavailableResponse({ description: 'PostgreSQL 16 or newer client tools are unavailable.' })
   @Get('database')
   async download(@CurrentUser() user: AuthenticatedUser, @Res() response: Response): Promise<void> {
     if (!this.auth.isAdmin(user.email)) {

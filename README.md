@@ -83,7 +83,7 @@ full custom-format PostgreSQL dump from `GET /api/backups/database`; the API str
 and temporarily rejects domain writes while the dump runs. The download contains all financial and
 authentication data and is **not encrypted**. Store it only in an approved, encrypted location.
 
-The API host must have PostgreSQL 16 client tools installed, including `pg_dump`. Use the same or
+The API host must have PostgreSQL 16 or newer client tools installed, including `pg_dump`. Use the same or
 a newer PostgreSQL version when restoring.
 
 To validate a backup safely, restore it into an empty database:
