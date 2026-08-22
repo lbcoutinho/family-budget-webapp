@@ -29,6 +29,7 @@ const ICONS = {
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>',
   filter: '<path d="M3 5h18l-7 8v6l-4 2v-8z"/>',
   card: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/>',
+  download: '<path d="M12 3v12M7.5 10.5L12 15l4.5-4.5M4 20h16"/>',
   check: '<path d="M4 12.5l5.5 5.5L20 6.5"/>',
   alert: '<circle cx="12" cy="12" r="9.2"/><path d="M12 7.5v5.5M12 16.3v.2"/>',
   info: '<circle cx="12" cy="12" r="9.2"/><path d="M12 11v5.5M12 7.7v.2"/>',
