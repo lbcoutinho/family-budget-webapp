@@ -1,7 +1,4 @@
 # Top Priority 
-- Confirmar transactions - https://github.com/lbcoutinho/family-budget-webapp/issues/170
-- https://github.com/lbcoutinho/family-budget-webapp/issues/214
-- https://github.com/lbcoutinho/family-budget-webapp/issues/213
 - Export database.
 - Import bank/account statement (format TBD — CSV, XML or other): user uploads a statement file; system detects entries already registered to avoid duplicates; new entries are created as `DRAFT` transactions for the user to review, categorize, and approve.
 - Personal note field on transactions: separate from the statement/imported description (which stays as-is from the bank), a free-text field for the user's own explanation of what the expense was, to help them remember it later. - notes ja existe precisa expor para edição e visualização. Verificar onde ja é usado e remover uso e necessário.
@@ -10,6 +7,7 @@
   - Resumo fim da tabela poderia exibir: Receitas, Despesas, Resgates de Caixinha, Depósitos em Caixinha. Soma de todos é o saldo em conta corrente.
 - Toggle on the transactions screen to switch the displayed text between the personal note and the real transaction description; when a transaction has no personal note, keep showing the normal description.
 - Tela mes - Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
+- "Saldo indisponível" em todas as linhas da tela Mês.
 
 
 # Docs
