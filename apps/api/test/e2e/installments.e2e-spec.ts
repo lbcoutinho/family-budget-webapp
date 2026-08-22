@@ -229,25 +229,24 @@ describe('Installments API (e2e)', () => {
   });
 
   describe('cancel', () => {
-    it('deletes only future, non-CONFIRMED installments; confirmed and past rows survive, and the rule deactivates', async () => {
-      // Anchored to today so every installment lands in the future, regardless of when the suite runs.
-      const firstPaymentDate = new Date();
-      firstPaymentDate.setUTCDate(1);
-      firstPaymentDate.setUTCMonth(firstPaymentDate.getUTCMonth() + 1);
+    it('deletes future CONFIRMED and DRAFT installments, keeps yesterday and today, and deactivates the rule', async () => {
+      const today = new Date();
+      const date = (offset: number): Date => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + offset));
 
-      const plan = await createPlan(validBody({ firstPaymentDate: firstPaymentDate.toISOString().slice(0, 10), installments: 10, autoConfirm: false }));
-
-      await prisma.transaction.updateMany({
-        where: { id: { in: [plan.installments[0]!.id, plan.installments[1]!.id] } },
-        data: { status: 'CONFIRMED' },
-      });
+      const plan = await createPlan(validBody({ installments: 4 }));
+      await Promise.all([
+        prisma.transaction.update({ where: { id: plan.installments[0]!.id }, data: { date: date(-1) } }),
+        prisma.transaction.update({ where: { id: plan.installments[1]!.id }, data: { date: date(0) } }),
+        prisma.transaction.update({ where: { id: plan.installments[2]!.id }, data: { date: date(1) } }),
+        prisma.transaction.update({ where: { id: plan.installments[3]!.id }, data: { date: date(1), status: 'DRAFT' } }),
+      ]);
 
       const result = (await authed('post', `/recurrence-rules/${plan.rule.id}/cancel-installments`).expect(200)).body as CancelInstallmentPlanResultDto;
-      expect(result.deleted).toBe(8);
+      expect(result.deleted).toBe(2);
 
       const remaining = await prisma.transaction.findMany({ where: { recurrenceRuleId: plan.rule.id }, orderBy: { installmentNumber: 'asc' } });
       expect(remaining).toHaveLength(2);
-      expect(remaining.every((r) => r.status === 'CONFIRMED')).toBe(true);
+      expect(remaining.map((r) => r.date.toISOString().slice(0, 10))).toEqual([date(-1).toISOString().slice(0, 10), date(0).toISOString().slice(0, 10)]);
 
       const rule = await prisma.recurrenceRule.findUniqueOrThrow({ where: { id: plan.rule.id } });
       expect(rule.isActive).toBe(false);

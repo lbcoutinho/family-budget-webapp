@@ -170,7 +170,7 @@ describe('InstallmentsService.cancelPlan', () => {
     await expect(service.cancelPlan(userId, ruleId)).rejects.toThrow(BadRequestException);
   });
 
-  it('deletes future, non-CONFIRMED installments and deactivates the rule', async () => {
+  it('deletes installments dated after today regardless of status and deactivates the rule', async () => {
     const { service, findUnique, tx } = setup();
     findUnique.mockResolvedValue({ id: ruleId, userId, totalOccurrences: 3 });
     tx.transaction.deleteMany.mockResolvedValue({ count: 2 });
@@ -179,7 +179,7 @@ describe('InstallmentsService.cancelPlan', () => {
 
     expect(result).toEqual({ deleted: 2 });
     expect(tx.transaction.deleteMany).toHaveBeenCalledWith({
-      where: { recurrenceRuleId: ruleId, status: { not: 'CONFIRMED' }, referenceMonth: { gte: expect.any(Date) as Date } },
+      where: { recurrenceRuleId: ruleId, date: { gt: expect.any(Date) as Date } },
     });
     expect(tx.recurrenceRule.update).toHaveBeenCalledWith({ where: { id: ruleId }, data: { isActive: false } });
   });
