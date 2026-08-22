@@ -82,15 +82,17 @@ components:
     backgroundColor: '{colors.action}'
     textColor: '#ffffff'
     rounded: '{rounded.sm}'
-    padding: '7px 13px'
+    padding: '0 16px'
+    height: '36px'
   button-primary-hover:
-    backgroundColor: '{colors.action-hover}'
+    backgroundColor: 'color-mix(in srgb, {colors.action} 90%, transparent)'
     textColor: '#ffffff'
   button-outline:
-    backgroundColor: '{colors.surface}'
+    backgroundColor: '{colors.bg}'
     textColor: '{colors.ink}'
     rounded: '{rounded.sm}'
-    padding: '7px 13px'
+    padding: '0 16px'
+    height: '36px'
   button-ghost:
     backgroundColor: 'transparent'
     textColor: '{colors.ink-soft}'
@@ -100,16 +102,18 @@ components:
     backgroundColor: '{colors.expense}'
     textColor: '#ffffff'
     rounded: '{rounded.sm}'
-    padding: '7px 13px'
+    padding: '0 16px'
+    height: '36px'
   input:
-    backgroundColor: '{colors.surface}'
+    backgroundColor: 'transparent'
     textColor: '{colors.ink}'
-    rounded: '{rounded.sm}'
-    padding: '7px 10px'
+    rounded: '{rounded.md}'
+    padding: '0 12px'
+    height: '36px'
   card:
     backgroundColor: '{colors.surface}'
-    rounded: '{rounded.md}'
-    padding: '16px'
+    rounded: '{rounded.lg}'
+    padding: '24px 0'
   badge:
     backgroundColor: '{colors.wash}'
     textColor: '{colors.ink-soft}'
@@ -236,7 +240,7 @@ Near-flat, hairline-first. Depth is built from 1px lines (`line`, `line-strong`)
 
 ## Shapes
 
-A tight, consistent radius family: `4px` (badges, bars, small chips), `6px` (buttons, inputs, nav items, segmented controls — the default), `10px` (cards, stat tiles), `14px` (dialogs). Nothing is pill-shaped except the toggle switch; nothing is sharp-cornered. Borders are the primary structural device — hairline `line` for dividers, `line-strong` for input strokes and the total rule above table footers. The recurring silhouette is a bordered rectangle with a small radius: quiet, rectilinear, instrument-like. Category identity appears as a small `9px` rounded-square **dot**, never a full-bleed colour block. The product mark is the palette itself: four of the ten swatches as `7px` rounded squares in a 2×2 grid.
+A tight, consistent radius family: `4px` (badges, bars, small chips), `6px` (nav items and segmented controls), `8px` (buttons and inputs), `10px` (dialogs), `14px` (cards and stat tiles). Nothing is pill-shaped except the toggle switch; nothing is sharp-cornered. Borders are the primary structural device — hairline `line` for dividers and input strokes, with `line-strong` reserved for the total rule above table footers. The recurring silhouette is a bordered rectangle with a small radius: quiet, rectilinear, instrument-like. Category identity appears as a small `9px` rounded-square **dot**, never a full-bleed colour block. The product mark is the palette itself: four of the ten swatches as `7px` rounded squares in a 2×2 grid.
 
 ## Components
 
@@ -246,9 +250,9 @@ For each: a short character line, then shape, colour, states, distinctive behavi
 
 Compact and rectilinear; green for the action, ink never, colour only for danger.
 
-- **Shape:** Small radius (`6px`), `1px` border, `7px 13px` padding, `13px` text at weight 500.
-- **Primary:** Action-green fill (`#1a7a52`), white text, matching border. Hover deepens to `#145f3f`. A black primary button was tried first and rejected — it did not read as a call to action.
-- **Outline:** Surface fill, ink text, `line-strong` border. Hover fills with `wash`.
+- **Shape:** `36px` high with an `8px` radius, `16px` horizontal padding, and `14px` text at weight 500.
+- **Primary:** Action-green fill (`#1a7a52`), white text. Hover uses the same green at 90% opacity. A black primary button was tried first and rejected — it did not read as a call to action.
+- **Outline:** Background fill, ink text, `line` border. Hover fills with `wash`.
 - **Ghost:** Transparent, `ink-soft` text, no border. Hover fills `wash`, text goes ink.
 - **Danger:** Expense-red fill (`#bc2f3e`), white text; hover `#a52836`.
 - **Sizes:** `.sm` (`5px 10px`) and `.icon` (30px square). Disabled drops to `0.45` opacity.
@@ -262,7 +266,7 @@ The type/mode switcher (transaction type, report tabs). A `wash` track holding b
 
 Quiet until focused.
 
-- **Style:** Surface fill, `line-strong` `1px` border, `6px` radius, `7px 10px` padding, `13.5px` text.
+- **Style:** Transparent fill, `line` `1px` border, `8px` radius, `36px` height, `12px` horizontal padding; `16px` text on compact screens and `14px` at the shell breakpoint.
 - **Focus:** Global action-green focus ring (`2px` solid, `2px` offset).
 - **Error:** Border switches to expense-red; a `field-error` line in the same red sits below.
 - **Search variant:** Left-inset magnifier in `ink-faint`, `30px` left padding.
@@ -270,10 +274,10 @@ Quiet until focused.
 
 ### Cards / Containers
 
-- **Corner:** `10px` radius.
+- **Corner:** `14px` radius; dialogs use `10px`.
 - **Background:** Surface, `line` border, the Rest shadow only.
-- **Structure:** Optional `card-head` / `card-body` / `card-foot`, each `12–16px` padded and separated by hairlines.
-- **Stat tile:** A denser card variant; the `.total` tile swaps to a `wash` fill with a `line-strong` border to mark the summary. Its value is display type with tabular figures.
+- **Structure:** The base card has `24px` vertical padding; its header, body, and footer add `24px` horizontal padding and are separated by hairlines when needed.
+- **Stat tile:** A denser card variant with `16px` padding; the `.total` tile swaps to a `wash` fill with a `line-strong` border to mark the summary. Its value is display type with tabular figures.
 
 ### Badges & dots
 
