@@ -13,6 +13,7 @@ const ENVIRONMENT = {
   JWT_EXPIRES_IN: '15m',
   REFRESH_TOKEN_SECRET: 'refresh-secret',
   REFRESH_TOKEN_EXPIRES_IN: '7d',
+  ADMIN_EMAIL: 'person@example.com',
 } as const;
 
 const STORED_USER = {
@@ -108,6 +109,12 @@ describe('AuthService', () => {
       expect(payload.sub).toBe(user.id);
       expect(payload.email).toBe(user.email);
       expect(session.user).toEqual(user);
+      expect(session.isAdmin).toBe(true);
+    });
+
+    it('derives administrator access with trim-insensitive email comparison', () => {
+      expect(service.isAdmin(' PERSON@example.com ')).toBe(true);
+      expect(service.isAdmin('other@example.com')).toBe(false);
     });
 
     it('signs the access token with the access secret, so a refresh secret cannot verify it', () => {

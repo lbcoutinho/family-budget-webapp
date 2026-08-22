@@ -18,4 +18,7 @@ export class SessionDto {
 
   @ApiProperty({ type: AuthUserDto, description: 'The authenticated account, without its password hash.' })
   user!: AuthUserDto;
+
+  @ApiProperty({ type: Boolean, description: 'Whether this session belongs to the configured administrator.' })
+  isAdmin!: boolean;
 }

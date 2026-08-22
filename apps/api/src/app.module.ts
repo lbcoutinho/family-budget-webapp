@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 
@@ -6,6 +6,8 @@ import { validate } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BackupWriteLockMiddleware } from './modules/backup/backup-write-lock.middleware';
+import { BackupModule } from './modules/backup/backup.module';
 import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { RecurrenceModule } from './modules/recurrence/recurrence.module';
@@ -39,6 +41,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     HealthModule,
     AuthModule,
+    BackupModule,
     AccountsModule,
     CashboxesModule,
     CategoriesModule,
@@ -47,5 +50,10 @@ import { PrismaModule } from './prisma/prisma.module';
     TransactionsModule,
     UsersModule,
   ],
+  providers: [BackupWriteLockMiddleware],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(BackupWriteLockMiddleware).forRoutes('*');
+  }
+}
