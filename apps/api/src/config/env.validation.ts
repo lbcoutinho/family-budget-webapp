@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
-import { plainToInstance, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsString, Max, Min, validateSync } from 'class-validator';
+import { plainToInstance, Transform, Type } from 'class-transformer';
+import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsString, Max, Min, validateSync } from 'class-validator';
 
 /**
  * Allowed values for {@link EnvironmentVariables.NODE_ENV}.
@@ -51,6 +51,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CORS_ORIGIN!: string;
+
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  @IsEmail()
+  ADMIN_EMAIL!: string;
 }
 
 /**

@@ -76,6 +76,35 @@ to run unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` carries the user's v
 consent. That guardrail is deliberate — in this repository resetting the database is always a
 human action, never Claude's.
 
+## Manual database backups
+
+Set `ADMIN_EMAIL` to the administrator's email address. That authenticated user can download a
+full custom-format PostgreSQL dump from `GET /api/backups/database`; the API streams it directly
+and temporarily rejects domain writes while the dump runs. The download contains all financial and
+authentication data and is **not encrypted**. Store it only in an approved, encrypted location.
+
+The API host must have PostgreSQL 16 client tools installed, including `pg_dump`. Use the same or
+a newer PostgreSQL version when restoring.
+
+To validate a backup safely, restore it into an empty database:
+
+```bash
+createdb family_budget_restore
+pg_restore --dbname=family_budget_restore family-budget-backup-YYYY-MM-DDTHH-mm-ssZ.dump
+```
+
+For a destructive in-place recovery, stop the API first, terminate existing database connections,
+drop and recreate the target database, then restore the dump and restart the API:
+
+```bash
+dropdb budget
+createdb budget
+pg_restore --dbname=budget family-budget-backup-YYYY-MM-DDTHH-mm-ssZ.dump
+```
+
+Re-run this recovery check after PostgreSQL or infrastructure changes. Backups use an in-memory
+lock and therefore protect writes only when one API instance is running.
+
 ## Workspaces
 
 Declared in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) as `apps/*` and `packages/*`:
