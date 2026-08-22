@@ -128,6 +128,7 @@ describe('Recurrence rules API (e2e)', () => {
         startDate: '2026-01-15',
         endDate: null,
         totalOccurrences: null,
+        totalAmount: null,
         autoConfirm: true,
         isActive: true,
         generatedUntil: null,

@@ -20,6 +20,7 @@ function rule(overrides: Partial<RecurrenceRuleDto> = {}): RecurrenceRuleDto {
     startDate: '2026-01-01',
     endDate: null,
     totalOccurrences: null,
+    totalAmount: null,
     autoConfirm: true,
     isActive: true,
     generatedUntil: '2026-08-01',
@@ -61,5 +62,16 @@ describe('RecurrencesSummary', () => {
     expect(screen.getByText('Soma das parcelas em aberto')).toBeInTheDocument();
     // 4 of 12 elapsed by 2026-04-15, 8 remain.
     expect(screen.getByText('400,00 €')).toBeInTheDocument();
+  });
+
+  it('shows the exact remainder for a non-divisible installment total', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 1, 15));
+
+    const plan = rule({ id: 'plan-1', totalOccurrences: 3, totalAmount: 10_000, endDate: '2026-03-10', dayOfMonth: 10, startDate: '2026-01-10', amount: 3333 });
+
+    render(<RecurrencesSummary rules={[plan]} />);
+
+    expect(screen.getByText('33,34 €')).toBeInTheDocument();
   });
 });

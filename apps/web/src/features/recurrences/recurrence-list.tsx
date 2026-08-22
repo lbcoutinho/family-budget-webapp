@@ -3,7 +3,7 @@ import { type TFunction } from 'i18next';
 import { Loader2Icon, PencilIcon, RepeatIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { installmentProgress, nextRollingOccurrence } from './occurrences';
+import { installmentOwed, installmentProgress, nextRollingOccurrence } from './occurrences';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -77,6 +77,7 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
               const subcategory = rule.subcategoryId ? categoriesById.get(rule.subcategoryId) : undefined;
               const isInstallment = rule.totalOccurrences !== null;
               const progress = isInstallment ? installmentProgress(rule, today) : undefined;
+              const owed = isInstallment ? installmentOwed(rule, progress!.elapsed) : null;
               const next = isInstallment ? progress?.next : rule.isActive ? nextRollingOccurrence(rule) : null;
               const signedAmount = rule.amount === null ? null : rule.type === 'INCOME' ? rule.amount : -rule.amount;
 
@@ -135,8 +136,8 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                         <span className="block text-[11.5px] text-muted-foreground">
                           {progress!.elapsed >= rule.totalOccurrences!
                             ? t('recurrences.table.completed')
-                            : rule.amount !== null
-                              ? t('recurrences.table.toPay', { amount: formatCents((rule.totalOccurrences! - progress!.elapsed) * rule.amount) })
+                            : owed !== null
+                              ? t('recurrences.table.toPay', { amount: formatCents(owed) })
                               : null}
                         </span>
                         <span className="mt-1 block h-1 overflow-hidden rounded-full bg-muted">

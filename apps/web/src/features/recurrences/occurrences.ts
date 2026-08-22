@@ -131,7 +131,24 @@ export interface RecurringRuleLike extends OccurrenceRuleLike {
   /** Null means a variable amount (ADR-0020) — excluded from every sum below, since there's
    * nothing to add. */
   amount: number | null;
+  /** Exact purchase total for installment plans; null on plans created before #214. */
+  totalAmount: number | null;
   isActive: boolean;
+}
+
+/** What's still owed after `elapsed` installments. Legacy plans have no exact total, so retain
+ * their original per-installment calculation. */
+export function installmentOwed(rule: Pick<RecurringRuleLike, 'amount' | 'totalAmount' | 'totalOccurrences'>, elapsed: number): number | null {
+  if (rule.totalOccurrences === null) return null;
+
+  const remaining = rule.totalOccurrences - elapsed;
+  if (remaining <= 0) return 0;
+
+  if (rule.totalAmount !== null) {
+    return rule.totalAmount - Math.floor(rule.totalAmount / rule.totalOccurrences) * elapsed;
+  }
+
+  return rule.amount === null ? null : remaining * rule.amount;
 }
 
 export interface MonthlyRecurringStats {
@@ -167,8 +184,8 @@ export function monthlyRecurringStats(rules: RecurringRuleLike[], monthStart: Da
 
     if (rule.totalOccurrences !== null) {
       const progress = installmentProgress(rule, asOf);
-      const remaining = rule.totalOccurrences - progress.elapsed;
-      if (remaining > 0 && rule.amount !== null) installmentsOwed += remaining * rule.amount;
+      const owed = installmentOwed(rule, progress.elapsed);
+      if (owed !== null) installmentsOwed += owed;
     }
   }
 
