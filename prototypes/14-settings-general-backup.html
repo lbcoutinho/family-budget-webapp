@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Protótipo — Backup dos dados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* Três variantes para a mesma pergunta: quão discreta pode ser a ação
+         rara de exportar sem ela ficar difícil de achar? */
+      .sec {
+        margin: 30px 0 9px;
+      }
+      .sec:first-of-type {
+        margin-top: 0;
+      }
+      .sec + p {
+        max-width: 72ch;
+        margin-bottom: 12px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+      .field-row,
+      .backup-row {
+        display: grid;
+        grid-template-columns: minmax(120px, 1.5fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 7px 14px;
+        padding: 15px 17px;
+      }
+      .field-row h3,
+      .backup-row h3 {
+        margin: 0;
+      }
+      .field-row .select {
+        width: 160px;
+      }
+      .field-row .row-note,
+      .backup-row .row-note {
+        grid-column: 1 / -1;
+      }
+      .variant {
+        display: none;
+      }
+      .variant[data-active='true'] {
+        display: block;
+      }
+      .backup-link {
+        justify-self: start;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 0;
+        padding: 4px 0;
+        background: none;
+        color: var(--ink-soft);
+        font: inherit;
+        font-size: 13px;
+        text-decoration: underline;
+        text-decoration-color: var(--line-strong);
+        text-underline-offset: 3px;
+        cursor: pointer;
+      }
+      .backup-link:hover {
+        color: var(--ink);
+        text-decoration-color: var(--ink);
+      }
+      .backup-link svg {
+        width: 15px;
+        height: 15px;
+      }
+      .backup-row .btn {
+        justify-self: start;
+      }
+      .backup-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        max-width: 620px;
+      }
+      .backup-heading .btn {
+        flex: none;
+      }
+      .modal-copy {
+        padding: 0 18px 18px;
+        color: var(--ink-soft);
+        font-size: 13px;
+      }
+      .warning {
+        border: 1px solid color-mix(in srgb, var(--expense) 24%, var(--line));
+        border-radius: var(--r-sm);
+        background: var(--expense-wash);
+        color: var(--expense);
+        padding: 10px 11px;
+      }
+      .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+        padding: 13px 18px 18px;
+      }
+      .variant-switcher {
+        position: fixed;
+        z-index: 80;
+        bottom: 18px;
+        left: 50%;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        transform: translateX(-50%);
+        border: 1px solid #343942;
+        border-radius: 999px;
+        background: var(--ink);
+        box-shadow: var(--shadow-lg);
+        padding: 4px;
+        color: #fff;
+      }
+      .variant-switcher a,
+      .variant-switcher button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: inherit;
+        padding: 0 9px;
+        font: inherit;
+        font-size: 12px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .variant-switcher a[aria-current='page'] {
+        background: #343942;
+      }
+      .variant-switcher button svg {
+        width: 15px;
+        height: 15px;
+      }
+      @media (max-width: 560px) {
+        .backup-heading {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .field-row,
+        .backup-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="Protótipo — Backup dos dados" data-ticket="#220"></div>
+    <div class="proto-note">
+      <strong>Pergunta:</strong> qual ação de backup é discreta sem ficar escondida? Três variantes na mesma tela; troque pela barra inferior ou use ←/→.
+    </div>
+
+    <div data-shell="general">
+      <div class="main">
+        <div class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Geral</span>
+          </div>
+        </div>
+
+        <main class="content">
+          <h2 class="sec">Idioma</h2>
+          <p>Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.</p>
+          <div class="card" style="max-width: 620px">
+            <div class="field-row">
+              <h3>Idioma</h3>
+              <select class="select" aria-label="Idioma">
+                <option selected>Português (Brasil)</option>
+                <option>English (US)</option>
+              </select>
+              <p class="small muted row-note">Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.</p>
+            </div>
+          </div>
+
+          <section class="variant" data-variant="a">
+            <h2 class="sec">Backup dos dados</h2>
+            <p>Gera e baixa um backup completo do sistema.</p>
+            <button class="backup-link" data-open="backup-confirmation"><span data-icon="download"></span>Gerar um backup agora</button>
+          </section>
+
+          <section class="variant" data-variant="b">
+            <h2 class="sec">Backup dos dados</h2>
+            <p>Gera e baixa um backup completo do sistema.</p>
+            <div class="card" style="max-width: 620px">
+              <div class="backup-row">
+                <h3>Backup completo</h3>
+                <button class="btn outline sm" data-open="backup-confirmation"><span data-icon="download"></span>Gerar backup</button>
+                <p class="small muted row-note">Use quando precisar guardar uma cópia externa dos dados.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="variant" data-variant="c">
+            <div class="sec backup-heading">
+              <h2>Backup dos dados</h2>
+              <button class="btn outline sm" data-open="backup-confirmation"><span data-icon="download"></span>Gerar backup</button>
+            </div>
+            <p>Gera e baixa um backup completo do sistema.</p>
+          </section>
+
+          <div class="decisions">
+            <h2>O que comparar</h2>
+            <ol>
+              <li><b>A — link textual:</b> quase sem peso visual; parece uma preferência rara.</li>
+              <li><b>B — linha de configuração:</b> mantém a ação agrupada em um cartão, mas com botão contornado e pequeno.</li>
+              <li><b>C — ação no cabeçalho:</b> a seção fica compacta e o botão aparece ao lado do título, sem virar uma faixa.</li>
+            </ol>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="scrim" id="backup-confirmation" style="display: none">
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="backup-title">
+        <div class="card-head">
+          <h2 id="backup-title">Gerar backup dos dados?</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="modal-copy">
+          <p class="warning">O arquivo não é criptografado e contém todos os dados financeiros e de autenticação. Guarde-o em um local seguro.</p>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn outline" data-close>Cancelar</button>
+          <button class="btn">Gerar e baixar</button>
+        </div>
+      </section>
+    </div>
+
+    <nav class="variant-switcher" aria-label="Variantes do protótipo">
+      <button type="button" data-previous aria-label="Variante anterior"><span data-icon="chevronLeft"></span></button>
+      <a href="?variant=a" data-variant-link="a">A — link</a>
+      <a href="?variant=b" data-variant-link="b">B — linha</a>
+      <a href="?variant=c" data-variant-link="c">C — cabeçalho</a>
+      <button type="button" data-next aria-label="Próxima variante"><span data-icon="chevronRight"></span></button>
+    </nav>
+
+    <script>
+      const variants = ['a', 'b', 'c'];
+      const current = new URLSearchParams(location.search).get('variant');
+      const active = variants.includes(current) ? current : 'a';
+
+      document.querySelector(`[data-variant="${active}"]`).dataset.active = 'true';
+      document.querySelector(`[data-variant-link="${active}"]`).setAttribute('aria-current', 'page');
+
+      function switchVariant(step) {
+        const next = variants[(variants.indexOf(active) + step + variants.length) % variants.length];
+        location.search = `variant=${next}`;
+      }
+
+      document.querySelector('[data-previous]').addEventListener('click', () => switchVariant(-1));
+      document.querySelector('[data-next]').addEventListener('click', () => switchVariant(1));
+      document.addEventListener('keydown', (event) => {
+        if (event.target.matches('input, textarea, [contenteditable]')) return;
+        if (event.key === 'ArrowLeft') switchVariant(-1);
+        if (event.key === 'ArrowRight') switchVariant(1);
+      });
+    </script>
+  </body>
+</html>
