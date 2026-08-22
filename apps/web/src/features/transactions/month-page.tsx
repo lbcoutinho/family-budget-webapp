@@ -14,11 +14,13 @@ import {
   TransactionType,
   useCreateTransaction,
   useDeleteTransaction,
+  useUpdateTransaction,
 } from '@family-budget/api-client';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type TFunction } from 'i18next';
 import {
   CalendarDaysIcon,
+  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CreditCardIcon,
@@ -105,7 +107,7 @@ function restorePayload(entry: TransactionListItemDto & { amount: number }): Cre
   };
 }
 
-function transactionDetail(transaction: TransactionListItemDto): string {
+function transactionDetail(transaction: TransactionListItemDto, accountNames: Map<string, string>): string {
   if (isCashboxOperation(transaction.type)) {
     const [source, destination] =
       transaction.type === TransactionType.CASHBOX_IN
@@ -117,8 +119,17 @@ function transactionDetail(transaction: TransactionListItemDto): string {
     return [source, destination].filter(Boolean).join(' → ');
   }
 
+  if (transaction.type === TransactionType.TRANSFER) {
+    return [
+      transaction.account?.name ?? (transaction.accountId ? accountNames.get(transaction.accountId) : undefined),
+      transaction.destinationAccountId ? accountNames.get(transaction.destinationAccountId) : undefined,
+    ]
+      .filter(Boolean)
+      .join(' → ');
+  }
+
   const category = [transaction.category?.name, transaction.subcategory?.name].filter(Boolean).join(' · ');
-  const account = transaction.account?.name;
+  const account = transaction.account?.name ?? (transaction.accountId ? accountNames.get(transaction.accountId) : undefined);
 
   return [category, account].filter(Boolean).join(' — ');
 }
@@ -223,9 +234,9 @@ function FilterSelect({
   );
 }
 
-function EntryMeta({ entry }: { entry: TransactionListItemDto }) {
+function EntryMeta({ entry, accountNames }: { entry: TransactionListItemDto; accountNames: Map<string, string> }) {
   const { t } = useTranslation();
-  const detail = transactionDetail(entry);
+  const detail = transactionDetail(entry, accountNames);
 
   return (
     <div className="min-w-0">
@@ -378,6 +389,15 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
       },
     },
   });
+  const confirm = useUpdateTransaction({
+    mutation: {
+      onSuccess: () => {
+        invalidateTransactions();
+        toast.success(t('transactions.confirmed'));
+      },
+      onError: (error) => toast.error(apiErrorMessage(error, t)),
+    },
+  });
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -418,6 +438,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const categoryOptions = categories.filter((category) => category.parentId === null).map((category) => ({ id: category.id, name: category.name }));
   const { data: accounts = [] } = useListAccounts();
   const accountOptions = accounts.map((account) => ({ id: account.id, name: account.name }));
+  const accountNames = useMemo(() => new Map(accounts.map((account) => [account.id, account.name])), [accounts]);
   const typeOptions = Object.values(TransactionType).map((type) => ({ id: type, name: t(`transactions.filters.typeOption.${type}` as TranslationKey) }));
 
   const entries = useMemo(() => confirmed.data?.pages.flatMap((page) => page.items) ?? [], [confirmed.data]);
@@ -601,19 +622,34 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               {allEntries.map((entry) => (
                 <article
                   key={entry.id}
-                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
+                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
                   style={{
                     borderLeftColor:
                       entry.category?.color ??
                       (entry.type === TransactionType.CASHBOX_TRANSFER ? 'var(--transfer)' : isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent'),
                   }}
                 >
-                  <time className="num text-[12.5px] text-muted-foreground">{formatEntryDate(entry.date)}</time>
-                  <EntryMeta entry={entry} />
-                  <div className="text-right">
+                  <time className={`num text-[12.5px] text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
+                    {formatEntryDate(entry.date)}
+                  </time>
+                  <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
+                    <EntryMeta entry={entry} accountNames={accountNames} />
+                  </div>
+                  <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
                     <EntryAmount entry={entry} />
                   </div>
                   <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
+                    {entry.status === TransactionStatus.DRAFT ? (
+                      <Button
+                        size="icon-xs"
+                        aria-label={t('transactions.confirm')}
+                        className="opacity-50 transition-opacity group-hover:opacity-100"
+                        onClick={() => confirm.mutate({ id: entry.id, data: { status: TransactionStatus.CONFIRMED } })}
+                        disabled={confirm.isPending}
+                      >
+                        <CheckIcon />
+                      </Button>
+                    ) : null}
                     <Button
                       variant="ghost"
                       size="icon-xs"

@@ -82,6 +82,17 @@ const CASHBOX_TRANSFER: TransactionListItemDto = {
   account: null,
   category: null,
 };
+const TRANSFER: TransactionListItemDto = {
+  ...CONFIRMED,
+  id: 'transfer-1',
+  type: TransactionType.TRANSFER,
+  amount: 50000,
+  description: 'Move savings',
+  destinationAccountId: 'account-2',
+  categoryId: null,
+  account: { id: 'account-1', name: 'Millennium' },
+  category: null,
+};
 
 function page(items: TransactionListItemDto[], overrides: Partial<TransactionListDto> = {}): TransactionListDto {
   return { items, total: items.length, incomeTotal: 0, expenseTotal: 12345, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null, ...overrides };
@@ -174,6 +185,92 @@ describe('MonthPage', () => {
     expect(badge).toHaveClass('text-cashbox');
     expect(screen.getByText('500,00 €')).toHaveClass('text-transfer');
     expect(badge.closest('article')).toHaveStyle({ borderLeftColor: 'var(--transfer)' });
+  });
+
+  it('shows both accounts for transfers and the source account for other entries', async () => {
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([]) : page([CONFIRMED, TRANSFER]));
+      }),
+      http.get('/api/accounts', () =>
+        HttpResponse.json([
+          { id: 'account-1', name: 'Millennium' },
+          { id: 'account-2', name: 'Revolut' },
+        ]),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText(/Food — Millennium/)).toBeInTheDocument();
+    expect(await screen.findByText(/Millennium → Revolut/)).toBeInTheDocument();
+  });
+
+  it('confirms only draft rows, refreshes entries and balances, and removes the draft', async () => {
+    let confirmed = false;
+    let patchBody: unknown;
+    let transactionRequests = 0;
+    let accountBalanceRequests = 0;
+    let cashboxBalanceRequests = 0;
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        transactionRequests++;
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page(confirmed ? [] : [DRAFT]) : page([CONFIRMED]));
+      }),
+      http.get('/api/accounts/balances', () => {
+        accountBalanceRequests++;
+        return HttpResponse.json(ACCOUNT_BALANCES);
+      }),
+      http.get('/api/cashboxes/balances', () => {
+        cashboxBalanceRequests++;
+        return HttpResponse.json(CASHBOX_BALANCES);
+      }),
+      http.patch('/api/transactions/:id', async ({ params, request }) => {
+        expect(params.id).toBe('draft-1');
+        patchBody = await request.json();
+        confirmed = true;
+        return HttpResponse.json({ ...DRAFT, status: TransactionStatus.CONFIRMED });
+      }),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Voice draft');
+    expect(screen.getByRole('button', { name: 'Confirmar lançamento' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(2);
+
+    await user.click(screen.getByRole('button', { name: 'Confirmar lançamento' }));
+
+    await waitFor(() => expect(patchBody).toEqual({ status: 'CONFIRMED' }));
+    await waitFor(() => expect(screen.queryByText('Voice draft')).not.toBeInTheDocument());
+    await waitFor(() => expect(accountBalanceRequests).toBeGreaterThan(1));
+    await waitFor(() => expect(cashboxBalanceRequests).toBeGreaterThan(1));
+    expect(transactionRequests).toBeGreaterThan(3);
+    expect(lastMessage()).toBe('Lançamento confirmado.');
+  });
+
+  it('keeps drafts visible and shows the amount validation error when confirmation fails', async () => {
+    const amountlessDraft = { ...DRAFT, amount: null };
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([amountlessDraft]) : page([CONFIRMED]));
+      }),
+      http.patch('/api/transactions/:id', () =>
+        HttpResponse.json({ code: 'TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED', message: 'Amount is required.' }, { status: 400 }),
+      ),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Voice draft');
+    await user.click(screen.getByRole('button', { name: 'Confirmar lançamento' }));
+
+    await waitFor(() => expect(toastError).toHaveBeenLastCalledWith('Informe o valor antes de confirmar este lançamento.'));
+    expect(screen.getByText('Voice draft')).toBeInTheDocument();
   });
 
   it('marks recurring entries without marking manual entries', async () => {

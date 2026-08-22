@@ -455,6 +455,8 @@
       "description": "Verifique a conexão e tente de novo."
     },
     "deleted": "Lançamento apagado.",
+    "confirm": "Confirmar lançamento",
+    "confirmed": "Lançamento confirmado.",
     "undo": "Desfazer",
     "undoRestored": "Lançamento restaurado.",
     "delete": {

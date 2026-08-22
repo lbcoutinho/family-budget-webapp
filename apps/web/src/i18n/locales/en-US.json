@@ -455,6 +455,8 @@
       "description": "Check your connection and try again."
     },
     "deleted": "Entry deleted.",
+    "confirm": "Confirm entry",
+    "confirmed": "Entry confirmed.",
     "undo": "Undo",
     "undoRestored": "Entry restored.",
     "delete": {
