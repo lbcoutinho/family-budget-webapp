@@ -36,7 +36,9 @@ export class DatabaseBackupService {
   }
 
   private async dump(response: Response): Promise<void> {
-    const child = childProcess.spawn('pg_dump', ['--format=custom', '--dbname', this.config.getOrThrow<string>('DATABASE_URL')], {
+    const databaseUrl = new URL(this.config.getOrThrow<string>('DATABASE_URL'));
+    databaseUrl.searchParams.delete('schema');
+    const child = childProcess.spawn('pg_dump', ['--format=custom', '--dbname', databaseUrl.toString()], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 

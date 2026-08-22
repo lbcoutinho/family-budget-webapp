@@ -25,7 +25,7 @@ describe('DatabaseBackupService', () => {
 
   beforeEach(() => {
     lock = new BackupLockService();
-    service = new DatabaseBackupService({ getOrThrow: () => 'postgresql://user:secret@localhost:5432/budget' } as unknown as ConfigService, lock);
+    service = new DatabaseBackupService({ getOrThrow: () => 'postgresql://user:secret@localhost:5432/budget?schema=public' } as unknown as ConfigService, lock);
     spawn.mockReset();
   });
 
