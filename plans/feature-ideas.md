@@ -8,12 +8,14 @@
 - Toggle on the transactions screen to switch the displayed text between the personal note and the real transaction description; when a transaction has no personal note, keep showing the normal description.
 - Tela mes - Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
 - "Saldo indisponível" em todas as linhas da tela Mês.
+- Fix impeccable critique and audit
 
 
 # Docs
 
 - diagrama com endpoints existentes, para que servem e onde são usados
-- diagram das estrutura do backend - mermaid?
+- diagram das estrutura do backend - mermaid componentes?
+- atualizar banco de dados erd - erd.mermaid
 
 # Feature Ideas
 
