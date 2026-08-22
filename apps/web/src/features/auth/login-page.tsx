@@ -66,7 +66,7 @@ export function LoginPage() {
       {
         onSuccess: (session) => {
           setAccessToken(session.accessToken);
-          queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+          queryClient.setQueryData(SESSION_QUERY_KEY, session);
           void navigate('/', { replace: true });
         },
         onError: (error) => {

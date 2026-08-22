@@ -628,6 +628,22 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
+    },
+    "backup": {
+      "heading": "Backup dos dados",
+      "description": "Gera e baixa um backup completo do sistema.",
+      "warning": "O arquivo não é criptografado e contém todos os dados financeiros e de autenticação. Guarde-o em um local seguro.",
+      "action": "Baixar backup",
+      "loading": "Gerando o backup. Não feche esta página até o download começar.",
+      "confirm": {
+        "title": "Gerar backup dos dados?",
+        "description": "O download de um arquivo não criptografado com dados financeiros e de autenticação será iniciado.",
+        "action": "Gerar e baixar"
+      },
+      "errors": {
+        "postgresClient": "Não foi possível gerar o backup porque as ferramentas do PostgreSQL 16 não estão instaladas no servidor.",
+        "inProgress": "Já existe um backup em andamento. Aguarde a conclusão antes de tentar novamente."
+      }
     }
   }
 }

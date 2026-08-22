@@ -9,6 +9,8 @@ import { createContext, useContext } from 'react';
 export interface AuthContextValue {
   /** `null` once the session has been checked and there is nobody signed in. */
   user: AuthUserDto | null;
+  /** Absent only in focused component tests that provide the context directly. */
+  isAdmin?: boolean;
   logout: () => Promise<void>;
 }
 

@@ -1,4 +1,4 @@
-import { type AuthUserDto, refresh, setAccessToken, setSessionExpiredHandler, useLogout } from '@family-budget/api-client';
+import { type SessionDto, refresh, setAccessToken, setSessionExpiredHandler, useLogout } from '@family-budget/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
@@ -24,13 +24,13 @@ export const SESSION_QUERY_KEY = ['auth', 'session'];
  *
  * Never rejects: a rejected refresh is not an error, it is the answer "nobody is logged in".
  */
-async function restoreSession(): Promise<AuthUserDto | null> {
+async function restoreSession(): Promise<SessionDto | null> {
   try {
     const session = await refresh();
 
     setAccessToken(session.accessToken);
 
-    return session.user;
+    return session;
   } catch {
     setAccessToken(null);
 
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { mutateAsync: requestLogout } = useLogout();
 
-  const { data: user, isPending } = useQuery({
+  const { data: session, isPending } = useQuery({
     queryKey: SESSION_QUERY_KEY,
     queryFn: restoreSession,
     // The session is only ever changed from here — by login, by logout, or by the interceptor
@@ -74,11 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // fallback), so a second device wakes up in the account's language rather than the browser's.
   // Depends on `user?.locale` only, not `user`: swapping any other field must not re-trigger this.
   useEffect(() => {
-    if (user && user.locale !== i18n.language && isSupportedLocale(user.locale)) {
-      void i18n.changeLanguage(user.locale);
+    if (session?.user.locale !== i18n.language && isSupportedLocale(session?.user.locale ?? '')) {
+      void i18n.changeLanguage(session.user.locale);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.locale]);
+  }, [session?.user.locale]);
 
   const logout = useCallback(async () => {
     try {
@@ -91,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient, requestLogout]);
 
-  const value = useMemo<AuthContextValue>(() => ({ user: user ?? null, logout }), [user, logout]);
+  const value = useMemo<AuthContextValue>(() => ({ user: session?.user ?? null, isAdmin: session?.isAdmin ?? false, logout }), [session, logout]);
 
   // Nothing routed renders until the answer is in, so an authenticated user reloading the page
   // never sees the login form flash past.

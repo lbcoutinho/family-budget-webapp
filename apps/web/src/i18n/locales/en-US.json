@@ -628,6 +628,22 @@
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
       }
+    },
+    "backup": {
+      "heading": "Data backup",
+      "description": "Creates and downloads a full system backup.",
+      "warning": "The file is unencrypted and contains all financial and authentication data. Store it in a safe place.",
+      "action": "Download backup",
+      "loading": "Creating the backup. Do not close this page until the download starts.",
+      "confirm": {
+        "title": "Create a data backup?",
+        "description": "A download of an unencrypted file containing financial and authentication data will start.",
+        "action": "Create and download"
+      },
+      "errors": {
+        "postgresClient": "The backup could not be created because PostgreSQL 16 client tools are not installed on the server.",
+        "inProgress": "A backup is already in progress. Wait for it to finish before trying again."
+      }
     }
   }
 }
