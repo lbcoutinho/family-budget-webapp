@@ -790,7 +790,7 @@ export const useCreateInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
       return useMutation(getCreateInstallmentPlanMutationOptions(options), queryClient);
     }
     /**
- * @summary Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule
+ * @summary Cancel an installment plan: remove installments after today and deactivate the rule
  */
 export const cancelInstallmentPlan = (
     id: string,
@@ -839,7 +839,7 @@ const {mutation: mutationOptions} = options ?
     export type CancelInstallmentPlanMutationError = ErrorType<ApiErrorDto>
 
     /**
- * @summary Cancel an installment plan: remove future, unconfirmed installments and deactivate the rule
+ * @summary Cancel an installment plan: remove installments after today and deactivate the rule
  */
 export const useCancelInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext>, }

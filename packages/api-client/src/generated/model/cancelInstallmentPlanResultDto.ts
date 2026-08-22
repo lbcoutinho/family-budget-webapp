@@ -7,6 +7,6 @@
  */
 
 export interface CancelInstallmentPlanResultDto {
-  /** Future, non-CONFIRMED installments removed. Confirmed and past rows are never touched. */
+  /** Installments dated after today removed. Today and past rows are never touched. */
   deleted: number;
 }
