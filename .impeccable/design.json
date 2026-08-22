@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-02T08:31:03.305Z",
+  "generatedAt": "2026-08-22T00:00:00.000Z",
   "title": "Design System: Family Budget",
   "extensions": {
     "colorMeta": {
@@ -524,7 +524,7 @@
       "refersTo": "button-primary",
       "description": "The one thing to do next. Action green — a black fill was tried first and did not read as a call to action.",
       "html": "<button class=\"ds-btn-primary\">Novo lançamento</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background: #1a7a52; border: 1px solid #1a7a52; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1), border-color 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-primary:hover { background: #145f3f; border-color: #145f3f; } .ds-btn-primary:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 36px; background: #1a7a52; border: 0; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; padding: 0 16px; border-radius: 8px; cursor: pointer; transition: all 150ms; } .ds-btn-primary:hover { background: color-mix(in srgb, #1a7a52 90%, transparent); } .ds-btn-primary:focus-visible { outline: 3px solid rgb(26 122 82 / 50%); outline-offset: 0; }"
     },
     {
       "name": "Outline Button",
@@ -532,7 +532,7 @@
       "refersTo": "button-outline",
       "description": "The secondary action. Ink on surface, hairline border — never green.",
       "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #d5d9df; color: #14161a; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-outline:hover { background: #f5f6f8; } .ds-btn-outline:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 36px; background: #fcfcfd; border: 1px solid #e6e8ec; color: #14161a; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; padding: 0 16px; border-radius: 8px; cursor: pointer; transition: all 150ms; } .ds-btn-outline:hover { background: #f5f6f8; } .ds-btn-outline:focus-visible { outline: 3px solid rgb(26 122 82 / 50%); outline-offset: 0; }"
     },
     {
       "name": "Danger Button",
@@ -540,7 +540,7 @@
       "refersTo": "button-danger",
       "description": "Destructive confirmation. Borrows the expense red — the only other filled colour surface.",
       "html": "<button class=\"ds-btn-danger\">Excluir</button>",
-      "css": ".ds-btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #bc2f3e; border: 1px solid #bc2f3e; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: background 120ms cubic-bezier(.2,.9,.3,1); } .ds-btn-danger:hover { background: #a52836; border-color: #a52836; } .ds-btn-danger:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; gap: 8px; height: 36px; background: #bc2f3e; border: 0; color: #fff; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; padding: 0 16px; border-radius: 8px; cursor: pointer; transition: all 150ms; } .ds-btn-danger:hover { background: color-mix(in srgb, #bc2f3e 90%, transparent); } .ds-btn-danger:focus-visible { outline: 3px solid rgb(26 122 82 / 50%); outline-offset: 0; }"
     },
     {
       "name": "Text Input",
@@ -548,7 +548,7 @@
       "refersTo": "input",
       "description": "Quiet until focused; the focus ring is the third and last place the action green appears.",
       "html": "<div class=\"ds-field\"><label for=\"ds-i1\">E-mail</label><input class=\"ds-input\" id=\"ds-i1\" type=\"email\" placeholder=\"voce@exemplo.com\"></div>",
-      "css": ".ds-field { display: grid; gap: 5px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; color: #14161a; } .ds-field label { font-size: 12.5px; font-weight: 500; } .ds-input { font-family: inherit; font-size: 13.5px; padding: 7px 10px; border: 1px solid #d5d9df; border-radius: 6px; background: #fff; color: #14161a; width: 100%; } .ds-input::placeholder { color: #99a0aa; } .ds-input:focus-visible { outline: 2px solid #1a7a52; outline-offset: 2px; }"
+      "css": ".ds-field { display: grid; gap: 5px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; color: #14161a; } .ds-field label { font-size: 12.5px; font-weight: 500; } .ds-input { box-sizing: border-box; height: 36px; font-family: inherit; font-size: 16px; padding: 0 12px; border: 1px solid #e6e8ec; border-radius: 8px; background: transparent; color: #14161a; width: 100%; } @media (min-width: 900px) { .ds-input { font-size: 14px; } } .ds-input::placeholder { color: #666d78; } .ds-input:focus-visible { outline: 3px solid rgb(26 122 82 / 50%); outline-offset: 0; }"
     },
     {
       "name": "Segmented Control",
@@ -580,7 +580,7 @@
       "refersTo": "card",
       "description": "The balance figures at the top of the month screen. Display type with tabular figures; the total tile swaps to a wash fill.",
       "html": "<div class=\"ds-stats\"><div class=\"ds-stat\"><div class=\"ds-k\">Receitas</div><div class=\"ds-v ds-in\">+ 4.280,00</div></div><div class=\"ds-stat ds-total\"><div class=\"ds-k\">Saldo</div><div class=\"ds-v\">1.146,35</div></div></div>",
-      "css": ".ds-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 10px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; } .ds-stat { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 11px 14px; box-shadow: 0 1px 2px rgba(20,22,26,0.05); } .ds-stat.ds-total { background: #f5f6f8; border-color: #d5d9df; } .ds-k { font-size: 11.5px; color: #666d78; } .ds-v { font-family: \"Familjen Grotesk\", ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; margin-top: 1px; color: #14161a; } .ds-in { color: #1a7a52; }"
+      "css": ".ds-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 10px; font-family: \"Public Sans\", ui-sans-serif, system-ui, sans-serif; } .ds-stat { background: #fff; border: 1px solid #e6e8ec; border-radius: 14px; padding: 16px; box-shadow: 0 1px 2px rgba(20,22,26,0.05); } .ds-stat.ds-total { background: #f5f6f8; border-color: #d5d9df; } .ds-k { font-size: 12px; color: #666d78; } .ds-v { font-family: \"Familjen Grotesk\", ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; margin-top: 1px; color: #14161a; } .ds-in { color: #1a7a52; }"
     },
     {
       "name": "Data Table",
