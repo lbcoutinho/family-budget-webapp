@@ -106,21 +106,30 @@ export function GeneralSettingsPage() {
         </Card>
         {isAdmin && (
           <section className="mt-7">
-            <h2 className="mb-1.5 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.backup.heading')}</h2>
-            <p className="mb-3 max-w-[72ch] text-sm text-muted-foreground">{t('settingsGeneral.backup.description')}</p>
+            <h2 className="mb-3 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.backup.adminHeading')}</h2>
             <Card className="max-w-[620px] p-4">
-              <p className="max-w-[72ch] text-sm text-destructive">{t('settingsGeneral.backup.warning')}</p>
-              <Button className="mt-4" disabled={backup.isPending} onClick={() => setBackupDialogOpen(true)}>
-                {backup.isPending ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
-                {t('settingsGeneral.backup.action')}
-              </Button>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div>
+                  <h3 className="text-sm font-medium">{t('settingsGeneral.backup.heading')}</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.backup.description')}</p>
+                </div>
+                <Button variant="outline" size="sm" disabled={backup.isPending} onClick={() => setBackupDialogOpen(true)}>
+                  {backup.isPending ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
+                  {t('settingsGeneral.backup.action')}
+                </Button>
+              </div>
               {backup.isPending && <p className="mt-3 text-xs text-muted-foreground">{t('settingsGeneral.backup.loading')}</p>}
             </Card>
             <ConfirmDialog
               open={backupDialogOpen}
               onOpenChange={setBackupDialogOpen}
               title={t('settingsGeneral.backup.confirm.title')}
-              description={t(backup.isPending ? 'settingsGeneral.backup.loading' : 'settingsGeneral.backup.confirm.description')}
+              description={
+                <div className="grid gap-3">
+                  <p className="text-destructive">{t('settingsGeneral.backup.warning')}</p>
+                  {backup.isPending && <p>{t('settingsGeneral.backup.loading')}</p>}
+                </div>
+              }
               confirmLabel={t('settingsGeneral.backup.confirm.action')}
               isPending={backup.isPending}
               onConfirm={() => backup.mutate()}

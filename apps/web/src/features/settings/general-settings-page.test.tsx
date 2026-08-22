@@ -75,10 +75,29 @@ describe('GeneralSettingsPage', () => {
     expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveTextContent('Português (Brasil)');
   });
 
-  it('hides data backup from non-administrators', () => {
+  it('hides administration from non-administrators', () => {
     renderPage();
 
-    expect(screen.queryByRole('heading', { name: 'Backup dos dados' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Administração' })).not.toBeInTheDocument();
+  });
+
+  it('groups data backup as an administrative option and shows its warning only after confirmation', async () => {
+    const { user } = renderPage(USER, true);
+
+    expect(screen.getByRole('heading', { name: 'Administração' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Backup dos dados' })).toBeInTheDocument();
+    expect(screen.getByText('Gera e baixa um backup completo do sistema.')).toBeInTheDocument();
+    expect(
+      screen.queryByText('O arquivo não é criptografado e contém todos os dados financeiros e de autenticação. Guarde-o em um local seguro.'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Gerar backup' }));
+
+    expect(
+      within(await screen.findByRole('dialog')).getByText(
+        'O arquivo não é criptografado e contém todos os dados financeiros e de autenticação. Guarde-o em um local seguro.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('asks an administrator to confirm and does not request a backup when cancelled', async () => {
@@ -92,7 +111,7 @@ describe('GeneralSettingsPage', () => {
     );
     const { user } = renderPage(USER, true);
 
-    await user.click(screen.getByRole('button', { name: 'Baixar backup' }));
+    await user.click(screen.getByRole('button', { name: 'Gerar backup' }));
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
 
@@ -113,12 +132,12 @@ describe('GeneralSettingsPage', () => {
     );
     const { user } = renderPage(USER, true);
 
-    await user.click(screen.getByRole('button', { name: 'Baixar backup' }));
+    await user.click(screen.getByRole('button', { name: 'Gerar backup' }));
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Gerar e baixar' }));
 
     expect((await screen.findAllByText('Gerando o backup. Não feche esta página até o download começar.')).length).toBe(2);
-    expect(screen.getByRole('button', { name: 'Baixar backup', hidden: true })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Gerar backup', hidden: true })).toBeDisabled();
     expect(within(dialog).getByRole('button', { name: 'Gerar e baixar' })).toBeDisabled();
 
     respond();
@@ -143,7 +162,7 @@ describe('GeneralSettingsPage', () => {
     );
     const { user } = renderPage(USER, true);
 
-    await user.click(screen.getByRole('button', { name: 'Baixar backup' }));
+    await user.click(screen.getByRole('button', { name: 'Gerar backup' }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Gerar e baixar' }));
 
     await vi.waitFor(() => expect(click).toHaveBeenCalledOnce());
@@ -156,12 +175,12 @@ describe('GeneralSettingsPage', () => {
     server.use(http.get('/api/backups/database', () => HttpResponse.json({ message: 'missing' }, { status: 503 })));
     const { user } = renderPage(USER, true);
 
-    await user.click(screen.getByRole('button', { name: 'Baixar backup' }));
+    await user.click(screen.getByRole('button', { name: 'Gerar backup' }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Gerar e baixar' }));
 
     expect(
       (await screen.findAllByText('Não foi possível gerar o backup porque as ferramentas do PostgreSQL 16 não estão instaladas no servidor.')).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Baixar backup' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Gerar backup' })).toBeEnabled();
   });
 });
