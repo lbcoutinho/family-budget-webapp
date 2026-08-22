@@ -1,6 +1,6 @@
 import { axiosInstance, type AuthUserDto, type SessionDto, useUpdateCurrentUser } from '@family-budget/api-client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { DownloadIcon, Loader2Icon } from 'lucide-react';
+import { DownloadIcon, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -126,7 +126,10 @@ export function GeneralSettingsPage() {
               title={t('settingsGeneral.backup.confirm.title')}
               description={
                 <div className="grid gap-3">
-                  <p className="text-destructive">{t('settingsGeneral.backup.warning')}</p>
+                  <p role="note" className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-50 p-3 text-sm text-amber-950">
+                    <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
+                    <span>{t('settingsGeneral.backup.warning')}</span>
+                  </p>
                   {backup.isPending && <p>{t('settingsGeneral.backup.loading')}</p>}
                 </div>
               }
