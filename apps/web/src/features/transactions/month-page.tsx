@@ -622,16 +622,20 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               {allEntries.map((entry) => (
                 <article
                   key={entry.id}
-                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60 opacity-60' : ''}`}
+                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
                   style={{
                     borderLeftColor:
                       entry.category?.color ??
                       (entry.type === TransactionType.CASHBOX_TRANSFER ? 'var(--transfer)' : isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent'),
                   }}
                 >
-                  <time className="num text-[12.5px] text-muted-foreground">{formatEntryDate(entry.date)}</time>
-                  <EntryMeta entry={entry} accountNames={accountNames} />
-                  <div className="text-right">
+                  <time className={`num text-[12.5px] text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
+                    {formatEntryDate(entry.date)}
+                  </time>
+                  <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
+                    <EntryMeta entry={entry} accountNames={accountNames} />
+                  </div>
+                  <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
                     <EntryAmount entry={entry} />
                   </div>
                   <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
