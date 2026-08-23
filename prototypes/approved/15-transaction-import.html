@@ -4,17 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>15 — Importar lançamentos CSV</title>
-    <link rel="stylesheet" href="_shared/proto.css" />
-    <script defer src="_shared/proto.js"></script>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
     <style>
-      .import-layout {
-        display: grid;
-        gap: 18px;
-      }
-      .import-layout.split {
-        grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
-        align-items: start;
-      }
       .setup {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -75,30 +67,6 @@
       .reason {
         min-width: 190px;
       }
-      .step-list {
-        display: grid;
-        gap: 2px;
-        counter-reset: steps;
-      }
-      .step-list button {
-        counter-increment: steps;
-        text-align: left;
-        border: 0;
-        border-left: 2px solid var(--line);
-        background: transparent;
-        padding: 10px 12px;
-        color: var(--ink-soft);
-        font: inherit;
-      }
-      .step-list button::before {
-        content: counter(steps) '. ';
-        font-variant-numeric: tabular-nums;
-      }
-      .step-list button[aria-current='step'] {
-        border-color: var(--action);
-        color: var(--ink);
-        font-weight: 600;
-      }
       details.result {
         border-top: 1px solid var(--line);
         padding: 12px 16px;
@@ -108,7 +76,6 @@
         font-weight: 600;
       }
       @media (max-width: 760px) {
-        .import-layout.split,
         .setup {
           grid-template-columns: 1fr;
         }
@@ -118,14 +85,11 @@
         .summary div:nth-child(2) {
           border-right: 0;
         }
-        .prototype-switcher {
-          bottom: 10px;
-        }
       }
     </style>
   </head>
-  <body data-variants="A:Prévia primeiro|B:Etapas guiadas|C:Área dividida">
-    <!-- Three variants of CSV transaction import, switchable via ?variant=, beside the existing transaction surface. -->
+  <body>
+    <!-- Approved variant A: preview-first CSV transaction import beside the existing transaction surface. -->
     <div data-proto="15 — Importar lançamentos CSV" data-ticket="#228"></div>
     <div class="proto-note"><strong>Pergunta:</strong> qual estrutura deixa seleção, exceções e confirmação mais claras sem esconder a prévia?</div>
     <div data-shell="month">
@@ -134,7 +98,7 @@
           <div class="row">
             <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Importar CSV</span>
           </div>
-          <a class="btn outline top-action" href="approved/06-month.html">Voltar para lançamentos</a>
+          <a class="btn outline top-action" href="06-month.html">Voltar para lançamentos</a>
         </header>
         <div class="content">
           <div class="card card-body spread" style="margin-bottom: 18px">
@@ -144,7 +108,7 @@
             </div>
             <button class="btn outline"><span data-icon="download"></span>Importar CSV</button>
           </div>
-          <section data-variant-panel="A">
+          <section>
             <h1>Importar lançamentos</h1>
             <p class="muted" style="margin: 6px 0 18px; max-width: 68ch">
               Escolha como ler o extrato, revise cada linha e importe somente os lançamentos novos.
@@ -286,90 +250,14 @@
                   <p class="small muted" style="margin-top: 8px">Linha 8 · Cinema · − 18,00 €</p>
                 </details>
               </div>
-              <a class="btn" style="margin-top: 14px" href="approved/06-month.html">Voltar para lançamentos</a>
-            </div>
-          </section>
-
-          <section data-variant-panel="B" hidden>
-            <h1>Importar lançamentos</h1>
-            <p class="muted" style="margin: 6px 0 18px">Uma etapa por vez, com a decisão atual sempre em primeiro plano.</p>
-            <div class="import-layout split">
-              <nav class="step-list" aria-label="Etapas">
-                <button aria-current="step">Escolher origem</button><button>Revisar 6 linhas</button><button>Confirmar importação</button
-                ><button>Ver resultado</button>
-              </nav>
-              <div class="card">
-                <div class="card-head">
-                  <div>
-                    <h2>1. Escolha a origem</h2>
-                    <p class="small muted">O arquivo só é enviado para gerar a prévia.</p>
-                  </div>
-                </div>
-                <div class="card-body stack">
-                  <label class="field"
-                    ><span>Modelo CSV</span
-                    ><select class="select">
-                      <option>Banco Atlântico</option>
-                    </select></label
-                  ><label class="field"
-                    ><span>Conta de destino</span
-                    ><select class="select">
-                      <option>Conta corrente</option>
-                    </select></label
-                  ><label class="drop"><input type="file" accept=".csv,text/csv" /><span>Selecionar arquivo CSV</span></label>
-                </div>
-                <div class="card-foot right"><button class="btn">Gerar prévia</button></div>
-              </div>
-            </div>
-          </section>
-
-          <section data-variant-panel="C" hidden>
-            <h1>Importar lançamentos</h1>
-            <p class="muted" style="margin: 6px 0 18px">Configuração fixa à esquerda; extrato e decisões ocupam a área larga.</p>
-            <div class="import-layout split">
-              <aside class="card">
-                <div class="card-body stack">
-                  <h2>Origem</h2>
-                  <label class="field"
-                    ><span>Modelo CSV</span
-                    ><select class="select">
-                      <option>Banco Atlântico</option>
-                    </select></label
-                  ><label class="field"
-                    ><span>Conta</span
-                    ><select class="select">
-                      <option>Conta corrente</option>
-                    </select></label
-                  >
-                  <div class="drop">
-                    <button class="btn outline sm" type="button">Trocar arquivo</button><span class="small muted">extrato-julho.csv · 18 KB</span>
-                  </div>
-                  <div class="callout info">
-                    <span data-icon="info"></span>
-                    <p>A prévia não grava nada.</p>
-                  </div>
-                </div>
-              </aside>
-              <div>
-                <div class="spread" style="margin-bottom: 10px">
-                  <div>
-                    <h2>Prévia do extrato</h2>
-                    <p class="small muted">6 linhas · 3 selecionadas</p>
-                  </div>
-                  <button class="btn">Importar 3</button>
-                </div>
-                <div class="card card-body">
-                  <p><strong>Mesma tabela detalhada da alternativa A.</strong></p>
-                  <p class="small muted">Aqui o ganho a avaliar é manter modelo, conta e arquivo visíveis durante toda a revisão.</p>
-                </div>
-              </div>
+              <a class="btn" style="margin-top: 14px" href="06-month.html">Voltar para lançamentos</a>
             </div>
           </section>
 
           <div class="decisions">
-            <h2>Decisões a aprovar</h2>
+            <h2>Decisões aprovadas</h2>
             <ol>
-              <li><b>Estrutura:</b> prévia primeiro (A), etapas guiadas (B) ou área dividida (C).</li>
+              <li><b>Estrutura aprovada:</b> prévia primeiro, com origem acima da tabela.</li>
               <li>
                 <b>No celular, a tabela continua tabela com a coluna de seleção congelada.</b
                 ><span>As exceções precisam ser comparadas linha a linha; cartões perderiam essa leitura.</span>

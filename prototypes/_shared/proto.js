@@ -100,6 +100,8 @@ const APPROVED = new Set([
   '11-reports-charts.html',
   '12-recurrences.html',
   '14-settings-general.html',
+  '14-settings-general-models.html',
+  '15-transaction-import.html',
 ]);
 
 function protoHref(file) {
@@ -167,43 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-icon]').forEach((el) => {
     el.outerHTML = icon(el.dataset.icon);
   });
-
-  const variants = document.body.dataset.variants?.split('|').map((item) => {
-    const [key, label] = item.split(':');
-    return { key, label };
-  });
-  if (variants?.length) {
-    const params = new URLSearchParams(location.search);
-    let index = Math.max(
-      0,
-      variants.findIndex(({ key }) => key === params.get('variant')),
-    );
-    const bar = document.createElement('div');
-    bar.className = 'prototype-switcher';
-    bar.setAttribute('aria-label', 'Alternativas do protótipo');
-    bar.innerHTML =
-      '<button type="button" data-variant-step="-1" aria-label="Alternativa anterior">←</button><output></output><button type="button" data-variant-step="1" aria-label="Próxima alternativa">→</button>';
-    document.body.append(bar);
-
-    const showVariant = (next) => {
-      index = (next + variants.length) % variants.length;
-      const current = variants[index];
-      document.querySelectorAll('[data-variant-panel]').forEach((panel) => (panel.hidden = panel.dataset.variantPanel !== current.key));
-      bar.querySelector('output').textContent = `${current.key} — ${current.label}`;
-      params.set('variant', current.key);
-      history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`);
-    };
-
-    bar.addEventListener('click', (event) => {
-      const step = event.target.closest('[data-variant-step]');
-      if (step) showVariant(index + Number(step.dataset.variantStep));
-    });
-    document.addEventListener('keydown', (event) => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || event.target.closest('input, textarea, select, [contenteditable]')) return;
-      showVariant(index + (event.key === 'ArrowRight' ? 1 : -1));
-    });
-    showVariant(index);
-  }
 
   document.addEventListener('click', (e) => {
     const toggle = e.target.closest('[data-toggle]');

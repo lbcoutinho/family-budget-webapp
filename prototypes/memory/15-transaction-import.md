@@ -1,11 +1,10 @@
 # 15 — CSV transaction import
 
-Status: **under review** in `15-transaction-import.html`, issue #228.
+Status: **approved** in `approved/15-transaction-import.html`, issue #228.
 
 ## Question
 
-Which structure makes row selection, exceptions, and confirmation clearest: preview-first (A), a
-guided sequence (B), or a split workspace (C)?
+Variant A was approved: preview-first, with source controls above the table. Variants B and C were discarded.
 
 ## Fixed by Plan 0002
 

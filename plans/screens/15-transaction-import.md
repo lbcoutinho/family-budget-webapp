@@ -13,4 +13,4 @@
 
 Desktop and phone keep the preview as a horizontally scrollable table with its selection column
 frozen. Status and error messages use live regions; dialogs move focus inside and restore it to the
-trigger. See Plan 0002 §9 and `prototypes/15-transaction-import.html`.
+trigger. See Plan 0002 §9 and `prototypes/approved/15-transaction-import.html`.

@@ -2,7 +2,7 @@
 
 Status: **approved**, in `approved/14-settings-general.html`. Ticket M3-T13, issue #73.
 
-CSV model management extension: **under review** in `14-settings-general-models.html`, issue #228.
+CSV model management extension: **approved** in `approved/14-settings-general-models.html`, issue #228.
 
 ## What's settled going in (from the ticket)
 
@@ -43,9 +43,10 @@ became a two-column grid with the note/error on a full-width row beneath), inste
 under the label's column only; label column widened; `.select` narrowed to 160px, sized to the text
 it holds rather than a flat 220px minimum.
 
-## CSV model management — under review
+## CSV model management — approved
 
-Three structures are available through `?variant=A|B|C`: a continuous section below Language,
-local section navigation, and side-by-side inline creation. All preserve the approved language
-behavior. Creation captures exact header names without an example file; case-insensitive duplicate
-name and bounds errors are inline. Deletion names the model and does not affect imported drafts.
+Variant A was approved: a compact continuous section below Language, with an outline “Novo modelo”
+action aligned to the list's upper-right corner. Rows use compact spacing. The empty state is one
+line — “Nenhum modelo CSV registrado” — beside the same create action. Creation captures exact
+header names without an example file; validation is inline. Deletion names the model and does not
+affect imported drafts. Variants B and C were discarded.
