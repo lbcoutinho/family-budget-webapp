@@ -618,7 +618,6 @@
   "settingsGeneral": {
     "language": {
       "heading": "Language",
-      "description": "Changes the whole interface's language, without reloading the page. The choice belongs to the account, not the browser — it survives logging out and back in.",
       "label": "Language",
       "note": "Português (Brasil) is the default. Numbers, dates and currency follow the chosen language.",
       "saving": "Saving…",

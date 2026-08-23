@@ -618,7 +618,6 @@
   "settingsGeneral": {
     "language": {
       "heading": "Idioma",
-      "description": "Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.",
       "label": "Idioma",
       "note": "Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.",
       "saving": "Salvando…",

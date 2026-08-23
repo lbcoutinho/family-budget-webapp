@@ -115,8 +115,7 @@ export function GeneralSettingsPage() {
     <>
       <PageHeader title={t('nav.settingsGeneral')} />
       <PageContent>
-        <h2 className="mb-1.5 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.language.heading')}</h2>
-        <p className="mb-3 max-w-[72ch] text-sm text-muted-foreground">{t('settingsGeneral.language.description')}</p>
+        <h2 className="mb-3 text-sm font-medium">{t('settingsGeneral.language.heading')}</h2>
         <Card className="max-w-[620px] p-4">
           <div className="grid grid-cols-[minmax(120px,1.5fr)_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5">
             <span className="text-sm font-medium">{t('settingsGeneral.language.label')}</span>
@@ -167,7 +166,7 @@ export function GeneralSettingsPage() {
               {models.data.map((model) => (
                 <div key={model.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                   <div className="min-w-0">
-                    <p className="font-medium">{model.name}</p>
+                    <p className="text-sm font-medium">{model.name}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {t(`settingsGeneral.models.separators.${model.separator === '\t' ? 'tab' : model.separator === ';' ? 'semicolon' : 'comma'}`)} ·{' '}
                       {t('settingsGeneral.models.headerLines', { count: model.headerLineCount })} · {model.dateHeader} · {model.descriptionHeader} ·{' '}
