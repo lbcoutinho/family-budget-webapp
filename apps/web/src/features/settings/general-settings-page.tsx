@@ -122,7 +122,7 @@ export function GeneralSettingsPage() {
               {!failed && !updateLocale.isPending && <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
             </div>
             <Select value={locale} disabled={updateLocale.isPending} onValueChange={(value) => handleChange(value as SupportedLocale)}>
-              <SelectTrigger id="settings-language" className="w-40" aria-label={t('settingsGeneral.language.label')}>
+              <SelectTrigger id="settings-language" className="w-40 justify-self-end" aria-label={t('settingsGeneral.language.label')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
