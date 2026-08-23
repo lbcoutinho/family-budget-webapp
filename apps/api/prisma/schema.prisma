@@ -51,6 +51,7 @@ model User {
   cashboxes       Cashbox[]
   transactions    Transaction[]
   recurrenceRules RecurrenceRule[]
+  csvImportModels CsvImportModel[]
 
   @@map("users")
 }
@@ -301,6 +302,26 @@ model RecurrenceRule {
   @@index([userId, isActive])
   @@index([userId, isActive, generatedUntil])
   @@map("recurrence_rules")
+}
+
+/// A reusable description of one bank CSV layout. It deliberately has no relation to
+/// `Transaction`: deleting a model only removes this import aid, never imported history.
+model CsvImportModel {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  name            String
+  headerLineCount Int      @map("header_line_count")
+  separator       String
+  dateHeader      String   @map("date_header")
+  descriptionHeader String @map("description_header")
+  amountHeader    String   @map("amount_header")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId])
+  @@map("csv_import_models")
 }
 
 /// The domain core: every deposit, expense, transfer and cashbox movement is one row here, typed by
