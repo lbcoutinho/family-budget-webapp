@@ -25,7 +25,7 @@ describe('DatabaseBackupService', () => {
 
   beforeEach(() => {
     lock = new BackupLockService();
-    service = new DatabaseBackupService({ getOrThrow: () => 'postgresql://user:secret@localhost:5432/budget' } as unknown as ConfigService, lock);
+    service = new DatabaseBackupService({ getOrThrow: () => 'postgresql://user:secret@localhost:5432/budget?schema=public' } as unknown as ConfigService, lock);
     spawn.mockReset();
   });
 
@@ -33,7 +33,7 @@ describe('DatabaseBackupService', () => {
     spawn.mockImplementation((_command, args) => {
       const child = new FakeChildProcess();
       process.nextTick(() => {
-        child.stdout.end(args[0] === '--version' ? 'pg_dump (PostgreSQL) 16.4\n' : 'dump');
+        child.stdout.end(args[0] === '--version' ? 'pg_dump (PostgreSQL) 18.6\n' : 'dump');
         child.emit('close', 0);
       });
       return child as unknown as childProcess.ChildProcess;

@@ -1,15 +1,19 @@
-import { type AuthUserDto, useUpdateCurrentUser } from '@family-budget/api-client';
-import { useQueryClient } from '@tanstack/react-query';
+import { axiosInstance, type AuthUserDto, type SessionDto, useUpdateCurrentUser } from '@family-budget/api-client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { DownloadIcon, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageContent, PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/features/auth/auth-context';
 import { SESSION_QUERY_KEY } from '@/features/auth/auth-provider';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale, type TranslationKey } from '@/i18n';
+import { apiErrorMessage } from '@/lib/api-error';
 
 const LOCALE_LABEL_KEY: Record<SupportedLocale, TranslationKey> = {
   'pt-BR': 'settingsGeneral.language.options.pt-BR',
@@ -23,16 +27,17 @@ const LOCALE_LABEL_KEY: Record<SupportedLocale, TranslationKey> = {
  */
 export function GeneralSettingsPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [failed, setFailed] = useState(false);
+  const [backupDialogOpen, setBackupDialogOpen] = useState(false);
 
   const locale = user?.locale ?? DEFAULT_LOCALE;
 
   const updateLocale = useUpdateCurrentUser({
     mutation: {
       onSuccess: (updated: AuthUserDto) => {
-        queryClient.setQueryData(SESSION_QUERY_KEY, updated);
+        queryClient.setQueryData<SessionDto | null>(SESSION_QUERY_KEY, (session) => (session ? { ...session, user: updated } : session));
         toast.success(t('settingsGeneral.language.success', { locale: t(LOCALE_LABEL_KEY[updated.locale]) }));
       },
       onError: () => setFailed(true),
@@ -43,6 +48,33 @@ export function GeneralSettingsPage() {
     setFailed(false);
     updateLocale.mutate({ data: { locale: value } });
   };
+
+  const backup = useMutation({
+    mutationFn: () => axiosInstance.get<Blob>('/backups/database', { responseType: 'blob' }),
+    onSuccess: ({ data, headers }) => {
+      const filename = /filename="?([^";]+)"?/i.exec(String(headers['content-disposition'] ?? ''))?.[1] ?? 'family-budget-backup.dump';
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = filename;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url));
+      setBackupDialogOpen(false);
+    },
+    onError: (error) => {
+      const status = (error as { response?: { status?: number } }).response?.status;
+      const message =
+        status === 503
+          ? t('settingsGeneral.backup.errors.postgresClient')
+          : status === 409
+            ? t('settingsGeneral.backup.errors.inProgress')
+            : apiErrorMessage(error, t);
+
+      toast.error(message);
+      setBackupDialogOpen(false);
+    },
+  });
 
   return (
     <>
@@ -72,6 +104,41 @@ export function GeneralSettingsPage() {
             {!failed && !updateLocale.isPending && <p className="col-span-2 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
           </div>
         </Card>
+        {isAdmin && (
+          <section className="mt-7">
+            <h2 className="mb-3 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.backup.adminHeading')}</h2>
+            <Card className="max-w-[620px] p-4">
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div>
+                  <h3 className="text-sm font-medium">{t('settingsGeneral.backup.heading')}</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.backup.description')}</p>
+                </div>
+                <Button variant="outline" size="sm" disabled={backup.isPending} onClick={() => setBackupDialogOpen(true)}>
+                  {backup.isPending ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
+                  {t('settingsGeneral.backup.action')}
+                </Button>
+              </div>
+              {backup.isPending && <p className="mt-3 text-xs text-muted-foreground">{t('settingsGeneral.backup.loading')}</p>}
+            </Card>
+            <ConfirmDialog
+              open={backupDialogOpen}
+              onOpenChange={setBackupDialogOpen}
+              title={t('settingsGeneral.backup.confirm.title')}
+              description={
+                <div className="grid gap-3">
+                  <p role="note" className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-50 p-3 text-sm text-amber-950">
+                    <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
+                    <span>{t('settingsGeneral.backup.warning')}</span>
+                  </p>
+                  {backup.isPending && <p>{t('settingsGeneral.backup.loading')}</p>}
+                </div>
+              }
+              confirmLabel={t('settingsGeneral.backup.confirm.action')}
+              isPending={backup.isPending}
+              onConfirm={() => backup.mutate()}
+            />
+          </section>
+        )}
       </PageContent>
     </>
   );

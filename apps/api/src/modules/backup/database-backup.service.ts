@@ -28,14 +28,17 @@ export class DatabaseBackupService {
 
   private async assertPgDumpAvailable(): Promise<void> {
     const version = await this.run(['--version']);
+    const majorVersion = Number(/PostgreSQL\) (\d+)\./.exec(version)?.[1]);
 
-    if (!version.includes('PostgreSQL) 16.')) {
-      throw new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.');
+    if (!Number.isInteger(majorVersion) || majorVersion < 16) {
+      throw new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.');
     }
   }
 
   private async dump(response: Response): Promise<void> {
-    const child = childProcess.spawn('pg_dump', ['--format=custom', '--dbname', this.config.getOrThrow<string>('DATABASE_URL')], {
+    const databaseUrl = new URL(this.config.getOrThrow<string>('DATABASE_URL'));
+    databaseUrl.searchParams.delete('schema');
+    const child = childProcess.spawn('pg_dump', ['--format=custom', '--dbname', databaseUrl.toString()], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -80,7 +83,7 @@ export class DatabaseBackupService {
         if (code === 0) {
           resolve(Buffer.concat(chunks).toString());
         } else {
-          reject(new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.'));
+          reject(new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.'));
         }
       });
     });
@@ -88,7 +91,7 @@ export class DatabaseBackupService {
 
   private pgDumpError(error: NodeJS.ErrnoException): ServiceUnavailableException {
     if (error.code === 'ENOENT') {
-      return new ServiceUnavailableException('PostgreSQL 16 client tools are required: install pg_dump 16 and try again.');
+      return new ServiceUnavailableException('PostgreSQL 16 or newer client tools are required: install pg_dump and try again.');
     }
 
     return new ServiceUnavailableException('Unable to start pg_dump for the database backup.');

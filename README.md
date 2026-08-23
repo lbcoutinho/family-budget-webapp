@@ -83,26 +83,10 @@ full custom-format PostgreSQL dump from `GET /api/backups/database`; the API str
 and temporarily rejects domain writes while the dump runs. The download contains all financial and
 authentication data and is **not encrypted**. Store it only in an approved, encrypted location.
 
-The API host must have PostgreSQL 16 client tools installed, including `pg_dump`. Use the same or
+The API host must have PostgreSQL 16 or newer client tools installed, including `pg_dump`. Use the same or
 a newer PostgreSQL version when restoring.
 
-To validate a backup safely, restore it into an empty database:
-
-```bash
-createdb family_budget_restore
-pg_restore --dbname=family_budget_restore family-budget-backup-YYYY-MM-DDTHH-mm-ssZ.dump
-```
-
-For a destructive in-place recovery, stop the API first, terminate existing database connections,
-drop and recreate the target database, then restore the dump and restart the API:
-
-```bash
-dropdb budget
-createdb budget
-pg_restore --dbname=budget family-budget-backup-YYYY-MM-DDTHH-mm-ssZ.dump
-```
-
-Re-run this recovery check after PostgreSQL or infrastructure changes. Backups use an in-memory
+Validate backup and re-run a recovery check after PostgreSQL or infrastructure changes. Backups use an in-memory
 lock and therefore protect writes only when one API instance is running.
 
 ## Workspaces

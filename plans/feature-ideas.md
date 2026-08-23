@@ -45,6 +45,9 @@
 - Todas as hints de campos ficam em tooltip ao inves de ficar abaixo do campo
 - operação caixinha - transferir
   - quando valor acima do disponivel, erro aparece em 2 locais, capturar imagem para issue.
+- config > geral
+  - mudar area de idioma - parece que tem um titulo idioma e depois um card. melhorar descrição.
+
 # Bugs
 
 - 
