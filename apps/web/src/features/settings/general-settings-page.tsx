@@ -117,7 +117,7 @@ export function GeneralSettingsPage() {
       <PageContent>
         <Card className="max-w-[620px] p-4">
           <div className="grid grid-cols-[minmax(120px,1.5fr)_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5">
-            <span className="text-sm font-medium">{t('settingsGeneral.language.label')}</span>
+            <h3 className="text-sm font-medium">{t('settingsGeneral.language.label')}</h3>
             <Select value={locale} disabled={updateLocale.isPending} onValueChange={(value) => handleChange(value as SupportedLocale)}>
               <SelectTrigger id="settings-language" className="w-40" aria-label={t('settingsGeneral.language.label')}>
                 <SelectValue />
@@ -161,11 +161,11 @@ export function GeneralSettingsPage() {
               </Button>
             </p>
           ) : models.data?.length ? (
-            <Card className="divide-y p-0">
+            <Card className="gap-0 divide-y p-0">
               {models.data.map((model) => (
                 <div key={model.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{model.name}</p>
+                    <h3 className="text-sm font-medium">{model.name}</h3>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {t(`settingsGeneral.models.separators.${model.separator === '\t' ? 'tab' : model.separator === ';' ? 'semicolon' : 'comma'}`)} ·{' '}
                       {t('settingsGeneral.models.headerLines', { count: model.headerLineCount })} · {model.dateHeader} · {model.descriptionHeader} ·{' '}
