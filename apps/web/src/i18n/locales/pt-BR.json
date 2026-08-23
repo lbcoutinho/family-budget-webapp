@@ -618,15 +618,46 @@
   "settingsGeneral": {
     "language": {
       "heading": "Idioma",
-      "description": "Muda o idioma da interface inteira, sem recarregar a página. A escolha é da conta, não do navegador — sobrevive a sair e entrar de novo.",
       "label": "Idioma",
-      "note": "Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.",
+      "note": "Números, datas e moeda seguem o idioma escolhido.",
       "saving": "Salvando…",
       "success": "Idioma atualizado para {{locale}}.",
       "error": "Não foi possível salvar. O idioma voltou para {{locale}}.",
       "options": {
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
+      }
+    },
+    "models": {
+      "heading": "Modelos CSV",
+      "description": "Definem como ler os extratos dos seus bancos.",
+      "create": "Novo modelo",
+      "loading": "Carregando modelos CSV…",
+      "error": "Não foi possível carregar os modelos CSV.",
+      "empty": "Nenhum modelo CSV registrado.",
+      "headerLines_one": "{{count}} linha de cabeçalho",
+      "headerLines_other": "{{count}} linhas de cabeçalho",
+      "separators": { "semicolon": "Ponto e vírgula (;)", "comma": "Vírgula (,)", "tab": "Tabulação" },
+      "form": {
+        "title": "Novo modelo CSV",
+        "name": "Nome",
+        "nameRequired": "Informe o nome do modelo.",
+        "nameTooLong": "O nome pode ter no máximo 100 caracteres.",
+        "headerLines": "Linhas de cabeçalho",
+        "headerLinesRange": "Informe entre 1 e 100 linhas de cabeçalho.",
+        "separator": "Separador",
+        "dateHeader": "Coluna da data",
+        "descriptionHeader": "Coluna da descrição",
+        "amountHeader": "Coluna do valor",
+        "headerRequired": "Informe o nome exato da coluna.",
+        "hint": "Data: DD-MM-AAAA. Valor: 3606.87; sinal negativo indica despesa.",
+        "submit": "Criar modelo"
+      },
+      "delete": {
+        "button": "Excluir modelo {{name}}",
+        "title": "Excluir “{{name}}”?",
+        "description": "O modelo não poderá mais ser usado em novas importações. Lançamentos já importados não mudam.",
+        "confirm": "Excluir {{name}}"
       }
     },
     "backup": {

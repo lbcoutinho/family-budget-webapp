@@ -1,10 +1,10 @@
-import { type AuthUserDto } from '@family-budget/api-client';
+import { type AuthUserDto, type CsvImportModelDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { Toaster } from 'sonner';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GeneralSettingsPage } from './general-settings-page';
 
@@ -12,6 +12,17 @@ import { AuthContext } from '@/features/auth/auth-context';
 import { server } from '@/test/server';
 
 const USER: AuthUserDto = { id: 'u1', email: 'luis@exemplo.pt', name: 'Luís Coutinho', locale: 'pt-BR' };
+const MODEL: CsvImportModelDto = {
+  id: 'model-1',
+  name: 'Banco Atlântico',
+  headerLineCount: 1,
+  separator: ';',
+  dateHeader: 'Data',
+  descriptionHeader: 'Histórico',
+  amountHeader: 'Valor',
+  createdAt: '2026-08-23T00:00:00.000Z',
+  updatedAt: '2026-08-23T00:00:00.000Z',
+};
 let createObjectURLDescriptor: PropertyDescriptor | undefined;
 let revokeObjectURLDescriptor: PropertyDescriptor | undefined;
 
@@ -31,6 +42,10 @@ function renderPage(user: AuthUserDto = USER, isAdmin = false) {
   };
 }
 
+beforeEach(() => {
+  server.use(http.get('/api/csv-import-models', () => HttpResponse.json([])));
+});
+
 afterEach(() => {
   vi.restoreAllMocks();
   if (createObjectURLDescriptor) Object.defineProperty(URL, 'createObjectURL', createObjectURLDescriptor);
@@ -42,6 +57,120 @@ afterEach(() => {
 });
 
 describe('GeneralSettingsPage', () => {
+  it('shows the compact empty state', async () => {
+    renderPage();
+
+    expect(await screen.findByText('Nenhum modelo CSV registrado.')).toBeInTheDocument();
+  });
+
+  it('shows loading and error states for CSV models', async () => {
+    let resolve!: () => void;
+    const pending = new Promise<void>((done) => {
+      resolve = done;
+    });
+    server.use(
+      http.get('/api/csv-import-models', async () => {
+        await pending;
+        return HttpResponse.json([]);
+      }),
+    );
+    const { unmount } = renderPage();
+
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(2);
+    resolve();
+    unmount();
+
+    server.use(http.get('/api/csv-import-models', () => HttpResponse.json({ message: 'nope' }, { status: 500 })));
+    renderPage();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar os modelos CSV.');
+  });
+
+  it('lists models and creates one without a page reload', async () => {
+    let models = [MODEL];
+    let requestBody: unknown;
+    server.use(
+      http.get('/api/csv-import-models', () => HttpResponse.json(models)),
+      http.post('/api/csv-import-models', async ({ request }) => {
+        requestBody = await request.json();
+        models = [...models, { ...MODEL, id: 'model-2', name: 'Cartão Horizonte' }];
+        return HttpResponse.json(models[1], { status: 201 });
+      }),
+    );
+    const { user } = renderPage();
+
+    expect(await screen.findByText('Banco Atlântico')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Novo modelo' }));
+    expect(await screen.findByLabelText('Nome')).toHaveFocus();
+    expect(screen.getByLabelText('Coluna da data')).toHaveValue('');
+    expect(screen.getByLabelText('Coluna da descrição')).toHaveValue('');
+    expect(screen.getByLabelText('Coluna do valor')).toHaveValue('');
+    expect(screen.getByText('Data: DD-MM-AAAA. Valor: 3606.87; sinal negativo indica despesa.')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Nome'), 'Cartão Horizonte');
+    await user.type(screen.getByLabelText('Coluna da data'), 'Data');
+    await user.type(screen.getByLabelText('Coluna da descrição'), 'Histórico');
+    await user.type(screen.getByLabelText('Coluna do valor'), 'Valor');
+    await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
+
+    expect(requestBody).toEqual({
+      name: 'Cartão Horizonte',
+      headerLineCount: 1,
+      separator: ';',
+      dateHeader: 'Data',
+      descriptionHeader: 'Histórico',
+      amountHeader: 'Valor',
+    });
+    expect(await screen.findByText('Cartão Horizonte')).toBeInTheDocument();
+  });
+
+  it('validates model creation and reports duplicate names in the dialog', async () => {
+    server.use(http.post('/api/csv-import-models', () => HttpResponse.json({ code: 'DUPLICATE_NAME', message: 'duplicate' }, { status: 409 })));
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Novo modelo' }));
+    await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
+    expect(await screen.findByText('Informe o nome do modelo.')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Nome'), 'Banco Atlântico');
+    await user.type(screen.getByLabelText('Coluna da data'), 'Data');
+    await user.type(screen.getByLabelText('Coluna da descrição'), 'Histórico');
+    await user.type(screen.getByLabelText('Coluna do valor'), 'Valor');
+    await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Já existe um registo com esse nome.');
+  });
+
+  it('names deletion, restores focus on cancellation, and refreshes after deletion', async () => {
+    let models = [MODEL];
+    server.use(
+      http.get('/api/csv-import-models', () => HttpResponse.json(models)),
+      http.delete('/api/csv-import-models/:id', () => {
+        models = [];
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { user } = renderPage();
+
+    const deleteButton = await screen.findByRole('button', { name: 'Excluir modelo Banco Atlântico' });
+    await user.click(deleteButton);
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Excluir “Banco Atlântico”?');
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await vi.waitFor(() => expect(deleteButton).toHaveFocus());
+    await user.click(deleteButton);
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Excluir Banco Atlântico' }));
+    expect(await screen.findByText('Nenhum modelo CSV registrado.')).toBeInTheDocument();
+  });
+
+  it('keeps named deletion open and reports a deletion failure', async () => {
+    server.use(
+      http.get('/api/csv-import-models', () => HttpResponse.json([MODEL])),
+      http.delete('/api/csv-import-models/:id', () => HttpResponse.json({ code: 'SOMETHING_NEW', message: 'nope' }, { status: 500 })),
+    );
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Excluir modelo Banco Atlântico' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Excluir Banco Atlântico' }));
+    expect(await screen.findByText('Não foi possível concluir a operação. Tente novamente.')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toHaveTextContent('Excluir “Banco Atlântico”?');
+  });
+
   it('shows the current locale and saves immediately on change, with a confirming toast', async () => {
     let requestBody: unknown;
     server.use(

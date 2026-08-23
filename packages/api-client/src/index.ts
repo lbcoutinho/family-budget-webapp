@@ -11,6 +11,7 @@ export * from './generated/backup/backup';
 export * from './generated/cashboxes/cashboxes';
 export * from './generated/categories/categories';
 export * from './generated/csv-import/csv-import';
+export * from './generated/csv-import-models/csv-import-models';
 export * from './generated/health/health';
 export * from './generated/recurrence-rules/recurrence-rules';
 export * from './generated/reports/reports';
