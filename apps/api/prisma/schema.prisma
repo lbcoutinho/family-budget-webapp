@@ -218,6 +218,7 @@ enum TransactionSource {
   MANUAL
   VOICE
   RECURRING
+  IMPORT_CSV
 
   @@map("transaction_source")
 }

@@ -13,4 +13,5 @@ export const TransactionSource = {
   MANUAL: 'MANUAL',
   VOICE: 'VOICE',
   RECURRING: 'RECURRING',
+  IMPORT_CSV: 'IMPORT_CSV',
 } as const;
