@@ -100,6 +100,8 @@ const APPROVED = new Set([
   '11-reports-charts.html',
   '12-recurrences.html',
   '14-settings-general.html',
+  '14-settings-general-models.html',
+  '15-transaction-import.html',
 ]);
 
 function protoHref(file) {
@@ -145,6 +147,7 @@ function buildShell(active) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  let dialogOpener;
   /* the strip that names the prototype — not part of the application.
      An approved screen lives one folder down, so the index link has to climb
      back out. */
@@ -183,13 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const open = e.target.closest('[data-open]');
-    if (open) document.getElementById(open.dataset.open).style.display = 'grid';
+    if (open) {
+      dialogOpener = open;
+      const dialog = document.getElementById(open.dataset.open);
+      dialog.style.display = 'grid';
+      requestAnimationFrame(() => (dialog.querySelector('[autofocus]') ?? dialog.querySelector('button, input, select, textarea, [href]'))?.focus());
+    }
 
     const close = e.target.closest('[data-close]');
-    if (close) close.closest('.scrim').style.display = 'none';
+    if (close) {
+      close.closest('.scrim').style.display = 'none';
+      dialogOpener?.focus();
+    }
 
     const scrim = e.target.classList?.contains('scrim') ? e.target : null;
-    if (scrim) scrim.style.display = 'none';
+    if (scrim) {
+      scrim.style.display = 'none';
+      dialogOpener?.focus();
+    }
 
     /* expandable table rows — a parent category revealing its subcategories */
     const expand = e.target.closest('[data-expand]');
@@ -208,8 +222,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', (e) => {
+    const openDialog = [...document.querySelectorAll('.scrim')].find((dialog) => getComputedStyle(dialog).display !== 'none');
+    if (e.key === 'Tab' && openDialog) {
+      const controls = [...openDialog.querySelectorAll('button, input, select, textarea, [href]')].filter((control) => !control.disabled);
+      const edge = e.shiftKey ? controls[0] : controls.at(-1);
+      if (document.activeElement === edge) {
+        e.preventDefault();
+        (e.shiftKey ? controls.at(-1) : controls[0])?.focus();
+      }
+      return;
+    }
     if (e.key !== 'Escape') return;
     document.querySelectorAll('.scrim').forEach((s) => (s.style.display = 'none'));
+    dialogOpener?.focus();
     const side = document.getElementById('side');
     if (side) side.dataset.open = 'false';
   });
