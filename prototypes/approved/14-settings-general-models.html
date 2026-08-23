@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>14 — Configurações › Modelos CSV</title>
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
+    <style>
+      .model-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 9px 12px;
+        border-top: 1px solid var(--line);
+      }
+      .model-row:first-child {
+        border-top: 0;
+      }
+      .model-spec {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .form-grid .wide {
+        grid-column: 1 / -1;
+      }
+      @media (max-width: 700px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .form-grid .wide {
+          grid-column: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Approved variant A: compact CSV model management extends Settings General without changing its language behavior. -->
+    <div data-proto="14 — Configurações › Geral · modelos CSV" data-ticket="#228"></div>
+    <div class="proto-note">
+      <strong>Pergunta:</strong> como acrescentar modelos CSV à tela Geral sem transformar uma preferência simples num painel confuso?
+    </div>
+    <div data-shell="general">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Geral</span>
+          </div>
+        </header>
+        <div class="content">
+          <section>
+            <h2>Idioma</h2>
+            <p class="small muted" style="margin: 5px 0 12px">A seção aprovada permanece igual e salva ao trocar.</p>
+            <div class="card card-body" style="max-width: 620px">
+              <label class="field"
+                ><span>Idioma</span
+                ><select class="select" style="max-width: 180px">
+                  <option>Português (Brasil)</option>
+                  <option>English (US)</option>
+                </select></label
+              >
+            </div>
+            <div class="spread" style="max-width: 620px; margin: 30px 0 10px">
+              <div>
+                <h2>Modelos CSV</h2>
+                <p class="small muted">Definem como ler os extratos dos seus bancos.</p>
+              </div>
+              <button class="btn outline sm" data-open="create-model"><span data-icon="plus"></span>Novo modelo</button>
+            </div>
+            <div class="card" style="max-width: 620px">
+              <div class="model-row">
+                <div>
+                  <strong>Banco Atlântico</strong>
+                  <div class="model-spec"><span>;</span><span>1 linha de cabeçalho</span><span>Data · Histórico · Valor</span></div>
+                </div>
+                <button class="btn icon ghost" data-open="delete-model" aria-label="Excluir modelo Banco Atlântico"><span data-icon="trash"></span></button>
+              </div>
+              <div class="model-row">
+                <div>
+                  <strong>Cartão Horizonte</strong>
+                  <div class="model-spec"><span>tabulação</span><span>2 linhas de cabeçalho</span><span>Data compra · Descrição · Montante</span></div>
+                </div>
+                <button class="btn icon ghost" aria-label="Excluir modelo Cartão Horizonte"><span data-icon="trash"></span></button>
+              </div>
+            </div>
+            <div class="spread" style="max-width: 620px; margin-top: 24px">
+              <p class="small muted">Nenhum modelo CSV registrado</p>
+              <button class="btn outline sm" data-open="create-model"><span data-icon="plus"></span>Novo modelo</button>
+            </div>
+          </section>
+          <div class="decisions">
+            <h2>Decisões aprovadas</h2>
+            <ol>
+              <li><b>Organização aprovada:</b> seção contínua e compacta abaixo de Idioma.</li>
+              <li><b>Modelos não têm editar.</b><span>Um modelo incorreto é excluído e recriado, conforme o plano.</span></li>
+              <li><b>Excluir exige o nome do modelo na confirmação.</b><span>O foco entra no diálogo e retorna ao botão de excluir ao cancelar.</span></li>
+              <li><b>A criação usa textos para os cabeçalhos, sem arquivo de exemplo.</b></li>
+            </ol>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="scrim" id="create-model" role="dialog" aria-modal="true" aria-labelledby="create-title">
+      <div class="dialog" style="max-width: 620px">
+        <div class="dialog-head">
+          <h2 id="create-title">Novo modelo CSV</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-grid">
+            <label class="field wide"
+              ><span>Nome</span><input class="input" placeholder="Ex.: Banco Atlântico" autofocus aria-describedby="name-error"
+            /></label>
+            <p class="field-error wide" id="name-error" role="alert" hidden>Já existe um modelo com este nome.</p>
+            <label class="field"><span>Linhas de cabeçalho</span><input class="input" type="number" min="1" max="100" value="1" /></label
+            ><label class="field"
+              ><span>Separador</span
+              ><select class="select">
+                <option>Ponto e vírgula (;)</option>
+                <option>Vírgula (,)</option>
+                <option>Tabulação</option>
+              </select></label
+            ><label class="field"><span>Coluna da data</span><input class="input" value="Data" /></label
+            ><label class="field"><span>Coluna da descrição</span><input class="input" value="Histórico" /></label
+            ><label class="field wide"><span>Coluna do valor</span><input class="input" value="Valor" /></label>
+          </div>
+          <div class="callout info" style="margin-top: 14px">
+            <span data-icon="info"></span>
+            <p>Data: DD-MM-AAAA. Valor: 3606.87; sinal negativo indica despesa.</p>
+          </div>
+        </div>
+        <div class="dialog-foot">
+          <button class="btn ghost sm" type="button" data-show-validation>Mostrar validação</button><span class="grow"></span
+          ><button class="btn outline" data-close>Cancelar</button><button class="btn">Criar modelo</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="delete-model" role="alertdialog" aria-modal="true" aria-labelledby="delete-title">
+      <div class="dialog">
+        <div class="dialog-head">
+          <h2 id="delete-title">Excluir “Banco Atlântico”?</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dialog-body"><p>O modelo não poderá mais ser usado em novas importações. Lançamentos já importados não mudam.</p></div>
+        <div class="dialog-foot">
+          <button class="btn outline" data-close autofocus>Cancelar</button><button class="btn danger">Excluir Banco Atlântico</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('[data-show-validation]')) return;
+        const input = document.querySelector('#create-model input');
+        input.value = 'Banco Atlântico';
+        input.classList.add('error');
+        document.getElementById('name-error').hidden = false;
+        input.focus();
+      });
+    </script>
+  </body>
+</html>

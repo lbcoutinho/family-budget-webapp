@@ -922,7 +922,7 @@ table.data.freeze tfoot td:first-child {
   position: fixed;
   inset: 0;
   background: rgba(20, 22, 26, 0.34);
-  display: grid;
+  display: none;
   place-items: center;
   padding: 20px;
   z-index: 60;
