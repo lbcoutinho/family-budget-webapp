@@ -133,6 +133,7 @@ export function parseRows(
   } catch {
     throw new BadRequestException('CSV files must be UTF-8 encoded.');
   }
+  text = text.replace(/\r\n?|\n/g, '\n');
 
   let records: { record: string[]; info: { lines: number }; raw: string }[];
   try {
@@ -166,7 +167,7 @@ export function parseRows(
   const rows: Row[] = [];
   const invalid: CsvImportResultDto['invalid'] = [];
   for (const record of data) {
-    const line = record.info.lines - (record.raw.replace(/\r\n|\r|\n$/, '').match(/\r\n|\r|\n/g)?.length ?? 0);
+    const line = record.info.lines - (record.raw.replace(/(?:\r\n|\r|\n)$/, '').match(/\r\n|\r|\n/g)?.length ?? 0);
     const date = parseDate(record.record[columns.date]);
     const description = record.record[columns.description]?.trim() ?? '';
     const amount = parseAmount(record.record[columns.amount]);

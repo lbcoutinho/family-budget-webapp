@@ -10,6 +10,12 @@ describe('CSV import parser', () => {
     expect(result.invalid).toEqual([{ line: 4, reason: 'Invalid date.' }]);
   });
 
+  it('keeps the physical start line for CRLF multiline fields', () => {
+    const result = parseRows(Buffer.from('Date;Description;Amount\r\n01-08-2026;"Coffee\r\nshop";-3.50\r\n'), model);
+
+    expect(result.rows[0]?.line).toBe(2);
+  });
+
   it('normalizes only outer and internal whitespace for duplicate matching', () => {
     expect(fingerprint(new Date('2026-08-01'), 'EXPENSE', 350, '  Coffee\t Shop  ')).toBe(fingerprint(new Date('2026-08-01'), 'EXPENSE', 350, 'coffee shop'));
   });
