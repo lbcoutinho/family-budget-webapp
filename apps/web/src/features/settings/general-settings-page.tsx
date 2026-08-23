@@ -115,7 +115,6 @@ export function GeneralSettingsPage() {
     <>
       <PageHeader title={t('nav.settingsGeneral')} />
       <PageContent>
-        <h2 className="mb-3 text-sm font-medium">{t('settingsGeneral.language.heading')}</h2>
         <Card className="max-w-[620px] p-4">
           <div className="grid grid-cols-[minmax(120px,1.5fr)_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5">
             <span className="text-sm font-medium">{t('settingsGeneral.language.label')}</span>
