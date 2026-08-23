@@ -619,7 +619,7 @@
     "language": {
       "heading": "Idioma",
       "label": "Idioma",
-      "note": "Português (Brasil) é o padrão. Números, datas e moeda seguem o idioma escolhido.",
+      "note": "Números, datas e moeda seguem o idioma escolhido.",
       "saving": "Salvando…",
       "success": "Idioma atualizado para {{locale}}.",
       "error": "Não foi possível salvar. O idioma voltou para {{locale}}.",

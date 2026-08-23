@@ -619,7 +619,7 @@
     "language": {
       "heading": "Language",
       "label": "Language",
-      "note": "Português (Brasil) is the default. Numbers, dates and currency follow the chosen language.",
+      "note": "Numbers, dates and currency follow the chosen language.",
       "saving": "Saving…",
       "success": "Language updated to {{locale}}.",
       "error": "Could not save. The language went back to {{locale}}.",
