@@ -145,6 +145,7 @@ function buildShell(active) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  let dialogOpener;
   /* the strip that names the prototype — not part of the application.
      An approved screen lives one folder down, so the index link has to climb
      back out. */
@@ -167,6 +168,43 @@ document.addEventListener('DOMContentLoaded', () => {
     el.outerHTML = icon(el.dataset.icon);
   });
 
+  const variants = document.body.dataset.variants?.split('|').map((item) => {
+    const [key, label] = item.split(':');
+    return { key, label };
+  });
+  if (variants?.length) {
+    const params = new URLSearchParams(location.search);
+    let index = Math.max(
+      0,
+      variants.findIndex(({ key }) => key === params.get('variant')),
+    );
+    const bar = document.createElement('div');
+    bar.className = 'prototype-switcher';
+    bar.setAttribute('aria-label', 'Alternativas do protótipo');
+    bar.innerHTML =
+      '<button type="button" data-variant-step="-1" aria-label="Alternativa anterior">←</button><output></output><button type="button" data-variant-step="1" aria-label="Próxima alternativa">→</button>';
+    document.body.append(bar);
+
+    const showVariant = (next) => {
+      index = (next + variants.length) % variants.length;
+      const current = variants[index];
+      document.querySelectorAll('[data-variant-panel]').forEach((panel) => (panel.hidden = panel.dataset.variantPanel !== current.key));
+      bar.querySelector('output').textContent = `${current.key} — ${current.label}`;
+      params.set('variant', current.key);
+      history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`);
+    };
+
+    bar.addEventListener('click', (event) => {
+      const step = event.target.closest('[data-variant-step]');
+      if (step) showVariant(index + Number(step.dataset.variantStep));
+    });
+    document.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || event.target.closest('input, textarea, select, [contenteditable]')) return;
+      showVariant(index + (event.key === 'ArrowRight' ? 1 : -1));
+    });
+    showVariant(index);
+  }
+
   document.addEventListener('click', (e) => {
     const toggle = e.target.closest('[data-toggle]');
     if (toggle) {
@@ -183,13 +221,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const open = e.target.closest('[data-open]');
-    if (open) document.getElementById(open.dataset.open).style.display = 'grid';
+    if (open) {
+      dialogOpener = open;
+      const dialog = document.getElementById(open.dataset.open);
+      dialog.style.display = 'grid';
+      requestAnimationFrame(() => (dialog.querySelector('[autofocus]') ?? dialog.querySelector('button, input, select, textarea, [href]'))?.focus());
+    }
 
     const close = e.target.closest('[data-close]');
-    if (close) close.closest('.scrim').style.display = 'none';
+    if (close) {
+      close.closest('.scrim').style.display = 'none';
+      dialogOpener?.focus();
+    }
 
     const scrim = e.target.classList?.contains('scrim') ? e.target : null;
-    if (scrim) scrim.style.display = 'none';
+    if (scrim) {
+      scrim.style.display = 'none';
+      dialogOpener?.focus();
+    }
 
     /* expandable table rows — a parent category revealing its subcategories */
     const expand = e.target.closest('[data-expand]');
@@ -208,8 +257,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', (e) => {
+    const openDialog = [...document.querySelectorAll('.scrim')].find((dialog) => getComputedStyle(dialog).display !== 'none');
+    if (e.key === 'Tab' && openDialog) {
+      const controls = [...openDialog.querySelectorAll('button, input, select, textarea, [href]')].filter((control) => !control.disabled);
+      const edge = e.shiftKey ? controls[0] : controls.at(-1);
+      if (document.activeElement === edge) {
+        e.preventDefault();
+        (e.shiftKey ? controls.at(-1) : controls[0])?.focus();
+      }
+      return;
+    }
     if (e.key !== 'Escape') return;
     document.querySelectorAll('.scrim').forEach((s) => (s.style.display = 'none'));
+    dialogOpener?.focus();
     const side = document.getElementById('side');
     if (side) side.dataset.open = 'false';
   });

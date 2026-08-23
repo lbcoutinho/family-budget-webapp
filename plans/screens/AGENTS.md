@@ -39,11 +39,16 @@ already make.
 | 11  | [Charts](11-charts.md)                        | `/reports?view=charts`    |
 | 12  | [Recurrences](12-recurrences.md)              | `/recurrences`            |
 | 13  | [Voice entry](13-voice.md)                    | `/voice`                  |
+| 15  | [CSV transaction import](15-transaction-import.md) | `/transactions/import` |
 
 Screen 14 (Settings › General, `/settings/general`, M3-T13) is outside the original thirteen; its
 issue (#73) asked for `07-settings-general.html`, but 07 is already the entry-form dialog above —
 drawn as 14, the next free number, and flagged as a deviation on the issue rather than reused
 silently.
+
+Screen 15 (CSV transaction import, `/transactions/import`, issue #228) extends the transaction
+workflow after the original inventory. CSV model management remains a section of screen 14, not a
+separate screen.
 
 Current per-screen prototype status (what's in `approved/`, what's still under review) lives in the
 table in `prototypes/MEMORY.md` — check there, not here, for "is screen N approved yet." The ticket

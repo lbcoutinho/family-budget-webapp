@@ -20,23 +20,24 @@ whole set.
 Update this table when a screen's status changes — approving/rejecting a prototype touches only
 this table and that screen's own file, nothing else.
 
-| #   | Screen                      | Status                 | File                                                                         |
-| --- | --------------------------- | ---------------------- | ---------------------------------------------------------------------------- |
-| 00  | Design system               | **approved**           | [memory/00-design-system.md](memory/00-design-system.md)                     |
-| 01  | Login                       | **approved**           | [memory/01-login.md](memory/01-login.md)                                     |
-| 02  | Shell                       | **approved**           | [memory/02-shell.md](memory/02-shell.md)                                     |
-| 03  | Accounts                    | **approved**           | [memory/03-accounts.md](memory/03-accounts.md)                               |
-| 04  | Categories                  | **approved**           | [memory/04-categories.md](memory/04-categories.md)                           |
-| 05  | Cashboxes                   | **approved**           | [memory/05-cashboxes.md](memory/05-cashboxes.md)                             |
-| 06  | Month                       | **approved**           | [memory/06-month.md](memory/06-month.md)                                     |
-| 07  | Income / expense / transfer | **approved**           | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
-| 08  | Cashbox operations          | **approved**           | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
-| 09  | Monthly report              | **approved**           | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
-| 10  | Yearly report               | **approved**           | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
-| 11  | Charts                      | **approved**           | [memory/11-charts.md](memory/11-charts.md)                                   |
-| 12  | Recurrences                 | **approved**           | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
-| 13  | Voice                       | approved, in full      | [memory/13-voice.md](memory/13-voice.md)                                     |
-| 14  | Settings › General          | **approved**           | [memory/14-settings-general.md](memory/14-settings-general.md)               |
+| #   | Screen                      | Status            | File                                                                         |
+| --- | --------------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| 00  | Design system               | **approved**      | [memory/00-design-system.md](memory/00-design-system.md)                     |
+| 01  | Login                       | **approved**      | [memory/01-login.md](memory/01-login.md)                                     |
+| 02  | Shell                       | **approved**      | [memory/02-shell.md](memory/02-shell.md)                                     |
+| 03  | Accounts                    | **approved**      | [memory/03-accounts.md](memory/03-accounts.md)                               |
+| 04  | Categories                  | **approved**      | [memory/04-categories.md](memory/04-categories.md)                           |
+| 05  | Cashboxes                   | **approved**      | [memory/05-cashboxes.md](memory/05-cashboxes.md)                             |
+| 06  | Month                       | **approved**      | [memory/06-month.md](memory/06-month.md)                                     |
+| 07  | Income / expense / transfer | **approved**      | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
+| 08  | Cashbox operations          | **approved**      | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
+| 09  | Monthly report              | **approved**      | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |
+| 10  | Yearly report               | **approved**      | [memory/10-yearly-report.md](memory/10-yearly-report.md)                     |
+| 11  | Charts                      | **approved**      | [memory/11-charts.md](memory/11-charts.md)                                   |
+| 12  | Recurrences                 | **approved**      | [memory/12-recurrences.md](memory/12-recurrences.md)                         |
+| 13  | Voice                       | approved, in full | [memory/13-voice.md](memory/13-voice.md)                                     |
+| 14  | Settings › General          | **approved**      | [memory/14-settings-general.md](memory/14-settings-general.md)               |
+| 15  | CSV transaction import      | **under review**  | [memory/15-transaction-import.md](memory/15-transaction-import.md)           |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
 type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,

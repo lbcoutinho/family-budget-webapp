@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>15 — Importar lançamentos CSV</title>
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .import-layout {
+        display: grid;
+        gap: 18px;
+      }
+      .import-layout.split {
+        grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+        align-items: start;
+      }
+      .setup {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .drop {
+        min-height: 92px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+        background: var(--wash);
+        padding: 16px;
+      }
+      .state-nav {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin: 18px 0 12px;
+      }
+      .state-nav button[aria-pressed='true'] {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-bottom: 1px solid var(--line);
+      }
+      .summary div {
+        padding: 13px 15px;
+        border-right: 1px solid var(--line);
+      }
+      .summary div:last-child {
+        border: 0;
+      }
+      .summary strong {
+        display: block;
+        font-size: clamp(1.5rem, 3.4vw, 1.95rem);
+        font-variant-numeric: tabular-nums;
+      }
+      .preview td:first-child,
+      .preview th:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background: var(--surface);
+      }
+      .preview tr[aria-disabled='true'] {
+        color: var(--ink-soft);
+        background: var(--wash);
+      }
+      .preview input {
+        accent-color: var(--action);
+      }
+      .reason {
+        min-width: 190px;
+      }
+      .step-list {
+        display: grid;
+        gap: 2px;
+        counter-reset: steps;
+      }
+      .step-list button {
+        counter-increment: steps;
+        text-align: left;
+        border: 0;
+        border-left: 2px solid var(--line);
+        background: transparent;
+        padding: 10px 12px;
+        color: var(--ink-soft);
+        font: inherit;
+      }
+      .step-list button::before {
+        content: counter(steps) '. ';
+        font-variant-numeric: tabular-nums;
+      }
+      .step-list button[aria-current='step'] {
+        border-color: var(--action);
+        color: var(--ink);
+        font-weight: 600;
+      }
+      details.result {
+        border-top: 1px solid var(--line);
+        padding: 12px 16px;
+      }
+      details.result summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      @media (max-width: 760px) {
+        .import-layout.split,
+        .setup {
+          grid-template-columns: 1fr;
+        }
+        .summary {
+          grid-template-columns: 1fr 1fr;
+        }
+        .summary div:nth-child(2) {
+          border-right: 0;
+        }
+        .prototype-switcher {
+          bottom: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body data-variants="A:Prévia primeiro|B:Etapas guiadas|C:Área dividida">
+    <!-- Three variants of CSV transaction import, switchable via ?variant=, beside the existing transaction surface. -->
+    <div data-proto="15 — Importar lançamentos CSV" data-ticket="#228"></div>
+    <div class="proto-note"><strong>Pergunta:</strong> qual estrutura deixa seleção, exceções e confirmação mais claras sem esconder a prévia?</div>
+    <div data-shell="month">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Importar CSV</span>
+          </div>
+          <a class="btn outline top-action" href="approved/06-month.html">Voltar para lançamentos</a>
+        </header>
+        <div class="content">
+          <div class="card card-body spread" style="margin-bottom: 18px">
+            <div>
+              <h2>Ponto de entrada em Lançamentos</h2>
+              <p class="small muted">A ação “Importar CSV” fica ao lado de “Novo lançamento”; sem modelo salvo, leva para Configurações › Geral.</p>
+            </div>
+            <button class="btn outline"><span data-icon="download"></span>Importar CSV</button>
+          </div>
+          <section data-variant-panel="A">
+            <h1>Importar lançamentos</h1>
+            <p class="muted" style="margin: 6px 0 18px; max-width: 68ch">
+              Escolha como ler o extrato, revise cada linha e importe somente os lançamentos novos.
+            </p>
+            <div class="setup">
+              <label class="field"
+                ><span>Modelo CSV</span
+                ><select class="select">
+                  <option>Banco Atlântico</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Conta de destino</span
+                ><select class="select">
+                  <option>Conta corrente</option>
+                </select></label
+              >
+              <div class="drop">
+                <button class="btn outline sm" type="button">Trocar arquivo</button><span class="small muted">extrato-julho.csv · 18 KB</span>
+              </div>
+            </div>
+            <div class="state-nav" aria-label="Estados demonstrados">
+              <button class="btn outline sm" aria-pressed="true" data-demo="preview">Prévia</button
+              ><button class="btn outline sm" data-demo="none">Nada importável</button><button class="btn outline sm" data-demo="loading">Carregando</button
+              ><button class="btn outline sm" data-demo="error">Erro</button><button class="btn outline sm" data-demo="result">Resultado</button>
+            </div>
+            <div data-demo-panel="preview">
+              <div class="card">
+                <div class="summary">
+                  <div><strong>4</strong><span class="small muted">linhas novas</span></div>
+                  <div><strong>1</strong><span class="small muted">duplicada</span></div>
+                  <div><strong>1</strong><span class="small muted">inválida</span></div>
+                  <div><strong>3</strong><span class="small muted">selecionadas</span></div>
+                </div>
+                <div class="table-wrap">
+                  <table class="data preview">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" checked aria-label="Selecionar todas as linhas novas" /></th>
+                        <th>Linha</th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th class="right">Valor</th>
+                        <th>Situação</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><input type="checkbox" checked aria-label="Selecionar linha 3" /></td>
+                        <td class="num">3</td>
+                        <td class="num">02/07/2026</td>
+                        <td>Supermercado Aurora</td>
+                        <td class="num right out">− 84,32 €</td>
+                        <td><span class="badge income">nova</span></td>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" checked aria-label="Selecionar linha 4" /></td>
+                        <td class="num">4</td>
+                        <td class="num">03/07/2026</td>
+                        <td>Salário</td>
+                        <td class="num right in">+ 3.606,87 €</td>
+                        <td><span class="badge income">nova</span></td>
+                        <td>—</td>
+                      </tr>
+                      <tr aria-disabled="true">
+                        <td><input type="checkbox" disabled aria-label="Linha 5 duplicada" /></td>
+                        <td class="num">5</td>
+                        <td class="num">04/07/2026</td>
+                        <td>Farmácia Central</td>
+                        <td class="num right out">− 22,40 €</td>
+                        <td><span class="badge transfer">duplicada</span></td>
+                        <td class="reason">Já existe nesta conta</td>
+                      </tr>
+                      <tr aria-disabled="true">
+                        <td><input type="checkbox" disabled aria-label="Linha 6 inválida" /></td>
+                        <td class="num">6</td>
+                        <td class="num">31/02/2026</td>
+                        <td>Padaria</td>
+                        <td class="num right out">− 8,20 €</td>
+                        <td><span class="badge expense">inválida</span></td>
+                        <td class="reason">Data inexistente</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="card-foot spread">
+                  <span class="small muted" role="status">3 de 4 linhas novas selecionadas. A prévia ainda não grava lançamentos.</span
+                  ><button class="btn">Importar 3 lançamentos</button>
+                </div>
+              </div>
+            </div>
+            <div data-demo-panel="none" hidden>
+              <div class="callout info" role="status">
+                <span data-icon="info"></span>
+                <div>
+                  <strong>Nenhuma linha pode ser importada</strong>
+                  <p>Todas as 5 linhas são duplicadas ou inválidas. Corrija o arquivo ou escolha outro extrato.</p>
+                </div>
+              </div>
+              <p style="margin-top: 12px"><button class="btn" disabled>Importar lançamentos</button></p>
+            </div>
+            <div data-demo-panel="loading" hidden>
+              <div class="card card-body" role="status" aria-live="polite">
+                <strong>Lendo 8.742 linhas…</strong>
+                <p class="muted small">Validando datas, valores e duplicidades. Nenhum lançamento foi gravado.</p>
+              </div>
+            </div>
+            <div data-demo-panel="error" hidden>
+              <div class="callout error" role="alert">
+                <span data-icon="alert"></span>
+                <div>
+                  <strong>Não encontramos a coluna “Valor”</strong>
+                  <p>O modelo Banco Atlântico espera as colunas Data, Histórico e Valor. Escolha outro modelo ou corrija o arquivo.</p>
+                  <button class="btn outline sm" style="margin-top: 8px">Escolher outro arquivo</button>
+                </div>
+              </div>
+            </div>
+            <div data-demo-panel="result" hidden>
+              <div class="callout success" role="status">
+                <span data-icon="check"></span>
+                <div>
+                  <strong>3 lançamentos importados como rascunho</strong>
+                  <p>Revise e confirme cada lançamento na tela do mês antes que ele afete saldos e relatórios.</p>
+                </div>
+              </div>
+              <div class="card" style="margin-top: 12px">
+                <details class="result">
+                  <summary>1 linha duplicada ignorada</summary>
+                  <p class="small muted" style="margin-top: 8px">Linha 5 · Farmácia Central · − 22,40 €</p>
+                </details>
+                <details class="result">
+                  <summary>1 linha inválida ignorada</summary>
+                  <p class="small muted" style="margin-top: 8px">Linha 6 · Data inexistente: 31/02/2026</p>
+                </details>
+                <details class="result">
+                  <summary>1 linha válida não selecionada</summary>
+                  <p class="small muted" style="margin-top: 8px">Linha 8 · Cinema · − 18,00 €</p>
+                </details>
+              </div>
+              <a class="btn" style="margin-top: 14px" href="approved/06-month.html">Voltar para lançamentos</a>
+            </div>
+          </section>
+
+          <section data-variant-panel="B" hidden>
+            <h1>Importar lançamentos</h1>
+            <p class="muted" style="margin: 6px 0 18px">Uma etapa por vez, com a decisão atual sempre em primeiro plano.</p>
+            <div class="import-layout split">
+              <nav class="step-list" aria-label="Etapas">
+                <button aria-current="step">Escolher origem</button><button>Revisar 6 linhas</button><button>Confirmar importação</button
+                ><button>Ver resultado</button>
+              </nav>
+              <div class="card">
+                <div class="card-head">
+                  <div>
+                    <h2>1. Escolha a origem</h2>
+                    <p class="small muted">O arquivo só é enviado para gerar a prévia.</p>
+                  </div>
+                </div>
+                <div class="card-body stack">
+                  <label class="field"
+                    ><span>Modelo CSV</span
+                    ><select class="select">
+                      <option>Banco Atlântico</option>
+                    </select></label
+                  ><label class="field"
+                    ><span>Conta de destino</span
+                    ><select class="select">
+                      <option>Conta corrente</option>
+                    </select></label
+                  ><label class="drop"><input type="file" accept=".csv,text/csv" /><span>Selecionar arquivo CSV</span></label>
+                </div>
+                <div class="card-foot right"><button class="btn">Gerar prévia</button></div>
+              </div>
+            </div>
+          </section>
+
+          <section data-variant-panel="C" hidden>
+            <h1>Importar lançamentos</h1>
+            <p class="muted" style="margin: 6px 0 18px">Configuração fixa à esquerda; extrato e decisões ocupam a área larga.</p>
+            <div class="import-layout split">
+              <aside class="card">
+                <div class="card-body stack">
+                  <h2>Origem</h2>
+                  <label class="field"
+                    ><span>Modelo CSV</span
+                    ><select class="select">
+                      <option>Banco Atlântico</option>
+                    </select></label
+                  ><label class="field"
+                    ><span>Conta</span
+                    ><select class="select">
+                      <option>Conta corrente</option>
+                    </select></label
+                  >
+                  <div class="drop">
+                    <button class="btn outline sm" type="button">Trocar arquivo</button><span class="small muted">extrato-julho.csv · 18 KB</span>
+                  </div>
+                  <div class="callout info">
+                    <span data-icon="info"></span>
+                    <p>A prévia não grava nada.</p>
+                  </div>
+                </div>
+              </aside>
+              <div>
+                <div class="spread" style="margin-bottom: 10px">
+                  <div>
+                    <h2>Prévia do extrato</h2>
+                    <p class="small muted">6 linhas · 3 selecionadas</p>
+                  </div>
+                  <button class="btn">Importar 3</button>
+                </div>
+                <div class="card card-body">
+                  <p><strong>Mesma tabela detalhada da alternativa A.</strong></p>
+                  <p class="small muted">Aqui o ganho a avaliar é manter modelo, conta e arquivo visíveis durante toda a revisão.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <ol>
+              <li><b>Estrutura:</b> prévia primeiro (A), etapas guiadas (B) ou área dividida (C).</li>
+              <li>
+                <b>No celular, a tabela continua tabela com a coluna de seleção congelada.</b
+                ><span>As exceções precisam ser comparadas linha a linha; cartões perderiam essa leitura.</span>
+              </li>
+              <li>
+                <b>Duplicadas e inválidas ficam visíveis, mas não selecionáveis.</b
+                ><span>A confirmação informa por que está desabilitada quando nenhuma linha nova está selecionada.</span>
+              </li>
+              <li>
+                <b>Resultado permanece na mesma rota e abre detalhes sob demanda.</b><span>O retorno leva a Lançamentos; importados entram como rascunho.</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script>
+      document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-demo]');
+        if (!button) return;
+        document.querySelectorAll('[data-demo]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        document.querySelectorAll('[data-demo-panel]').forEach((panel) => (panel.hidden = panel.dataset.demoPanel !== button.dataset.demo));
+      });
+    </script>
+  </body>
+</html>

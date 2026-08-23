@@ -2,6 +2,8 @@
 
 Status: **approved**, in `approved/14-settings-general.html`. Ticket M3-T13, issue #73.
 
+CSV model management extension: **under review** in `14-settings-general-models.html`, issue #228.
+
 ## What's settled going in (from the ticket)
 
 - New nav item **Geral**, inside the Configurações submenu, above Contas and Categorias.
@@ -40,3 +42,10 @@ and the error message now span from the start of the label to the end of the fie
 became a two-column grid with the note/error on a full-width row beneath), instead of being trapped
 under the label's column only; label column widened; `.select` narrowed to 160px, sized to the text
 it holds rather than a flat 220px minimum.
+
+## CSV model management — under review
+
+Three structures are available through `?variant=A|B|C`: a continuous section below Language,
+local section navigation, and side-by-side inline creation. All preserve the approved language
+behavior. Creation captures exact header names without an example file; case-insensitive duplicate
+name and bounds errors are inline. Deletion names the model and does not affect imported drafts.
