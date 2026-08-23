@@ -1,6 +1,6 @@
 import { type CreateCsvImportModelDto } from '@family-budget/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2Icon } from 'lucide-react';
+import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -64,7 +64,7 @@ export function CsvImportModelDialog({
     formState: { errors },
   } = useForm<CsvImportModelFormInput, unknown, CsvImportModelFormValues>({
     resolver: zodResolver(csvImportModelSchema),
-    defaultValues: { name: '', headerLineCount: 1, separator: ';', dateHeader: 'Data', descriptionHeader: 'Histórico', amountHeader: 'Valor' },
+    defaultValues: { name: '', headerLineCount: 1, separator: ';', dateHeader: '', descriptionHeader: '', amountHeader: '' },
   });
 
   useEffect(() => {
@@ -137,7 +137,10 @@ export function CsvImportModelDialog({
               <Input id="csv-model-amount-header" aria-invalid={errors.amountHeader !== undefined} disabled={isPending} {...register('amountHeader')} />
             </Field>
           </div>
-          <p className="rounded-md border border-primary/20 bg-primary/10 p-3 text-sm text-foreground">{t('settingsGeneral.models.form.hint')}</p>
+          <p className="flex items-start gap-2 rounded-md border-l-[3px] border-transfer bg-[#e8eff7] px-3 py-2.5 text-xs text-transfer">
+            <InfoIcon aria-hidden className="mt-px size-[15px] shrink-0" />
+            <span>{t('settingsGeneral.models.form.hint')}</span>
+          </p>
           {error !== undefined && error !== null && (
             <p role="alert" className="text-sm text-destructive">
               {apiErrorMessage(error, t)}

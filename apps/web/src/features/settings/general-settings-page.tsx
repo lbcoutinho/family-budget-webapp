@@ -189,10 +189,7 @@ export function GeneralSettingsPage() {
               ))}
             </Card>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-              <p>{t('settingsGeneral.models.empty')}</p>
-              <p>{t('settingsGeneral.models.emptyDescription')}</p>
-            </div>
+            <p className="text-sm text-muted-foreground">{t('settingsGeneral.models.empty')}</p>
           )}
         </section>
         {isAdmin && (

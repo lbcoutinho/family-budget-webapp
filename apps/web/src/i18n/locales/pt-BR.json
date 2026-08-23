@@ -636,7 +636,6 @@
       "loading": "Carregando modelos CSV…",
       "error": "Não foi possível carregar os modelos CSV.",
       "empty": "Nenhum modelo CSV registrado.",
-      "emptyDescription": "Crie um modelo antes de importar lançamentos.",
       "headerLines_one": "{{count}} linha de cabeçalho",
       "headerLines_other": "{{count}} linhas de cabeçalho",
       "separators": { "semicolon": "Ponto e vírgula (;)", "comma": "Vírgula (,)", "tab": "Tabulação" },

@@ -636,7 +636,6 @@
       "loading": "Loading CSV models…",
       "error": "Could not load CSV models.",
       "empty": "No CSV models registered.",
-      "emptyDescription": "Create a model before importing entries.",
       "headerLines_one": "{{count}} header line",
       "headerLines_other": "{{count}} header lines",
       "separators": { "semicolon": "Semicolon (;)", "comma": "Comma (,)", "tab": "Tab" },

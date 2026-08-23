@@ -57,11 +57,10 @@ afterEach(() => {
 });
 
 describe('GeneralSettingsPage', () => {
-  it('shows the compact empty state and explains that a model is needed before importing', async () => {
+  it('shows the compact empty state', async () => {
     renderPage();
 
     expect(await screen.findByText('Nenhum modelo CSV registrado.')).toBeInTheDocument();
-    expect(screen.getByText('Crie um modelo antes de importar lançamentos.')).toBeInTheDocument();
   });
 
   it('shows loading and error states for CSV models', async () => {
@@ -102,7 +101,14 @@ describe('GeneralSettingsPage', () => {
     expect(await screen.findByText('Banco Atlântico')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Novo modelo' }));
     expect(await screen.findByLabelText('Nome')).toHaveFocus();
+    expect(screen.getByLabelText('Coluna da data')).toHaveValue('');
+    expect(screen.getByLabelText('Coluna da descrição')).toHaveValue('');
+    expect(screen.getByLabelText('Coluna do valor')).toHaveValue('');
+    expect(screen.getByText('Data: DD-MM-AAAA. Valor: 3606.87; sinal negativo indica despesa.')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Nome'), 'Cartão Horizonte');
+    await user.type(screen.getByLabelText('Coluna da data'), 'Data');
+    await user.type(screen.getByLabelText('Coluna da descrição'), 'Histórico');
+    await user.type(screen.getByLabelText('Coluna do valor'), 'Valor');
     await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
 
     expect(requestBody).toEqual({
@@ -124,6 +130,9 @@ describe('GeneralSettingsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
     expect(await screen.findByText('Informe o nome do modelo.')).toBeInTheDocument();
     await user.type(screen.getByLabelText('Nome'), 'Banco Atlântico');
+    await user.type(screen.getByLabelText('Coluna da data'), 'Data');
+    await user.type(screen.getByLabelText('Coluna da descrição'), 'Histórico');
+    await user.type(screen.getByLabelText('Coluna do valor'), 'Valor');
     await user.click(screen.getByRole('button', { name: 'Criar modelo' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Já existe um registo com esse nome.');
   });
