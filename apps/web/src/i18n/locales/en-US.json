@@ -665,15 +665,46 @@
   "settingsGeneral": {
     "language": {
       "heading": "Language",
-      "description": "Changes the whole interface's language, without reloading the page. The choice belongs to the account, not the browser — it survives logging out and back in.",
       "label": "Language",
-      "note": "Português (Brasil) is the default. Numbers, dates and currency follow the chosen language.",
+      "note": "Numbers, dates and currency follow the chosen language.",
       "saving": "Saving…",
       "success": "Language updated to {{locale}}.",
       "error": "Could not save. The language went back to {{locale}}.",
       "options": {
         "pt-BR": "Português (Brasil)",
         "en-US": "English (US)"
+      }
+    },
+    "models": {
+      "heading": "CSV models",
+      "description": "They define how to read your bank statements.",
+      "create": "New model",
+      "loading": "Loading CSV models…",
+      "error": "Could not load CSV models.",
+      "empty": "No CSV models registered.",
+      "headerLines_one": "{{count}} header line",
+      "headerLines_other": "{{count}} header lines",
+      "separators": { "semicolon": "Semicolon (;)", "comma": "Comma (,)", "tab": "Tab" },
+      "form": {
+        "title": "New CSV model",
+        "name": "Name",
+        "nameRequired": "Enter the model name.",
+        "nameTooLong": "The name can have at most 100 characters.",
+        "headerLines": "Header lines",
+        "headerLinesRange": "Enter between 1 and 100 header lines.",
+        "separator": "Separator",
+        "dateHeader": "Date column",
+        "descriptionHeader": "Description column",
+        "amountHeader": "Amount column",
+        "headerRequired": "Enter the exact column name.",
+        "hint": "Date: DD-MM-YYYY. Amount: 3606.87; a negative sign means an expense.",
+        "submit": "Create model"
+      },
+      "delete": {
+        "button": "Delete model {{name}}",
+        "title": "Delete “{{name}}”?",
+        "description": "The model can no longer be used for new imports. Already imported entries do not change.",
+        "confirm": "Delete {{name}}"
       }
     },
     "backup": {

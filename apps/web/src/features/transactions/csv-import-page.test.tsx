@@ -13,7 +13,7 @@ vi.mock('@family-budget/api-client', () => ({
   useListCsvImportModels: () => ({ data: [{ id: 'model-1', name: 'Banco Atlântico' }], isPending: false, isError: false, refetch: vi.fn() }),
   useListAccounts: () => ({ data: [{ id: 'account-1', name: 'Conta corrente' }], isPending: false, isError: false, refetch: vi.fn() }),
   usePreviewCsvImport: (options: { mutation: { onSuccess: (result: unknown) => void } }) => ({
-    mutate: (value: unknown) => {
+    mutate: (value: { data: { modelId: string; accountId: string; file: File } }) => {
       api.preview(value);
       options.mutation.onSuccess({
         new: [{ line: 3 }, { line: 8 }],
@@ -26,7 +26,7 @@ vi.mock('@family-budget/api-client', () => ({
     isError: false,
   }),
   useConfirmCsvImport: (options: { mutation: { onSuccess: (result: unknown) => void } }) => ({
-    mutate: (value: unknown) => {
+    mutate: (value: { data: { modelId: string; accountId: string; selectedLines: number[]; file: File } }) => {
       api.confirm(value);
       options.mutation.onSuccess({
         new: [{ line: 3 }],
