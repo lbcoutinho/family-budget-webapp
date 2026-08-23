@@ -1,15 +1,28 @@
-import { axiosInstance, type AuthUserDto, type SessionDto, useUpdateCurrentUser } from '@family-budget/api-client';
+import {
+  axiosInstance,
+  type AuthUserDto,
+  type CsvImportModelDto,
+  type SessionDto,
+  getListCsvImportModelsQueryKey,
+  useCreateCsvImportModel,
+  useDeleteCsvImportModel,
+  useListCsvImportModels,
+  useUpdateCurrentUser,
+} from '@family-budget/api-client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { DownloadIcon, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
-import { useState } from 'react';
+import { DownloadIcon, Loader2Icon, PlusIcon, Trash2Icon, TriangleAlertIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+
+import { CsvImportModelDialog } from './csv-import-model-dialog';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/auth-context';
 import { SESSION_QUERY_KEY } from '@/features/auth/auth-provider';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale, type TranslationKey } from '@/i18n';
@@ -31,6 +44,9 @@ export function GeneralSettingsPage() {
   const queryClient = useQueryClient();
   const [failed, setFailed] = useState(false);
   const [backupDialogOpen, setBackupDialogOpen] = useState(false);
+  const [createModelOpen, setCreateModelOpen] = useState(false);
+  const [deletingModel, setDeletingModel] = useState<CsvImportModelDto | null>(null);
+  const deleteTriggerRef = useRef<HTMLButtonElement>(null);
 
   const locale = user?.locale ?? DEFAULT_LOCALE;
 
@@ -75,6 +91,25 @@ export function GeneralSettingsPage() {
       setBackupDialogOpen(false);
     },
   });
+  const models = useListCsvImportModels();
+  const invalidateModels = () => void queryClient.invalidateQueries({ queryKey: getListCsvImportModelsQueryKey() });
+  const createModel = useCreateCsvImportModel({
+    mutation: {
+      onSuccess: () => {
+        invalidateModels();
+        setCreateModelOpen(false);
+      },
+    },
+  });
+  const deleteModel = useDeleteCsvImportModel({
+    mutation: {
+      onSuccess: () => {
+        invalidateModels();
+        setDeletingModel(null);
+      },
+      onError: (error) => toast.error(apiErrorMessage(error, t)),
+    },
+  });
 
   return (
     <>
@@ -104,6 +139,62 @@ export function GeneralSettingsPage() {
             {!failed && !updateLocale.isPending && <p className="col-span-2 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
           </div>
         </Card>
+        <section className="mt-7 max-w-[620px]">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.models.heading')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t('settingsGeneral.models.description')}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCreateModelOpen(true)}>
+              <PlusIcon />
+              {t('settingsGeneral.models.create')}
+            </Button>
+          </div>
+          {models.isPending ? (
+            <Card className="grid gap-3 p-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-3/4" />
+            </Card>
+          ) : models.isError ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t('settingsGeneral.models.error')}{' '}
+              <Button variant="link" size="sm" onClick={() => void models.refetch()}>
+                {t('common.retry')}
+              </Button>
+            </p>
+          ) : models.data?.length ? (
+            <Card className="divide-y p-0">
+              {models.data.map((model) => (
+                <div key={model.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="font-medium">{model.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {t(`settingsGeneral.models.separators.${model.separator === '\t' ? 'tab' : model.separator === ';' ? 'semicolon' : 'comma'}`)} ·{' '}
+                      {t('settingsGeneral.models.headerLines', { count: model.headerLineCount })} · {model.dateHeader} · {model.descriptionHeader} ·{' '}
+                      {model.amountHeader}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t('settingsGeneral.models.delete.button', { name: model.name })}
+                    onClick={(event) => {
+                      deleteTriggerRef.current = event.currentTarget;
+                      setDeletingModel(model);
+                    }}
+                  >
+                    <Trash2Icon />
+                  </Button>
+                </div>
+              ))}
+            </Card>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+              <p>{t('settingsGeneral.models.empty')}</p>
+              <p>{t('settingsGeneral.models.emptyDescription')}</p>
+            </div>
+          )}
+        </section>
         {isAdmin && (
           <section className="mt-7">
             <h2 className="mb-3 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.backup.adminHeading')}</h2>
@@ -140,6 +231,28 @@ export function GeneralSettingsPage() {
           </section>
         )}
       </PageContent>
+      <CsvImportModelDialog
+        open={createModelOpen}
+        onOpenChange={setCreateModelOpen}
+        isPending={createModel.isPending}
+        error={createModel.error}
+        onSubmit={(data) => createModel.mutate({ data })}
+      />
+      <ConfirmDialog
+        open={deletingModel !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingModel(null);
+            setTimeout(() => deleteTriggerRef.current?.focus());
+          }
+        }}
+        title={t('settingsGeneral.models.delete.title', { name: deletingModel?.name })}
+        description={t('settingsGeneral.models.delete.description')}
+        confirmLabel={t('settingsGeneral.models.delete.confirm', { name: deletingModel?.name })}
+        variant="destructive"
+        isPending={deleteModel.isPending}
+        onConfirm={() => deletingModel && deleteModel.mutate({ id: deletingModel.id })}
+      />
     </>
   );
 }
