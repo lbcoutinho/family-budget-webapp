@@ -117,7 +117,10 @@ export function GeneralSettingsPage() {
       <PageContent>
         <Card className="max-w-[620px] p-4">
           <div className="grid grid-cols-[minmax(120px,1.5fr)_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5">
-            <h3 className="text-sm font-medium">{t('settingsGeneral.language.label')}</h3>
+            <div>
+              <h3 className="text-sm font-medium">{t('settingsGeneral.language.label')}</h3>
+              {!failed && !updateLocale.isPending && <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
+            </div>
             <Select value={locale} disabled={updateLocale.isPending} onValueChange={(value) => handleChange(value as SupportedLocale)}>
               <SelectTrigger id="settings-language" className="w-40" aria-label={t('settingsGeneral.language.label')}>
                 <SelectValue />
@@ -134,7 +137,6 @@ export function GeneralSettingsPage() {
             {failed && !updateLocale.isPending && (
               <p className="col-span-2 text-xs text-destructive">{t('settingsGeneral.language.error', { locale: t(LOCALE_LABEL_KEY[locale]) })}</p>
             )}
-            {!failed && !updateLocale.isPending && <p className="col-span-2 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
           </div>
         </Card>
         <section className="mt-7 max-w-[620px]">
