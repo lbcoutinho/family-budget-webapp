@@ -10,6 +10,7 @@ import { BackupWriteLockMiddleware } from './modules/backup/backup-write-lock.mi
 import { BackupModule } from './modules/backup/backup.module';
 import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { CsvImportModule } from './modules/csv-import/csv-import.module';
 import { CsvImportModelsModule } from './modules/csv-import-models/csv-import-models.module';
 import { RecurrenceModule } from './modules/recurrence/recurrence.module';
 import { ReportsModule } from './modules/reports/reports.module';
@@ -47,6 +48,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CashboxesModule,
     CategoriesModule,
     CsvImportModelsModule,
+    CsvImportModule,
     RecurrenceModule,
     ReportsModule,
     TransactionsModule,
