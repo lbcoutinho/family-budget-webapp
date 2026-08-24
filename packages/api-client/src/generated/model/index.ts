@@ -37,6 +37,7 @@ export * from './csvImportModelDto';
 export * from './csvImportModelDtoSeparator';
 export * from './csvImportResultDto';
 export * from './csvImportRowDto';
+export * from './csvImportRowDtoType';
 export * from './generateRecurrenceRuleResultDto';
 export * from './getCashboxesReportParams';
 export * from './getMonthlyReportParams';

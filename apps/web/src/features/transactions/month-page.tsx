@@ -25,6 +25,7 @@ import {
   ChevronRightIcon,
   CreditCardIcon,
   FilterIcon,
+  FileUpIcon,
   PencilIcon,
   PiggyBankIcon,
   PlusIcon,
@@ -500,6 +501,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             <Button size="sm" className="text-[12.5px]" onClick={() => setEntryDialogOpen(true)}>
               <PlusIcon />
               {t('transactions.new')}
+            </Button>
+            <Button variant="outline" size="sm" className="text-[12.5px]" onClick={() => void navigate('/transactions/import')}>
+              <FileUpIcon />
+              {t('transactions.import.action')}
             </Button>
           </div>
         }

@@ -32,6 +32,12 @@ describe('apiErrorMessage', () => {
     expect(apiErrorMessage(error, i18n.t)).toBe(i18n.t('errors.CATEGORY_LAST_ACTIVE_SUBCATEGORY'));
   });
 
+  it('translates CSV import errors by their stable code', async () => {
+    const error = await errorFrom({ statusCode: 400, code: 'CSV_IMPORT_FILE_NOT_UTF8', message: 'CSV files must be UTF-8 encoded.' });
+
+    expect(apiErrorMessage(error, i18n.t)).toBe(i18n.t('errors.CSV_IMPORT_FILE_NOT_UTF8'));
+  });
+
   it('falls back to the generic message for an unknown code, never to the API English', async () => {
     const error = await errorFrom({ statusCode: 409, code: 'SOMETHING_THE_WEB_DOES_NOT_KNOW_YET', message: 'Business rule violated.' });
 

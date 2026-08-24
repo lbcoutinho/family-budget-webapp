@@ -1,7 +1,8 @@
 import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { ApiErrorDto } from '../../common/api-error';
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -29,6 +30,7 @@ export class CsvImportController {
     },
   })
   @ApiOkResponse({ type: CsvImportResultDto })
+  @ApiBadRequestResponse({ type: ApiErrorDto, description: 'The CSV file is missing, invalid, or does not match its configured model.' })
   @UseInterceptors(upload)
   @Post('preview')
   preview(
@@ -53,6 +55,7 @@ export class CsvImportController {
     },
   })
   @ApiOkResponse({ type: CsvImportResultDto })
+  @ApiBadRequestResponse({ type: ApiErrorDto, description: 'The CSV file is missing, invalid, or does not match its configured model.' })
   @UseInterceptors(upload)
   @Post('confirm')
   confirm(

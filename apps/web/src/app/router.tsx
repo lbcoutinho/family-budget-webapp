@@ -10,6 +10,7 @@ import { CategoriesPage } from '@/features/categories/categories-page';
 import { RecurrencesPage } from '@/features/recurrences/recurrences-page';
 import { ReportsPage } from '@/features/reports/reports-page';
 import { GeneralSettingsPage } from '@/features/settings/general-settings-page';
+import { CsvImportPage } from '@/features/transactions/csv-import-page';
 import { MonthPage } from '@/features/transactions/month-page';
 import { currentMonthPath } from '@/lib/date';
 
@@ -39,6 +40,7 @@ export const routes = [
       { index: true, element: <Navigate to="/month" replace /> },
       { path: 'month', element: <Navigate to={currentMonthPath()} replace /> },
       { path: 'month/:year/:month', element: <MonthPage /> },
+      { path: 'transactions/import', element: <CsvImportPage /> },
       { path: 'cashboxes', element: <CashboxesPage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },

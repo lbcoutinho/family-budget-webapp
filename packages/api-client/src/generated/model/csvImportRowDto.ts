@@ -5,8 +5,15 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { CsvImportRowDtoType } from './csvImportRowDtoType';
 
 export interface CsvImportRowDto {
   line: number;
+  /** Date from the CSV row. Valid rows use `YYYY-MM-DD`. */
+  date?: string;
+  description?: string;
+  /** Always positive, in cents. */
+  amount?: number;
+  type?: CsvImportRowDtoType;
   reason?: string;
 }

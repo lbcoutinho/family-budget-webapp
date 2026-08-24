@@ -163,4 +163,3 @@ Category suggestions are deliberately outside this delivery but retained as the 
 3. Keep every imported transaction in `DRAFT`, including transactions with suggestions.
 4. Leave categories empty when no unambiguous match exists.
 5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
-
