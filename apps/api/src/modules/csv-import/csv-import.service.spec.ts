@@ -9,7 +9,7 @@ describe('CSV import parser', () => {
     const result = parseRows(Buffer.from('\uFEFFDate;Description;Amount\n01-08-2026;"Coffee\nshop";-3.50\n31-02-2026;Bad;2.00\n'), model);
 
     expect(result.rows).toEqual([{ line: 2, date: new Date('2026-08-01'), description: 'Coffee\nshop', amount: 350, type: 'EXPENSE' }]);
-    expect(result.invalid).toEqual([{ line: 4, reason: 'Invalid date.' }]);
+    expect(result.invalid).toEqual([{ line: 4, date: '31-02-2026', description: 'Bad', amount: 200, type: 'INCOME', reason: 'Invalid date.' }]);
   });
 
   it('keeps the physical start line for CRLF multiline fields', () => {
