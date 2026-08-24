@@ -79,6 +79,10 @@ describe('CsvImportPage', () => {
     expect(screen.getByText('02/07/2026')).toBeInTheDocument();
     expect(screen.getByText('Supermercado Aurora')).toBeInTheDocument();
     expect(screen.getByText('− 84,32 €')).toBeInTheDocument();
+    expect(screen.getByText('3').closest('td')).toHaveClass('num', 'text-[12.5px]', 'text-muted-foreground');
+    expect(screen.getByText('02/07/2026').closest('td')).toHaveClass('num', 'text-[12.5px]', 'text-muted-foreground');
+    expect(screen.getByText('Supermercado Aurora').closest('td')).toHaveClass('text-[14px]', 'font-semibold');
+    expect(screen.getByText('− 84,32 €')).toHaveClass('num', 'text-[14px]', 'font-medium', 'text-destructive');
   });
 
   it('explains why confirmation is disabled when no new row is selected', async () => {

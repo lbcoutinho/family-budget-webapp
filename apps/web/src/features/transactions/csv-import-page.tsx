@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import { formatDate, parseDateOnly } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const PREVIEW_META_CELL = 'p-3 num text-[12.5px] text-muted-foreground';
 
 function isCsvFile(file: File): boolean {
   return file.size <= MAX_FILE_SIZE && (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv'));
@@ -312,22 +314,27 @@ function Row({
       <td className="sticky left-0 bg-inherit p-3">
         <input type="checkbox" disabled={!onChange} checked={selected ?? false} onChange={onChange} aria-label={selectionLabel ?? label} />
       </td>
-      <td className="p-3 num">{row.line}</td>
-      <td className="p-3 num">{row.date && /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? formatDate(parseDateOnly(row.date)) : (row.date ?? '—')}</td>
-      <td className="max-w-64 truncate p-3">{row.description ?? '—'}</td>
-      <td className={`p-3 text-right num ${row.type === 'EXPENSE' ? 'text-destructive' : row.type === 'INCOME' ? 'text-emerald-700' : ''}`}>
-        {row.amount === undefined ? '—' : formatCents(row.type === 'EXPENSE' ? -row.amount : row.amount, { sign: true })}
+      <td className={PREVIEW_META_CELL}>{row.line}</td>
+      <td className={PREVIEW_META_CELL}>{row.date && /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? formatDate(parseDateOnly(row.date)) : (row.date ?? '—')}</td>
+      <td className="max-w-64 truncate p-3 text-[14px] font-semibold">{row.description ?? '—'}</td>
+      <td className="p-3 text-right">
+        <span
+          className={`num block whitespace-nowrap text-[14px] font-medium ${row.type === 'EXPENSE' ? 'text-destructive' : row.type === 'INCOME' ? 'text-emerald-700' : ''}`}
+        >
+          {row.amount === undefined ? '—' : formatCents(row.type === 'EXPENSE' ? -row.amount : row.amount, { sign: true })}
+        </span>
       </td>
       <td className="p-3">
-        <span
-          className={`rounded px-2 py-0.5 text-xs ${
+        <Badge
+          variant="outline"
+          className={`text-[10.5px] ${
             status === 'new' ? 'bg-emerald-50 text-emerald-700' : status === 'duplicate' ? 'bg-transfer/10 text-transfer' : 'bg-destructive/10 text-destructive'
           }`}
         >
           {label}
-        </span>
+        </Badge>
       </td>
-      <td className="p-3">{row.reason ?? '—'}</td>
+      <td className="max-w-64 truncate p-3 text-[14px] text-muted-foreground">{row.reason ?? '—'}</td>
     </tr>
   );
 }
