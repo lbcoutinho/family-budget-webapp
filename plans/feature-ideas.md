@@ -1,14 +1,16 @@
 # Top Priority 
-- Export database.
-- Import bank/account statement (format TBD — CSV, XML or other): user uploads a statement file; system detects entries already registered to avoid duplicates; new entries are created as `DRAFT` transactions for the user to review, categorize, and approve.
-- Personal note field on transactions: separate from the statement/imported description (which stays as-is from the bank), a free-text field for the user's own explanation of what the expense was, to help them remember it later. - notes ja existe precisa expor para edição e visualização. Verificar onde ja é usado e remover uso e necessário.
 - Tela mês:
   - saldo exibido na tela Mês no fim da tabela, deveria ser saldo em conta. For ex, tem entrada de 1000 e um deposito em caixinha de 500, então saldo em conta é 500. Dinheiro na caixinha não conta como despesa, mas ao mesmo tempo deve ser subtraído do saldo em conta corrente. O oposto para resgate de caixinha, irá aumentar o saldo em conta corrente. Transferêcia entre caixinhas ou entre contas não afeta o saldo total em contas.
   - Resumo fim da tabela poderia exibir: Receitas, Despesas, Resgates de Caixinha, Depósitos em Caixinha. Soma de todos é o saldo em conta corrente.
-- Toggle on the transactions screen to switch the displayed text between the personal note and the real transaction description; when a transaction has no personal note, keep showing the normal description.
 - Tela mes - Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
 - "Saldo indisponível" em todas as linhas da tela Mês.
 - Fix impeccable critique and audit
+- utilizar skills de frontend para analisar projeto
+- executar /improve-codebase-architecture
+- exec /web-design-guidelines
+- exec /vercel-composition-patterns
+- exec /vercel-react-best-practices
+
 
 
 # Docs
