@@ -16,9 +16,12 @@ vi.mock('@family-budget/api-client', () => ({
     mutate: (value: { data: { modelId: string; accountId: string; file: File } }) => {
       api.preview(value);
       options.mutation.onSuccess({
-        new: [{ line: 3 }, { line: 8 }],
-        duplicate: [{ line: 5, reason: 'Já existe nesta conta' }],
-        invalid: [{ line: 6, reason: 'Data inexistente' }],
+        new: [
+          { line: 3, date: '2026-07-02', description: 'Supermercado Aurora', amount: 8432, type: 'EXPENSE' },
+          { line: 8, date: '2026-07-08', description: 'Cinema', amount: 1800, type: 'EXPENSE' },
+        ],
+        duplicate: [{ line: 5, date: '2026-07-04', description: 'Farmácia Central', amount: 2240, type: 'EXPENSE', reason: 'Já existe nesta conta' }],
+        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'Data inexistente' }],
         notSelected: [],
       });
     },
@@ -29,10 +32,10 @@ vi.mock('@family-budget/api-client', () => ({
     mutate: (value: { data: { modelId: string; accountId: string; selectedLines: number[]; file: File } }) => {
       api.confirm(value);
       options.mutation.onSuccess({
-        new: [{ line: 3 }],
-        duplicate: [{ line: 5 }],
-        invalid: [{ line: 6, reason: 'Data inexistente' }],
-        notSelected: [{ line: 8 }],
+        new: [{ line: 3, date: '2026-07-02', description: 'Supermercado Aurora', amount: 8432, type: 'EXPENSE' }],
+        duplicate: [{ line: 5, date: '2026-07-04', description: 'Farmácia Central', amount: 2240, type: 'EXPENSE' }],
+        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'Data inexistente' }],
+        notSelected: [{ line: 8, date: '2026-07-08', description: 'Cinema', amount: 1800, type: 'EXPENSE' }],
       });
     },
     isPending: false,
@@ -73,6 +76,9 @@ describe('CsvImportPage', () => {
     expect(request?.data.accountId).toBe('account-1');
     expect(request?.data.file).toBeInstanceOf(File);
     expect(screen.getByRole('checkbox', { name: 'duplicada' })).toBeDisabled();
+    expect(screen.getByText('02/07/2026')).toBeInTheDocument();
+    expect(screen.getByText('Supermercado Aurora')).toBeInTheDocument();
+    expect(screen.getByText('− 84,32 €')).toBeInTheDocument();
   });
 
   it('explains why confirmation is disabled when no new row is selected', async () => {

@@ -1,5 +1,5 @@
 import { type CsvImportResultDto, useConfirmCsvImport, useListAccounts, useListCsvImportModels, usePreviewCsvImport } from '@family-budget/api-client';
-import { AlertCircleIcon, CheckCircle2Icon, FileUpIcon } from 'lucide-react';
+import { AlertCircleIcon, CheckCircle2Icon, FileUpIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiErrorMessage } from '@/lib/api-error';
+import { formatDate, parseDateOnly } from '@/lib/date';
+import { formatCents } from '@/lib/money';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -91,7 +93,8 @@ export function CsvImportPage() {
   if (models.isError || accounts.isError) {
     return (
       <main className="mx-auto w-full max-w-[1120px] px-3.5 pt-4 pb-10 shell:p-[22px]">
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+        <p className="flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+          <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
           {apiErrorMessage(models.isError ? models.error : accounts.error, t)}
         </p>
         <Button className="mt-3" variant="outline" onClick={() => void Promise.all([models.refetch(), accounts.refetch()])}>
@@ -165,12 +168,14 @@ export function CsvImportPage() {
           </div>
         </div>
         {fileError ? (
-          <p className="mt-2 text-sm text-destructive" role="alert">
+          <p className="mt-2 flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+            <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
             {fileError}
           </p>
         ) : null}
         {importError ? (
-          <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+          <p className="mt-4 flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+            <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
             {apiErrorMessage(importError, t)}
           </p>
         ) : null}
@@ -211,6 +216,9 @@ export function CsvImportPage() {
                       />
                     </th>
                     <th className="p-3">{t('transactions.import.line')}</th>
+                    <th className="p-3">{t('transactions.import.date')}</th>
+                    <th className="p-3">{t('transactions.import.descriptionColumn')}</th>
+                    <th className="p-3 text-right">{t('transactions.import.amount')}</th>
                     <th className="p-3">{t('transactions.import.status')}</th>
                     <th className="p-3">{t('transactions.import.reason')}</th>
                   </tr>
@@ -224,13 +232,14 @@ export function CsvImportPage() {
                       onChange={() => setSelected((lines) => (lines.includes(row.line) ? lines.filter((line) => line !== row.line) : [...lines, row.line]))}
                       selectionLabel={t('transactions.import.selectLine', { line: row.line })}
                       label={t('transactions.import.newRow')}
+                      status="new"
                     />
                   ))}
                   {preview.duplicate.map((row) => (
-                    <Row key={row.line} row={row} label={t('transactions.import.duplicateRow')} />
+                    <Row key={row.line} row={row} label={t('transactions.import.duplicateRow')} status="duplicate" />
                   ))}
                   {preview.invalid.map((row) => (
-                    <Row key={row.line} row={row} label={t('transactions.import.invalidRow')} />
+                    <Row key={row.line} row={row} label={t('transactions.import.invalidRow')} status="invalid" />
                   ))}
                 </tbody>
               </table>
@@ -289,12 +298,14 @@ function Row({
   onChange,
   selectionLabel,
   label,
+  status,
 }: {
   row: CsvImportResultDto['new'][number];
   selected?: boolean;
   onChange?: () => void;
   selectionLabel?: string;
   label: string;
+  status: 'new' | 'duplicate' | 'invalid';
 }) {
   return (
     <tr className={onChange ? '' : 'bg-muted/40 text-muted-foreground'}>
@@ -302,8 +313,19 @@ function Row({
         <input type="checkbox" disabled={!onChange} checked={selected ?? false} onChange={onChange} aria-label={selectionLabel ?? label} />
       </td>
       <td className="p-3 num">{row.line}</td>
+      <td className="p-3 num">{row.date && /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? formatDate(parseDateOnly(row.date)) : (row.date ?? '—')}</td>
+      <td className="max-w-64 truncate p-3">{row.description ?? '—'}</td>
+      <td className={`p-3 text-right num ${row.type === 'EXPENSE' ? 'text-destructive' : row.type === 'INCOME' ? 'text-emerald-700' : ''}`}>
+        {row.amount === undefined ? '—' : formatCents(row.type === 'EXPENSE' ? -row.amount : row.amount, { sign: true })}
+      </td>
       <td className="p-3">
-        <span className="rounded bg-muted px-2 py-0.5 text-xs">{label}</span>
+        <span
+          className={`rounded px-2 py-0.5 text-xs ${
+            status === 'new' ? 'bg-emerald-50 text-emerald-700' : status === 'duplicate' ? 'bg-transfer/10 text-transfer' : 'bg-destructive/10 text-destructive'
+          }`}
+        >
+          {label}
+        </span>
       </td>
       <td className="p-3">{row.reason ?? '—'}</td>
     </tr>
