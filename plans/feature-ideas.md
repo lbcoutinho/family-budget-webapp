@@ -48,6 +48,9 @@
 - config > geral
   - mudar area de idioma - parece que tem um titulo idioma e depois um card. melhorar descrição.
 
+- relatórios
+  - seletor de data deve estar no lado esquerdo como na tela mês
+
 # Bugs
 
 - 
