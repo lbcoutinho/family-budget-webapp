@@ -21,7 +21,7 @@ vi.mock('@family-budget/api-client', () => ({
           { line: 8, date: '2026-07-08', description: 'Cinema', amount: 1800, type: 'EXPENSE' },
         ],
         duplicate: [{ line: 5, date: '2026-07-04', description: 'Farmácia Central', amount: 2240, type: 'EXPENSE', reason: 'Já existe nesta conta' }],
-        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'Data inexistente' }],
+        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'INVALID_DATE' }],
         notSelected: [],
       });
     },
@@ -34,7 +34,7 @@ vi.mock('@family-budget/api-client', () => ({
       options.mutation.onSuccess({
         new: [{ line: 3, date: '2026-07-02', description: 'Supermercado Aurora', amount: 8432, type: 'EXPENSE' }],
         duplicate: [{ line: 5, date: '2026-07-04', description: 'Farmácia Central', amount: 2240, type: 'EXPENSE' }],
-        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'Data inexistente' }],
+        invalid: [{ line: 6, date: '31-02-2026', description: 'Padaria', amount: 820, type: 'EXPENSE', reason: 'INVALID_DATE' }],
         notSelected: [{ line: 8, date: '2026-07-08', description: 'Cinema', amount: 1800, type: 'EXPENSE' }],
       });
     },
@@ -83,6 +83,7 @@ describe('CsvImportPage', () => {
     expect(screen.getByText('02/07/2026').closest('td')).toHaveClass('num', 'text-[12.5px]', 'text-muted-foreground');
     expect(screen.getByText('Supermercado Aurora').closest('td')).toHaveClass('text-[14px]', 'font-semibold');
     expect(screen.getByText('− 84,32 €')).toHaveClass('num', 'text-[14px]', 'font-medium', 'text-destructive');
+    expect(screen.getByText('Data inválida')).toBeInTheDocument();
   });
 
   it('explains why confirmation is disabled when no new row is selected', async () => {

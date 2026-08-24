@@ -181,7 +181,7 @@ export function parseRows(
         description: description || undefined,
         amount: amount === null ? undefined : Math.abs(amount),
         type: amount === null ? undefined : amount < 0 ? 'EXPENSE' : 'INCOME',
-        reason: date === null ? 'Invalid date.' : description === '' ? 'Description is required.' : 'Invalid amount.',
+        reason: date === null ? 'INVALID_DATE' : description === '' ? 'DESCRIPTION_REQUIRED' : 'INVALID_AMOUNT',
       });
       continue;
     }

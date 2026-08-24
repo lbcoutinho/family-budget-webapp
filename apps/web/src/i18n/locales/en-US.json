@@ -418,6 +418,11 @@
       "newRow": "new",
       "duplicateRow": "duplicate",
       "invalidRow": "invalid",
+      "rowErrors": {
+        "INVALID_DATE": "Invalid date",
+        "DESCRIPTION_REQUIRED": "Description is required",
+        "INVALID_AMOUNT": "Invalid amount"
+      },
       "selectedCount": "{{selected}} of {{total}} new lines selected. The preview has not saved any entries.",
       "nothingSelectedTitle": "No new line is selected",
       "nothingSelectedDescription": "Select at least one new line to import.",

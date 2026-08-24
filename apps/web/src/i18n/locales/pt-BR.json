@@ -418,6 +418,11 @@
       "newRow": "nova",
       "duplicateRow": "duplicada",
       "invalidRow": "inválida",
+      "rowErrors": {
+        "INVALID_DATE": "Data inválida",
+        "DESCRIPTION_REQUIRED": "Descrição obrigatória",
+        "INVALID_AMOUNT": "Valor inválido"
+      },
       "selectedCount": "{{selected}} de {{total}} linhas novas selecionadas. A prévia ainda não grava lançamentos.",
       "nothingSelectedTitle": "Nenhuma linha nova está selecionada",
       "nothingSelectedDescription": "Selecione pelo menos uma linha nova para importar.",

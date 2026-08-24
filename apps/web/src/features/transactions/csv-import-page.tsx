@@ -20,6 +20,8 @@ function isCsvFile(file: File): boolean {
 }
 
 function ResultDetails({ label, rows }: { label: string; rows: CsvImportResultDto['new'] }) {
+  const { t } = useTranslation();
+
   if (rows.length === 0) return null;
 
   return (
@@ -29,7 +31,7 @@ function ResultDetails({ label, rows }: { label: string; rows: CsvImportResultDt
         {rows.map((row) => (
           <li key={row.line}>
             {row.line}
-            {row.reason ? ` · ${row.reason}` : ''}
+            {row.reason ? ` · ${t(`transactions.import.rowErrors.${row.reason}`, { defaultValue: row.reason })}` : ''}
           </li>
         ))}
       </ul>
@@ -309,6 +311,8 @@ function Row({
   label: string;
   status: 'new' | 'duplicate' | 'invalid';
 }) {
+  const { t } = useTranslation();
+
   return (
     <tr className={onChange ? '' : 'bg-muted/40 text-muted-foreground'}>
       <td className="sticky left-0 bg-inherit p-3">
@@ -334,7 +338,9 @@ function Row({
           {label}
         </Badge>
       </td>
-      <td className="max-w-64 truncate p-3 text-[14px] text-muted-foreground">{row.reason ?? '—'}</td>
+      <td className="max-w-64 truncate p-3 text-[14px] text-muted-foreground">
+        {row.reason ? t(`transactions.import.rowErrors.${row.reason}`, { defaultValue: row.reason }) : '—'}
+      </td>
     </tr>
   );
 }
