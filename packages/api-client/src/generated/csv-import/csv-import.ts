@@ -16,6 +16,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApiErrorDto,
   ConfirmCsvImportBody,
   CsvImportResultDto,
   PreviewCsvImportBody
@@ -51,7 +52,7 @@ formData.append(`file`, previewCsvImportBody.file);
 
 
 
-export const getPreviewCsvImportMutationOptions = <TError = ErrorType<unknown>,
+export const getPreviewCsvImportMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewCsvImport>>, TError,{data: BodyType<PreviewCsvImportBody>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof previewCsvImport>>, TError,{data: BodyType<PreviewCsvImportBody>}, TContext> => {
 
@@ -80,12 +81,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PreviewCsvImportMutationResult = NonNullable<Awaited<ReturnType<typeof previewCsvImport>>>
     export type PreviewCsvImportMutationBody = BodyType<PreviewCsvImportBody>
-    export type PreviewCsvImportMutationError = ErrorType<unknown>
+    export type PreviewCsvImportMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Preview a CSV transaction import without writing transactions
  */
-export const usePreviewCsvImport = <TError = ErrorType<unknown>,
+export const usePreviewCsvImport = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewCsvImport>>, TError,{data: BodyType<PreviewCsvImportBody>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof previewCsvImport>>,
@@ -120,7 +121,7 @@ formData.append(`file`, confirmCsvImportBody.file);
 
 
 
-export const getConfirmCsvImportMutationOptions = <TError = ErrorType<unknown>,
+export const getConfirmCsvImportMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCsvImport>>, TError,{data: BodyType<ConfirmCsvImportBody>}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof confirmCsvImport>>, TError,{data: BodyType<ConfirmCsvImportBody>}, TContext> => {
 
@@ -149,12 +150,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ConfirmCsvImportMutationResult = NonNullable<Awaited<ReturnType<typeof confirmCsvImport>>>
     export type ConfirmCsvImportMutationBody = BodyType<ConfirmCsvImportBody>
-    export type ConfirmCsvImportMutationError = ErrorType<unknown>
+    export type ConfirmCsvImportMutationError = ErrorType<ApiErrorDto>
 
     /**
  * @summary Atomically create selected new CSV rows as drafts
  */
-export const useConfirmCsvImport = <TError = ErrorType<unknown>,
+export const useConfirmCsvImport = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCsvImport>>, TError,{data: BodyType<ConfirmCsvImportBody>}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof confirmCsvImport>>,

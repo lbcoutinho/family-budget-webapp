@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
 
-import { notFound } from '../../common/api-error';
+import { badRequest, notFound } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -71,7 +71,7 @@ export class CsvImportService {
 
   private async prepare(userId: string, dto: CsvImportRequestDto, file: Buffer | undefined, db: Db): Promise<Outcome> {
     if (file === undefined) {
-      throw new BadRequestException('A CSV file is required.');
+      throw badRequest('CSV_IMPORT_FILE_REQUIRED', 'A CSV file is required.');
     }
 
     const model = assertOwnership(await db.csvImportModel.findUnique({ where: { id: dto.modelId } }), userId);
@@ -124,14 +124,14 @@ export function parseRows(
   model: { headerLineCount: number; separator: string; dateHeader: string; descriptionHeader: string; amountHeader: string },
 ): { rows: Row[]; invalid: CsvImportResultDto['invalid'] } {
   if (file.length > MAX_FILE_SIZE) {
-    throw new BadRequestException('CSV files can be at most 5 MB.');
+    throw badRequest('CSV_IMPORT_FILE_TOO_LARGE', 'CSV files can be at most 5 MB.');
   }
 
   let text: string;
   try {
     text = new TextDecoder('utf-8', { fatal: true }).decode(file);
   } catch {
-    throw new BadRequestException('CSV files must be UTF-8 encoded.');
+    throw badRequest('CSV_IMPORT_FILE_NOT_UTF8', 'CSV files must be UTF-8 encoded.');
   }
   text = text.replace(/\r\n?|\n/g, '\n');
 
@@ -146,22 +146,22 @@ export function parseRows(
       skip_empty_lines: true,
     }) as unknown as typeof records;
   } catch {
-    throw new BadRequestException('The file is not valid CSV.');
+    throw badRequest('CSV_IMPORT_FILE_INVALID', 'The file is not valid CSV.');
   }
 
   if (records.length > MAX_ROWS) {
-    throw new BadRequestException(`CSV files can contain at most ${MAX_ROWS} rows.`);
+    throw badRequest('CSV_IMPORT_TOO_MANY_ROWS', `CSV files can contain at most ${MAX_ROWS} rows.`);
   }
 
   const header = records[model.headerLineCount - 1];
   if (header === undefined) {
-    throw new BadRequestException('The configured header line is missing.');
+    throw badRequest('CSV_IMPORT_HEADER_LINE_MISSING', 'The configured header line is missing.');
   }
 
   const columns = mappedColumns(header.record, model);
   const data = records.slice(model.headerLineCount);
   if (data.length === 0) {
-    throw new BadRequestException('The file has no transaction rows.');
+    throw badRequest('CSV_IMPORT_NO_TRANSACTION_ROWS', 'The file has no transaction rows.');
   }
 
   const rows: Row[] = [];
@@ -190,7 +190,9 @@ function mappedColumns(
   const index = (name: string): number => {
     const matches = header.reduce<number[]>((all, value, position) => (value === name ? [...all, position] : all), []);
     if (matches.length !== 1) {
-      throw new BadRequestException(matches.length === 0 ? `Missing mapped header: ${name}.` : `Mapped header is ambiguous: ${name}.`);
+      throw matches.length === 0
+        ? badRequest('CSV_IMPORT_MAPPED_HEADER_MISSING', `Missing mapped header: ${name}.`)
+        : badRequest('CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS', `Mapped header is ambiguous: ${name}.`);
     }
     return matches[0]!;
   };

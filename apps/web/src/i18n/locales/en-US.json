@@ -72,7 +72,16 @@
     "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "The subcategory must belong to the selected category.",
     "CASHBOX_INSUFFICIENT_FUNDS": "Cashbox balance available: {{amount}}.",
     "RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM": "A rule that auto-confirms needs an amount.",
-    "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Enter the amount before confirming this entry."
+    "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Enter the amount before confirming this entry.",
+    "CSV_IMPORT_FILE_REQUIRED": "Choose a CSV file to import.",
+    "CSV_IMPORT_FILE_TOO_LARGE": "The CSV file can be at most 5 MB.",
+    "CSV_IMPORT_FILE_NOT_UTF8": "The CSV file must be UTF-8 encoded.",
+    "CSV_IMPORT_FILE_INVALID": "This file could not be read as CSV.",
+    "CSV_IMPORT_TOO_MANY_ROWS": "The CSV file can contain at most 10,000 rows.",
+    "CSV_IMPORT_HEADER_LINE_MISSING": "The configured header line was not found in the file.",
+    "CSV_IMPORT_NO_TRANSACTION_ROWS": "The CSV file has no entries to import.",
+    "CSV_IMPORT_MAPPED_HEADER_MISSING": "The file does not contain one of the columns configured in the CSV model.",
+    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file."
   },
   "accounts": {
     "new": "New account",

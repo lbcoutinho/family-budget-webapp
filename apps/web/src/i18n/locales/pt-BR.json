@@ -72,7 +72,16 @@
     "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada.",
     "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}.",
     "RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM": "Uma regra que confirma automaticamente precisa de um valor.",
-    "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Informe o valor antes de confirmar este lançamento."
+    "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Informe o valor antes de confirmar este lançamento.",
+    "CSV_IMPORT_FILE_REQUIRED": "Escolha um arquivo CSV para importar.",
+    "CSV_IMPORT_FILE_TOO_LARGE": "O arquivo CSV pode ter no máximo 5 MB.",
+    "CSV_IMPORT_FILE_NOT_UTF8": "O arquivo CSV precisa estar codificado em UTF-8.",
+    "CSV_IMPORT_FILE_INVALID": "Não foi possível ler este arquivo como CSV.",
+    "CSV_IMPORT_TOO_MANY_ROWS": "O arquivo CSV pode ter no máximo 10.000 linhas.",
+    "CSV_IMPORT_HEADER_LINE_MISSING": "A linha de cabeçalho configurada não foi encontrada no arquivo.",
+    "CSV_IMPORT_NO_TRANSACTION_ROWS": "O arquivo CSV não contém lançamentos para importar.",
+    "CSV_IMPORT_MAPPED_HEADER_MISSING": "O arquivo não contém uma das colunas configuradas no modelo CSV.",
+    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo."
   },
   "accounts": {
     "new": "Nova conta",
