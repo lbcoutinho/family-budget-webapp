@@ -1,17 +1,18 @@
 ---
 name: create-pr
 description: Template for creating a pull request (PR). Use this whenever opening pull requests or asked to draft/write/open/create a PR.
+disable-model-invocation: true
 ---
 
 # PR title
 
-Copy the title of the ticket being implemented or if no related ticket then a short sentence
+Conventional Commits format. No fluff. Why over what.
 
-Examples:
-
-- M3-T07 — Accounts screen
-- M3-T02 — Accounts API with deactivation
-- Approve categories screen prototype (04)
+- `<type>(<scope>): <imperative summary>` — `<scope>` optional
+- Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `build`, `ci`, `style`, `revert`
+- Imperative mood: "add", "fix", "remove" — not "added", "adds", "adding"
+- ≤50 chars when possible, hard cap 72
+- all lowercase, no trailing period
 
 # PR description format
 
@@ -52,5 +53,5 @@ Closes #<issue-number>.
 - Read commit messages for Co-Authored-By trailers and replace in <models used in commits>
 - Keep "Verification" honest: if nothing was actually run, say so instead of listing commands that weren't executed.
 - Link Milestones to PRs.
-- Add labels to indicate what kind of work was done: backend, frontend, bug, documentation, prototyping
-- After push check "Acceptance criteria" in issue body and mark the checkboxes for validations done.
+- Add labels to indicate what kind of work was done: backend, frontend, bug, documentation, prototyping, enhancement
+- After push check "Acceptance criteria" in issue body and mark the checkboxes for validations done

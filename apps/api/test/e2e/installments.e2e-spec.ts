@@ -132,7 +132,7 @@ describe('Installments API (e2e)', () => {
       expect(plan.installments.every((i) => i.installmentNumber !== undefined)).toBe(true);
       expect(plan.installments.map((i) => i.installmentNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       expect(plan.installments.every((i) => i.installmentTotal === 10)).toBe(true);
-      expect(plan.installments.every((i) => i.notes === 'Purchased on 2026-01-01')).toBe(true);
+      expect(plan.installments.every((i) => i.notes === null)).toBe(true);
       expect(plan.installments.every((i) => i.source === 'RECURRING')).toBe(true);
       expect(plan.installments.every((i) => i.recurrenceRuleId === plan.rule.id)).toBe(true);
       expect(plan.rule.generatedUntil).toBe(plan.installments.at(-1)!.date);

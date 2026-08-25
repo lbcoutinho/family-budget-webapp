@@ -19,7 +19,7 @@ export interface CreateInstallmentPlanDto {
   installments: number;
   /** Expected statement payment date of installment 1. */
   firstPaymentDate: string;
-  /** The original purchase date — kept only in each installment’s `notes`. */
+  /** The original purchase date. */
   purchaseDate: string;
   /** @maxLength 160 */
   description: string;
