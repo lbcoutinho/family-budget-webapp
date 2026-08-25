@@ -11,8 +11,6 @@
 - exec /vercel-composition-patterns
 - exec /vercel-react-best-practices
 
-
-
 # Docs
 
 - diagrama com endpoints existentes, para que servem e onde são usados
@@ -24,6 +22,14 @@
 - Generic `config` JSON field on `User` (instead of a dedicated settings table) to hold all user settings (e.g. `locale`, and whatever future Settings screen options get added), avoiding a new table per setting.
 - tela Mês.
   - Icones com cores para representar as transações.
+
+- import csv - category suggestions
+  1. Search confirmed historical transactions from the same account by exact normalized description.
+  2. Suggest category and subcategory only when all relevant matches agree.
+  3. Keep every imported transaction in `DRAFT`, including transactions with suggestions.
+  4. Leave categories empty when no unambiguous match exists.
+  5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
+
 
 # Improvements
 - run impeccable audit ou outra skill para fazer check geral
