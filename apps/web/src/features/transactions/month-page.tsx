@@ -30,9 +30,11 @@ import {
   PiggyBankIcon,
   PlusIcon,
   RepeatIcon,
+  RotateCcwIcon,
   SearchIcon,
   Trash2Icon,
 } from 'lucide-react';
+import { Popover } from 'radix-ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -213,7 +215,7 @@ function FilterSelect({
 }: {
   value: string | undefined;
   onChange: (value: string | undefined) => void;
-  allLabel: string;
+  allLabel?: string;
   ariaLabel: string;
   options: { id: string; name: string }[];
   icon?: ReactNode;
@@ -225,7 +227,7 @@ function FilterSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem>
+        {allLabel ? <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem> : null}
         {options.map((option) => (
           <SelectItem key={option.id} value={option.id}>
             {option.name}
@@ -527,95 +529,102 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
         <BalancePanel />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative w-full sm:w-58">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                aria-label={t('transactions.search')}
-                placeholder={t('transactions.search')}
-                className="pl-8 text-[12.5px] md:text-[12.5px]"
-              />
-            </div>
-            <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-[12.5px]">
-              <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
-              {t('transactions.showPersonalNotes')}
-            </label>
-            <details className="relative">
-              <summary className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-md border bg-background px-2 text-[12.5px] [&::-webkit-details-marker]:hidden">
-                <FilterIcon className="size-3.5" />
-                {t('transactions.filters.menu')}
-                {activeFilterCount ? ` (${activeFilterCount})` : ''}
-              </summary>
-              <div className="absolute z-10 mt-1 grid min-w-72 gap-2 rounded-md border bg-popover p-3 shadow-md">
-                <div className="flex items-center justify-between gap-3">
-                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
-                  <FilterSelect
-                    value={typeFilter}
-                    onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
-                    allLabel={t('transactions.filters.type')}
-                    ariaLabel={t('transactions.filters.typeAriaLabel')}
-                    options={typeOptions}
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
-                  <FilterSelect
-                    value={categoryFilter}
-                    onChange={setCategoryFilter}
-                    allLabel={t('transactions.filters.category')}
-                    ariaLabel={t('transactions.filters.categoryAriaLabel')}
-                    options={categoryOptions}
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
-                  <FilterSelect
-                    value={accountFilter}
-                    onChange={setAccountFilter}
-                    allLabel={t('transactions.filters.account')}
-                    ariaLabel={t('transactions.filters.accountAriaLabel')}
-                    options={accountOptions}
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
-                    {t('transactions.sort.label')}
-                  </label>
-                  <select
-                    id="month-sort"
-                    className="h-8 rounded-md border bg-background px-2 text-[12.5px]"
-                    value={sort}
-                    onChange={(event) => setSort(event.target.value as TransactionSort)}
-                  >
-                    <option value={TransactionSort.newest}>{t('transactions.sort.newest')}</option>
-                    <option value={TransactionSort.oldest}>{t('transactions.sort.oldest')}</option>
-                    <option value={TransactionSort.amountHighest}>{t('transactions.sort.amountHighest')}</option>
-                    <option value={TransactionSort.amountLowest}>{t('transactions.sort.amountLowest')}</option>
-                    <option value={TransactionSort.description}>{t('transactions.sort.description')}</option>
-                  </select>
-                </div>
-                {activeFilterCount > 0 ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start"
-                    onClick={() => {
-                      setTypeFilter(undefined);
-                      setCategoryFilter(undefined);
-                      setAccountFilter(undefined);
-                    }}
-                  >
-                    {t('transactions.filters.clear')}
-                  </Button>
-                ) : null}
+        <Popover.Root>
+          <div className="relative flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-58">
+                <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  aria-label={t('transactions.search')}
+                  placeholder={t('transactions.search')}
+                  className="pl-8 text-[12.5px] md:text-[12.5px]"
+                />
               </div>
-            </details>
+              <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-[12.5px]">
+                <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
+                {t('transactions.showPersonalNotes')}
+              </label>
+              <Popover.Trigger asChild>
+                <Button variant="outline" size="sm" className="text-[12.5px]">
+                  <FilterIcon className="size-3.5" />
+                  {t('transactions.filters.menu')}
+                  {activeFilterCount ? ` (${activeFilterCount})` : ''}
+                </Button>
+              </Popover.Trigger>
+            </div>
+            <Popover.Anchor className="absolute right-0 bottom-0" />
+            <Popover.Content
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              className="z-50 grid min-w-72 gap-2 rounded-md border bg-popover p-3 text-popover-foreground shadow-md"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
+                <FilterSelect
+                  value={typeFilter}
+                  onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+                  allLabel={t('transactions.filters.type')}
+                  ariaLabel={t('transactions.filters.typeAriaLabel')}
+                  options={typeOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
+                <FilterSelect
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  allLabel={t('transactions.filters.category')}
+                  ariaLabel={t('transactions.filters.categoryAriaLabel')}
+                  options={categoryOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
+                <FilterSelect
+                  value={accountFilter}
+                  onChange={setAccountFilter}
+                  allLabel={t('transactions.filters.account')}
+                  ariaLabel={t('transactions.filters.accountAriaLabel')}
+                  options={accountOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.sort.label')}</label>
+                <FilterSelect
+                  value={sort}
+                  onChange={(value) => setSort(value as TransactionSort)}
+                  ariaLabel={t('transactions.sort.label')}
+                  options={[
+                    { id: TransactionSort.newest, name: t('transactions.sort.newest') },
+                    { id: TransactionSort.oldest, name: t('transactions.sort.oldest') },
+                    { id: TransactionSort.amountHighest, name: t('transactions.sort.amountHighest') },
+                    { id: TransactionSort.amountLowest, name: t('transactions.sort.amountLowest') },
+                    { id: TransactionSort.description, name: t('transactions.sort.description') },
+                  ]}
+                />
+              </div>
+              {activeFilterCount > 0 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-center text-[12.5px]"
+                  onClick={() => {
+                    setTypeFilter(undefined);
+                    setCategoryFilter(undefined);
+                    setAccountFilter(undefined);
+                  }}
+                >
+                  <RotateCcwIcon />
+                  {t('transactions.filters.clear')}
+                </Button>
+              ) : null}
+            </Popover.Content>
           </div>
-        </div>
+        </Popover.Root>
 
         {loading ? <EntriesSkeleton /> : null}
         {failed ? (

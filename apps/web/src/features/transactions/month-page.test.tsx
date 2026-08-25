@@ -121,7 +121,7 @@ async function expectTextToBePresent(text: string) {
 }
 
 async function openFilters(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByText('Filtros e ordenação'));
+  await user.click(screen.getByRole('button', { name: /Filtros e ordenação/ }));
 }
 
 describe('MonthPage', () => {
@@ -383,6 +383,7 @@ describe('MonthPage', () => {
     expect(screen.getByText('Total consolidado')).toBeInTheDocument();
     expect(screen.getByText(formatCents(348215 + 415000))).toBeInTheDocument();
     await openFilters(user);
+    await user.click(screen.getByRole('combobox', { name: 'Ordenar' }));
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Data — mais recente',
       'Data — mais antiga',
@@ -534,6 +535,22 @@ describe('MonthPage', () => {
       return requests;
     }
 
+    it('uses matching selectors without all-option prefixes and dismisses the menu outside', async () => {
+      server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+      const { user } = renderPage();
+      await screen.findByText('Nada lançado em Julho de 2026');
+
+      await openFilters(user);
+      expect(screen.getByRole('combobox', { name: 'Filtrar por tipo' })).toHaveTextContent('Todos');
+      expect(screen.getByRole('combobox', { name: 'Filtrar por categoria' })).toHaveTextContent('Todas');
+      expect(screen.getByRole('combobox', { name: 'Filtrar por conta' })).toHaveTextContent('Todas');
+      expect(screen.getByRole('combobox', { name: 'Ordenar' })).toHaveAttribute('data-size', 'sm');
+
+      await user.click(document.body);
+
+      expect(screen.queryByRole('combobox', { name: 'Filtrar por tipo' })).not.toBeInTheDocument();
+    });
+
     it('sends the selected type filter on both the confirmed and the draft requests', async () => {
       const requests: URL[] = [];
       server.use(
@@ -588,7 +605,7 @@ describe('MonthPage', () => {
       });
 
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por categoria' }));
-      await user.click(await screen.findByRole('option', { name: 'Categoria: todas' }));
+      await user.click(await screen.findByRole('option', { name: 'Todas' }));
       await waitFor(() => {
         const last = requests.at(-1)!;
         expect(last.searchParams.get('categoryId')).toBeNull();
@@ -634,7 +651,8 @@ describe('MonthPage', () => {
       await expectTextToBePresent('Groceries');
 
       await openFilters(user);
-      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Data — mais antiga');
+      await user.click(screen.getByRole('combobox', { name: 'Ordenar' }));
+      await user.click(await screen.findByRole('option', { name: 'Data — mais antiga' }));
 
       await waitFor(() => expect(requests.some((r) => r.searchParams.get('sort') === 'oldest')).toBe(true));
       expect(requests.filter((r) => r.searchParams.get('sort') === 'oldest' && r.searchParams.get('status') === 'DRAFT')).toHaveLength(1);
@@ -665,7 +683,8 @@ describe('MonthPage', () => {
       expect(cursors).toEqual([null, 'cursor-1']);
 
       await openFilters(user);
-      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Valor — maior');
+      await user.click(screen.getByRole('combobox', { name: 'Ordenar' }));
+      await user.click(await screen.findByRole('option', { name: 'Valor — maior' }));
 
       await waitFor(() => expect(cursors.at(-1)).toBeNull());
     });
@@ -684,7 +703,8 @@ describe('MonthPage', () => {
       await expectTextToBePresent('Voice draft');
 
       await openFilters(user);
-      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Descrição — A a Z');
+      await user.click(screen.getByRole('combobox', { name: 'Ordenar' }));
+      await user.click(await screen.findByRole('option', { name: 'Descrição — A a Z' }));
 
       const rows = await screen.findAllByRole('article');
       expect(rows[0]).toHaveTextContent('Voice draft');
@@ -725,7 +745,8 @@ describe('MonthPage', () => {
 
       expect(screen.queryByRole('button', { name: 'Limpar filtros' })).not.toBeInTheDocument();
       await openFilters(user);
-      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Data — mais antiga');
+      await user.click(screen.getByRole('combobox', { name: 'Ordenar' }));
+      await user.click(await screen.findByRole('option', { name: 'Data — mais antiga' }));
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
       await user.click(await screen.findByRole('option', { name: 'Receita' }));
 
