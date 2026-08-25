@@ -16,45 +16,6 @@
   "apps/web/src/components/page-header.tsx": {
     "arbitraryValue": 5
   },
-  "apps/web/src/components/ui/badge.tsx": {
-    "arbitraryValue": 2
-  },
-  "apps/web/src/components/ui/button.tsx": {
-    "arbitraryValue": 5
-  },
-  "apps/web/src/components/ui/card.tsx": {
-    "arbitraryValue": 3
-  },
-  "apps/web/src/components/ui/checkbox.tsx": {
-    "arbitraryValue": 7
-  },
-  "apps/web/src/components/ui/dialog.tsx": {
-    "arbitraryValue": 17
-  },
-  "apps/web/src/components/ui/input.tsx": {
-    "arbitraryValue": 2
-  },
-  "apps/web/src/components/ui/label.tsx": {
-    "arbitraryValue": 2
-  },
-  "apps/web/src/components/ui/native-select.tsx": {
-    "arbitraryValue": 2
-  },
-  "apps/web/src/components/ui/select.tsx": {
-    "arbitraryValue": 28
-  },
-  "apps/web/src/components/ui/switch.tsx": {
-    "arbitraryValue": 16
-  },
-  "apps/web/src/components/ui/table.tsx": {
-    "arbitraryValue": 3
-  },
-  "apps/web/src/components/ui/tabs.tsx": {
-    "arbitraryValue": 35
-  },
-  "apps/web/src/components/ui/tooltip.tsx": {
-    "arbitraryValue": 9
-  },
   "apps/web/src/features/accounts/accounts-table.tsx": {
     "arbitraryValue": 1
   },

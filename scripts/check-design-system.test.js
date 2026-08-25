@@ -7,6 +7,10 @@ test('allows shared design tokens and components', () => {
   assert.deepEqual(scanSource('<Button className="bg-primary font-sans p-4" />'), {});
 });
 
+test('allows state and selector variants', () => {
+  assert.deepEqual(scanSource('<Button className="data-[placeholder]:text-muted-foreground data-[state=open]:animate-in has-[>svg]:px-3" />'), {});
+});
+
 test('detects design-system escapes', () => {
   assert.deepEqual(scanSource('<button className="mt-[13px] font-mono" style={{ color: "#123456", fontFamily: "Inter" }} />'), {
     arbitraryValue: 1,
