@@ -547,14 +547,14 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
                 {t('transactions.showPersonalNotes')}
               </label>
-              <Popover.Trigger asChild>
-                <Button variant="outline" size="sm" className="text-[12.5px]">
-                  <FilterIcon className="size-3.5" />
-                  {t('transactions.filters.menu')}
-                  {activeFilterCount ? ` (${activeFilterCount})` : ''}
-                </Button>
-              </Popover.Trigger>
             </div>
+            <Popover.Trigger asChild>
+              <Button variant="outline" size="sm" className="text-[12.5px]">
+                <FilterIcon className="size-3.5" />
+                {t('transactions.filters.menu')}
+                {activeFilterCount ? ` (${activeFilterCount})` : ''}
+              </Button>
+            </Popover.Trigger>
             <Popover.Anchor className="absolute right-0 bottom-0" />
             <Popover.Content
               align="end"
