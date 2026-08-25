@@ -92,12 +92,12 @@ describe('InstallmentsService.createPlan', () => {
     expect(result.installments.every((i) => i.installmentTotal === 3)).toBe(true);
   });
 
-  it('formats notes as "Purchased on YYYY-MM-DD" using purchaseDate, on every installment', async () => {
+  it('leaves notes empty on every installment', async () => {
     const { service } = setup();
 
     const result = await service.createPlan(userId, validDto({ purchaseDate: new Date('2026-02-20T00:00:00.000Z') }));
 
-    expect(result.installments.every((i) => i.notes === 'Purchased on 2026-02-20')).toBe(true);
+    expect(result.installments.every((i) => i.notes === null)).toBe(true);
   });
 
   it('splits €100.00 across 3 installments as 3333 / 3333 / 3334', async () => {
