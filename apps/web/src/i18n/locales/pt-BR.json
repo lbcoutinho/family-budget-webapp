@@ -468,9 +468,14 @@
       "tooltipEmpty": "{{date}} — nada saiu"
     },
     "filters": {
-      "type": "Tipo: todos",
-      "category": "Categoria: todas",
-      "account": "Conta: todas",
+      "menu": "Filtros e ordenação",
+      "clear": "Limpar filtros",
+      "typeLabel": "Tipo",
+      "categoryLabel": "Categoria",
+      "accountLabel": "Conta",
+      "type": "Todos",
+      "category": "Todas",
+      "account": "Todas",
       "typeAriaLabel": "Filtrar por tipo",
       "categoryAriaLabel": "Filtrar por categoria",
       "accountAriaLabel": "Filtrar por conta",
@@ -496,6 +501,7 @@
       "amountLowest": "Valor — menor",
       "description": "Descrição — A a Z"
     },
+    "showPersonalNotes": "Mostrar notas pessoais",
     "income": "Receitas",
     "expense": "Despesas",
     "expenseExcludesCashboxes": "sem transferências e caixinhas",

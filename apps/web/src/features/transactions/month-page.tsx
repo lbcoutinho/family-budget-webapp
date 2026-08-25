@@ -30,9 +30,11 @@ import {
   PiggyBankIcon,
   PlusIcon,
   RepeatIcon,
+  RotateCcwIcon,
   SearchIcon,
   Trash2Icon,
 } from 'lucide-react';
+import { Popover } from 'radix-ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -46,6 +48,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
@@ -212,7 +215,7 @@ function FilterSelect({
 }: {
   value: string | undefined;
   onChange: (value: string | undefined) => void;
-  allLabel: string;
+  allLabel?: string;
   ariaLabel: string;
   options: { id: string; name: string }[];
   icon?: ReactNode;
@@ -224,7 +227,7 @@ function FilterSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem>
+        {allLabel ? <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem> : null}
         {options.map((option) => (
           <SelectItem key={option.id} value={option.id}>
             {option.name}
@@ -235,14 +238,24 @@ function FilterSelect({
   );
 }
 
-function EntryMeta({ entry, accountNames }: { entry: TransactionListItemDto; accountNames: Map<string, string> }) {
+function EntryMeta({
+  entry,
+  accountNames,
+  showPersonalNotes,
+}: {
+  entry: TransactionListItemDto;
+  accountNames: Map<string, string>;
+  showPersonalNotes: boolean;
+}) {
   const { t } = useTranslation();
   const detail = transactionDetail(entry, accountNames);
 
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="truncate text-[14px] font-semibold">{entry.description}</span>
+        <span className="truncate text-[14px] font-semibold">
+          {showPersonalNotes && !isCashboxOperation(entry.type) ? (entry.notes ?? entry.description) : entry.description}
+        </span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.source === TransactionSource.RECURRING ? (
           <RepeatIcon
@@ -339,6 +352,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(() => searchParams.get('categoryId') ?? undefined);
   const [accountFilter, setAccountFilter] = useState<string>();
   const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
+  const [showPersonalNotes, setShowPersonalNotes] = useState(true);
   const [selectedDay, setSelectedDay] = useState<string>();
   // A day filter belongs to the month it was picked in — comparing against the last
   // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
@@ -415,6 +429,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     ...dayFilter,
   };
   const hasActiveFilters = search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined;
+  const activeFilterCount = Number(typeFilter !== undefined) + Number(categoryFilter !== undefined) + Number(accountFilter !== undefined);
   const clearFilters = () => {
     setSearchInput('');
     setSearch('');
@@ -514,60 +529,102 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
         <BalancePanel />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative w-full sm:w-58">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                aria-label={t('transactions.search')}
-                placeholder={t('transactions.search')}
-                className="pl-8 text-[12.5px] md:text-[12.5px]"
-              />
+        <Popover.Root>
+          <div className="relative flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-58">
+                <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  aria-label={t('transactions.search')}
+                  placeholder={t('transactions.search')}
+                  className="pl-8 text-[12.5px] md:text-[12.5px]"
+                />
+              </div>
+              <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-[12.5px]">
+                <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
+                {t('transactions.showPersonalNotes')}
+              </label>
             </div>
-            <FilterSelect
-              value={typeFilter}
-              onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
-              allLabel={t('transactions.filters.type')}
-              ariaLabel={t('transactions.filters.typeAriaLabel')}
-              options={typeOptions}
-              icon={<FilterIcon />}
-            />
-            <FilterSelect
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              allLabel={t('transactions.filters.category')}
-              ariaLabel={t('transactions.filters.categoryAriaLabel')}
-              options={categoryOptions}
-            />
-            <FilterSelect
-              value={accountFilter}
-              onChange={setAccountFilter}
-              allLabel={t('transactions.filters.account')}
-              ariaLabel={t('transactions.filters.accountAriaLabel')}
-              options={accountOptions}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
-              {t('transactions.sort.label')}
-            </label>
-            <select
-              id="month-sort"
-              className="h-8 rounded-md border bg-background px-2 text-[12.5px]"
-              value={sort}
-              onChange={(event) => setSort(event.target.value as TransactionSort)}
+            <Popover.Trigger asChild>
+              <Button variant="outline" size="sm" className="text-[12.5px]">
+                <FilterIcon className="size-3.5" />
+                {t('transactions.filters.menu')}
+                {activeFilterCount ? ` (${activeFilterCount})` : ''}
+              </Button>
+            </Popover.Trigger>
+            <Popover.Anchor className="absolute right-0 bottom-0" />
+            <Popover.Content
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              className="z-50 grid min-w-72 gap-2 rounded-md border bg-popover p-3 text-popover-foreground shadow-md"
             >
-              <option value={TransactionSort.newest}>{t('transactions.sort.newest')}</option>
-              <option value={TransactionSort.oldest}>{t('transactions.sort.oldest')}</option>
-              <option value={TransactionSort.amountHighest}>{t('transactions.sort.amountHighest')}</option>
-              <option value={TransactionSort.amountLowest}>{t('transactions.sort.amountLowest')}</option>
-              <option value={TransactionSort.description}>{t('transactions.sort.description')}</option>
-            </select>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
+                <FilterSelect
+                  value={typeFilter}
+                  onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+                  allLabel={t('transactions.filters.type')}
+                  ariaLabel={t('transactions.filters.typeAriaLabel')}
+                  options={typeOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
+                <FilterSelect
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  allLabel={t('transactions.filters.category')}
+                  ariaLabel={t('transactions.filters.categoryAriaLabel')}
+                  options={categoryOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
+                <FilterSelect
+                  value={accountFilter}
+                  onChange={setAccountFilter}
+                  allLabel={t('transactions.filters.account')}
+                  ariaLabel={t('transactions.filters.accountAriaLabel')}
+                  options={accountOptions}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[12.5px] text-muted-foreground">{t('transactions.sort.label')}</label>
+                <FilterSelect
+                  value={sort}
+                  onChange={(value) => setSort(value as TransactionSort)}
+                  ariaLabel={t('transactions.sort.label')}
+                  options={[
+                    { id: TransactionSort.newest, name: t('transactions.sort.newest') },
+                    { id: TransactionSort.oldest, name: t('transactions.sort.oldest') },
+                    { id: TransactionSort.amountHighest, name: t('transactions.sort.amountHighest') },
+                    { id: TransactionSort.amountLowest, name: t('transactions.sort.amountLowest') },
+                    { id: TransactionSort.description, name: t('transactions.sort.description') },
+                  ]}
+                />
+              </div>
+              {activeFilterCount > 0 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-center text-[12.5px]"
+                  onClick={() => {
+                    setTypeFilter(undefined);
+                    setCategoryFilter(undefined);
+                    setAccountFilter(undefined);
+                  }}
+                >
+                  <RotateCcwIcon />
+                  {t('transactions.filters.clear')}
+                </Button>
+              ) : null}
+            </Popover.Content>
           </div>
-        </div>
+        </Popover.Root>
 
         {loading ? <EntriesSkeleton /> : null}
         {failed ? (
@@ -638,7 +695,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     {formatEntryDate(entry.date)}
                   </time>
                   <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
-                    <EntryMeta entry={entry} accountNames={accountNames} />
+                    <EntryMeta entry={entry} accountNames={accountNames} showPersonalNotes={showPersonalNotes} />
                   </div>
                   <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
                     <EntryAmount entry={entry} />

@@ -468,9 +468,14 @@
       "tooltipEmpty": "{{date}} — nothing spent"
     },
     "filters": {
-      "type": "Type: all",
-      "category": "Category: all",
-      "account": "Account: all",
+      "menu": "Filters and sorting",
+      "clear": "Clear filters",
+      "typeLabel": "Type",
+      "categoryLabel": "Category",
+      "accountLabel": "Account",
+      "type": "All",
+      "category": "All",
+      "account": "All",
       "typeAriaLabel": "Filter by type",
       "categoryAriaLabel": "Filter by category",
       "accountAriaLabel": "Filter by account",
@@ -496,6 +501,7 @@
       "amountLowest": "Amount — lowest first",
       "description": "Description — A to Z"
     },
+    "showPersonalNotes": "Show personal notes",
     "income": "Income",
     "expense": "Expenses",
     "expenseExcludesCashboxes": "excluding transfers and cashboxes",
