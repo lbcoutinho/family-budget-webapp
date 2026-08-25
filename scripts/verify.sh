@@ -29,6 +29,7 @@ if [[ "$target" == "backend" ]]; then
   pnpm api:db:seed
   pnpm api:test:e2e
 else
+  pnpm verify:design
   pnpm web:typecheck
   pnpm web:test
 fi
