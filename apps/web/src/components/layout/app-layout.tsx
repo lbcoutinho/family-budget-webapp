@@ -5,6 +5,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './app-sidebar';
 import { SidebarContext, type SidebarContextValue } from './sidebar-context';
 
+import { Button } from '@/components/ui/button';
 import { useRecurrenceCatchUp } from '@/features/recurrence/use-recurrence-catch-up';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -66,15 +67,16 @@ export function AppLayout() {
 
   return (
     <SidebarContext value={sidebar}>
-      <div className="grid min-h-svh shell:grid-cols-[244px_1fr]">
+      <div className="grid min-h-svh shell:grid-cols-shell">
         <AppSidebar />
 
         {isCompact && isOpen && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label={t('nav.closeMenu')}
             onClick={close}
-            className="fixed inset-0 z-30 cursor-default bg-foreground/35 animate-in fade-in"
+            className="fixed inset-0 z-30 h-auto w-auto cursor-default rounded-none bg-foreground/35 hover:bg-foreground/35 animate-in fade-in"
           />
         )}
 

@@ -15,10 +15,10 @@ export function AuthCard({ children }: { children: ReactNode }) {
 
   return (
     <main className="grid min-h-svh place-items-center px-5 pt-7 pb-14">
-      <Card className="w-full max-w-[366px] gap-0 rounded-[14px] px-7 pt-[30px] pb-[26px] shadow-[0_4px_14px_rgba(20,22,26,0.08)] duration-[260ms] animate-in fade-in slide-in-from-bottom-2">
-        <div className="mb-[22px] flex items-center gap-2.5">
+      <Card className="w-full max-w-auth-card gap-0 rounded-xl px-7 pt-auth-card-top pb-auth-card-bottom shadow-raised duration-auth-card animate-in fade-in slide-in-from-bottom-2">
+        <div className="mb-content flex items-center gap-2.5">
           <BrandMark />
-          <h1 className="text-[1.3rem] tracking-[-0.03em]">{t('app.name')}</h1>
+          <h1 className="text-auth-brand tracking-brand">{t('app.name')}</h1>
         </div>
         {children}
       </Card>
@@ -32,9 +32,9 @@ export function AuthCard({ children }: { children: ReactNode }) {
  */
 function BrandMark() {
   return (
-    <span aria-hidden className="grid grid-cols-2 gap-[3px]">
+    <span aria-hidden className="grid grid-cols-2 gap-auth-brand-gap">
       {['--category-1', '--category-3', '--category-2', '--category-5'].map((token) => (
-        <i key={token} className="size-[9px] rounded-[2px]" style={{ background: `var(${token})` }} />
+        <i key={token} className="size-auth-brand-mark rounded-mark" style={{ background: `var(${token})` }} />
       ))}
     </span>
   );

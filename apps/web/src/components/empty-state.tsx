@@ -23,7 +23,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
     <div className={cn('grid place-items-center gap-2 rounded-lg border border-dashed border-border px-5 py-12 text-center', className)}>
       {Icon && <Icon className="size-6 text-muted-foreground/70" aria-hidden="true" />}
       <p className="font-display font-semibold tracking-tight">{title}</p>
-      {description && <p className="max-w-[46ch] text-sm text-muted-foreground">{description}</p>}
+      {description && <p className="max-w-empty-state text-sm text-muted-foreground">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   );

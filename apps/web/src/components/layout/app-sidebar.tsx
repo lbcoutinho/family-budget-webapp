@@ -12,8 +12,8 @@ import { cn } from '@/lib/utils';
 
 const linkClasses = (isActive: boolean) =>
   cn(
-    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-[13.5px] text-muted-foreground transition-colors',
-    'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sidebar-nav text-muted-foreground transition-colors',
+    'outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
     isActive ? 'bg-primary font-medium text-primary-foreground' : 'hover:bg-muted hover:text-foreground',
   );
 
@@ -53,19 +53,19 @@ export function AppSidebar() {
       className={cn(
         'flex flex-col gap-1 border-r border-border bg-card px-3 py-4',
         // The drawer half: fixed, above the content, and animated in from the left.
-        'fixed inset-y-0 left-0 z-40 w-[262px] -translate-x-full transition-transform duration-200 ease-[cubic-bezier(0.2,0.9,0.3,1)] data-[open=true]:translate-x-0',
+        'fixed inset-y-0 left-0 z-40 w-sidebar-drawer -translate-x-full transition-transform duration-ui ease-ui data-[open=true]:translate-x-0',
         // The column half.
         'shell:static shell:z-auto shell:w-auto shell:translate-x-0 shell:transition-none',
       )}
     >
-      <div className="flex items-center gap-2.5 px-2.5 pt-1 pb-4 font-display text-[1.05rem] font-bold tracking-[-0.03em]">
+      <div className="flex items-center gap-2.5 px-2.5 pt-1 pb-4 font-display text-headline font-bold tracking-brand">
         {/* The mark is the palette itself — four of the ten category swatches. The application has
             no brand colour, so the only honest logo is made of the colours that mean something. */}
-        <span className="grid grid-cols-[7px_7px] gap-0.5" aria-hidden="true">
-          <i className="size-[7px] rounded-[2px] bg-[var(--category-1)]" />
-          <i className="size-[7px] rounded-[2px] bg-[var(--category-3)]" />
-          <i className="size-[7px] rounded-[2px] bg-[var(--category-2)]" />
-          <i className="size-[7px] rounded-[2px] bg-[var(--category-5)]" />
+        <span className="inline-grid grid-cols-2 gap-0.5" aria-hidden="true">
+          <i className="size-sidebar-mark rounded-mark bg-category-1" />
+          <i className="size-sidebar-mark rounded-mark bg-category-3" />
+          <i className="size-sidebar-mark rounded-mark bg-category-2" />
+          <i className="size-sidebar-mark rounded-mark bg-category-5" />
         </span>
         {t('app.name')}
       </div>
@@ -75,8 +75,9 @@ export function AppSidebar() {
           <SidebarLink key={item.to} item={item} onNavigate={close} />
         ))}
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           aria-expanded={settingsExpanded}
           aria-controls="sidebar-settings"
           onClick={() => setSettingsExpanded((expanded) => !expanded)}
@@ -85,25 +86,28 @@ export function AppSidebar() {
           <SettingsIcon className="size-4 shrink-0" aria-hidden="true" />
           <span>{t('nav.settings')}</span>
           <ChevronRightIcon
-            className={cn('ml-auto size-4 shrink-0 transition-transform duration-[120ms]', settingsExpanded && 'rotate-90')}
+            className={cn('ml-auto size-4 shrink-0 transition-transform duration-ui-fast', settingsExpanded && 'rotate-90')}
             aria-hidden="true"
           />
-        </button>
+        </Button>
 
-        <div id="sidebar-settings" hidden={!settingsExpanded} className="grid gap-0.5 pl-[26px]">
+        <div id="sidebar-settings" hidden={!settingsExpanded} className="grid gap-0.5 pl-sidebar-submenu">
           {SETTINGS_NAV_ITEMS.map((item) => (
             <SidebarLink key={item.to} item={item} onNavigate={close} />
           ))}
         </div>
       </nav>
 
-      <div className="mt-auto flex items-center gap-2.5 border-t border-border pt-3 text-[12.5px]">
-        <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+      <div className="mt-auto flex items-center gap-2.5 border-t border-border pt-3 text-sidebar-meta">
+        <span
+          aria-hidden="true"
+          className="grid size-7 shrink-0 place-items-center rounded-full bg-foreground text-sidebar-avatar font-semibold text-background"
+        >
           {initials(user?.name)}
         </span>
         <span className="min-w-0 grow">
           <span className="block truncate font-medium">{user?.name}</span>
-          <span className="block truncate text-[11px] text-muted-foreground">{user?.email}</span>
+          <span className="block truncate text-sidebar-avatar text-muted-foreground">{user?.email}</span>
         </span>
         {/* No confirmation: nothing is lost by leaving, and coming back costs a password. */}
         <Button variant="ghost" size="icon-sm" title={t('nav.logout')} aria-label={t('nav.logout')} onClick={() => void logout()}>
