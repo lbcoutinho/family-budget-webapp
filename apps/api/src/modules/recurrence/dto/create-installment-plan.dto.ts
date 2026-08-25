@@ -34,7 +34,7 @@ export class CreateInstallmentPlanDto {
   @IsDate({ message: 'firstPaymentDate must be in the form YYYY-MM-DD.' })
   firstPaymentDate!: Date;
 
-  @ApiProperty({ type: String, format: 'date', example: '2026-02-20', description: 'The original purchase date — kept only in each installment’s `notes`.' })
+  @ApiProperty({ type: String, format: 'date', example: '2026-02-20', description: 'The original purchase date.' })
   @Transform(toDateOnly)
   @IsDate({ message: 'purchaseDate must be in the form YYYY-MM-DD.' })
   purchaseDate!: Date;

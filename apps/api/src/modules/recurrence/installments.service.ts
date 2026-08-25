@@ -41,7 +41,6 @@ export class InstallmentsService {
     const split = splitInstallments(dto.totalAmount, dto.installments);
     const occurrences = this.occurrenceDates(dto.firstPaymentDate, dto.installments);
     const lastOccurrence = occurrences.at(-1)!;
-    const purchasedOn = dto.purchaseDate.toISOString().slice(0, 10);
     const status = dto.autoConfirm === false ? 'DRAFT' : 'CONFIRMED';
     const isCreditCard = dto.isCreditCard ?? false;
 
@@ -73,7 +72,7 @@ export class InstallmentsService {
         type,
         amount: split[index]!,
         description: dto.description,
-        notes: `Purchased on ${purchasedOn}`,
+        notes: null,
         date,
         referenceMonth: startOfMonthUtc(date),
         isCreditCard,
