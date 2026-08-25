@@ -575,6 +575,8 @@
       "category": "Categoria",
       "subcategory": "Subcategoria",
       "description": "Descrição",
+      "notes": "Nota pessoal",
+      "notesTooLong": "A nota pessoal pode ter no máximo 1.000 caracteres.",
       "amount": "Valor",
       "amountPlaceholder": "0,00",
       "amountHint": "Aceita 1.234,56 e 1234.56.",
