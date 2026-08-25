@@ -120,6 +120,10 @@ async function expectTextToBePresent(text: string) {
   expect(await screen.findAllByText(text)).not.toHaveLength(0);
 }
 
+async function openFilters(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByText('Filtros e ordenação'));
+}
+
 describe('MonthPage', () => {
   // EntryDialog and CashboxOperationDialog are always mounted (only their `open` prop changes) and
   // fetch accounts/cashboxes unconditionally, regardless of the ticket under test here. The month
@@ -185,6 +189,29 @@ describe('MonthPage', () => {
     expect(badge).toHaveClass('text-cashbox');
     expect(screen.getByText('500,00 €')).toHaveClass('text-transfer');
     expect(badge.closest('article')).toHaveStyle({ borderLeftColor: 'var(--transfer)' });
+  });
+
+  it('shows personal notes by default, falls back to descriptions, and keeps cashbox descriptions', async () => {
+    const noted = { ...CONFIRMED, id: 'confirmed-noted', notes: 'Fruit and vegetables' };
+    const cashbox = { ...CASHBOX_TRANSFER, notes: 'Do not show this' };
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([noted, CONFIRMED, cashbox])),
+      ),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Fruit and vegetables');
+    expect(screen.getByText('Groceries')).toBeInTheDocument();
+    expect(screen.getByText('Holiday fund move')).toBeInTheDocument();
+    expect(screen.queryByText('Do not show this')).not.toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'Mostrar notas pessoais' })).toBeChecked();
+
+    await user.click(screen.getByRole('switch', { name: 'Mostrar notas pessoais' }));
+
+    expect(screen.getAllByText('Groceries')).not.toHaveLength(0);
+    expect(screen.queryByText('Fruit and vegetables')).not.toBeInTheDocument();
+    expect(screen.getByText('Holiday fund move')).toBeInTheDocument();
   });
 
   it('shows both accounts for transfers and the source account for other entries', async () => {
@@ -342,7 +369,7 @@ describe('MonthPage', () => {
   it('shows the approved month-list controls without a generic table', async () => {
     server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
 
-    renderPage();
+    const { user } = renderPage();
 
     await screen.findByText('Nada lançado em Julho de 2026');
 
@@ -355,6 +382,7 @@ describe('MonthPage', () => {
     expect(screen.getByText('Caixinhas')).toBeInTheDocument();
     expect(screen.getByText('Total consolidado')).toBeInTheDocument();
     expect(screen.getByText(formatCents(348215 + 415000))).toBeInTheDocument();
+    await openFilters(user);
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Data — mais recente',
       'Data — mais antiga',
@@ -520,6 +548,7 @@ describe('MonthPage', () => {
       const { user } = renderPage();
       await screen.findByText('Nada lançado em Julho de 2026');
 
+      await openFilters(user);
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
       await user.click(await screen.findByRole('option', { name: 'Receita' }));
 
@@ -545,6 +574,7 @@ describe('MonthPage', () => {
       const { user } = renderPage();
       await screen.findByText('Nada lançado em Julho de 2026');
 
+      await openFilters(user);
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por categoria' }));
       await user.click(await screen.findByRole('option', { name: 'Food' }));
       await waitFor(() => expect(requests.at(-1)?.searchParams.get('categoryId')).toBe('category-1'));
@@ -590,6 +620,7 @@ describe('MonthPage', () => {
       await expectTextToBePresent('Fuel');
       expect(cursors).toEqual([null, 'cursor-1']);
 
+      await openFilters(user);
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por conta' }));
       await user.click(await screen.findByRole('option', { name: 'Millennium' }));
 
@@ -602,6 +633,7 @@ describe('MonthPage', () => {
       const { user } = renderPage();
       await expectTextToBePresent('Groceries');
 
+      await openFilters(user);
       await user.selectOptions(screen.getByLabelText('Ordenar'), 'Data — mais antiga');
 
       await waitFor(() => expect(requests.some((r) => r.searchParams.get('sort') === 'oldest')).toBe(true));
@@ -632,6 +664,7 @@ describe('MonthPage', () => {
       await expectTextToBePresent('Fuel');
       expect(cursors).toEqual([null, 'cursor-1']);
 
+      await openFilters(user);
       await user.selectOptions(screen.getByLabelText('Ordenar'), 'Valor — maior');
 
       await waitFor(() => expect(cursors.at(-1)).toBeNull());
@@ -650,6 +683,7 @@ describe('MonthPage', () => {
       await expectTextToBePresent('Groceries');
       await expectTextToBePresent('Voice draft');
 
+      await openFilters(user);
       await user.selectOptions(screen.getByLabelText('Ordenar'), 'Descrição — A a Z');
 
       const rows = await screen.findAllByRole('article');
@@ -671,16 +705,35 @@ describe('MonthPage', () => {
       const { user } = renderPage();
       await expectTextToBePresent('Groceries');
 
+      await openFilters(user);
       await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
       await user.click(await screen.findByRole('option', { name: 'Receita' }));
 
       await screen.findByText('Nenhum lançamento com esses filtros');
       expect(screen.queryByText('Nada lançado em Julho de 2026')).not.toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+      await user.click(screen.getAllByRole('button', { name: 'Limpar filtros' }).at(-1)!);
 
       await expectTextToBePresent('Groceries');
       expect(requests.at(-1)?.searchParams.get('type')).toBeNull();
+    });
+
+    it('counts only menu filters and clears them without resetting sorting', async () => {
+      const requests = captureTransactionRequests();
+      const { user } = renderPage();
+      await expectTextToBePresent('Groceries');
+
+      expect(screen.queryByRole('button', { name: 'Limpar filtros' })).not.toBeInTheDocument();
+      await openFilters(user);
+      await user.selectOptions(screen.getByLabelText('Ordenar'), 'Data — mais antiga');
+      await user.click(screen.getByRole('combobox', { name: 'Filtrar por tipo' }));
+      await user.click(await screen.findByRole('option', { name: 'Receita' }));
+
+      await waitFor(() => expect(screen.getByText('Filtros e ordenação (1)')).toBeInTheDocument());
+      await user.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+
+      await waitFor(() => expect(requests.at(-1)?.searchParams.get('type')).toBeNull());
+      expect(requests.at(-1)?.searchParams.get('sort')).toBe('oldest');
     });
   });
 });

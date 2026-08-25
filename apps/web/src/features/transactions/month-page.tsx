@@ -46,6 +46,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
@@ -235,14 +236,24 @@ function FilterSelect({
   );
 }
 
-function EntryMeta({ entry, accountNames }: { entry: TransactionListItemDto; accountNames: Map<string, string> }) {
+function EntryMeta({
+  entry,
+  accountNames,
+  showPersonalNotes,
+}: {
+  entry: TransactionListItemDto;
+  accountNames: Map<string, string>;
+  showPersonalNotes: boolean;
+}) {
   const { t } = useTranslation();
   const detail = transactionDetail(entry, accountNames);
 
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="truncate text-[14px] font-semibold">{entry.description}</span>
+        <span className="truncate text-[14px] font-semibold">
+          {showPersonalNotes && !isCashboxOperation(entry.type) ? (entry.notes ?? entry.description) : entry.description}
+        </span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.source === TransactionSource.RECURRING ? (
           <RepeatIcon
@@ -339,6 +350,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(() => searchParams.get('categoryId') ?? undefined);
   const [accountFilter, setAccountFilter] = useState<string>();
   const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
+  const [showPersonalNotes, setShowPersonalNotes] = useState(true);
   const [selectedDay, setSelectedDay] = useState<string>();
   // A day filter belongs to the month it was picked in — comparing against the last
   // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
@@ -415,6 +427,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     ...dayFilter,
   };
   const hasActiveFilters = search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined;
+  const activeFilterCount = Number(typeFilter !== undefined) + Number(categoryFilter !== undefined) + Number(accountFilter !== undefined);
   const clearFilters = () => {
     setSearchInput('');
     setSearch('');
@@ -527,45 +540,80 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 className="pl-8 text-[12.5px] md:text-[12.5px]"
               />
             </div>
-            <FilterSelect
-              value={typeFilter}
-              onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
-              allLabel={t('transactions.filters.type')}
-              ariaLabel={t('transactions.filters.typeAriaLabel')}
-              options={typeOptions}
-              icon={<FilterIcon />}
-            />
-            <FilterSelect
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              allLabel={t('transactions.filters.category')}
-              ariaLabel={t('transactions.filters.categoryAriaLabel')}
-              options={categoryOptions}
-            />
-            <FilterSelect
-              value={accountFilter}
-              onChange={setAccountFilter}
-              allLabel={t('transactions.filters.account')}
-              ariaLabel={t('transactions.filters.accountAriaLabel')}
-              options={accountOptions}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
-              {t('transactions.sort.label')}
+            <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-[12.5px]">
+              <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
+              {t('transactions.showPersonalNotes')}
             </label>
-            <select
-              id="month-sort"
-              className="h-8 rounded-md border bg-background px-2 text-[12.5px]"
-              value={sort}
-              onChange={(event) => setSort(event.target.value as TransactionSort)}
-            >
-              <option value={TransactionSort.newest}>{t('transactions.sort.newest')}</option>
-              <option value={TransactionSort.oldest}>{t('transactions.sort.oldest')}</option>
-              <option value={TransactionSort.amountHighest}>{t('transactions.sort.amountHighest')}</option>
-              <option value={TransactionSort.amountLowest}>{t('transactions.sort.amountLowest')}</option>
-              <option value={TransactionSort.description}>{t('transactions.sort.description')}</option>
-            </select>
+            <details className="relative">
+              <summary className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-md border bg-background px-2 text-[12.5px] [&::-webkit-details-marker]:hidden">
+                <FilterIcon className="size-3.5" />
+                {t('transactions.filters.menu')}
+                {activeFilterCount ? ` (${activeFilterCount})` : ''}
+              </summary>
+              <div className="absolute z-10 mt-1 grid min-w-72 gap-2 rounded-md border bg-popover p-3 shadow-md">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
+                  <FilterSelect
+                    value={typeFilter}
+                    onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+                    allLabel={t('transactions.filters.type')}
+                    ariaLabel={t('transactions.filters.typeAriaLabel')}
+                    options={typeOptions}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
+                  <FilterSelect
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    allLabel={t('transactions.filters.category')}
+                    ariaLabel={t('transactions.filters.categoryAriaLabel')}
+                    options={categoryOptions}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
+                  <FilterSelect
+                    value={accountFilter}
+                    onChange={setAccountFilter}
+                    allLabel={t('transactions.filters.account')}
+                    ariaLabel={t('transactions.filters.accountAriaLabel')}
+                    options={accountOptions}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="month-sort" className="text-[12.5px] text-muted-foreground">
+                    {t('transactions.sort.label')}
+                  </label>
+                  <select
+                    id="month-sort"
+                    className="h-8 rounded-md border bg-background px-2 text-[12.5px]"
+                    value={sort}
+                    onChange={(event) => setSort(event.target.value as TransactionSort)}
+                  >
+                    <option value={TransactionSort.newest}>{t('transactions.sort.newest')}</option>
+                    <option value={TransactionSort.oldest}>{t('transactions.sort.oldest')}</option>
+                    <option value={TransactionSort.amountHighest}>{t('transactions.sort.amountHighest')}</option>
+                    <option value={TransactionSort.amountLowest}>{t('transactions.sort.amountLowest')}</option>
+                    <option value={TransactionSort.description}>{t('transactions.sort.description')}</option>
+                  </select>
+                </div>
+                {activeFilterCount > 0 ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start"
+                    onClick={() => {
+                      setTypeFilter(undefined);
+                      setCategoryFilter(undefined);
+                      setAccountFilter(undefined);
+                    }}
+                  >
+                    {t('transactions.filters.clear')}
+                  </Button>
+                ) : null}
+              </div>
+            </details>
           </div>
         </div>
 
@@ -638,7 +686,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     {formatEntryDate(entry.date)}
                   </time>
                   <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
-                    <EntryMeta entry={entry} accountNames={accountNames} />
+                    <EntryMeta entry={entry} accountNames={accountNames} showPersonalNotes={showPersonalNotes} />
                   </div>
                   <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
                     <EntryAmount entry={entry} />

@@ -468,6 +468,11 @@
       "tooltipEmpty": "{{date}} — nada saiu"
     },
     "filters": {
+      "menu": "Filtros e ordenação",
+      "clear": "Limpar filtros",
+      "typeLabel": "Tipo",
+      "categoryLabel": "Categoria",
+      "accountLabel": "Conta",
       "type": "Tipo: todos",
       "category": "Categoria: todas",
       "account": "Conta: todas",
@@ -496,6 +501,7 @@
       "amountLowest": "Valor — menor",
       "description": "Descrição — A a Z"
     },
+    "showPersonalNotes": "Mostrar notas pessoais",
     "income": "Receitas",
     "expense": "Despesas",
     "expenseExcludesCashboxes": "sem transferências e caixinhas",

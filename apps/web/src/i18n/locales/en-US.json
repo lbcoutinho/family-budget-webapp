@@ -468,6 +468,11 @@
       "tooltipEmpty": "{{date}} — nothing spent"
     },
     "filters": {
+      "menu": "Filters and sorting",
+      "clear": "Clear filters",
+      "typeLabel": "Type",
+      "categoryLabel": "Category",
+      "accountLabel": "Account",
       "type": "Type: all",
       "category": "Category: all",
       "account": "Account: all",
@@ -496,6 +501,7 @@
       "amountLowest": "Amount — lowest first",
       "description": "Description — A to Z"
     },
+    "showPersonalNotes": "Show personal notes",
     "income": "Income",
     "expense": "Expenses",
     "expenseExcludesCashboxes": "excluding transfers and cashboxes",
