@@ -8,7 +8,7 @@ const SOURCE_ROOT = path.join(ROOT, 'apps/web/src');
 const BASELINE_PATH = path.join(ROOT, 'scripts/design-system-baseline.json');
 
 const rules = {
-  arbitraryValue: /\b(?:[a-z][a-z0-9-]*:)*-?[a-z][a-z0-9-]*-\[[^\]\r\n"'`]+\]/g,
+  arbitraryValue: /\b(?:[a-z][a-z0-9-]*:)*(?!(?:data|group-data|peer-data|has)-\[)-?[a-z][a-z0-9-]*-\[(?![^\]\r\n"'`]*[=>])[^\]\r\n"'`]+\]/g,
   literalColor: /#[0-9a-f]{3,8}\b|\b(?:rgb|hsl|oklch|lab|color)\(/gi,
   nativeControl: /<(?:button|input|select|textarea)\b/g,
   unsupportedFont: /\bfont-(?:mono|serif)\b|fontFamily\s*:/g,

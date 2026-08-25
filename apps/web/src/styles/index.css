@@ -69,6 +69,10 @@
 @theme inline {
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --spacing-segmented-inset: 3px;
+  --spacing-switch-track: 1.15rem;
+  --spacing-tab-indicator-offset: 5px;
+  --radius-xs: calc(var(--radius) - 6px);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -94,6 +98,18 @@
   --color-ring: var(--ring);
   --color-cashbox: var(--cashbox);
   --color-cashbox-wash: var(--cashbox-wash);
+}
+
+@utility grid-cols-card-header {
+  grid-template-columns: 1fr auto;
+}
+
+@utility h-segmented-trigger {
+  height: calc(100% - 1px);
+}
+
+@utility transition-color-shadow {
+  transition-property: color, box-shadow;
 }
 
 @layer base {
