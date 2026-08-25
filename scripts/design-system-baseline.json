@@ -1,29 +1,6 @@
 {
-  "apps/web/src/components/empty-state.tsx": {
-    "arbitraryValue": 1
-  },
-  "apps/web/src/components/hint-tooltip.tsx": {
-    "nativeControl": 1
-  },
-  "apps/web/src/components/layout/app-layout.tsx": {
-    "arbitraryValue": 1,
-    "nativeControl": 1
-  },
-  "apps/web/src/components/layout/app-sidebar.tsx": {
-    "arbitraryValue": 25,
-    "nativeControl": 1
-  },
-  "apps/web/src/components/page-header.tsx": {
-    "arbitraryValue": 5
-  },
   "apps/web/src/features/accounts/accounts-table.tsx": {
     "arbitraryValue": 1
-  },
-  "apps/web/src/features/auth/auth-card.tsx": {
-    "arbitraryValue": 12
-  },
-  "apps/web/src/features/auth/auth-provider.tsx": {
-    "arbitraryValue": 2
   },
   "apps/web/src/features/categories/categories-page.tsx": {
     "arbitraryValue": 1

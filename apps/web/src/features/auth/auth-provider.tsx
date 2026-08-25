@@ -107,7 +107,7 @@ function SessionChecking() {
 
   return (
     <AuthCard>
-      <output className="grid place-items-center gap-3 pt-[34px] pb-[30px] text-center">
+      <output className="grid place-items-center gap-3 pt-session-check-top pb-session-check-bottom text-center">
         <Loader2Icon className="size-5 animate-spin text-primary" />
         <span className="text-xs text-muted-foreground">{t('auth.restoringSession')}</span>
       </output>
