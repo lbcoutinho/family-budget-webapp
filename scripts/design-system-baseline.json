@@ -135,7 +135,6 @@
     "literalColor": 1
   },
   "apps/web/src/features/transactions/month-page.tsx": {
-    "arbitraryValue": 31,
-    "nativeControl": 1
+    "arbitraryValue": 36
   }
 }

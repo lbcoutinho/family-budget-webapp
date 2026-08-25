@@ -342,8 +342,25 @@ describe('EntryDialog', () => {
       categoryId: 'category-1',
       subcategoryId: 'subcategory-1',
       description: 'Groceries',
+      notes: null,
       isCreditCard: false,
     });
+  });
+
+  it('trims personal notes and rejects notes over 1,000 characters', async () => {
+    const { user } = renderDialog();
+
+    await fillExpense(user);
+    await user.type(screen.getByLabelText('transactions.form.notes'), '  Pantry restock  ');
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(mutate.mock.calls[0]?.[0].data).toMatchObject({ notes: 'Pantry restock' });
+
+    mutate.mockClear();
+    await user.clear(screen.getByLabelText('transactions.form.notes'));
+    await user.type(screen.getByLabelText('transactions.form.notes'), 'a'.repeat(1001));
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+    expect(document.getElementById('entry-notes-error')).toHaveTextContent('transactions.form.notesTooLong');
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   it('blocks nonsense amounts before mutation', async () => {
@@ -459,6 +476,7 @@ describe('EntryDialog', () => {
     expect(screen.getByTestId('selected-category')).toHaveTextContent('');
     expect(screen.getByTestId('selected-subcategory')).toHaveTextContent('');
     expect(screen.getByLabelText('transactions.form.description')).toHaveValue('');
+    expect(screen.getByLabelText('transactions.form.notes')).toHaveValue('');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('');
     expect(screen.getByLabelText('transactions.form.date')).toHaveValue(today());
     await waitFor(() => expect(screen.getByLabelText('transactions.form.account')).toHaveFocus());
@@ -511,6 +529,7 @@ describe('EntryDialog', () => {
       amount: 1000,
       date: '2026-08-15',
       description: 'Groceries',
+      notes: 'Pantry restock',
       isCreditCard: false,
       accountId: 'account-1',
       categoryId: 'category-1',
@@ -518,8 +537,8 @@ describe('EntryDialog', () => {
     };
 
     const context = await mutationOptions?.mutation.onMutate({ data });
-    const optimistic = queryClient.getQueryData<{ pages: { items: { description: string }[] }[] }>(key);
-    expect(optimistic?.pages[0]?.items[0]?.description).toBe('Groceries');
+    const optimistic = queryClient.getQueryData<{ pages: { items: { description: string; notes: string | null }[] }[] }>(key);
+    expect(optimistic?.pages[0]?.items[0]).toMatchObject({ description: 'Groceries', notes: 'Pantry restock' });
 
     act(() => mutationOptions?.mutation.onError(new Error('Network Error'), { data }, context));
     expect(queryClient.getQueryData(key)).toEqual(previous);
@@ -554,20 +573,22 @@ describe('EntryDialog', () => {
   });
 
   it('prefills edit mode, locks the transaction type, titles itself for editing, and patches changed fields only', async () => {
-    const transaction = makeTransaction();
+    const transaction = makeTransaction({ notes: 'Weekly shop' });
     const onOpenChange = vi.fn();
     const { user } = renderDialog(onOpenChange, transaction);
 
     expect(listAccountsParams).toEqual({ includeInactive: true });
     expect(screen.getByText('transactions.form.editTitle')).toBeInTheDocument();
     expect(screen.getByLabelText('transactions.form.description')).toHaveValue('Groceries');
+    expect(screen.getByLabelText('transactions.form.notes')).toHaveValue('Weekly shop');
     expect(screen.getByLabelText('transactions.form.amount')).toHaveValue('10,00 €');
     expect(screen.getByRole('tab', { name: 'transactions.form.income' })).toBeDisabled();
     await user.clear(screen.getByLabelText('transactions.form.description'));
     await user.type(screen.getByLabelText('transactions.form.description'), 'Updated groceries');
+    await user.clear(screen.getByLabelText('transactions.form.notes'));
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { description: 'Updated groceries' } });
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { description: 'Updated groceries', notes: null } });
     expect(mutate).not.toHaveBeenCalled();
     act(() => updateMutationOptions?.mutation.onSuccess());
     expect(toastSuccess).toHaveBeenCalledWith('transactions.form.save');
