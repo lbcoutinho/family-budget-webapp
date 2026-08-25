@@ -67,6 +67,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Verify design system
+        run: pnpm verify:design
+
       - name: Typecheck
         run: pnpm -r typecheck
 
