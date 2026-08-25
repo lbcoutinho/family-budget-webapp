@@ -45,6 +45,7 @@ interface EntryFormValues {
   categoryId: string;
   subcategoryId: string;
   description: string;
+  notes: string;
   amount: string;
   isCreditCard: boolean;
   referenceMonth: string;
@@ -66,6 +67,7 @@ function buildEntrySchema(allowEmptyAmount: boolean) {
       categoryId: z.string(),
       subcategoryId: z.string(),
       description: z.string().trim().min(1, 'transactions.form.required').max(200),
+      notes: z.string().trim().max(1000, 'transactions.form.notesTooLong'),
       amount: z
         .string()
         .refine((value) => (allowEmptyAmount && value.trim() === '') || (parseCurrencyInput(value) ?? 0) > 0, 'transactions.form.invalidAmount'),
@@ -106,9 +108,9 @@ export function businessCodeField(code: string | undefined): keyof EntryFormValu
 
 /** Visual top-to-bottom order per tab, walked to focus the first errored field on a failed submit. */
 const FOCUS_ORDER: Record<EntryType, readonly (keyof EntryFormValues)[]> = {
-  EXPENSE: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'amount', 'referenceMonth'],
-  INCOME: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'amount', 'referenceMonth'],
-  TRANSFER: ['accountId', 'destinationAccountId', 'date', 'description', 'amount'],
+  EXPENSE: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount', 'referenceMonth'],
+  INCOME: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount', 'referenceMonth'],
+  TRANSFER: ['accountId', 'destinationAccountId', 'date', 'description', 'notes', 'amount'],
 };
 
 /** Native month input emits YYYY-MM; the API requires its first day. */
@@ -164,6 +166,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       categoryId: transaction?.categoryId ?? '',
       subcategoryId: transaction?.subcategoryId ?? '',
       description: transaction?.description ?? '',
+      notes: transaction?.notes ?? '',
       amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
@@ -201,7 +204,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             date: data.date,
             referenceMonth: resolvedReferenceMonth,
             description: data.description,
-            notes: null,
+            notes: data.notes ?? null,
             isCreditCard: data.isCreditCard ?? false,
             accountId: data.accountId ?? null,
             destinationAccountId: data.destinationAccountId ?? null,
@@ -259,6 +262,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             categoryId: '',
             subcategoryId: '',
             description: '',
+            notes: '',
             amount: '',
             isCreditCard: false,
             referenceMonth: '',
@@ -306,6 +310,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       categoryId: transaction?.categoryId ?? '',
       subcategoryId: transaction?.subcategoryId ?? '',
       description: transaction?.description ?? '',
+      notes: transaction?.notes ?? '',
       amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       referenceMonth: transaction?.referenceMonth?.slice(0, 7) ?? '',
@@ -347,6 +352,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
         type: values.type,
         date: values.date,
         description: values.description.trim(),
+        notes: values.notes.trim() || null,
         isCreditCard: values.type === 'EXPENSE' ? values.isCreditCard : false,
         accountId: values.accountId,
         ...(values.type === 'TRANSFER'
@@ -373,6 +379,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       changed('amount', amount, transaction.amount);
       changed('date', shared.date, transaction.date);
       changed('description', shared.description, transaction.description);
+      changed('notes', shared.notes, transaction.notes);
       changed('isCreditCard', shared.isCreditCard, transaction.isCreditCard);
       changed('accountId', shared.accountId, transaction.accountId ?? undefined);
       changed(
@@ -517,27 +524,40 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               />
               <FieldError id="entry-description-error" error={errors.description?.message} />
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="entry-amount">{t(formKey('transactions.form.amount'))}</Label>
-              <Input
-                id="entry-amount"
-                inputMode="decimal"
-                className="text-right tabular-nums"
-                placeholder={t(formKey('transactions.form.amountPlaceholder'))}
-                aria-describedby={`entry-amount-hint${errors.amount ? ' entry-amount-error' : ''}`}
-                aria-invalid={errors.amount !== undefined}
-                disabled={activeMutation.isPending}
-                {...register('amount', {
-                  onBlur: (event: FocusEvent<HTMLInputElement>) => {
-                    const cents = parseCurrencyInput(event.target.value);
-                    if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
-                  },
-                })}
-              />
-              <p id="entry-amount-hint" className="text-xs text-muted-foreground">
-                {t(formKey('transactions.form.amountHint'))}
-              </p>
-              <FieldError id="entry-amount-error" error={errors.amount?.message} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-1.5">
+                <Label htmlFor="entry-notes">{t(formKey('transactions.form.notes'))}</Label>
+                <Input
+                  id="entry-notes"
+                  aria-describedby={errors.notes ? 'entry-notes-error' : undefined}
+                  aria-invalid={errors.notes !== undefined}
+                  disabled={activeMutation.isPending}
+                  {...register('notes')}
+                />
+                <FieldError id="entry-notes-error" error={errors.notes?.message} />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="entry-amount">{t(formKey('transactions.form.amount'))}</Label>
+                <Input
+                  id="entry-amount"
+                  inputMode="decimal"
+                  className="text-right tabular-nums"
+                  placeholder={t(formKey('transactions.form.amountPlaceholder'))}
+                  aria-describedby={`entry-amount-hint${errors.amount ? ' entry-amount-error' : ''}`}
+                  aria-invalid={errors.amount !== undefined}
+                  disabled={activeMutation.isPending}
+                  {...register('amount', {
+                    onBlur: (event: FocusEvent<HTMLInputElement>) => {
+                      const cents = parseCurrencyInput(event.target.value);
+                      if (cents !== null) setValue('amount', formatCents(cents), { shouldValidate: true });
+                    },
+                  })}
+                />
+                <p id="entry-amount-hint" className="text-xs text-muted-foreground">
+                  {t(formKey('transactions.form.amountHint'))}
+                </p>
+                <FieldError id="entry-amount-error" error={errors.amount?.message} />
+              </div>
             </div>
             {type === 'EXPENSE' ? (
               <>
