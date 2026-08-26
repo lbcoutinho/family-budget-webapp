@@ -44,6 +44,8 @@
   - Persistir filtros e ordenação na URL ou entre navegações de mês (hoje ambos resetam ao trocar de mês).
   - For the each row. I don't know if I like the Edit and Remove icon always visible for all rows. What options do we have?
   - Button Month/Year and Today on the top of the screen, don't look like a button, they need some color or border.
+  - Botão novo lançamento, poderia ser como botão caixinhas, cor suave e ganha verde atual quando fizer hover.
+  - quando clica no gráfico de dias, filtra o dia, mas não tem botão claro de limpar filtros. Deveria add filtro na URL e detectar e botão limpar filtro ficar ativo.
 
 - Uniformizar todos os info box nas janelas de criar/editar/remover/etc - todos azuis
 - Revisar todos os placeholder, sem padrão, numa mesma tela tem campos com e outros sem
