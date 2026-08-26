@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 const linkClasses = (isActive: boolean) =>
   cn(
-    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sidebar-nav text-muted-foreground transition-colors',
+    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sidebar-nav font-normal text-muted-foreground transition-colors',
     'outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
     isActive ? 'bg-primary font-medium text-primary-foreground' : 'hover:bg-muted hover:text-foreground',
   );
