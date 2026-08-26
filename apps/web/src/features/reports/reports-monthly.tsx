@@ -35,7 +35,7 @@ function AverageCell({ amount, average, kind }: { amount: number; average: numbe
       <span className={`num block font-medium ${tone ? AVERAGE_TONE_CLASS[tone] : 'text-muted-foreground'}`}>
         {percent === null ? '—' : formatSignedPercent(percent)}
       </span>
-      <small className="num block text-[10.5px] text-muted-foreground">{t('reports.monthly.averageValue', { value: formatCents(average) })}</small>
+      <small className="num block text-badge text-muted-foreground">{t('reports.monthly.averageValue', { value: formatCents(average) })}</small>
     </div>
   );
 }
@@ -54,7 +54,7 @@ function CategoryRows({
   onOpenCategory: (categoryId: string) => void;
 }) {
   const { t } = useTranslation();
-  const tone = kind === CategoryKind.EXPENSE ? 'text-destructive' : 'text-emerald-700';
+  const tone = kind === CategoryKind.EXPENSE ? 'text-destructive' : 'text-primary';
   const signedAmount = (amount: number) => (kind === CategoryKind.EXPENSE ? -amount : amount);
 
   return (
@@ -84,10 +84,15 @@ function CategoryRows({
                     <span className="inline-block size-6 flex-none" />
                   )}
                   {category.categoryId ? (
-                    <button type="button" className="flex min-w-0 items-center gap-2 hover:underline" onClick={() => onOpenCategory(category.categoryId!)}>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="min-w-0 justify-start px-0 hover:underline"
+                      onClick={() => onOpenCategory(category.categoryId!)}
+                    >
                       <span className="size-2.5 flex-none rounded-sm" style={{ background: categoryColor(category.color) }} />
                       <span className="truncate font-medium">{name}</span>
-                    </button>
+                    </Button>
                   ) : (
                     <span className="flex min-w-0 items-center gap-2">
                       <span className="size-2.5 flex-none rounded-sm bg-muted-foreground/40" />
@@ -102,7 +107,7 @@ function CategoryRows({
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                     <span className="block h-full rounded-full" style={{ width: `${category.percentage}%`, background: categoryColor(category.color) }} />
                   </div>
-                  <span className="num w-12 flex-none text-right text-[12.5px]">{formatPercent(category.percentage)}</span>
+                  <span className="num w-12 flex-none text-right text-field">{formatPercent(category.percentage)}</span>
                 </div>
               </TableCell>
               <TableCell className="text-right">
@@ -114,7 +119,7 @@ function CategoryRows({
               ? category.subcategories.map((subcategory: MonthlyReportSubcategoryDto) => (
                   <TableRow key={`${key}|${subcategory.subcategoryId ?? 'none'}`} className="bg-muted/30">
                     <TableCell>
-                      <span className="ml-7 truncate text-[12.5px] text-muted-foreground">{subcategory.name ?? t('reports.noSubcategory')}</span>
+                      <span className="ml-7 truncate text-field text-muted-foreground">{subcategory.name ?? t('reports.noSubcategory')}</span>
                     </TableCell>
                     <TableCell className={`num text-right ${tone}`}>{formatCents(signedAmount(subcategory.amount), { sign: true })}</TableCell>
                     <TableCell>
@@ -125,7 +130,7 @@ function CategoryRows({
                             style={{ width: `${subcategory.percentage}%`, background: categoryColor(category.color) }}
                           />
                         </div>
-                        <span className="num w-12 flex-none text-right text-[12.5px]">{formatPercent(subcategory.percentage)}</span>
+                        <span className="num w-12 flex-none text-right text-field">{formatPercent(subcategory.percentage)}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -162,7 +167,7 @@ function CategoryTable({
   onOpenCategory: (categoryId: string) => void;
 }) {
   const { t } = useTranslation();
-  const tone = kind === CategoryKind.EXPENSE ? 'text-destructive' : 'text-emerald-700';
+  const tone = kind === CategoryKind.EXPENSE ? 'text-destructive' : 'text-primary';
   const signedTotal = kind === CategoryKind.EXPENSE ? -total : total;
 
   return (
@@ -171,15 +176,15 @@ function CategoryTable({
         <h2 id={`reports-${kind}`} className="font-semibold">
           {t(titleKey)}
         </h2>
-        <span className="text-[11.5px] text-muted-foreground">{t(hintKey)}</span>
+        <span className="text-table-header text-muted-foreground">{t(hintKey)}</span>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t('reports.monthly.category')}</TableHead>
             <TableHead className="text-right">{t('reports.monthly.amount')}</TableHead>
-            <TableHead className="min-w-[170px]">{t('reports.monthly.percentage')}</TableHead>
-            <TableHead className="min-w-[128px] text-right">
+            <TableHead className="min-w-report-percentage">{t('reports.monthly.percentage')}</TableHead>
+            <TableHead className="min-w-report-average text-right">
               <Tooltip>
                 <TooltipTrigger className="decoration-dotted underline-offset-2 hover:underline">{t('reports.monthly.average')}</TooltipTrigger>
                 <TooltipContent>{t('reports.monthly.averageTooltip')}</TooltipContent>
@@ -219,7 +224,7 @@ function CashboxBlock({ cashboxes }: { cashboxes: MonthlyReportCashboxesDto }) {
         </h2>
         <Badge variant="outline">{t('reports.monthly.informational')}</Badge>
       </div>
-      <p className="px-4 pt-3 text-[12.5px] text-muted-foreground">{t('reports.monthly.cashboxesHint')}</p>
+      <p className="px-4 pt-3 text-field text-muted-foreground">{t('reports.monthly.cashboxesHint')}</p>
       <Table>
         <TableHeader>
           <TableRow>

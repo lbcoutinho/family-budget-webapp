@@ -69,7 +69,7 @@ export function ReportsPage() {
         actions={
           view === 'yearly' ? (
             <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
+              <label className="flex items-center gap-2 text-field text-muted-foreground">
                 <Checkbox checked={compare} onCheckedChange={(checked) => update({ compare: checked === true ? '1' : undefined })} />
                 {t('reports.yearly.compare', { year: year - 1 })}
               </label>
@@ -77,7 +77,7 @@ export function ReportsPage() {
                 <Button variant="ghost" size="icon-sm" aria-label={t('reports.yearly.previousYear')} onClick={() => moveYear(-1)}>
                   <ChevronLeftIcon />
                 </Button>
-                <strong className="num min-w-[52px] text-center font-display text-[1.05rem] font-bold">{year}</strong>
+                <strong className="num min-w-report-year text-center font-display text-headline font-bold">{year}</strong>
                 <Button variant="ghost" size="icon-sm" aria-label={t('reports.yearly.nextYear')} onClick={() => moveYear(1)}>
                   <ChevronRightIcon />
                 </Button>

@@ -1,5 +1,5 @@
 /**
- * The cashbox evolution panel — `11-reports-charts.html`'s bottom block (M6-T05, #185), kept apart
+ * The cashbox evolution panel — `11-reports-charts.html`'s bottom block (M6-T05, issue 185), kept apart
  * from the expense charts above it in `ReportsPage`: cashbox deposit/withdrawal is not income or
  * expense, and this panel says so in text rather than leaving the separation implicit
  * (`prototypes/memory/11-charts.md`). Reads `GET /reports/cashboxes?year=` — its own query, not a
@@ -14,6 +14,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis
 
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { paletteColor } from '@/features/reports/category-color';
 import { ReportsErrorState, ReportsSkeleton } from '@/features/reports/report-shell';
@@ -91,13 +92,13 @@ export function CashboxEvolutionPanel({ year }: CashboxEvolutionPanelProps) {
           {t('reports.cashboxes.badge')}
         </Badge>
       </div>
-      <p className="mb-4 max-w-[72ch] text-[12.5px] text-muted-foreground">{t('reports.cashboxes.warning')}</p>
+      <p className="mb-4 max-w-prose text-field text-muted-foreground">{t('reports.cashboxes.warning')}</p>
 
       {series.length === 0 ? (
         <EmptyState icon={PiggyBankIcon} title={t('reports.empty.title')} description={t('reports.empty.description')} />
       ) : (
         <div>
-          <div className="h-[220px] w-full">
+          <div className="h-report-chart w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
@@ -135,7 +136,7 @@ export function CashboxEvolutionPanel({ year }: CashboxEvolutionPanelProps) {
                 <TableHead className="text-right">{t('reports.cashboxes.deposits')}</TableHead>
                 <TableHead className="text-right">{t('reports.cashboxes.withdrawals')}</TableHead>
                 <TableHead className="text-right">{t('reports.cashboxes.closingBalance', { month: formatMonthAbbreviation(new Date(year, 11, 1)) })}</TableHead>
-                <TableHead className="min-w-[170px]">{t('reports.cashboxes.target')}</TableHead>
+                <TableHead className="min-w-report-percentage">{t('reports.cashboxes.target')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -143,10 +144,10 @@ export function CashboxEvolutionPanel({ year }: CashboxEvolutionPanelProps) {
                 <TableRow key={key}>
                   <TableCell>
                     {cashbox.cashboxId ? (
-                      <button type="button" className="flex items-center gap-2 font-medium hover:underline" onClick={() => void navigate('/cashboxes')}>
+                      <Button variant="ghost" size="xs" className="justify-start px-0 font-medium hover:underline" onClick={() => void navigate('/cashboxes')}>
                         <span className="size-2.5 flex-none rounded-sm" style={{ background: color }} />
                         {cashbox.name}
-                      </button>
+                      </Button>
                     ) : (
                       <span className="flex items-center gap-2">
                         <span className="size-2.5 flex-none rounded-sm" style={{ background: color }} />

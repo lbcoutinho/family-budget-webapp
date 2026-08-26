@@ -1,10 +1,10 @@
 /**
  * The chart view of `/reports` (M6-T04) — `11-reports-charts.html`. Reads the same two endpoints
- * #183's table already fetches (`useGetMonthlyReport`, `useGetYearlyReport`); no new query, no
+ * Issue 183's table already fetches (`useGetMonthlyReport`, `useGetYearlyReport`); no new query, no
  * client-side recomputation of amounts or percentages beyond what a legend toggle forces (see
  * `DonutCard` below).
  *
- * The cashbox chart (`11-reports-charts.html`'s bottom block, M6-T05, #185) lives in
+ * The cashbox chart (`11-reports-charts.html`'s bottom block, M6-T05, issue 185) lives in
  * `cashbox-evolution-panel.tsx`, rendered by `ReportsPage` below this component — kept apart from
  * the expense charts, same as the prototype. `useHiddenSeries`/`Legend`/`TooltipCard` are exported
  * from here for it to reuse, rather than duplicating the toggle/legend/tooltip chrome.
@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis } from 'recharts';
 
 import { EmptyState } from '@/components/empty-state';
+import { Button } from '@/components/ui/button';
 import { CashboxEvolutionPanel } from '@/features/reports/cashbox-evolution-panel';
 import { categoryColor } from '@/features/reports/category-color';
 import { formatPercent } from '@/features/reports/report-format';
@@ -78,20 +79,18 @@ export function Legend({
       {items.map((item) => {
         const isHidden = hidden.has(item.key);
         return (
-          <button
+          <Button
             key={item.key}
-            type="button"
+            variant="outline"
+            size="xs"
             aria-pressed={!isHidden}
             aria-label={t('reports.charts.toggleSeries', { name: item.name })}
             onClick={() => onToggle(item.key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition-opacity',
-              isHidden ? 'text-muted-foreground opacity-45 line-through' : 'text-foreground',
-            )}
+            className={cn('rounded-full transition-opacity', isHidden ? 'text-muted-foreground opacity-45 line-through' : 'text-foreground')}
           >
             <span className="size-2.5 flex-none rounded-sm" style={{ background: item.color }} />
             {item.name}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -100,7 +99,7 @@ export function Legend({
 
 export function TooltipCard({ rows, total }: { rows: { name: string; color: string; amount: number; percentage?: number }[]; total?: string }) {
   return (
-    <div className="rounded-md border bg-popover p-2 text-[12px] shadow-md">
+    <div className="rounded-md border bg-popover p-2 text-xs shadow-md">
       {total ? <div className="mb-1 font-medium">{total}</div> : null}
       {rows.map((row) => (
         <div key={row.name} className="flex items-center gap-2 whitespace-nowrap">
@@ -156,7 +155,7 @@ function DonutCard({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-5">
-        <div className="relative hidden size-[220px] flex-none sm:block">
+        <div className="relative hidden size-report-chart flex-none sm:block">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -190,7 +189,7 @@ function DonutCard({
             <b className="num font-display text-lg" data-testid="donut-total">
               {formatCents(total)}
             </b>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-report-caption text-muted-foreground">
               {hidden.size > 0
                 ? t('reports.charts.donutTotalPartial', { shown: visible.length, total: categories.length })
                 : t('reports.charts.donutTotalLabel')}
@@ -198,14 +197,14 @@ function DonutCard({
           </div>
         </div>
 
-        <div className="min-w-[240px] flex-1 space-y-1 sm:hidden">
+        <div className="min-w-report-chart-legend flex-1 space-y-1 sm:hidden">
           {categories.map((category) => {
             const isHidden = hidden.has(category.key);
             return (
               <div key={category.key} className={cn('border-b py-1.5 last:border-0', isHidden && 'opacity-45 line-through')}>
                 <div className="flex items-center gap-2">
                   <span className="size-2.5 flex-none rounded-sm" style={{ background: category.color }} />
-                  <span className="flex-1 truncate text-[12.5px]">{category.name}</span>
+                  <span className="flex-1 truncate text-field">{category.name}</span>
                   <span className="num font-medium">{formatCents(category.amount)}</span>
                 </div>
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -219,16 +218,16 @@ function DonutCard({
           })}
         </div>
 
-        <div className="hidden min-w-[240px] flex-1 sm:block">
+        <div className="hidden min-w-report-chart-legend flex-1 sm:block">
           {categories.map((category) => {
             const isHidden = hidden.has(category.key);
             const percentage = isHidden ? null : percentageOf(category);
             return (
               <div key={category.key} className={cn('flex items-center gap-2 border-b py-1.5 last:border-0', isHidden && 'opacity-45 line-through')}>
                 <span className="size-2.5 flex-none rounded-sm" style={{ background: category.color }} />
-                <span className="flex-1 truncate text-[12.5px]">{category.name}</span>
+                <span className="flex-1 truncate text-field">{category.name}</span>
                 <span className="num font-medium">{formatCents(category.amount)}</span>
-                <span className="num w-12 flex-none text-right text-[12px] text-muted-foreground">{percentage === null ? '—' : formatPercent(percentage)}</span>
+                <span className="num w-12 flex-none text-right text-xs text-muted-foreground">{percentage === null ? '—' : formatPercent(percentage)}</span>
               </div>
             );
           })}
@@ -237,7 +236,7 @@ function DonutCard({
 
       <Legend items={categories.map((category) => ({ key: category.key, name: category.name, color: category.color }))} hidden={hidden} onToggle={toggle} />
 
-      <p className="mt-2 text-[11px] text-muted-foreground">{t('reports.charts.donutHint', { month: formatMonth(referenceDate) })}</p>
+      <p className="mt-2 text-report-caption text-muted-foreground">{t('reports.charts.donutHint', { month: formatMonth(referenceDate) })}</p>
     </div>
   );
 }
@@ -273,7 +272,7 @@ function StackCard({
 
   return (
     <div>
-      <div className="h-[220px] w-full">
+      <div className="h-report-chart w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} barCategoryGap="20%">
             <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
@@ -307,7 +306,7 @@ function StackCard({
         </ResponsiveContainer>
       </div>
       <Legend items={categories.map((category) => ({ key: category.key, name: category.name, color: category.color }))} hidden={hidden} onToggle={onToggle} />
-      <p className="mt-2 text-[11px] text-muted-foreground">{t('reports.charts.stackHint')}</p>
+      <p className="mt-2 text-report-caption text-muted-foreground">{t('reports.charts.stackHint')}</p>
     </div>
   );
 }
@@ -324,13 +323,13 @@ function IncomeExpenseCard({ months }: { months: { monthIndex: number; income: n
 
   const data = months.map((month) => ({ ...month, label: formatMonthAbbreviation(new Date(2000, month.monthIndex, 1)) }));
   const series = [
-    { key: 'income', name: t('reports.charts.income'), color: 'var(--primary)' },
-    { key: 'expense', name: t('reports.charts.expense'), color: 'var(--destructive)' },
+    { key: 'income', name: t('reports.charts.income'), color: 'var(--color-primary)' },
+    { key: 'expense', name: t('reports.charts.expense'), color: 'var(--color-destructive)' },
   ];
 
   return (
     <div>
-      <div className="h-[220px] w-full">
+      <div className="h-report-chart w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
@@ -456,7 +455,7 @@ export function ReportsCharts({ year, month }: ReportsChartsProps) {
             <h2 id="reports-charts-line" className="font-semibold">
               {t('reports.charts.lineTitle')}
             </h2>
-            <span className="text-[11.5px] text-muted-foreground">{t('reports.charts.lineHint', { year })}</span>
+            <span className="text-table-header text-muted-foreground">{t('reports.charts.lineHint', { year })}</span>
           </div>
           <IncomeExpenseCard months={incomeExpenseMonths} />
         </section>

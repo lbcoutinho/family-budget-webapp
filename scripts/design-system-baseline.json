@@ -1,25 +1,4 @@
 {
-  "apps/web/src/features/reports/cashbox-evolution-panel.tsx": {
-    "arbitraryValue": 4,
-    "literalColor": 1,
-    "nativeControl": 1
-  },
-  "apps/web/src/features/reports/reports-charts.tsx": {
-    "arbitraryValue": 14,
-    "literalColor": 2,
-    "nativeControl": 1
-  },
-  "apps/web/src/features/reports/reports-monthly.tsx": {
-    "arbitraryValue": 8,
-    "nativeControl": 1
-  },
-  "apps/web/src/features/reports/reports-page.tsx": {
-    "arbitraryValue": 3
-  },
-  "apps/web/src/features/reports/reports-yearly.tsx": {
-    "arbitraryValue": 7,
-    "nativeControl": 1
-  },
   "apps/web/src/features/settings/csv-import-model-dialog.tsx": {
     "arbitraryValue": 4,
     "literalColor": 1

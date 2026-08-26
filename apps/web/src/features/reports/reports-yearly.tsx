@@ -43,10 +43,10 @@ function YearlyCell({ value, color, max, future, onOpen }: { value: number; colo
 
   return (
     <TableCell className="relative num text-right">
-      <span aria-hidden="true" className="absolute inset-[1px] rounded-sm" style={{ background: color, opacity }} />
-      <button type="button" className="relative hover:underline" onClick={onOpen}>
+      <span aria-hidden="true" className="absolute inset-px rounded-sm" style={{ background: color, opacity }} />
+      <Button variant="ghost" size="xs" className="relative h-auto px-0 hover:underline" onClick={onOpen}>
         {formatWholeEuros(value)}
-      </button>
+      </Button>
     </TableCell>
   );
 }
@@ -58,7 +58,7 @@ function ComparisonBadge({ total, previousTotal, previousYear, kind }: { total: 
   if (percent === null) return null;
 
   return (
-    <span className={cn('num block text-[10.5px] font-medium', tone ? AVERAGE_TONE_CLASS[tone] : 'text-muted-foreground')}>
+    <span className={cn('num block text-badge font-medium', tone ? AVERAGE_TONE_CLASS[tone] : 'text-muted-foreground')}>
       {t('reports.yearly.comparisonValue', { year: previousYear, value: formatWholeEuros(previousTotal) })} · {formatSignedPercent(percent)}
     </span>
   );
@@ -88,7 +88,7 @@ function YearlySubcategoryRow({
       <TableCell className={cn(STICKY_CELL, 'bg-muted/30')}>
         <span className="ml-7 flex items-center gap-2">
           <span className="size-2.5 flex-none rounded-sm opacity-50" style={{ background: color }} />
-          <span className="truncate text-[12.5px] text-muted-foreground">{name}</span>
+          <span className="truncate text-field text-muted-foreground">{name}</span>
         </span>
       </TableCell>
       {monthly.map((value, index) => (
@@ -134,19 +134,19 @@ function YearlyTable({
         <h2 id={`reports-yearly-${kind}`} className="font-semibold">
           {t(titleKey)}
         </h2>
-        <span className="text-[11.5px] text-muted-foreground">{t('reports.yearly.wholeEurosHint')}</span>
+        <span className="text-table-header text-muted-foreground">{t('reports.yearly.wholeEurosHint')}</span>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className={cn(STICKY_CELL, 'min-w-[150px]')}>{t('reports.monthly.category')}</TableHead>
+            <TableHead className={cn(STICKY_CELL, 'min-w-report-category')}>{t('reports.monthly.category')}</TableHead>
             {MONTHS.map((month, index) => (
               <TableHead key={index} className={cn('num text-right', isFutureMonth(year, index) && 'text-muted-foreground')}>
                 {formatMonthAbbreviation(month)}
               </TableHead>
             ))}
-            <TableHead className="num min-w-[118px] bg-muted text-right">{t('reports.yearly.total')}</TableHead>
-            <TableHead className="num min-w-[110px] bg-muted text-right">
+            <TableHead className="num min-w-report-yearly-total bg-muted text-right">{t('reports.yearly.total')}</TableHead>
+            <TableHead className="num min-w-report-yearly-average bg-muted text-right">
               <Tooltip>
                 <TooltipTrigger className="decoration-dotted underline-offset-2 hover:underline">{t('reports.yearly.average')}</TooltipTrigger>
                 <TooltipContent>{t('reports.yearly.averageTooltip')}</TooltipContent>
