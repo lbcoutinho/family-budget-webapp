@@ -284,6 +284,27 @@ describe('DailyExpenseStrip', () => {
     expect(after).toBeInTheDocument();
   });
 
+  it('positions calendar-day markers under their matching variable chart columns', async () => {
+    mockTransactions([
+      transaction({ id: 'first', date: '2026-08-25', amount: 1000, isCreditCard: false }),
+      transaction({ id: 'before', date: '2026-08-24', amount: 1000, type: TransactionType.TRANSFER }),
+    ]);
+
+    renderStrip();
+
+    await screen.findByRole('button', { name: /^25 de agosto/ });
+    const ticks = Array.from(screen.getByTestId('daily-expense-ticks').children);
+    expect(ticks.map((tick) => tick.textContent)).toEqual(['25', '1', '5', '10', '15', '20']);
+    expect(ticks.map((tick) => tick.getAttribute('style'))).toEqual([
+      'grid-column-start: 2;',
+      'grid-column-start: 9;',
+      'grid-column-start: 13;',
+      'grid-column-start: 18;',
+      'grid-column-start: 23;',
+      'grid-column-start: 28;',
+    ]);
+  });
+
   it('does not let a credit-card expense determine the inferred start date', async () => {
     mockTransactions([
       transaction({ id: 'card', date: '2026-03-28', amount: 4000, isCreditCard: true }),

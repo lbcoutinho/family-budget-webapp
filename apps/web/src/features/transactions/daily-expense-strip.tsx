@@ -233,7 +233,7 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
       aria-label={accessibleName}
       onClick={() => onToggle(bucket)}
       className={cn(
-        'group h-full min-w-0 flex-1 flex-col justify-end rounded-bar border-0 bg-transparent p-0',
+        'group h-full min-w-0 flex-col justify-end rounded-bar border-0 bg-transparent p-0',
         selected ? 'outline-2 outline-offset-1 outline-foreground' : '',
       )}
     >
@@ -300,7 +300,8 @@ export function DailyExpenseStrip({ referenceMonth, selectedFilterId, onToggleFi
       <div
         role="group"
         aria-label={t('transactions.dailyExpense.groupLabel', { month: formatMonth(referenceMonth) })}
-        className="flex h-daily-chart items-end gap-daily-gap max-shell:h-21"
+        className="grid h-daily-chart items-end gap-daily-gap max-shell:h-21"
+        style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
       >
         {buckets.map((bucket, index) => (
           <DayColumn
@@ -314,10 +315,20 @@ export function DailyExpenseStrip({ referenceMonth, selectedFilterId, onToggleFi
           />
         ))}
       </div>
-      <div className="num mt-1.5 flex justify-between text-xs text-muted-foreground">
-        {[1, 5, 10, 15, 20, 25].map((day) => (
-          <span key={day}>{day}</span>
-        ))}
+      <div
+        data-testid="daily-expense-ticks"
+        className="num mt-1.5 grid gap-daily-gap text-center text-xs text-muted-foreground"
+        style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
+      >
+        {buckets.map((bucket, index) => {
+          if (!('date' in bucket)) return null;
+          const day = localDate(bucket.date).getDate();
+          return [1, 5, 10, 15, 20, 25].includes(day) ? (
+            <span key={bucket.id} style={{ gridColumnStart: index + 1 }}>
+              {day}
+            </span>
+          ) : null;
+        })}
       </div>
       {legend.length > 0 ? (
         <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-2 border-t pt-2.5">
