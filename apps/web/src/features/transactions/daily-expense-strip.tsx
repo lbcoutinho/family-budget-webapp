@@ -321,7 +321,13 @@ export function DailyExpenseStrip({ referenceMonth, selectedFilterId, onToggleFi
         style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
       >
         {buckets.map((bucket, index) => {
-          if (!('date' in bucket)) return null;
+          if ('side' in bucket) {
+            return (
+              <span key={bucket.id} style={{ gridColumnStart: index + 1 }}>
+                {t(`transactions.dailyExpense.${bucket.side}`)}
+              </span>
+            );
+          }
           const day = localDate(bucket.date).getDate();
           return [1, 5, 10, 15, 20, 25].includes(day) ? (
             <span key={bucket.id} style={{ gridColumnStart: index + 1 }}>

@@ -288,20 +288,23 @@ describe('DailyExpenseStrip', () => {
     mockTransactions([
       transaction({ id: 'first', date: '2026-08-25', amount: 1000, isCreditCard: false }),
       transaction({ id: 'before', date: '2026-08-24', amount: 1000, type: TransactionType.TRANSFER }),
+      transaction({ id: 'after', date: '2026-09-25', amount: 1000, type: TransactionType.INCOME }),
     ]);
 
     renderStrip();
 
     await screen.findByRole('button', { name: /^25 de agosto/ });
     const ticks = Array.from(screen.getByTestId('daily-expense-ticks').children);
-    expect(ticks.map((tick) => tick.textContent)).toEqual(['25', '1', '5', '10', '15', '20']);
+    expect(ticks.map((tick) => tick.textContent)).toEqual(['Antes', '25', '1', '5', '10', '15', '20', 'Depois']);
     expect(ticks.map((tick) => tick.getAttribute('style'))).toEqual([
+      'grid-column-start: 1;',
       'grid-column-start: 2;',
       'grid-column-start: 9;',
       'grid-column-start: 13;',
       'grid-column-start: 18;',
       'grid-column-start: 23;',
       'grid-column-start: 28;',
+      'grid-column-start: 33;',
     ]);
   });
 
