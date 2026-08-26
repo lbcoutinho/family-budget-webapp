@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import i18n from '@/i18n';
@@ -135,7 +136,7 @@ function StripSkeleton() {
   return (
     <section className="rounded-lg border bg-card p-4 shadow-xs">
       <h2 className="mb-2.5 font-semibold">{t('transactions.dailyExpense.title')}</h2>
-      <Skeleton className="h-[108px] w-full" aria-label="Loading daily expenses" />
+      <Skeleton className="h-daily-chart w-full" aria-label="Loading daily expenses" />
     </section>
   );
 }
@@ -168,22 +169,24 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
     : t('transactions.dailyExpense.tooltip', { date: dayLabel, total: formatCents(bucket.totalCents), breakdown });
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="xs"
       aria-pressed={selected}
       title={accessibleName}
       aria-label={accessibleName}
       onClick={() => onToggle(bucket.date)}
       className={cn(
-        'group flex h-full min-w-0 flex-1 flex-col justify-end rounded-[3px] border-0 bg-transparent p-0',
+        'group h-full min-w-0 flex-1 flex-col justify-end rounded-bar border-0 bg-transparent p-0',
         selected ? 'outline-2 outline-offset-1 outline-foreground' : '',
       )}
     >
       {empty ? (
-        <span className="block h-[2px] w-full rounded-t-[3px] bg-border" />
+        <span className="block h-daily-baseline w-full rounded-t-bar bg-border" />
       ) : (
         <span
-          className="flex w-full origin-bottom flex-col justify-end overflow-hidden rounded-t-[3px] transition-transform group-hover:brightness-115"
+          className="flex w-full origin-bottom flex-col justify-end overflow-hidden rounded-t-bar transition-transform group-hover:brightness-115"
           style={{
             height: `${heightPercent}%`,
             transform: grown ? 'scaleY(1)' : 'scaleY(0)',
@@ -197,7 +200,7 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
           ))}
         </span>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -234,12 +237,12 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
     <section className="rounded-lg border bg-card p-4 shadow-xs">
       <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-1">
         <h2 className="font-semibold">{t('transactions.dailyExpense.title')}</h2>
-        <span className="text-[11.5px] text-muted-foreground">{t('transactions.dailyExpense.caption')}</span>
+        <span className="text-xs text-muted-foreground">{t('transactions.dailyExpense.caption')}</span>
       </div>
       <div
         role="group"
         aria-label={t('transactions.dailyExpense.groupLabel', { month: formatMonth(referenceMonth) })}
-        className="flex h-[108px] items-end gap-[3px] shell:h-[108px] max-shell:h-21"
+        className="flex h-daily-chart items-end gap-daily-gap max-shell:h-21"
       >
         {days.map((bucket, index) => (
           <DayColumn
@@ -253,7 +256,7 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
           />
         ))}
       </div>
-      <div className="num mt-1.5 flex justify-between text-[10px] text-muted-foreground">
+      <div className="num mt-1.5 flex justify-between text-xs text-muted-foreground">
         <span>1</span>
         <span>8</span>
         <span>15</span>
@@ -263,7 +266,7 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
       {legend.length > 0 ? (
         <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-2 border-t pt-2.5">
           {legend.map((segment) => (
-            <span key={segment.key} className="inline-flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+            <span key={segment.key} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               <span aria-hidden="true" className="size-2 rounded-full" style={{ background: segment.color }} />
               {segment.name} <b className="num font-medium text-foreground">{formatCents(segment.cents)}</b>
             </span>

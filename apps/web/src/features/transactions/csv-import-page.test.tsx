@@ -79,10 +79,10 @@ describe('CsvImportPage', () => {
     expect(screen.getByText('02/07/2026')).toBeInTheDocument();
     expect(screen.getByText('Supermercado Aurora')).toBeInTheDocument();
     expect(screen.getByText('− 84,32 €')).toBeInTheDocument();
-    expect(screen.getByText('3').closest('td')).toHaveClass('num', 'text-[12.5px]', 'text-muted-foreground');
-    expect(screen.getByText('02/07/2026').closest('td')).toHaveClass('num', 'text-[12.5px]', 'text-muted-foreground');
-    expect(screen.getByText('Supermercado Aurora').closest('td')).toHaveClass('text-[14px]', 'font-semibold');
-    expect(screen.getByText('− 84,32 €')).toHaveClass('num', 'text-[14px]', 'font-medium', 'text-destructive');
+    expect(screen.getByText('3').closest('td')).toHaveClass('num', 'text-field', 'text-muted-foreground');
+    expect(screen.getByText('02/07/2026').closest('td')).toHaveClass('num', 'text-field', 'text-muted-foreground');
+    expect(screen.getByText('Supermercado Aurora').closest('td')).toHaveClass('text-sm', 'font-semibold');
+    expect(screen.getByText('− 84,32 €')).toHaveClass('num', 'text-sm', 'font-medium', 'text-destructive');
     expect(screen.getByText('Data inválida')).toBeInTheDocument();
   });
 

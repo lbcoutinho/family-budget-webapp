@@ -4,8 +4,11 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { PageContent, PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -13,7 +16,7 @@ import { formatDate, parseDateOnly } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const PREVIEW_META_CELL = 'p-3 num text-[12.5px] text-muted-foreground';
+const PREVIEW_META_CELL = 'p-3 num text-field text-muted-foreground';
 
 function isCsvFile(file: File): boolean {
   return file.size <= MAX_FILE_SIZE && (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv'));
@@ -96,7 +99,7 @@ export function CsvImportPage() {
 
   if (models.isError || accounts.isError) {
     return (
-      <main className="mx-auto w-full max-w-[1120px] px-3.5 pt-4 pb-10 shell:p-[22px]">
+      <PageContent>
         <p className="flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
           <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
           {apiErrorMessage(models.isError ? models.error : accounts.error, t)}
@@ -104,33 +107,35 @@ export function CsvImportPage() {
         <Button className="mt-3" variant="outline" onClick={() => void Promise.all([models.refetch(), accounts.refetch()])}>
           {t('common.retry')}
         </Button>
-      </main>
+      </PageContent>
     );
   }
 
   if (models.data?.length === 0) {
     return (
-      <main className="mx-auto w-full max-w-[1120px] px-3.5 pt-4 pb-10 shell:p-[22px]">
+      <PageContent>
         <section className="max-w-2xl rounded-lg border p-6">
-          <h1 className="font-display text-2xl font-bold tracking-[-0.02em]">{t('transactions.import.noModelTitle')}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-headline">{t('transactions.import.noModelTitle')}</h1>
           <p className="mt-2 text-muted-foreground">{t('transactions.import.noModelDescription')}</p>
           <Button className="mt-5" onClick={() => void navigate('/settings/general')}>
             {t('transactions.import.goToSettings')}
           </Button>
         </section>
-      </main>
+      </PageContent>
     );
   }
 
   return (
     <>
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b bg-background/92 px-3.5 py-2.5 backdrop-blur-md shell:px-[22px] shell:py-3">
-        <h1 className="font-display text-[1.05rem] font-bold tracking-[-0.02em]">{t('transactions.import.title')}</h1>
-        <Button variant="outline" size="sm" onClick={() => void navigate('/month')}>
-          {t('transactions.import.back')}
-        </Button>
-      </header>
-      <main className="mx-auto w-full max-w-[1120px] px-3.5 pt-4 pb-10 shell:p-[22px]">
+      <PageHeader
+        title={t('transactions.import.title')}
+        actions={
+          <Button variant="outline" size="sm" onClick={() => void navigate('/month')}>
+            {t('transactions.import.back')}
+          </Button>
+        }
+      />
+      <PageContent>
         <p className="mb-5 max-w-2xl text-muted-foreground">{t('transactions.import.description')}</p>
         <div className="grid gap-3 md:grid-cols-3">
           <label className="grid gap-1.5 text-sm font-medium">
@@ -156,7 +161,7 @@ export function CsvImportPage() {
             </NativeSelect>
           </label>
           <div className="flex min-h-24 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/50 p-3 text-center">
-            <input
+            <Input
               ref={fileInput}
               className="sr-only"
               type="file"
@@ -208,15 +213,14 @@ export function CsvImportPage() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-sm">
+              <table className="w-full min-w-import-table text-sm">
                 <thead className="border-b bg-muted/60 text-left text-xs text-muted-foreground">
                   <tr>
                     <th className="sticky left-0 bg-muted/60 p-3">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         aria-label={t('transactions.import.selectAll')}
                         checked={allSelected}
-                        onChange={(event) => setSelected(event.target.checked ? newLines : [])}
+                        onCheckedChange={(checked) => setSelected(checked ? newLines : [])}
                       />
                     </th>
                     <th className="p-3">{t('transactions.import.line')}</th>
@@ -273,8 +277,8 @@ export function CsvImportPage() {
         ) : null}
         {result ? (
           <section className="mt-5">
-            <div className="flex gap-3 rounded-lg border border-emerald-700/30 bg-emerald-50 p-4">
-              <CheckCircle2Icon className="size-5 shrink-0 text-emerald-700" />
+            <div className="flex gap-3 rounded-lg border border-income/30 bg-income-wash p-4">
+              <CheckCircle2Icon className="size-5 shrink-0 text-income" />
               <div>
                 <strong>{t('transactions.import.successTitle', { count: result.new.length })}</strong>
                 <p className="text-sm text-muted-foreground">{t('transactions.import.successDescription')}</p>
@@ -291,7 +295,7 @@ export function CsvImportPage() {
             </Button>
           </section>
         ) : null}
-      </main>
+      </PageContent>
     </>
   );
 }
@@ -316,14 +320,14 @@ function Row({
   return (
     <tr className={onChange ? '' : 'bg-muted/40 text-muted-foreground'}>
       <td className="sticky left-0 bg-inherit p-3">
-        <input type="checkbox" disabled={!onChange} checked={selected ?? false} onChange={onChange} aria-label={selectionLabel ?? label} />
+        <Checkbox disabled={!onChange} checked={selected ?? false} onCheckedChange={onChange} aria-label={selectionLabel ?? label} />
       </td>
       <td className={PREVIEW_META_CELL}>{row.line}</td>
       <td className={PREVIEW_META_CELL}>{row.date && /^\d{4}-\d{2}-\d{2}$/.test(row.date) ? formatDate(parseDateOnly(row.date)) : (row.date ?? '—')}</td>
-      <td className="max-w-64 truncate p-3 text-[14px] font-semibold">{row.description ?? '—'}</td>
+      <td className="max-w-64 truncate p-3 text-sm font-semibold">{row.description ?? '—'}</td>
       <td className="p-3 text-right">
         <span
-          className={`num block whitespace-nowrap text-[14px] font-medium ${row.type === 'EXPENSE' ? 'text-destructive' : row.type === 'INCOME' ? 'text-emerald-700' : ''}`}
+          className={`num block whitespace-nowrap text-sm font-medium ${row.type === 'EXPENSE' ? 'text-destructive' : row.type === 'INCOME' ? 'text-income' : ''}`}
         >
           {row.amount === undefined ? '—' : formatCents(row.type === 'EXPENSE' ? -row.amount : row.amount, { sign: true })}
         </span>
@@ -331,14 +335,14 @@ function Row({
       <td className="p-3">
         <Badge
           variant="outline"
-          className={`text-[10.5px] ${
-            status === 'new' ? 'bg-emerald-50 text-emerald-700' : status === 'duplicate' ? 'bg-transfer/10 text-transfer' : 'bg-destructive/10 text-destructive'
+          className={`text-badge ${
+            status === 'new' ? 'bg-income-wash text-income' : status === 'duplicate' ? 'bg-transfer/10 text-transfer' : 'bg-destructive/10 text-destructive'
           }`}
         >
           {label}
         </Badge>
       </td>
-      <td className="max-w-64 truncate p-3 text-[14px] text-muted-foreground">
+      <td className="max-w-64 truncate p-3 text-sm text-muted-foreground">
         {row.reason ? t(`transactions.import.rowErrors.${row.reason}`, { defaultValue: row.reason }) : '—'}
       </td>
     </tr>
@@ -347,9 +351,9 @@ function Row({
 
 function PageLoading() {
   return (
-    <main className="mx-auto w-full max-w-[1120px] space-y-4 px-3.5 pt-4 shell:p-[22px]">
+    <PageContent className="space-y-4">
       <Skeleton className="h-8 w-56" />
       <Skeleton className="h-24 w-full" />
-    </main>
+    </PageContent>
   );
 }

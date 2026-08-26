@@ -223,7 +223,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             category: null,
             subcategory: null,
           };
-          // ponytail: mirrors #152's first-page shape; use plain invalidation if that cache changes.
+          // ponytail: mirrors Issue 152's first-page shape; use plain invalidation if that cache changes.
           queryClient.setQueryData<InfiniteData<TransactionListDto>>(key, {
             ...previous,
             pages: previous.pages.map((page, index) =>
