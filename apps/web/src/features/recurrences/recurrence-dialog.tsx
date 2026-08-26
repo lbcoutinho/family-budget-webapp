@@ -243,7 +243,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
           <DialogTitle>{t(formKey(rule ? 'recurrences.ruleForm.editTitle' : 'recurrences.ruleForm.createTitle'))}</DialogTitle>
         </DialogHeader>
 
-        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)]">
+        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-dialog-form">
           <div className="grid gap-3.5">
             <Tabs
               value={type}
@@ -362,8 +362,8 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 {apiErrorMessage(error, t)}
               </p>
             )}
-            <p className="flex items-start gap-2 rounded-md border-l-[3px] border-transfer bg-[#e8eff7] px-3 py-2.5 text-xs text-transfer">
-              <InfoIcon aria-hidden className="mt-px size-[15px] shrink-0" />
+            <p className="flex items-start gap-2 rounded-md border-l-callout border-transfer bg-transfer-wash px-3 py-2.5 text-xs text-transfer">
+              <InfoIcon aria-hidden className="mt-px size-callout-icon shrink-0" />
               <span>{t(formKey('recurrences.ruleForm.editNotice'))}</span>
             </p>
           </div>

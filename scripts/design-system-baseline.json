@@ -1,22 +1,4 @@
 {
-  "apps/web/src/features/recurrences/installment-dialog.tsx": {
-    "arbitraryValue": 4,
-    "literalColor": 1
-  },
-  "apps/web/src/features/recurrences/occurrence-preview.tsx": {
-    "arbitraryValue": 3,
-    "literalColor": 1
-  },
-  "apps/web/src/features/recurrences/recurrence-dialog.tsx": {
-    "arbitraryValue": 4,
-    "literalColor": 1
-  },
-  "apps/web/src/features/recurrences/recurrence-list.tsx": {
-    "arbitraryValue": 9
-  },
-  "apps/web/src/features/recurrences/recurrences-summary.tsx": {
-    "arbitraryValue": 1
-  },
   "apps/web/src/features/reports/cashbox-evolution-panel.tsx": {
     "arbitraryValue": 4,
     "literalColor": 1,

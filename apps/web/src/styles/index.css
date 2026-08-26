@@ -69,7 +69,11 @@
   --container-page-content: 70rem;
   --grid-template-columns-shell: 15.25rem minmax(0, 1fr);
   --shadow-raised: 0 4px 14px rgb(20 22 26 / 8%);
+  --text-badge: 0.65625rem;
   --text-headline: 1.05rem;
+  --text-table-cell: 0.8125rem;
+  --text-table-header: 0.71875rem;
+  --text-table-meta: 0.78125rem;
   --text-auth-brand: 1.3rem;
   --text-sidebar-meta: 0.78125rem;
   --text-sidebar-nav: 0.84375rem;
@@ -89,6 +93,7 @@
   --spacing-auth-card-bottom: 26px;
   --spacing-auth-card-top: 30px;
   --spacing-content: 22px;
+  --spacing-callout-icon: 15px;
   --spacing-session-check-bottom: 30px;
   --spacing-session-check-top: 34px;
   --spacing-sidebar-drawer: 262px;
@@ -145,6 +150,14 @@
 
 @utility grid-cols-card-header {
   grid-template-columns: 1fr auto;
+}
+
+@utility grid-cols-dialog-form {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.78fr);
+}
+
+@utility border-l-callout {
+  border-left-width: 3px;
 }
 
 @utility h-segmented-trigger {

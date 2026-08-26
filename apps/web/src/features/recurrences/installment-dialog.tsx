@@ -149,7 +149,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
           <DialogTitle>{t(formKey('recurrences.installmentForm.createTitle'))}</DialogTitle>
         </DialogHeader>
 
-        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)]">
+        <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-4 md:grid-cols-dialog-form">
           <div className="grid gap-3.5">
             <div className="grid grid-cols-2 gap-3">
               <div className="grid min-w-0 content-start gap-1.5">
@@ -243,8 +243,8 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 {apiErrorMessage(error, t)}
               </p>
             )}
-            <p className="flex items-start gap-2 rounded-md border-l-[3px] border-transfer bg-[#e8eff7] px-3 py-2.5 text-xs text-transfer">
-              <InfoIcon aria-hidden className="mt-px size-[15px] shrink-0" />
+            <p className="flex items-start gap-2 rounded-md border-l-callout border-transfer bg-transfer-wash px-3 py-2.5 text-xs text-transfer">
+              <InfoIcon aria-hidden className="mt-px size-callout-icon shrink-0" />
               <span>{t(formKey('recurrences.installmentForm.notice'), { count: installments })}</span>
             </p>
           </div>

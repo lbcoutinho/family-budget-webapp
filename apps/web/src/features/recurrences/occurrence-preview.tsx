@@ -12,7 +12,7 @@ export interface OccurrencePreviewRow {
   amountCents: number;
   /** The 31st-of-the-month fallback (M7-T02) — painted the same as `amber`. */
   clamped?: boolean;
-  /** The division remainder landing on the last installment (#198) — cashbox amber, not an error. */
+  /** The division remainder landing on the last installment (issue 198) — cashbox amber, not an error. */
   amber?: boolean;
 }
 
@@ -37,7 +37,7 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
     <div className="rounded-lg border" aria-live="polite">
       <div className="flex items-baseline justify-between gap-2 border-b px-4 py-3">
         <h3 className="font-semibold">{t('recurrences.preview.title')}</h3>
-        <span className="text-[11.5px] text-muted-foreground">{t('recurrences.preview.notPersisted')}</span>
+        <span className="text-table-header text-muted-foreground">{t('recurrences.preview.notPersisted')}</span>
       </div>
       {loading ? (
         <div className="flex items-center gap-2 px-4 py-6 text-sm text-muted-foreground">
@@ -53,7 +53,7 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
       ) : (
         <ul>
           {rows.map((row, index) => (
-            <li key={index} className="flex items-baseline gap-2.5 border-t px-4 py-1.5 text-[13px] first:border-t-0">
+            <li key={index} className="flex items-baseline gap-2.5 border-t px-4 py-1.5 text-table-cell first:border-t-0">
               <span className={`num w-20 shrink-0 ${row.clamped ? 'text-cashbox' : 'text-muted-foreground'}`}>{formatDate(row.date)}</span>
               {row.note ? <span className="min-w-0 flex-1 truncate text-muted-foreground">{row.note}</span> : null}
               <span className={`num ml-auto font-semibold ${row.amber ? 'text-cashbox' : ''}`}>{formatCents(row.amountCents, { sign: true })}</span>
@@ -62,7 +62,7 @@ export function OccurrencePreview({ rows, loading = false, error, footerNote, fo
         </ul>
       )}
       {!loading && !error && rows.length > 0 ? (
-        <div className="flex items-center justify-between gap-2 border-t bg-muted/50 px-4 py-2.5 text-[12.5px]">
+        <div className="flex items-center justify-between gap-2 border-t bg-muted/50 px-4 py-2.5 text-table-meta">
           <span className="text-muted-foreground">{footerNote}</span>
           {footerTotal ? <span className="num ml-auto text-right font-semibold">{footerTotal}</span> : null}
         </div>
