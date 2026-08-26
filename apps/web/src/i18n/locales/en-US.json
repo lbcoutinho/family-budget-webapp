@@ -588,7 +588,7 @@
       "amountHint": "Accepts 1,234.56 and 1.234,56.",
       "creditCard": "Credit card purchase",
       "referenceMonth": "Reference month",
-      "referenceMonthHint": "The month when this entry appears in reports — normally the month after the purchase.",
+      "referenceMonthHint": "The month when this entry appears in reports. Credit card purchases default to the following month.",
       "noAccounts": "Create an account before adding an entry.",
       "createAccount": "Go to Accounts",
       "required": "Fill in this field.",
