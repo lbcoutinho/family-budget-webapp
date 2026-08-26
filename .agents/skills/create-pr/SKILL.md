@@ -51,5 +51,5 @@ Closes #<issue-number>.
 - Read commit messages for Co-Authored-By trailers and replace in <models used in commits>
 - Keep "Verification" honest: if nothing was actually run, say so instead of listing commands that weren't executed.
 - Link Milestones to PRs.
-- Add labels to indicate what kind of work was done: backend, frontend, bug, documentation, prototyping, enhancement
+- Copy labels from ticket associated. If no ticket, add labels to indicate what kind of work was done: backend, frontend, bug, documentation, prototyping, enhancement
 - After push check "Acceptance criteria" in issue body and mark the checkboxes for validations done
