@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { regressions, scanSource } = require('./check-design-system');
+const { scanSource, violations } = require('./check-design-system');
 
 test('allows shared design tokens and components', () => {
   assert.deepEqual(scanSource('<Button className="bg-primary font-sans p-4" />'), {});
@@ -20,11 +20,10 @@ test('detects design-system escapes', () => {
   });
 });
 
-test('rejects only increases over the per-file baseline', () => {
-  const baseline = { 'screen.tsx': { arbitraryValue: 2 } };
-  assert.deepEqual(regressions({ 'screen.tsx': { arbitraryValue: 2 } }, baseline), []);
-  assert.deepEqual(regressions({ 'screen.tsx': { arbitraryValue: 3 }, 'new.tsx': { nativeControl: 1 } }, baseline), [
-    'screen.tsx: arbitraryValue increased from 2 to 3',
-    'new.tsx: nativeControl increased from 0 to 1',
+test('rejects every design-system escape', () => {
+  assert.deepEqual(violations({}), []);
+  assert.deepEqual(violations({ 'screen.tsx': { arbitraryValue: 3 }, 'new.tsx': { nativeControl: 1 } }), [
+    'screen.tsx: arbitraryValue has 3 violations',
+    'new.tsx: nativeControl has 1 violation',
   ]);
 });

@@ -1,9 +1,0 @@
-{
-  "apps/web/src/features/settings/csv-import-model-dialog.tsx": {
-    "arbitraryValue": 4,
-    "literalColor": 1
-  },
-  "apps/web/src/features/settings/general-settings-page.tsx": {
-    "arbitraryValue": 9
-  }
-}
