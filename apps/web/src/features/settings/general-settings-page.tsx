@@ -143,7 +143,7 @@ export function GeneralSettingsPage() {
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
               <h2 className="font-display text-headline font-semibold tracking-headline">{t('settingsGeneral.models.heading')}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{t('settingsGeneral.models.description')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t('settingsGeneral.models.description')}</p>
             </div>
             <Button variant="outline" size="sm" onClick={() => setCreateModelOpen(true)}>
               <PlusIcon />
