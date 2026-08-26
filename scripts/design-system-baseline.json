@@ -26,22 +26,5 @@
   },
   "apps/web/src/features/settings/general-settings-page.tsx": {
     "arbitraryValue": 9
-  },
-  "apps/web/src/features/transactions/cashbox-operation-dialog.tsx": {
-    "literalColor": 1
-  },
-  "apps/web/src/features/transactions/csv-import-page.tsx": {
-    "arbitraryValue": 18,
-    "nativeControl": 3
-  },
-  "apps/web/src/features/transactions/daily-expense-strip.tsx": {
-    "arbitraryValue": 11,
-    "nativeControl": 1
-  },
-  "apps/web/src/features/transactions/entry-dialog.tsx": {
-    "literalColor": 1
-  },
-  "apps/web/src/features/transactions/month-page.tsx": {
-    "arbitraryValue": 36
   }
 }

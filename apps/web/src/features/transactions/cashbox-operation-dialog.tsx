@@ -140,7 +140,7 @@ function availableBalanceFromError(error: unknown): number | undefined {
 export interface CashboxOperationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** #156 supplies this for its edit flow; creation remains this dialog's only mutation today. */
+  /** Issue 156 supplies this for its edit flow; creation remains this dialog's only mutation today. */
   transaction?: TransactionListItemDto;
 }
 
@@ -539,7 +539,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                   </p>
                   <FieldError id="cashbox-operation-amount-error" error={errors.amount?.message} />
                   {balanceWarning !== undefined ? (
-                    <p className="border-l-2 border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                    <p className="border-l-2 border-cashbox bg-cashbox-wash px-3 py-2 text-xs text-cashbox">
                       {t('transactions.cashboxOperation.insufficientWarning', { amount: formatCents(balanceWarning) })}
                     </p>
                   ) : null}

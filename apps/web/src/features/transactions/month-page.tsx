@@ -154,7 +154,7 @@ export function MonthPicker({ month, onSelect }: { month: Date; onSelect: (next:
     <div className="relative">
       <Button
         variant="ghost"
-        className="h-auto min-w-[150px] border border-transparent bg-muted/70 px-2 py-1 font-display text-[1.05rem] font-bold tracking-[-0.02em] hover:bg-muted"
+        className="h-auto min-w-month-picker border border-transparent bg-muted/70 px-2 py-1 font-display text-headline font-bold tracking-headline hover:bg-muted"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
       >
@@ -222,7 +222,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value ?? FILTER_ALL} onValueChange={(next) => onChange(next === FILTER_ALL ? undefined : next)}>
-      <SelectTrigger size="sm" aria-label={ariaLabel} className="text-[12.5px]">
+      <SelectTrigger size="sm" aria-label={ariaLabel} className="text-field">
         {icon}
         <SelectValue />
       </SelectTrigger>
@@ -253,7 +253,7 @@ function EntryMeta({
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="truncate text-[14px] font-semibold">
+        <span className="truncate text-sm font-semibold">
           {showPersonalNotes && !isCashboxOperation(entry.type) ? (entry.notes ?? entry.description) : entry.description}
         </span>
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
@@ -268,22 +268,22 @@ function EntryMeta({
           />
         ) : null}
         {entry.installmentNumber !== null && entry.installmentTotal !== null ? (
-          <span className="num text-[11px] text-muted-foreground">
+          <span className="num text-xs text-muted-foreground">
             {t('transactions.installmentOf', { index: entry.installmentNumber, total: entry.installmentTotal })}
           </span>
         ) : null}
         {entry.status === TransactionStatus.DRAFT ? (
-          <Badge variant="outline" className="border-dashed text-[10.5px]">
+          <Badge variant="outline" className="border-dashed text-badge">
             {t('transactions.draft')}
           </Badge>
         ) : null}
         {isCashboxOperation(entry.type) ? (
-          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-[10.5px] text-cashbox">
+          <Badge variant="outline" className="border-cashbox/30 bg-cashbox/10 text-badge text-cashbox">
             {typeLabel(entry.type, t)}
           </Badge>
         ) : null}
       </div>
-      <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+      <p className="mt-0.5 truncate text-field text-muted-foreground">
         {detail || typeLabel(entry.type, t)}
         {entry.isCreditCard ? ` · ${t('transactions.purchaseOn', { date: new Intl.DateTimeFormat(i18n.language).format(localDate(entry.date)) })}` : ''}
       </p>
@@ -299,17 +299,17 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
     entry.type === TransactionType.EXPENSE
       ? 'text-destructive'
       : entry.type === TransactionType.INCOME
-        ? 'text-emerald-700'
+        ? 'text-income'
         : entry.type === TransactionType.TRANSFER || entry.type === TransactionType.CASHBOX_TRANSFER
           ? 'text-transfer'
           : 'text-cashbox';
 
   return (
-    <span className={`num block whitespace-nowrap text-[14px] font-medium ${tone}`}>
+    <span className={`num block whitespace-nowrap text-sm font-medium ${tone}`}>
       {formatCents(amount, { sign: !neutral })}
       {/* The list API does not supply running balances. */}
       {entry.status === TransactionStatus.CONFIRMED ? (
-        <small className="mt-0.5 block text-[11px] font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
+        <small className="mt-0.5 block text-xs font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
       ) : null}
     </span>
   );
@@ -497,7 +497,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
               <ChevronRightIcon />
             </Button>
-            <Button variant="ghost" size="sm" className="text-[12.5px]" onClick={() => selectMonth(new Date())}>
+            <Button variant="ghost" size="sm" className="text-field" onClick={() => selectMonth(new Date())}>
               {t('transactions.today')}
             </Button>
           </span>
@@ -507,17 +507,17 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
             <Button
               variant="outline"
               size="sm"
-              className="border-cashbox bg-cashbox-wash text-[12.5px] text-cashbox hover:border-cashbox hover:bg-cashbox hover:text-white"
+              className="border-cashbox bg-cashbox-wash text-field text-cashbox hover:border-cashbox hover:bg-cashbox hover:text-white"
               onClick={() => setCashboxOperationDialogOpen(true)}
             >
               <PiggyBankIcon />
               {t('transactions.moveCashbox')}
             </Button>
-            <Button size="sm" className="text-[12.5px]" onClick={() => setEntryDialogOpen(true)}>
+            <Button size="sm" className="text-field" onClick={() => setEntryDialogOpen(true)}>
               <PlusIcon />
               {t('transactions.new')}
             </Button>
-            <Button variant="outline" size="sm" className="text-[12.5px]" onClick={() => void navigate('/transactions/import')}>
+            <Button variant="outline" size="sm" className="text-field" onClick={() => void navigate('/transactions/import')}>
               <FileUpIcon />
               {t('transactions.import.action')}
             </Button>
@@ -540,16 +540,16 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                   onChange={(event) => setSearchInput(event.target.value)}
                   aria-label={t('transactions.search')}
                   placeholder={t('transactions.search')}
-                  className="pl-8 text-[12.5px] md:text-[12.5px]"
+                  className="pl-8 text-field"
                 />
               </div>
-              <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-[12.5px]">
+              <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-field">
                 <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
                 {t('transactions.showPersonalNotes')}
               </label>
             </div>
             <Popover.Trigger asChild>
-              <Button variant="outline" size="sm" className="text-[12.5px]">
+              <Button variant="outline" size="sm" className="text-field">
                 <FilterIcon className="size-3.5" />
                 {t('transactions.filters.menu')}
                 {activeFilterCount ? ` (${activeFilterCount})` : ''}
@@ -563,7 +563,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               className="z-50 grid min-w-72 gap-2 rounded-md border bg-popover p-3 text-popover-foreground shadow-md"
             >
               <div className="flex items-center justify-between gap-3">
-                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
+                <label className="text-field text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
                 <FilterSelect
                   value={typeFilter}
                   onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
@@ -573,7 +573,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
+                <label className="text-field text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
                 <FilterSelect
                   value={categoryFilter}
                   onChange={setCategoryFilter}
@@ -583,7 +583,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <label className="text-[12.5px] text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
+                <label className="text-field text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
                 <FilterSelect
                   value={accountFilter}
                   onChange={setAccountFilter}
@@ -593,7 +593,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <label className="text-[12.5px] text-muted-foreground">{t('transactions.sort.label')}</label>
+                <label className="text-field text-muted-foreground">{t('transactions.sort.label')}</label>
                 <FilterSelect
                   value={sort}
                   onChange={(value) => setSort(value as TransactionSort)}
@@ -611,7 +611,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full justify-center text-[12.5px]"
+                  className="w-full justify-center text-field"
                   onClick={() => {
                     setTypeFilter(undefined);
                     setCategoryFilter(undefined);
@@ -676,7 +676,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               <h2 id="month-entries" className="font-semibold">
                 {t('transactions.entries')}
               </h2>
-              <p className="text-[11.5px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
               </p>
             </div>
@@ -684,14 +684,14 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               {allEntries.map((entry) => (
                 <article
                   key={entry.id}
-                  className={`group grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-l-[3px] px-4 py-2.5 pl-[13px] hover:bg-muted shell:grid-cols-[48px_minmax(0,1fr)_auto_auto] shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
+                  className={`group grid grid-cols-month-entry items-center gap-x-3 gap-y-1 border-b border-l-entry-accent px-4 py-2.5 pl-entry-content hover:bg-muted shell:grid-cols-month-entry-shell shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
                   style={{
                     borderLeftColor:
                       entry.category?.color ??
                       (entry.type === TransactionType.CASHBOX_TRANSFER ? 'var(--transfer)' : isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent'),
                   }}
                 >
-                  <time className={`num text-[12.5px] text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
+                  <time className={`num text-field text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
                     {formatEntryDate(entry.date)}
                   </time>
                   <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
@@ -739,32 +739,26 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               ))}
             </div>
             {confirmed.hasNextPage ? (
-              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-[12.5px]">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-[12.5px]"
-                  onClick={() => void confirmed.fetchNextPage()}
-                  disabled={confirmed.isFetchingNextPage}
-                >
+              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-field">
+                <Button variant="ghost" size="sm" className="text-field" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
                   {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
                 </Button>
               </div>
             ) : null}
-            <footer className="bg-muted/70 px-4 py-3 text-[13px]">
+            <footer className="bg-muted/70 px-4 py-3 text-sm">
               <div className="flex justify-between">
                 <span>{t('transactions.income')}</span>
-                <span className="num text-emerald-700">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
+                <span className="num text-income">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span>
-                  {t('transactions.expense')} <small className="text-[11.5px] text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                  {t('transactions.expense')} <small className="text-xs text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
                 </span>
                 <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-              <div className="mt-2 flex justify-between border-t pt-2 font-display text-[1.02rem] font-bold tracking-[-0.02em]">
+              <div className="mt-2 flex justify-between border-t pt-2 font-display text-lg font-bold tracking-headline">
                 <span>{t('transactions.monthNet')}</span>
-                <span className={`num ${netTotal >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
+                <span className={`num ${netTotal >= 0 ? 'text-income' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
               </div>
             </footer>
           </section>

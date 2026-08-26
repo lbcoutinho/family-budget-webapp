@@ -36,6 +36,8 @@
   --primary: #1a7a52;
   --primary-foreground: #ffffff;
   --ring: #1a7a52;
+  --income: #1a7a52;
+  --income-wash: #e7f2ec;
 
   /* money, fixed forever */
   --destructive: #bc2f3e;
@@ -78,6 +80,8 @@
   --text-sidebar-meta: 0.78125rem;
   --text-sidebar-nav: 0.84375rem;
   --text-sidebar-avatar: 0.6875rem;
+  --text-badge: 0.65625rem;
+  --text-field: 0.78125rem;
   --tracking-brand: -0.03em;
   --tracking-headline: -0.02em;
 }
@@ -99,7 +103,13 @@
   --spacing-sidebar-drawer: 262px;
   --spacing-sidebar-mark: 7px;
   --spacing-sidebar-submenu: 26px;
+  --spacing-daily-chart: 108px;
+  --spacing-daily-gap: 3px;
+  --spacing-daily-baseline: 2px;
+  --spacing-month-picker: 150px;
+  --spacing-import-table: 520px;
   --radius-mark: 2px;
+  --radius-bar: 3px;
   --radius-xs: calc(var(--radius) - 6px);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -124,12 +134,30 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-income: var(--income);
+  --color-income-wash: var(--income-wash);
   --color-cashbox: var(--cashbox);
   --color-cashbox-wash: var(--cashbox-wash);
   --color-category-1: var(--category-1);
   --color-category-2: var(--category-2);
   --color-category-3: var(--category-3);
   --color-category-5: var(--category-5);
+}
+
+@utility border-l-entry-accent {
+  border-left-width: 3px;
+}
+
+@utility pl-entry-content {
+  padding-left: 13px;
+}
+
+@utility grid-cols-month-entry {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+}
+
+@utility grid-cols-month-entry-shell {
+  grid-template-columns: 48px minmax(0, 1fr) auto auto;
 }
 
 @utility duration-ui {
