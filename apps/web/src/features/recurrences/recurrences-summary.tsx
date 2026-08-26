@@ -39,7 +39,7 @@ export function RecurrencesSummary({ rules }: RecurrencesSummaryProps) {
         />
         <StatCard label={t(formKey('recurrences.summary.installmentsOwed'))} value={formatCents(stats.installmentsOwed)} />
       </div>
-      <p className="mt-2.5 text-[12.5px] text-muted-foreground">{t(formKey('recurrences.summary.note'))}</p>
+      <p className="mt-2.5 text-table-meta text-muted-foreground">{t(formKey('recurrences.summary.note'))}</p>
     </div>
   );
 }

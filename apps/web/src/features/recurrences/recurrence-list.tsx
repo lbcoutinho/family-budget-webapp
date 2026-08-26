@@ -59,9 +59,9 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
   return (
     <div className="overflow-hidden rounded-lg border">
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]">
+        <table className="w-full text-table-cell">
           <thead>
-            <tr className="border-b bg-muted/50 text-left text-[11.5px] text-muted-foreground">
+            <tr className="border-b bg-muted/50 text-left text-table-header text-muted-foreground">
               <th className="px-4 py-2.5 font-medium">{t('recurrences.table.rule')}</th>
               <th className="px-4 py-2.5 font-medium">{t('recurrences.table.account')}</th>
               <th className="px-4 py-2.5 text-right font-medium">{t('recurrences.table.amount')}</th>
@@ -90,18 +90,18 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className={`truncate font-semibold ${!rule.isActive ? 'font-medium' : ''}`}>{rule.description}</span>
                           {!rule.autoConfirm ? (
-                            <Badge variant="outline" className="border-dashed text-[10.5px]">
+                            <Badge variant="outline" className="border-dashed text-badge">
                               {t('recurrences.table.draftBadge')}
                             </Badge>
                           ) : null}
                           {!rule.isActive ? (
-                            <Badge variant="outline" className="text-[10.5px]">
+                            <Badge variant="outline" className="text-badge">
                               {t('recurrences.table.inactiveBadge')}
                             </Badge>
                           ) : null}
                         </div>
                         {category ? (
-                          <p className="truncate text-[12px] text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground">
                             {category.parentName ? `${category.parentName} · ${category.name}` : category.name}
                             {subcategory ? ` · ${subcategory.name}` : ''}
                           </p>
@@ -119,21 +119,21 @@ export function RecurrenceList({ rules, accounts, categories, generatingId, onEd
                   <td className="px-4 py-2.5">
                     {!isInstallment ? (
                       rule.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5 text-table-meta text-muted-foreground">
                           <RepeatIcon className="size-3.5" />
                           {t('recurrences.table.endless')}
                         </span>
                       ) : (
-                        <span className="text-[12.5px] text-muted-foreground">
+                        <span className="text-table-meta text-muted-foreground">
                           {rule.generatedUntil ? t('recurrences.table.stoppedOn', { date: formatDate(parseDateOnly(rule.generatedUntil)) }) : '—'}
                         </span>
                       )
                     ) : (
-                      <div className="min-w-[108px]">
+                      <div className="min-w-27">
                         <span className="num text-muted-foreground">
                           {progress!.elapsed}/{rule.totalOccurrences}
                         </span>
-                        <span className="block text-[11.5px] text-muted-foreground">
+                        <span className="block text-table-header text-muted-foreground">
                           {progress!.elapsed >= rule.totalOccurrences!
                             ? t('recurrences.table.completed')
                             : owed !== null
