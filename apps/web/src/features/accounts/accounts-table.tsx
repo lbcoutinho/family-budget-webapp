@@ -80,7 +80,7 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
               <div className="flex items-center gap-2.5">
                 <span
                   className={cn(
-                    'grid size-7 flex-none place-items-center rounded-md border border-border bg-muted text-[11px] font-semibold',
+                    'grid size-7 flex-none place-items-center rounded-md border border-border bg-muted text-sidebar-avatar font-semibold',
                     !account.isActive && 'text-muted-foreground/70',
                   )}
                 >
