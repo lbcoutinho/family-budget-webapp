@@ -86,6 +86,7 @@ describe('cashbox operation payloads', () => {
     destinationCashboxId: 'cashbox-2',
     amount: 123456,
     date: '2026-08-15',
+    referenceMonth: '2026-08',
     description: 'Fund holiday',
   };
 
@@ -94,7 +95,13 @@ describe('cashbox operation payloads', () => {
     ['withdrawal', { type: 'CASHBOX_OUT', accountId: 'account-1', cashboxId: 'cashbox-1' }],
     ['transfer', { type: 'CASHBOX_TRANSFER', cashboxId: 'cashbox-1', destinationCashboxId: 'cashbox-2' }],
   ] as const)('creates the allowed fields for %s', (mode, references) => {
-    expect(cashboxOperationPayload(mode, values)).toEqual({ amount: 123456, date: '2026-08-15', description: 'Fund holiday', ...references });
+    expect(cashboxOperationPayload(mode, values)).toEqual({
+      amount: 123456,
+      date: '2026-08-15',
+      referenceMonth: '2026-08-01',
+      description: 'Fund holiday',
+      ...references,
+    });
   });
 });
 
@@ -133,7 +140,15 @@ describe('CashboxOperationDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(mutate).toHaveBeenCalledWith({
-      data: { type: 'CASHBOX_IN', accountId: 'account-1', cashboxId: 'cashbox-1', amount: 123456, date: '2026-08-15', description: 'Fundo de férias' },
+      data: {
+        type: 'CASHBOX_IN',
+        accountId: 'account-1',
+        cashboxId: 'cashbox-1',
+        amount: 123456,
+        date: '2026-08-15',
+        referenceMonth: '2026-08-01',
+        description: 'Fundo de férias',
+      },
     });
   });
 
@@ -176,6 +191,16 @@ describe('CashboxOperationDialog', () => {
 
     act(() => mutationOptions?.mutation.onSuccess());
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('follows the date for a new cashbox operation until its reference month is edited', () => {
+    renderDialog();
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-09-15' } });
+    expect(screen.getByLabelText('Mês de referência')).toHaveValue('2026-09');
+    fireEvent.change(screen.getByLabelText('Mês de referência'), { target: { value: '2026-11' } });
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-10-15' } });
+    expect(screen.getByLabelText('Mês de referência')).toHaveValue('2026-11');
   });
 
   it('keeps edit mode open and shows the API error when updating fails', async () => {
@@ -228,7 +253,7 @@ describe('CashboxOperationDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     const saved = mutate.mock.calls[0]?.[0]?.data;
-    expect(saved).toEqual({ type, ...references, amount: 2000, date: '2026-08-15', description: 'Fundo de férias' });
+    expect(saved).toEqual({ type, ...references, amount: 2000, date: '2026-08-15', referenceMonth: '2026-08-01', description: 'Fundo de férias' });
   });
 
   it('shows the selected balance beside both selectors', async () => {

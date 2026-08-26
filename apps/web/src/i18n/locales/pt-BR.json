@@ -594,7 +594,7 @@
       "amountHint": "Aceita 1.234,56 e 1234.56.",
       "creditCard": "Compra no cartão de crédito",
       "referenceMonth": "Mês de referência",
-      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios — normalmente o mês seguinte à compra.",
+      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios. Compras no cartão usam o mês seguinte por padrão.",
       "noAccounts": "Cadastre uma conta antes de criar um lançamento.",
       "createAccount": "Ir para Contas",
       "required": "Preencha este campo.",

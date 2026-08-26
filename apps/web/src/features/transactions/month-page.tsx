@@ -268,7 +268,7 @@ function EntryMeta({
           />
         ) : null}
         {entry.installmentNumber !== null && entry.installmentTotal !== null ? (
-          <span className="num text-xs text-muted-foreground">
+          <span className="num text-report-caption text-muted-foreground">
             {t('transactions.installmentOf', { index: entry.installmentNumber, total: entry.installmentTotal })}
           </span>
         ) : null}
@@ -309,7 +309,7 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
       {formatCents(amount, { sign: !neutral })}
       {/* The list API does not supply running balances. */}
       {entry.status === TransactionStatus.CONFIRMED ? (
-        <small className="mt-0.5 block text-xs font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
+        <small className="mt-0.5 block text-report-caption font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
       ) : null}
     </span>
   );
@@ -676,7 +676,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               <h2 id="month-entries" className="font-semibold">
                 {t('transactions.entries')}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-table-header text-muted-foreground">
                 {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
               </p>
             </div>
@@ -745,18 +745,18 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 </Button>
               </div>
             ) : null}
-            <footer className="bg-muted/70 px-4 py-3 text-sm">
+            <footer className="bg-muted/70 px-4 py-3 text-table-cell">
               <div className="flex justify-between">
                 <span>{t('transactions.income')}</span>
                 <span className="num text-income">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span>
-                  {t('transactions.expense')} <small className="text-xs text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                  {t('transactions.expense')} <small className="text-table-header text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
                 </span>
                 <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-              <div className="mt-2 flex justify-between border-t pt-2 font-display text-lg font-bold tracking-headline">
+              <div className="mt-2 flex justify-between border-t pt-2 font-display text-month-total font-bold tracking-headline">
                 <span>{t('transactions.monthNet')}</span>
                 <span className={`num ${netTotal >= 0 ? 'text-income' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
               </div>
