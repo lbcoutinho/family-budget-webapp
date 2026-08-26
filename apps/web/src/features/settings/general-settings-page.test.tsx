@@ -61,6 +61,7 @@ describe('GeneralSettingsPage', () => {
     renderPage();
 
     expect(await screen.findByText('Nenhum modelo CSV registrado.')).toBeInTheDocument();
+    expect(screen.getByText('Definem como ler os extratos dos seus bancos.')).toHaveClass('text-xs');
   });
 
   it('shows loading and error states for CSV models', async () => {

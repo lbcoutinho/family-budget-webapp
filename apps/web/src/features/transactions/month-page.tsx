@@ -51,7 +51,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
-import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
+import { DailyExpenseStrip, getDailyExpensesQueryKey, type DateFilter } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -268,7 +268,7 @@ function EntryMeta({
           />
         ) : null}
         {entry.installmentNumber !== null && entry.installmentTotal !== null ? (
-          <span className="num text-xs text-muted-foreground">
+          <span className="num text-report-caption text-muted-foreground">
             {t('transactions.installmentOf', { index: entry.installmentNumber, total: entry.installmentTotal })}
           </span>
         ) : null}
@@ -309,7 +309,7 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
       {formatCents(amount, { sign: !neutral })}
       {/* The list API does not supply running balances. */}
       {entry.status === TransactionStatus.CONFIRMED ? (
-        <small className="mt-0.5 block text-xs font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
+        <small className="mt-0.5 block text-report-caption font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
       ) : null}
     </span>
   );
@@ -353,7 +353,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [accountFilter, setAccountFilter] = useState<string>();
   const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
   const [showPersonalNotes, setShowPersonalNotes] = useState(true);
-  const [selectedDay, setSelectedDay] = useState<string>();
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>();
   // A day filter belongs to the month it was picked in — comparing against the last
   // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
   // month, without an extra render/paint round trip.
@@ -362,10 +362,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
   if (dayFilterMonth !== referenceMonth) {
     setDayFilterMonth(referenceMonth);
-    setSelectedDay(undefined);
+    setSelectedDateFilter(undefined);
   }
 
-  const toggleDay = (date: string) => setSelectedDay((current) => (current === date ? undefined : date));
+  const toggleDateFilter = (filter: DateFilter) => setSelectedDateFilter((current) => (current?.id === filter.id ? undefined : filter));
 
   const invalidateTransactions = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
@@ -420,7 +420,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   }, [searchInput]);
 
   const referenceMonthFilter = dateOnly(referenceMonth);
-  const dayFilter = selectedDay ? { dateFrom: selectedDay, dateTo: selectedDay } : {};
+  const dayFilter = selectedDateFilter ? { dateFrom: selectedDateFilter.dateFrom, dateTo: selectedDateFilter.dateTo } : {};
   const activeFilters = {
     ...(search ? { search } : {}),
     ...(typeFilter ? { type: [typeFilter] } : {}),
@@ -525,7 +525,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         }
       />
       <PageContent className="space-y-4">
-        <DailyExpenseStrip referenceMonth={referenceMonth} selectedDate={selectedDay} onToggleDay={toggleDay} />
+        <DailyExpenseStrip referenceMonth={referenceMonth} selectedFilterId={selectedDateFilter?.id} onToggleFilter={toggleDateFilter} />
 
         <BalancePanel />
 
@@ -676,7 +676,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               <h2 id="month-entries" className="font-semibold">
                 {t('transactions.entries')}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-table-header text-muted-foreground">
                 {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
               </p>
             </div>
@@ -745,18 +745,18 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                 </Button>
               </div>
             ) : null}
-            <footer className="bg-muted/70 px-4 py-3 text-sm">
+            <footer className="bg-muted/70 px-4 py-3 text-table-cell">
               <div className="flex justify-between">
                 <span>{t('transactions.income')}</span>
                 <span className="num text-income">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span>
-                  {t('transactions.expense')} <small className="text-xs text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                  {t('transactions.expense')} <small className="text-table-header text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
                 </span>
                 <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
               </div>
-              <div className="mt-2 flex justify-between border-t pt-2 font-display text-lg font-bold tracking-headline">
+              <div className="mt-2 flex justify-between border-t pt-2 font-display text-month-total font-bold tracking-headline">
                 <span>{t('transactions.monthNet')}</span>
                 <span className={`num ${netTotal >= 0 ? 'text-income' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
               </div>

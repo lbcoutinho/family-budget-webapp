@@ -144,7 +144,12 @@ export function CashboxEvolutionPanel({ year }: CashboxEvolutionPanelProps) {
                 <TableRow key={key}>
                   <TableCell>
                     {cashbox.cashboxId ? (
-                      <Button variant="ghost" size="xs" className="justify-start px-0 font-medium hover:underline" onClick={() => void navigate('/cashboxes')}>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        className="justify-start px-0 text-sm font-medium hover:underline"
+                        onClick={() => void navigate('/cashboxes')}
+                      >
                         <span className="size-2.5 flex-none rounded-sm" style={{ background: color }} />
                         {cashbox.name}
                       </Button>

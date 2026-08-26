@@ -465,7 +465,17 @@
       "groupLabel": "Despesas por dia de {{month}}",
       "noCategory": "Sem categoria",
       "tooltip": "{{date}} — {{total}} — {{breakdown}}",
-      "tooltipEmpty": "{{date}} — nada saiu"
+      "tooltipEmpty": "{{date}} — nada saiu",
+      "columnTitle_one": "{{date}} - {{count}} lançamento",
+      "columnTitle_other": "{{date}} - {{count}} lançamentos",
+      "before": "Antes",
+      "after": "Depois",
+      "boundaryTitle_one": "{{side}} - {{count}} lançamento",
+      "boundaryTitle_other": "{{side}} - {{count}} lançamentos",
+      "boundaryTooltip_one": "{{side}} — {{count}} lançamento — {{total}} — {{breakdown}}",
+      "boundaryTooltip_other": "{{side}} — {{count}} lançamentos — {{total}} — {{breakdown}}",
+      "boundaryTooltipEmpty_one": "{{side}} — {{count}} lançamento — nenhuma despesa",
+      "boundaryTooltipEmpty_other": "{{side}} — {{count}} lançamentos — nenhuma despesa"
     },
     "filters": {
       "menu": "Filtros e ordenação",
@@ -588,7 +598,7 @@
       "amountHint": "Aceita 1.234,56 e 1234.56.",
       "creditCard": "Compra no cartão de crédito",
       "referenceMonth": "Mês de referência",
-      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios — normalmente o mês seguinte à compra.",
+      "referenceMonthHint": "O mês em que o lançamento entra nos relatórios. Compras no cartão usam o mês seguinte por padrão.",
       "noAccounts": "Cadastre uma conta antes de criar um lançamento.",
       "createAccount": "Ir para Contas",
       "required": "Preencha este campo.",
