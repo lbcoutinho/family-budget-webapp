@@ -108,6 +108,14 @@
   --spacing-daily-baseline: 2px;
   --spacing-month-picker: 150px;
   --spacing-import-table: 520px;
+  --spacing-report-year: 52px;
+  --spacing-report-chart: 220px;
+  --spacing-report-chart-legend: 240px;
+  --spacing-report-category: 150px;
+  --spacing-report-percentage: 170px;
+  --spacing-report-average: 128px;
+  --spacing-report-yearly-total: 118px;
+  --spacing-report-yearly-average: 110px;
   --radius-mark: 2px;
   --radius-bar: 3px;
   --radius-xs: calc(var(--radius) - 6px);

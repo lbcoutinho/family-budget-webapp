@@ -5,7 +5,6 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE_ROOT = path.join(ROOT, 'apps/web/src');
-const BASELINE_PATH = path.join(ROOT, 'scripts/design-system-baseline.json');
 
 const rules = {
   arbitraryValue: /\b(?:[a-z][a-z0-9-]*:)*(?!(?:data|group-data|peer-data|has)-\[)-?[a-z][a-z0-9-]*-\[(?![^\]\r\n"'`]*[=>])[^\]\r\n"'`]+\]/g,
@@ -43,31 +42,21 @@ function scanRepository() {
   );
 }
 
-function regressions(current, baseline) {
+function violations(current) {
   return Object.entries(current).flatMap(([file, counts]) =>
-    Object.entries(counts)
-      .filter(([rule, count]) => count > ((baseline[file] && baseline[file][rule]) || 0))
-      .map(([rule, count]) => `${file}: ${rule} increased from ${(baseline[file] && baseline[file][rule]) || 0} to ${count}`),
+    Object.entries(counts).map(([rule, count]) => `${file}: ${rule} has ${count} violation${count === 1 ? '' : 's'}`),
   );
 }
 
 function main() {
   const current = scanRepository();
-  if (process.argv.includes('--write-baseline')) {
-    fs.writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`);
-    return;
-  }
-
-  const baseline = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
-  const failures = regressions(current, baseline);
+  const failures = violations(current);
   if (failures.length) {
-    console.error(
-      `Design-system violations:\n${failures.join('\n')}\nUse shared components and design tokens. Update the baseline only for an approved exception.`,
-    );
+    console.error(`Design-system violations:\n${failures.join('\n')}\nUse shared components and design tokens.`);
     process.exitCode = 1;
   }
 }
 
 if (require.main === module) main();
 
-module.exports = { regressions, scanSource };
+module.exports = { scanSource, violations };

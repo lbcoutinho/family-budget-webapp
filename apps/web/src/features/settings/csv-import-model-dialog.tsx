@@ -75,7 +75,7 @@ export function CsvImportModelDialog({
 
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-      <DialogContent className="sm:max-w-[620px]" showCloseButton={!isPending}>
+      <DialogContent className="sm:max-w-2xl" showCloseButton={!isPending}>
         <DialogHeader>
           <DialogTitle>{t('settingsGeneral.models.form.title')}</DialogTitle>
         </DialogHeader>
@@ -137,8 +137,8 @@ export function CsvImportModelDialog({
               <Input id="csv-model-amount-header" aria-invalid={errors.amountHeader !== undefined} disabled={isPending} {...register('amountHeader')} />
             </Field>
           </div>
-          <p className="flex items-start gap-2 rounded-md border-l-[3px] border-transfer bg-[#e8eff7] px-3 py-2.5 text-xs text-transfer">
-            <InfoIcon aria-hidden className="mt-px size-[15px] shrink-0" />
+          <p className="flex items-start gap-2 rounded-md border-l-callout border-transfer bg-transfer-wash px-3 py-2.5 text-xs text-transfer">
+            <InfoIcon aria-hidden className="mt-px size-callout-icon shrink-0" />
             <span>{t('settingsGeneral.models.form.hint')}</span>
           </p>
           {error !== undefined && error !== null && (
