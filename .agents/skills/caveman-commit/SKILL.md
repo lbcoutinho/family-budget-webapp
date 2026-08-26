@@ -16,10 +16,9 @@ Write commit messages terse and exact. Conventional Commits format. No fluff. Wh
 - No trailing period
 - Match project convention for capitalization after the colon
 
-**Body:**
-- Must have at least Co-Authored-By trailer. `Co-Authored-By: <model being used> <noreply@company.com>`; replace placeholders with active model's name and company noreply email
-- Skip description text when subject is self-explanatory
-- Add description text for: non-obvious *why*, breaking changes, migration notes, linked issues
+**Body (only if needed):**
+- Skip entirely when subject is self-explanatory
+- Add body only for: non-obvious *why*, breaking changes, migration notes, linked issues
 - Wrap at 72 chars
 - Bullets `-` not `*`
 
