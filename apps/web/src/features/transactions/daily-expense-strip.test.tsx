@@ -6,7 +6,7 @@ import { HttpResponse, http } from 'msw';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 
-import { DailyExpenseStrip } from './daily-expense-strip';
+import { DailyExpenseStrip, type DateFilter } from './daily-expense-strip';
 
 import { server } from '@/test/server';
 
@@ -21,7 +21,7 @@ function transaction(overrides: Partial<TransactionListItemDto> & Pick<Transacti
     referenceMonth: REFERENCE_MONTH_ISO,
     description: overrides.description ?? 'Expense',
     notes: null,
-    isCreditCard: false,
+    isCreditCard: true,
     accountId: 'account-1',
     destinationAccountId: null,
     categoryId: 'category-food',
@@ -67,12 +67,12 @@ function mockTransactions(allItems: TransactionListItemDto[]) {
   );
 }
 
-function renderStrip(selectedDate: string | undefined = undefined, onToggleDay: (date: string) => void = () => undefined) {
+function renderStrip(selectedFilterId: string | undefined = undefined, onToggleFilter: (filter: DateFilter) => void = () => undefined) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <DailyExpenseStrip referenceMonth={REFERENCE_MONTH} selectedDate={selectedDate} onToggleDay={onToggleDay} />
+      <DailyExpenseStrip referenceMonth={REFERENCE_MONTH} selectedFilterId={selectedFilterId} onToggleFilter={onToggleFilter} />
     </QueryClientProvider>,
   );
 }
@@ -80,13 +80,13 @@ function renderStrip(selectedDate: string | undefined = undefined, onToggleDay: 
 /** Renders with the same toggle-to-clear semantics `MonthLedger` applies, so click behaviour can be
  * asserted without duplicating the parent page in this suite. */
 function StatefulStrip() {
-  const [selectedDate, setSelectedDate] = useState<string>();
+  const [selectedFilter, setSelectedFilter] = useState<DateFilter>();
 
   return (
     <DailyExpenseStrip
       referenceMonth={REFERENCE_MONTH}
-      selectedDate={selectedDate}
-      onToggleDay={(date) => setSelectedDate((current) => (current === date ? undefined : date))}
+      selectedFilterId={selectedFilter?.id}
+      onToggleFilter={(filter) => setSelectedFilter((current) => (current?.id === filter.id ? undefined : filter))}
     />
   );
 }
@@ -254,15 +254,53 @@ describe('DailyExpenseStrip', () => {
 
     await screen.findByRole('button', { name: /^1 de abril/ });
     expect(screen.getAllByRole('button')).toHaveLength(30);
+    expect(screen.queryByRole('button', { name: /^Antes/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Depois/ })).not.toBeInTheDocument();
     expect(screen.queryAllByText(/€/)).toHaveLength(0);
   });
 
-  it('clamps a credit-card row whose date falls outside the reference month to the nearest edge day', async () => {
+  it('infers a 31-day window and exposes boundary bars with every confirmed transaction on each side', async () => {
+    mockTransactions([
+      transaction({ id: 'first', date: '2026-08-25', amount: 1000, isCreditCard: false }),
+      transaction({ id: 'last', date: '2026-09-24', amount: 2000, isCreditCard: false }),
+      transaction({ id: 'before-transfer', date: '2026-08-24', amount: 5000, type: TransactionType.TRANSFER }),
+      transaction({ id: 'after-income', date: '2026-09-25', amount: 5000, type: TransactionType.INCOME }),
+      transaction({ id: 'ignored-draft', date: '2026-08-20', amount: 9999, status: TransactionStatus.DRAFT, isCreditCard: false }),
+    ]);
+
+    const { user } = renderStatefulStrip();
+
+    const first = await screen.findByRole('button', { name: /^25 de agosto/ });
+    expect(screen.getAllByRole('button')).toHaveLength(33);
+    expect(first).toHaveAccessibleName('25 de agosto — 10,00 € — Alimentação 10,00 €');
+
+    const before = screen.getByRole('button', { name: /^Antes — 1 lançamento — nenhuma despesa$/ });
+    const after = screen.getByRole('button', { name: /^Depois — 1 lançamento — nenhuma despesa$/ });
+    await user.click(before);
+    expect(before).toHaveAttribute('aria-pressed', 'true');
+    await user.click(before);
+    expect(before).toHaveAttribute('aria-pressed', 'false');
+    expect(after).toBeInTheDocument();
+  });
+
+  it('does not let a credit-card expense determine the inferred start date', async () => {
+    mockTransactions([
+      transaction({ id: 'card', date: '2026-03-28', amount: 4000, isCreditCard: true }),
+      transaction({ id: 'cash', date: '2026-04-10', amount: 1000, isCreditCard: false }),
+    ]);
+
+    renderStrip();
+
+    await screen.findByRole('button', { name: /^10 de abril/ });
+    expect(screen.queryByRole('button', { name: /^1 de abril/ })).not.toBeInTheDocument();
+  });
+
+  it('places a credit-card row outside the fallback window in the matching boundary', async () => {
     mockTransactions([transaction({ id: 'e1', date: '2026-03-28', amount: 4000, isCreditCard: true })]);
 
     renderStrip();
 
-    const firstDay = await screen.findByRole('button', { name: /^1 de abril/ });
-    expect(firstDay).toHaveAccessibleName('1 de abril — 40,00 € — Alimentação 40,00 €');
+    const before = await screen.findByRole('button', { name: /^Antes/ });
+    expect(before).toHaveAccessibleName('Antes — 1 lançamento — 40,00 € — Alimentação 40,00 €');
   });
 });

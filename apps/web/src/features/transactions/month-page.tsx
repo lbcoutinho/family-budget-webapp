@@ -51,7 +51,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
-import { DailyExpenseStrip, getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
+import { DailyExpenseStrip, getDailyExpensesQueryKey, type DateFilter } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
@@ -353,7 +353,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [accountFilter, setAccountFilter] = useState<string>();
   const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
   const [showPersonalNotes, setShowPersonalNotes] = useState(true);
-  const [selectedDay, setSelectedDay] = useState<string>();
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>();
   // A day filter belongs to the month it was picked in — comparing against the last
   // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
   // month, without an extra render/paint round trip.
@@ -362,10 +362,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
   if (dayFilterMonth !== referenceMonth) {
     setDayFilterMonth(referenceMonth);
-    setSelectedDay(undefined);
+    setSelectedDateFilter(undefined);
   }
 
-  const toggleDay = (date: string) => setSelectedDay((current) => (current === date ? undefined : date));
+  const toggleDateFilter = (filter: DateFilter) => setSelectedDateFilter((current) => (current?.id === filter.id ? undefined : filter));
 
   const invalidateTransactions = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
@@ -420,7 +420,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   }, [searchInput]);
 
   const referenceMonthFilter = dateOnly(referenceMonth);
-  const dayFilter = selectedDay ? { dateFrom: selectedDay, dateTo: selectedDay } : {};
+  const dayFilter = selectedDateFilter ? { dateFrom: selectedDateFilter.dateFrom, dateTo: selectedDateFilter.dateTo } : {};
   const activeFilters = {
     ...(search ? { search } : {}),
     ...(typeFilter ? { type: [typeFilter] } : {}),
@@ -525,7 +525,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         }
       />
       <PageContent className="space-y-4">
-        <DailyExpenseStrip referenceMonth={referenceMonth} selectedDate={selectedDay} onToggleDay={toggleDay} />
+        <DailyExpenseStrip referenceMonth={referenceMonth} selectedFilterId={selectedDateFilter?.id} onToggleFilter={toggleDateFilter} />
 
         <BalancePanel />
 

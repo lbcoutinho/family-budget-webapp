@@ -1,4 +1,4 @@
-import { listTransactions, TransactionType, type TransactionListItemDto } from '@family-budget/api-client';
+import { listTransactions, TransactionStatus, TransactionType, type TransactionListItemDto } from '@family-budget/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,13 +21,23 @@ interface Segment {
   cents: number;
 }
 
-interface DayBucket {
-  day: number;
-  /** `YYYY-MM-DD` of this column inside the reference month — what a click filters the list to. */
+export interface DateFilter {
+  id: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+interface DayBucket extends DateFilter {
   date: string;
   totalCents: number;
-  /** Largest first. */
   segments: Segment[];
+}
+
+interface BoundaryBucket extends DateFilter {
+  side: 'before' | 'after';
+  totalCents: number;
+  segments: Segment[];
+  transactionCount: number;
 }
 
 function localDate(value: string): Date {
@@ -54,7 +64,7 @@ async function fetchMonthlyExpenses(referenceMonthFilter: string, signal: AbortS
 
   do {
     const page = await listTransactions(
-      { referenceMonth: referenceMonthFilter, type: [TransactionType.EXPENSE], limit: 200, ...(cursor ? { cursor } : {}) },
+      { referenceMonth: referenceMonthFilter, status: TransactionStatus.CONFIRMED, limit: 200, ...(cursor ? { cursor } : {}) },
       signal,
     );
     items.push(...page.items);
@@ -90,42 +100,64 @@ function byDescendingCents(a: Segment, b: Segment): number {
   return b.cents - a.cents;
 }
 
-/**
- * One bucket per day of `referenceMonth`, `date` clamped from `item.date` to the month's own 1st or
- * last day. A credit-card purchase keeps its original `referenceMonth` when `date` moves (ADR-0009),
- * so without clamping such a row would have no column at all — and the strip would silently disagree
- * with the footer's `expenseTotal`, which sums the same unfiltered month.
- */
-function buildDays(referenceMonth: Date, items: TransactionListItemDto[], noCategoryLabel: string): DayBucket[] {
-  const year = referenceMonth.getFullYear();
-  const month = referenceMonth.getMonth();
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  const start = new Date(year, month, 1);
-  const end = new Date(year, month, lastDay, 23, 59, 59, 999);
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
 
-  const byDay = new Map<number, Map<string, Segment>>();
-  for (let day = 1; day <= lastDay; day++) byDay.set(day, new Map());
+function addDays(date: string, days: number): string {
+  const result = localDate(date);
+  result.setDate(result.getDate() + days);
+  return dateKey(result);
+}
+
+function chartWindow(referenceMonth: Date, items: TransactionListItemDto[]): { start: string; end: string } {
+  const firstExpense = items
+    .filter((item) => item.type === TransactionType.EXPENSE && !item.isCreditCard)
+    .map((item) => item.date)
+    .sort()[0];
+  if (firstExpense) return { start: firstExpense, end: addDays(firstExpense, 30) };
+
+  const start = dateKey(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth(), 1));
+  return { start, end: dateKey(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + 1, 0)) };
+}
+
+function buildDays(start: string, end: string, items: TransactionListItemDto[], noCategoryLabel: string): DayBucket[] {
+  const byDate = new Map<string, Map<string, Segment>>();
+  for (let date = start; date <= end; date = addDays(date, 1)) byDate.set(date, new Map());
 
   for (const item of items) {
-    const txDate = localDate(item.date);
-    const day = txDate < start ? 1 : txDate > end ? lastDay : txDate.getDate();
-
-    accumulate(byDay.get(day)!, item, noCategoryLabel);
+    if (item.type !== TransactionType.EXPENSE || item.date < start || item.date > end) continue;
+    accumulate(byDate.get(item.date)!, item, noCategoryLabel);
   }
 
-  return Array.from(byDay.entries()).map(([day, segmentMap]) => {
+  return Array.from(byDate.entries()).map(([date, segmentMap]) => {
     const segments = Array.from(segmentMap.values()).sort(byDescendingCents);
     const totalCents = segments.reduce((sum, segment) => sum + segment.cents, 0);
-    const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-    return { day, date, totalCents, segments };
+    return { id: date, dateFrom: date, dateTo: date, date, totalCents, segments };
   });
+}
+
+function buildBoundary(side: BoundaryBucket['side'], edge: string, items: TransactionListItemDto[], noCategoryLabel: string): BoundaryBucket | null {
+  const transactions = items.filter((item) => (side === 'before' ? item.date < edge : item.date > edge));
+  if (transactions.length === 0) return null;
+
+  const totals = new Map<string, Segment>();
+  for (const item of transactions) if (item.type === TransactionType.EXPENSE) accumulate(totals, item, noCategoryLabel);
+
+  return {
+    id: `${side}:${edge}`,
+    ...(side === 'before' ? { dateTo: addDays(edge, -1) } : { dateFrom: addDays(edge, 1) }),
+    side,
+    totalCents: Array.from(totals.values()).reduce((sum, segment) => sum + segment.cents, 0),
+    segments: Array.from(totals.values()).sort(byDescendingCents),
+    transactionCount: transactions.length,
+  };
 }
 
 function buildLegend(items: TransactionListItemDto[], noCategoryLabel: string): Segment[] {
   const totals = new Map<string, Segment>();
 
-  for (const item of items) accumulate(totals, item, noCategoryLabel);
+  for (const item of items) if (item.type === TransactionType.EXPENSE) accumulate(totals, item, noCategoryLabel);
 
   return Array.from(totals.values()).sort(byDescendingCents);
 }
@@ -142,12 +174,12 @@ function StripSkeleton() {
 }
 
 interface DayColumnProps {
-  bucket: DayBucket;
+  bucket: DayBucket | BoundaryBucket;
   index: number;
   peakCents: number;
   selected: boolean;
   reducedMotion: boolean;
-  onToggle: (date: string) => void;
+  onToggle: (filter: DateFilter) => void;
 }
 
 function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle }: DayColumnProps) {
@@ -162,11 +194,21 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
 
   const empty = bucket.totalCents === 0;
   const heightPercent = empty ? 0 : Math.max(9, Math.sqrt(bucket.totalCents / peakCents) * 100);
-  const dayLabel = new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long' }).format(localDate(bucket.date));
+  const boundary = 'side' in bucket;
+  const dayLabel = boundary
+    ? t(`transactions.dailyExpense.${bucket.side}`)
+    : new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long' }).format(localDate(bucket.date));
   const breakdown = bucket.segments.map((segment) => `${segment.name} ${formatCents(segment.cents)}`).join(' · ');
-  const accessibleName = empty
-    ? t('transactions.dailyExpense.tooltipEmpty', { date: dayLabel })
-    : t('transactions.dailyExpense.tooltip', { date: dayLabel, total: formatCents(bucket.totalCents), breakdown });
+  const accessibleName = boundary
+    ? t(empty ? 'transactions.dailyExpense.boundaryTooltipEmpty' : 'transactions.dailyExpense.boundaryTooltip', {
+        side: dayLabel,
+        count: bucket.transactionCount,
+        total: formatCents(bucket.totalCents),
+        breakdown,
+      })
+    : empty
+      ? t('transactions.dailyExpense.tooltipEmpty', { date: dayLabel })
+      : t('transactions.dailyExpense.tooltip', { date: dayLabel, total: formatCents(bucket.totalCents), breakdown });
 
   return (
     <Button
@@ -176,7 +218,7 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
       aria-pressed={selected}
       title={accessibleName}
       aria-label={accessibleName}
-      onClick={() => onToggle(bucket.date)}
+      onClick={() => onToggle(bucket)}
       className={cn(
         'group h-full min-w-0 flex-1 flex-col justify-end rounded-bar border-0 bg-transparent p-0',
         selected ? 'outline-2 outline-offset-1 outline-foreground' : '',
@@ -206,14 +248,14 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
 
 export interface DailyExpenseStripProps {
   referenceMonth: Date;
-  selectedDate: string | undefined;
-  onToggleDay: (date: string) => void;
+  selectedFilterId: string | undefined;
+  onToggleFilter: (filter: DateFilter) => void;
 }
 
-/** The month screen's signature: one column per day, stacked by category, so the shape of the month
- * reads before a single number does. Owns its own query — `listTransactions` filtered to `EXPENSE`,
- * paginated to exhaustion — rather than reusing the entries list's paginated, unfiltered query. */
-export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }: DailyExpenseStripProps) {
+/** The month screen's signature: one column per date, stacked by category, so the shape of the
+ * accounting period reads before a single number does. It owns a paginated confirmed-only query so
+ * the boundary bars can count every transaction type. */
+export function DailyExpenseStrip({ referenceMonth, selectedFilterId, onToggleFilter }: DailyExpenseStripProps) {
   const { t } = useTranslation();
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const referenceMonthFilter = monthFilterParam(referenceMonth);
@@ -228,10 +270,13 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
   if (isError || !data) return null;
 
   const noCategoryLabel = t('transactions.dailyExpense.noCategory');
-  const days = buildDays(referenceMonth, data, noCategoryLabel);
+  const { start, end } = chartWindow(referenceMonth, data);
+  const days = buildDays(start, end, data, noCategoryLabel);
+  const before = buildBoundary('before', start, data, noCategoryLabel);
+  const after = buildBoundary('after', end, data, noCategoryLabel);
   const legend = buildLegend(data, noCategoryLabel);
-  const peakCents = Math.max(0, ...days.map((day) => day.totalCents));
-  const lastDay = days.length;
+  const buckets = [before, ...days, after].filter((bucket): bucket is DayBucket | BoundaryBucket => bucket !== null);
+  const peakCents = Math.max(0, ...buckets.map((bucket) => bucket.totalCents));
 
   return (
     <section className="rounded-lg border bg-card p-4 shadow-xs">
@@ -244,24 +289,24 @@ export function DailyExpenseStrip({ referenceMonth, selectedDate, onToggleDay }:
         aria-label={t('transactions.dailyExpense.groupLabel', { month: formatMonth(referenceMonth) })}
         className="flex h-daily-chart items-end gap-daily-gap max-shell:h-21"
       >
-        {days.map((bucket, index) => (
+        {buckets.map((bucket, index) => (
           <DayColumn
-            key={bucket.date}
+            key={bucket.id}
             bucket={bucket}
             index={index}
             peakCents={peakCents}
-            selected={bucket.date === selectedDate}
+            selected={bucket.id === selectedFilterId}
             reducedMotion={reducedMotion}
-            onToggle={onToggleDay}
+            onToggle={onToggleFilter}
           />
         ))}
       </div>
       <div className="num mt-1.5 flex justify-between text-xs text-muted-foreground">
-        <span>1</span>
-        <span>8</span>
-        <span>15</span>
-        <span>22</span>
-        <span>{lastDay}</span>
+        <span>{before ? t('transactions.dailyExpense.before') : localDate(start).getDate()}</span>
+        <span>{localDate(addDays(start, Math.floor((days.length - 1) / 4))).getDate()}</span>
+        <span>{localDate(addDays(start, Math.floor((days.length - 1) / 2))).getDate()}</span>
+        <span>{localDate(addDays(start, Math.floor(((days.length - 1) * 3) / 4))).getDate()}</span>
+        <span>{after ? t('transactions.dailyExpense.after') : localDate(end).getDate()}</span>
       </div>
       {legend.length > 0 ? (
         <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-2 border-t pt-2.5">

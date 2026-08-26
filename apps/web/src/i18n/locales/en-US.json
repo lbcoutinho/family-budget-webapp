@@ -465,7 +465,13 @@
       "groupLabel": "Daily expenses for {{month}}",
       "noCategory": "No category",
       "tooltip": "{{date}} — {{total}} — {{breakdown}}",
-      "tooltipEmpty": "{{date}} — nothing spent"
+      "tooltipEmpty": "{{date}} — nothing spent",
+      "before": "Before",
+      "after": "After",
+      "boundaryTooltip_one": "{{side}} — {{count}} entry — {{total}} — {{breakdown}}",
+      "boundaryTooltip_other": "{{side}} — {{count}} entries — {{total}} — {{breakdown}}",
+      "boundaryTooltipEmpty_one": "{{side}} — {{count}} entry — no expenses",
+      "boundaryTooltipEmpty_other": "{{side}} — {{count}} entries — no expenses"
     },
     "filters": {
       "menu": "Filters and sorting",
