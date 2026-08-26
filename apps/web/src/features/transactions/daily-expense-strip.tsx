@@ -31,6 +31,7 @@ interface DayBucket extends DateFilter {
   date: string;
   totalCents: number;
   segments: Segment[];
+  transactionCount: number;
 }
 
 interface BoundaryBucket extends DateFilter {
@@ -133,7 +134,15 @@ function buildDays(start: string, end: string, items: TransactionListItemDto[], 
   return Array.from(byDate.entries()).map(([date, segmentMap]) => {
     const segments = Array.from(segmentMap.values()).sort(byDescendingCents);
     const totalCents = segments.reduce((sum, segment) => sum + segment.cents, 0);
-    return { id: date, dateFrom: date, dateTo: date, date, totalCents, segments };
+    return {
+      id: date,
+      dateFrom: date,
+      dateTo: date,
+      date,
+      totalCents,
+      segments,
+      transactionCount: items.filter((item) => item.type === TransactionType.EXPENSE && item.date === date).length,
+    };
   });
 }
 
@@ -209,6 +218,10 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
     : empty
       ? t('transactions.dailyExpense.tooltipEmpty', { date: dayLabel })
       : t('transactions.dailyExpense.tooltip', { date: dayLabel, total: formatCents(bucket.totalCents), breakdown });
+  const title = t(boundary ? 'transactions.dailyExpense.boundaryTitle' : 'transactions.dailyExpense.columnTitle', {
+    ...(boundary ? { side: dayLabel } : { date: dayLabel }),
+    count: bucket.transactionCount,
+  });
 
   return (
     <Button
@@ -216,7 +229,7 @@ function DayColumn({ bucket, index, peakCents, selected, reducedMotion, onToggle
       variant="ghost"
       size="xs"
       aria-pressed={selected}
-      title={accessibleName}
+      title={title}
       aria-label={accessibleName}
       onClick={() => onToggle(bucket)}
       className={cn(
@@ -302,11 +315,9 @@ export function DailyExpenseStrip({ referenceMonth, selectedFilterId, onToggleFi
         ))}
       </div>
       <div className="num mt-1.5 flex justify-between text-xs text-muted-foreground">
-        <span>{before ? t('transactions.dailyExpense.before') : localDate(start).getDate()}</span>
-        <span>{localDate(addDays(start, Math.floor((days.length - 1) / 4))).getDate()}</span>
-        <span>{localDate(addDays(start, Math.floor((days.length - 1) / 2))).getDate()}</span>
-        <span>{localDate(addDays(start, Math.floor(((days.length - 1) * 3) / 4))).getDate()}</span>
-        <span>{after ? t('transactions.dailyExpense.after') : localDate(end).getDate()}</span>
+        {[1, 5, 10, 15, 20, 25].map((day) => (
+          <span key={day}>{day}</span>
+        ))}
       </div>
       {legend.length > 0 ? (
         <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-2 border-t pt-2.5">

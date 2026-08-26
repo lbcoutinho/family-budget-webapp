@@ -126,6 +126,7 @@ describe('DailyExpenseStrip', () => {
 
     const fifth = within(group).getByRole('button', { name: /^5 de abril/ });
     expect(fifth).toHaveAccessibleName('5 de abril — 194,60 € — Alimentação 128,40 € · Saúde 66,20 €');
+    expect(fifth).toHaveAttribute('title', '5 de abril - 2 lançamentos');
 
     const sixth = within(group).getByRole('button', { name: /^6 de abril/ });
     expect(sixth).toHaveAccessibleName('6 de abril — nada saiu');
