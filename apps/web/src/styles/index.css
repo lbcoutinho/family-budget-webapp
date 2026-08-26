@@ -73,6 +73,8 @@
   --shadow-raised: 0 4px 14px rgb(20 22 26 / 8%);
   --text-badge: 0.65625rem;
   --text-headline: 1.05rem;
+  --text-month-total: 1.02rem;
+  --text-report-caption: 0.6875rem;
   --text-table-cell: 0.8125rem;
   --text-table-header: 0.71875rem;
   --text-table-meta: 0.78125rem;
@@ -80,7 +82,6 @@
   --text-sidebar-meta: 0.78125rem;
   --text-sidebar-nav: 0.84375rem;
   --text-sidebar-avatar: 0.6875rem;
-  --text-badge: 0.65625rem;
   --text-field: 0.78125rem;
   --tracking-brand: -0.03em;
   --tracking-headline: -0.02em;

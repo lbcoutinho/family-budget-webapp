@@ -87,7 +87,7 @@ function CategoryRows({
                     <Button
                       variant="ghost"
                       size="xs"
-                      className="min-w-0 justify-start px-0 hover:underline"
+                      className="min-w-0 justify-start px-0 text-sm hover:underline"
                       onClick={() => onOpenCategory(category.categoryId!)}
                     >
                       <span className="size-2.5 flex-none rounded-sm" style={{ background: categoryColor(category.color) }} />
