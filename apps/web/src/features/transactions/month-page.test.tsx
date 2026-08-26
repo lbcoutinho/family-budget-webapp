@@ -154,7 +154,7 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
         requests.push(url);
         return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page([DRAFT]) : page([CONFIRMED]));
       }),
@@ -172,6 +172,34 @@ describe('MonthPage', () => {
     expect(requests).toHaveLength(2);
     expect(requests.map((request) => request.searchParams.get('referenceMonth'))).toEqual(['2026-07-01', '2026-07-01']);
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
+  });
+
+  it('filters the confirmed ledger to every transaction before an active chart boundary', async () => {
+    const start = { ...CONFIRMED, id: 'window-start', date: '2026-07-14', isCreditCard: false, description: 'Window expense' };
+    const before = { ...TRANSFER, id: 'before-window', date: '2026-07-13', description: 'Before window' };
+    const after = { ...CONFIRMED, id: 'after-window', type: TransactionType.INCOME, date: '2026-08-14', description: 'After window' };
+    const filteredRequests: URL[] = [];
+
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+        if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([start, before, after]));
+        if (url.searchParams.get('dateTo') === '2026-07-13') {
+          filteredRequests.push(url);
+          return HttpResponse.json(page([before]));
+        }
+        return HttpResponse.json(page([start, before, after]));
+      }),
+    );
+
+    const { user } = renderPage();
+    const boundary = await screen.findByRole('button', { name: /^Antes/ });
+    await user.click(boundary);
+
+    await waitFor(() => expect(filteredRequests).toHaveLength(1));
+    expect(filteredRequests[0]!.searchParams.get('dateFrom')).toBeNull();
+    expect(await screen.findByText('Before window')).toBeInTheDocument();
   });
 
   it('uses the cashbox tag with transfer amount and stripe for cashbox transfers', async () => {
@@ -333,7 +361,7 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get('type') !== 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') {
+        if (url.searchParams.get('status') !== 'CONFIRMED' && url.searchParams.get('status') !== 'DRAFT') {
           searches.push(url.searchParams.get('search') ?? '');
         }
         return HttpResponse.json(page([]));
@@ -429,7 +457,7 @@ describe('MonthPage', () => {
     server.use(
       http.get('/api/transactions', ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
+        if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
         if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
         const cursor = url.searchParams.get('cursor');
         cursors.push(cursor);
@@ -525,7 +553,7 @@ describe('MonthPage', () => {
       server.use(
         http.get('/api/transactions', ({ request }) => {
           const url = new URL(request.url);
-          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
           requests.push(url);
           if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
           const sort = url.searchParams.get('sort') ?? 'newest';
@@ -556,7 +584,7 @@ describe('MonthPage', () => {
       server.use(
         http.get('/api/transactions', ({ request }) => {
           const url = new URL(request.url);
-          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
           requests.push(url);
           return HttpResponse.json(page([]));
         }),
@@ -582,7 +610,7 @@ describe('MonthPage', () => {
       server.use(
         http.get('/api/transactions', ({ request }) => {
           const url = new URL(request.url);
-          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
           if (url.searchParams.get('status') !== 'DRAFT') requests.push(url);
           return HttpResponse.json(page([]));
         }),
@@ -619,7 +647,7 @@ describe('MonthPage', () => {
       server.use(
         http.get('/api/transactions', ({ request }) => {
           const url = new URL(request.url);
-          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
           if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
           const cursor = url.searchParams.get('cursor');
           cursors.push(cursor);
@@ -666,7 +694,7 @@ describe('MonthPage', () => {
       server.use(
         http.get('/api/transactions', ({ request }) => {
           const url = new URL(request.url);
-          if (url.searchParams.get('type') === 'EXPENSE' && url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+          if (url.searchParams.get('status') === 'CONFIRMED') return HttpResponse.json(page([]));
           if (url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
           const cursor = url.searchParams.get('cursor');
           cursors.push(cursor);

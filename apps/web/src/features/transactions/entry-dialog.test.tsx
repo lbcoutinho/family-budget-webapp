@@ -338,6 +338,7 @@ describe('EntryDialog', () => {
       type: 'EXPENSE',
       amount: cents,
       date: '2026-08-15',
+      referenceMonth: '2026-08-01',
       accountId: 'account-1',
       categoryId: 'category-1',
       subcategoryId: 'subcategory-1',
@@ -401,7 +402,7 @@ describe('EntryDialog', () => {
     expect(screen.queryByLabelText('transactions.form.creditCard')).not.toBeInTheDocument();
   });
 
-  it('sends isCreditCard:false and no referenceMonth for an income entry, even after ticking the box on the expense tab', async () => {
+  it('sends the calendar reference month for an income entry, even after ticking the card box on the expense tab', async () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
@@ -415,10 +416,10 @@ describe('EntryDialog', () => {
 
     const saved = mutate.mock.calls[0]?.[0]?.data;
     expect(saved).toMatchObject({ type: 'INCOME', isCreditCard: false });
-    expect(saved).not.toHaveProperty('referenceMonth');
+    expect(saved).toHaveProperty('referenceMonth', `${today().slice(0, 7)}-01`);
   });
 
-  it('suggests and clears the credit-card reference month', async () => {
+  it('suggests the credit-card reference month and restores the calendar month when unticked', async () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-12-31' } });
@@ -427,10 +428,10 @@ describe('EntryDialog', () => {
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2027-01-10' } });
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2027-02');
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
-    expect(screen.queryByLabelText('transactions.form.referenceMonth')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2027-01');
   });
 
-  it('omits reference month after credit card is unticked', async () => {
+  it('sends the calendar reference month after credit card is unticked', async () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
@@ -438,7 +439,7 @@ describe('EntryDialog', () => {
     await fillExpense(user);
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    expect(mutate.mock.calls[0]?.[0].data).not.toHaveProperty('referenceMonth');
+    expect(mutate.mock.calls[0]?.[0].data).toHaveProperty('referenceMonth', `${today().slice(0, 7)}-01`);
   });
 
   it('clears category and credit-card fields when switching transaction type', async () => {
@@ -450,7 +451,7 @@ describe('EntryDialog', () => {
 
     expect(screen.getByTestId('selected-category')).toHaveTextContent('');
     expect(screen.getByTestId('selected-subcategory')).toHaveTextContent('');
-    expect(screen.queryByLabelText('transactions.form.referenceMonth')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toBeInTheDocument();
   });
 
   it('keeps an overridden credit-card reference month after the date changes', async () => {
@@ -462,6 +463,16 @@ describe('EntryDialog', () => {
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2027-01-10' } });
 
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-10');
+  });
+
+  it('follows a non-card date until the reference month is changed manually', () => {
+    renderDialog();
+
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-09');
+    fireEvent.change(screen.getByLabelText('transactions.form.referenceMonth'), { target: { value: '2026-11' } });
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-10-15' } });
+    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-11');
   });
 
   it('clears every field, resets the date, keeps the type tab, and focuses "Conta" after save and add another', async () => {
@@ -637,15 +648,24 @@ describe('EntryDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('preserves the stored credit-card reference month until the date changes', async () => {
+  it('preserves the stored reference month when an existing transaction date changes', async () => {
     const { user } = renderDialog(vi.fn(), makeTransaction({ referenceMonth: '2026-12-01', isCreditCard: true }));
 
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12');
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
-    await waitFor(() => expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-10'));
+    await waitFor(() => expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12'));
     await user.clear(screen.getByLabelText('transactions.form.referenceMonth'));
     await user.type(screen.getByLabelText('transactions.form.referenceMonth'), '2026-11');
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-10-15' } });
     expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-11');
+  });
+
+  it('sends the stored reference month with an edited ordinary entry date', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ referenceMonth: '2026-12-01' }));
+
+    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { date: '2026-09-15', referenceMonth: '2026-12-01' } });
   });
 });

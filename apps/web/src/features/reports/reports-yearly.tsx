@@ -44,7 +44,7 @@ function YearlyCell({ value, color, max, future, onOpen }: { value: number; colo
   return (
     <TableCell className="relative num text-right">
       <span aria-hidden="true" className="absolute inset-px rounded-sm" style={{ background: color, opacity }} />
-      <Button variant="ghost" size="xs" className="relative h-auto px-0 hover:underline" onClick={onOpen}>
+      <Button variant="ghost" size="xs" className="relative h-auto px-0 text-sm hover:underline" onClick={onOpen}>
         {formatWholeEuros(value)}
       </Button>
     </TableCell>
