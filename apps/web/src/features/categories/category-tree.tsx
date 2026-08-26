@@ -125,15 +125,16 @@ function RootRows({ root, children, isExpanded, onToggleExpand, onEdit, onAddSub
       <TableRow className={cn(!root.isActive && 'text-muted-foreground')}>
         <TableCell>
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-xs"
               aria-expanded={isExpanded}
               aria-label={t(isExpanded ? 'categories.collapse' : 'categories.expand', { name: root.name })}
-              className="grid size-6 flex-none place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="flex-none text-muted-foreground"
               onClick={() => onToggleExpand(root.id)}
             >
               <ChevronRightIcon className={cn('size-3.5 transition-transform', isExpanded && 'rotate-90')} />
-            </button>
+            </Button>
             <span
               className={cn('size-2.5 flex-none rounded-sm', !root.isActive && 'opacity-40')}
               style={{ background: root.color ?? AUTOMATIC_CATEGORY_COLOR }}

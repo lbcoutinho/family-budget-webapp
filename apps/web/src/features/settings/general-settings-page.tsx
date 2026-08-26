@@ -115,8 +115,8 @@ export function GeneralSettingsPage() {
     <>
       <PageHeader title={t('nav.settingsGeneral')} />
       <PageContent>
-        <Card className="max-w-[620px] p-4">
-          <div className="grid grid-cols-[minmax(120px,1.5fr)_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5">
+        <Card className="max-w-2xl p-4">
+          <div className="grid grid-cols-2 items-center gap-x-3.5 gap-y-1.5">
             <div>
               <h3 className="text-sm font-medium">{t('settingsGeneral.language.label')}</h3>
               {!failed && !updateLocale.isPending && <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.language.note')}</p>}
@@ -139,10 +139,10 @@ export function GeneralSettingsPage() {
             )}
           </div>
         </Card>
-        <section className="mt-7 max-w-[620px]">
+        <section className="mt-7 max-w-2xl">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.models.heading')}</h2>
+              <h2 className="font-display text-headline font-semibold tracking-headline">{t('settingsGeneral.models.heading')}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{t('settingsGeneral.models.description')}</p>
             </div>
             <Button variant="outline" size="sm" onClick={() => setCreateModelOpen(true)}>
@@ -194,9 +194,9 @@ export function GeneralSettingsPage() {
         </section>
         {isAdmin && (
           <section className="mt-7">
-            <h2 className="mb-3 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">{t('settingsGeneral.backup.adminHeading')}</h2>
-            <Card className="max-w-[620px] p-4">
-              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <h2 className="mb-3 font-display text-headline font-semibold tracking-headline">{t('settingsGeneral.backup.adminHeading')}</h2>
+            <Card className="max-w-2xl p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-sm font-medium">{t('settingsGeneral.backup.heading')}</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">{t('settingsGeneral.backup.description')}</p>

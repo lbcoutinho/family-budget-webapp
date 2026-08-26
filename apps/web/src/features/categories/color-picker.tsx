@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_PALETTE } from './category-colors';
 
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -33,12 +34,13 @@ export function ColorPicker({ value, onChange, invalid }: ColorPickerProps) {
           const isGrey = index === CATEGORY_PALETTE.length - 1;
 
           return (
-            <button
+            <Button
               key={hex}
-              type="button"
+              variant="ghost"
+              size="icon-sm"
               aria-pressed={normalized === hex}
               aria-label={t(isGrey ? 'categories.color.swatchGrey' : 'categories.color.swatch', { number: index + 1 })}
-              className={cn('size-7 rounded-md border-2', normalized === hex ? 'border-foreground' : 'border-transparent')}
+              className={cn('size-7 rounded-md border-2 p-0', normalized === hex ? 'border-foreground' : 'border-transparent')}
               style={{ background: hex }}
               onClick={() => onChange(hex)}
             />
@@ -52,7 +54,6 @@ export function ColorPicker({ value, onChange, invalid }: ColorPickerProps) {
           </Label>
           <Input
             id="category-color-hex"
-            className="font-mono"
             aria-invalid={invalid}
             aria-describedby={invalid ? 'category-color-hex-error' : undefined}
             value={value}
