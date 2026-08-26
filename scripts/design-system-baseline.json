@@ -1,17 +1,4 @@
 {
-  "apps/web/src/features/accounts/accounts-table.tsx": {
-    "arbitraryValue": 1
-  },
-  "apps/web/src/features/categories/categories-page.tsx": {
-    "arbitraryValue": 1
-  },
-  "apps/web/src/features/categories/category-tree.tsx": {
-    "nativeControl": 1
-  },
-  "apps/web/src/features/categories/color-picker.tsx": {
-    "nativeControl": 1,
-    "unsupportedFont": 1
-  },
   "apps/web/src/features/reports/cashbox-evolution-panel.tsx": {
     "arbitraryValue": 4,
     "literalColor": 1,
