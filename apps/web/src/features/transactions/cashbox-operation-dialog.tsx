@@ -47,6 +47,7 @@ interface CashboxOperationFormValues {
   destinationCashboxId: string;
   amount: string;
   date: string;
+  referenceMonth: string;
   description: string;
 }
 
@@ -60,9 +61,9 @@ const MODE = {
 
 /** Visual top-to-bottom order per mode, walked to focus the first errored field on a failed submit. */
 const FOCUS_ORDER: Record<CashboxOperationMode, readonly (keyof CashboxOperationFormValues)[]> = {
-  deposit: ['accountId', 'cashboxId', 'date', 'description', 'amount'],
-  withdrawal: ['cashboxId', 'accountId', 'date', 'description', 'amount'],
-  transfer: ['cashboxId', 'destinationCashboxId', 'date', 'description', 'amount'],
+  deposit: ['accountId', 'cashboxId', 'date', 'referenceMonth', 'description', 'amount'],
+  withdrawal: ['cashboxId', 'accountId', 'date', 'referenceMonth', 'description', 'amount'],
+  transfer: ['cashboxId', 'destinationCashboxId', 'date', 'referenceMonth', 'description', 'amount'],
 };
 
 const cashboxOperationSchema = z
@@ -73,6 +74,7 @@ const cashboxOperationSchema = z
     destinationCashboxId: z.string(),
     amount: z.string().refine((value) => (parseCurrencyInput(value) ?? 0) > 0, 'transactions.form.invalidAmount'),
     date: z.string().min(1, 'transactions.form.required'),
+    referenceMonth: z.string().min(1, 'transactions.form.required'),
     description: z.string().trim().min(1, 'transactions.form.required').max(200),
   })
   .superRefine((values, context) => {
@@ -98,7 +100,14 @@ function referenceMonthFromDate(date: string): string {
 /** Keeps the API's mutually-exclusive transaction references in one client-side map. */
 export function cashboxOperationPayload(mode: CashboxOperationMode, values: CashboxOperationPayloadValues): CreateTransactionDto {
   const references = Object.fromEntries(MODE[mode].fields.map((field) => [field, values[field]]));
-  return { type: MODE[mode].type, amount: values.amount, date: values.date, description: values.description.trim(), ...references };
+  return {
+    type: MODE[mode].type,
+    amount: values.amount,
+    date: values.date,
+    referenceMonth: `${values.referenceMonth}-01`,
+    description: values.description.trim(),
+    ...references,
+  };
 }
 
 export function cashboxOperationUpdatePayload(
@@ -109,6 +118,7 @@ export function cashboxOperationUpdatePayload(
   const payload: UpdateTransactionDto = {};
   if (values.amount !== transaction.amount) payload.amount = values.amount;
   if (values.date !== transaction.date) payload.date = values.date;
+  if (values.date !== transaction.date || `${values.referenceMonth}-01` !== transaction.referenceMonth) payload.referenceMonth = `${values.referenceMonth}-01`;
   if (values.description.trim() !== transaction.description) payload.description = values.description.trim();
 
   for (const field of MODE[mode].fields as readonly ('accountId' | 'cashboxId' | 'destinationCashboxId')[]) {
@@ -156,6 +166,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const { data: cashboxBalances = [] } = useListCashboxBalances();
   const [balanceWarning, setBalanceWarning] = useState<number>();
   const [submissionError, setSubmissionError] = useState<string>();
+  const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(Boolean(transaction));
   const activeAccounts = accounts.filter((account) => account.isActive || account.id === transaction?.accountId);
   const activeCashboxes = cashboxes.filter(
     (cashbox) => cashbox.isActive || cashbox.id === transaction?.cashboxId || cashbox.id === transaction?.destinationCashboxId,
@@ -191,10 +202,14 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
       destinationCashboxId: transaction?.destinationCashboxId ?? '',
       amount: transaction ? formatCents(transaction.amount) : '',
       date: transaction?.date ?? today(),
+      referenceMonth: transaction?.referenceMonth.slice(0, 7) ?? referenceMonthFromDate(transaction?.date ?? today()).slice(0, 7),
       description: transaction?.description ?? '',
     },
   });
-  const [mode, accountId, cashboxId, destinationCashboxId] = useWatch({ control, name: ['mode', 'accountId', 'cashboxId', 'destinationCashboxId'] });
+  const [mode, accountId, cashboxId, destinationCashboxId, date] = useWatch({
+    control,
+    name: ['mode', 'accountId', 'cashboxId', 'destinationCashboxId', 'date'],
+  });
 
   /** accountId/cashboxId/destinationCashboxId are controlled selects with no RHF-registered ref, so
    * setFocus can't reach them — this is the shared escape hatch for all three. */
@@ -228,7 +243,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const createMutation = useCreateTransaction({
     mutation: {
       onMutate: async ({ data }) => {
-        const referenceMonth = referenceMonthFromDate(data.date);
+        const referenceMonth = data.referenceMonth ?? referenceMonthFromDate(data.date);
         const key = getListTransactionsQueryKey({ referenceMonth, limit: 30 });
         await queryClient.cancelQueries({ queryKey: key });
         const previous = queryClient.getQueryData<InfiniteData<TransactionListDto>>(key);
@@ -300,13 +315,19 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
       destinationCashboxId: transaction?.destinationCashboxId ?? '',
       amount: transaction ? formatCents(transaction.amount) : '',
       date: transaction?.date ?? today(),
+      referenceMonth: transaction?.referenceMonth.slice(0, 7) ?? referenceMonthFromDate(transaction?.date ?? today()).slice(0, 7),
       description: transaction?.description ?? '',
     });
     queueMicrotask(() => {
       setBalanceWarning(undefined);
       setSubmissionError(undefined);
+      setReferenceMonthOverridden(Boolean(transaction));
     });
   }, [defaultMode, open, reset, transaction]);
+
+  useEffect(() => {
+    if (!referenceMonthOverridden) setValue('referenceMonth', referenceMonthFromDate(date).slice(0, 7), { shouldValidate: true });
+  }, [date, referenceMonthOverridden, setValue]);
 
   const changeMode = (nextMode: string) => {
     setValue('mode', nextMode as CashboxOperationMode, { shouldValidate: true });
@@ -504,6 +525,18 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                     {...register('date')}
                   />
                   <FieldError id="cashbox-operation-date-error" error={errors.date?.message} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="cashbox-operation-reference-month">{t('transactions.form.referenceMonth')}</Label>
+                  <Input
+                    id="cashbox-operation-reference-month"
+                    type="month"
+                    aria-describedby={errors.referenceMonth ? 'cashbox-operation-reference-month-error' : undefined}
+                    aria-invalid={errors.referenceMonth !== undefined}
+                    disabled={mutation.isPending}
+                    {...register('referenceMonth', { onChange: () => setReferenceMonthOverridden(true) })}
+                  />
+                  <FieldError id="cashbox-operation-reference-month-error" error={errors.referenceMonth?.message} />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="cashbox-operation-description">{t('transactions.form.description')}</Label>
