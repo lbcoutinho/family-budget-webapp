@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 import { useAuth } from './auth-context';
 
@@ -10,8 +10,10 @@ import { useAuth } from './auth-context';
  */
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { pathname, search } = useLocation();
+  const monthPrototype = !import.meta.env.PROD && pathname.startsWith('/month/') && new URLSearchParams(search).has('variant');
 
-  if (user === null) {
+  if (user === null && !monthPrototype) {
     return <Navigate to="/login" replace />;
   }
 

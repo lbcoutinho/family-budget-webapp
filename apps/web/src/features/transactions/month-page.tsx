@@ -53,6 +53,7 @@ import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { DailyExpenseStrip, getDailyExpensesQueryKey, type DateFilter } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
+import { MonthBalancePrototype } from '@/features/transactions/month-balance-prototype';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
@@ -328,9 +329,12 @@ function EntriesSkeleton() {
 /** The month ledger keeps confirmed data paginated while drafts stay visibly separate and excluded from totals. */
 export function MonthPage() {
   const { year, month } = useParams();
+  const [searchParams] = useSearchParams();
   const referenceMonth = monthFromPathParams(year, month);
 
   if (!referenceMonth) return <Navigate to={currentMonthPath()} replace />;
+
+  if (!import.meta.env.PROD) return <MonthBalancePrototype variant={searchParams.get('variant') ?? 'A'} />;
 
   return <MonthLedger referenceMonth={referenceMonth} />;
 }
