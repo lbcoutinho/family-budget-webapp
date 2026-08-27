@@ -349,8 +349,8 @@ function VariantC({ state }: { state: PrototypeState }) {
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <main className="order-3 space-y-3 lg:order-1">
           <Filters filtered={state === 'filtered'} />
-          <Entries state={state} />
           <MovementSummary state={state} />
+          <Entries state={state} />
         </main>
         <aside className="order-2 space-y-3 lg:sticky lg:top-20 lg:order-2">
           <AssetCards empty={empty} sidePanel />
