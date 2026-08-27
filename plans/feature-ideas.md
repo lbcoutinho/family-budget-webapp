@@ -1,8 +1,4 @@
 # Top Priority 
-- Tela mês:
-  - saldo exibido na tela Mês no fim da tabela, deveria ser saldo em conta. For ex, tem entrada de 1000 e um deposito em caixinha de 500, então saldo em conta é 500. Dinheiro na caixinha não conta como despesa, mas ao mesmo tempo deve ser subtraído do saldo em conta corrente. O oposto para resgate de caixinha, irá aumentar o saldo em conta corrente. Transferêcia entre caixinhas ou entre contas não afeta o saldo total em contas.
-  - Resumo fim da tabela poderia exibir: Receitas, Despesas, Resgates de Caixinha, Depósitos em Caixinha. Soma de todos é o saldo em conta corrente.
-- Tela mes - Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
 - "Saldo indisponível" em todas as linhas da tela Mês.
 - Fix impeccable critique and audit
 - utilizar skills de frontend para analisar projeto
@@ -10,6 +6,13 @@
 - exec /web-design-guidelines
 - exec /vercel-composition-patterns
 - exec /vercel-react-best-practices
+
+- import csv - category suggestions
+  1. Search confirmed historical transactions from the same account by exact normalized description.
+  2. Suggest category and subcategory only when all relevant matches agree.
+  3. Keep every imported transaction in `DRAFT`, including transactions with suggestions.
+  4. Leave categories empty when no unambiguous match exists.
+  5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
 
 # Docs
 
@@ -23,16 +26,8 @@
 - tela Mês.
   - Icones com cores para representar as transações.
 
-- import csv - category suggestions
-  1. Search confirmed historical transactions from the same account by exact normalized description.
-  2. Suggest category and subcategory only when all relevant matches agree.
-  3. Keep every imported transaction in `DRAFT`, including transactions with suggestions.
-  4. Leave categories empty when no unambiguous match exists.
-  5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
-
 
 # Improvements
-- run impeccable audit ou outra skill para fazer check geral
 - Assessibility improv with lighthouse in chrome
 - improve path for "/month/{year}/{month}" feels wrong, should be query param? 
 - Tag de Depósito, Retirada e Transfeência parecem chamar muita atenção para as transações de caixinhas. Precisa delas?
@@ -46,6 +41,7 @@
   - Button Month/Year and Today on the top of the screen, don't look like a button, they need some color or border.
   - Botão novo lançamento, poderia ser como botão caixinhas, cor suave e ganha verde atual quando fizer hover.
   - quando clica no gráfico de dias, filtra o dia, mas não tem botão claro de limpar filtros. Deveria add filtro na URL e detectar e botão limpar filtro ficar ativo.
+  - Tela mes - Reservar cores ambar para caixinha (#a85c1a) e verde para income (#1f6f54). Substituir essas no seletor de cores de categoria.
 
 - Uniformizar todos os info box nas janelas de criar/editar/remover/etc - todos azuis
 - Revisar todos os placeholder, sem padrão, numa mesma tela tem campos com e outros sem

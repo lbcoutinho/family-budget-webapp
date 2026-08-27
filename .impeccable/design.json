@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-22T00:00:00.000Z",
+  "generatedAt": "2026-08-27T21:40:46.000Z",
   "title": "Design System: Family Budget",
   "extensions": {
     "colorMeta": {
@@ -593,7 +593,7 @@
   ],
   "narrative": {
     "northStar": "The Instrument Panel",
-    "overview": "This is a reading instrument for a household’s money, not a brand experience. Its governing decision — the thesis of the \"Cromático\" direction chosen from four candidates, amended once in review — is that colour belongs to the data, and to the action. There is still no brand accent. The frame around the data is built from ink (#14161a) and hairline greys, so almost every saturated colour on screen comes from what the data means: the four money colours and the ten category swatches. The single exception is --action, and it is not a new hue: it is the income green, reused as a surface for the one thing the user is meant to do next.\n\nThe result reads as precise and restrained. Density is high — this is a screen someone scans a bank statement against — so every figure is set with font-variant-numeric: tabular-nums so it aligns down its column, and structure is drawn with 1px lines and pale washes rather than boxes and shadows. The personality is in the discipline: an instrument you trust because it never decorates the readings.\n\nThe system commits to one appearance — light only. Dark mode is not deferred, it is rejected, and that single commitment is what makes the light palette worth tuning to the contrast floor. Both desktop and phone are first-class: a wide table is not a desktop feature with a mobile fallback; both layouts are the design.",
+    "overview": "This is a reading instrument for a household's money, not a brand experience. Its governing decision — the thesis of the \"Cromático\" direction chosen from four candidates, amended once in review — is that **colour belongs to the data, and to the action**. There is still no brand accent. The frame around the data is built from ink (`#14161a`) and hairline greys, so almost every saturated colour on screen comes from what the data means: the four money colours and the ten category swatches. The single exception is `--action`, and it is not a new hue: it is the income green, reused as a _surface_ for the one thing the user is meant to do next. Remove the data and the only colour left on the page is the button.\n\nThe result reads as precise and restrained. Density is high — this is a screen someone scans a bank statement against — so every figure is set with `font-variant-numeric: tabular-nums` so it aligns down its column, and structure is drawn with 1px lines and pale washes rather than boxes and shadows. Nothing is rounded enough to feel soft; nothing is shadowed enough to float unless it genuinely sits above the page (a dialog, a toast). The personality is in the discipline: an instrument you trust because it never decorates the readings.\n\nThe system commits to **one appearance — light only.** Dark mode is not deferred, it is rejected, and that single commitment is what makes the light palette worth tuning to the contrast floor. Both desktop and phone are first-class: a wide table is not a desktop feature with a mobile fallback; both layouts are the design.",
     "keyCharacteristics": [
       "No brand colour. The chrome is ink and hairline grey; hue means data — except one green action surface.",
       "Four fixed money colours + ten category swatches, each a single value (no light/dark pair).",
@@ -625,7 +625,7 @@
       },
       {
         "name": "The Tabular Number Rule",
-        "body": "Every figure carries font-variant-numeric: tabular-nums. Money that does not align down the column cannot be scanned, and scanning is the whole job. Monospace is a strong convention for code, not for money.",
+        "body": "Every figure carries `font-variant-numeric: tabular-nums`. Money that does not align down the column cannot be scanned, and scanning is the whole job. Monospace is a strong convention for code, not for money — Material 3, Carbon and the HIG all ask for tabular figures without a separate family, so this system has none.",
         "section": "typography"
       },
       {
@@ -645,22 +645,22 @@
       }
     ],
     "dos": [
-      "Do keep the chrome ink-and-grey. Table headers, avatars, tooltips, toasts, and the toggle switch are ink (#14161a).",
+      "Do keep the chrome ink-and-grey. Table headers, avatars, tooltips, toasts, and the toggle switch are ink (`#14161a`).",
       "Do spend the action green in exactly three places: the primary button, the focus ring, the active nav item.",
-      "Do set every amount, date, and count with tabular-nums via .num, in Public Sans.",
-      "Do build structure from 1px lines and washes first; use a shadow only for a card at rest or something that truly floats.",
+      "Do set every amount, date, and count with `tabular-nums` via `.num`, in Public Sans.",
+      "Do build structure from `1px` lines and washes first; use a shadow only for a card at rest or something that truly floats.",
       "Do label chart slices with their own amount, and draw every category — colour groups, the number names.",
       "Do keep the four money colours exactly as defined — they are semantic constants, not theme choices.",
       "Do design the phone layout as an equal: drawer sidebar, and frozen-column horizontal scroll for matrices that can't reflow."
     ],
     "donts": [
-      "Don’t introduce a brand accent colour. The green is the action, not the brand, and no fourth use of it is authorized.",
-      "Don’t give a data value a green surface, or an action green text — the grammar is what keeps income and action apart.",
-      "Don’t add dark mode or a second value for any token. The system is light-only by decision.",
-      "Don’t add a third typeface. Numbers already have what they need from tnum.",
-      "Don’t wrap surfaces in shadows to create hierarchy where a hairline or wash would do.",
-      "Don’t let green/red mean \"good/bad\" anywhere except the one confirmed against-the-average column on the monthly report.",
-      "Don’t group categories into \"Outras\", and don’t collapse the report matrices to cards on mobile — freeze the first column and scroll."
+      "Don't introduce a brand accent colour. The green is the action, not the brand, and no fourth use of it is authorized.",
+      "Don't give a data value a green _surface_, or an action green _text_ — the grammar is what keeps income and action apart.",
+      "Don't add dark mode or a second value for any token. The system is light-only by decision.",
+      "Don't add a third typeface. Numbers already have what they need from `tnum`.",
+      "Don't wrap surfaces in shadows to create hierarchy where a hairline or wash would do.",
+      "Don't let green/red mean \"good/bad\" anywhere except the one confirmed against-the-average column on the monthly report.",
+      "Don't group categories into \"Outras\", and don't collapse the report matrices to cards on mobile — freeze the first column and scroll."
     ]
   }
 }
