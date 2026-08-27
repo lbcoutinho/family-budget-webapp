@@ -3,6 +3,9 @@ name: create-issue
 description: Create well-scoped issues with titles, body templates, and labels. Use when asked to create an issue.
 ---
 
+## Usage
+- Don't use this skill to format spec issues, instead use the `to-spec` skill.
+
 ## Issue title
 - Short sentence describing the issue. Use imperative mood: "add", "fix", "remove" — not "added", "adds", "adding"
 - No trailing period
