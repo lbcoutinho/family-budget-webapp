@@ -136,6 +136,14 @@ function AssetCards({ empty, sidePanel = false }: { empty: boolean; sidePanel?: 
     { label: 'Millennium', value: 25000, icon: LandmarkIcon },
     { label: 'Revolut', value: 2000, icon: WalletCardsIcon },
     { label: 'Dinheiro · inativa', value: -7000, icon: WalletCardsIcon, inactive: true },
+    ...(sidePanel
+      ? [
+          { label: 'ActivoBank', value: 0, icon: LandmarkIcon },
+          { label: 'Wise', value: 0, icon: WalletCardsIcon },
+          { label: 'moey!', value: 0, icon: WalletCardsIcon },
+          { label: 'Conta conjunta', value: 0, icon: LandmarkIcon },
+        ]
+      : []),
     { label: 'Caixinhas · 2', value: 185000, icon: PiggyBankIcon },
     { label: 'Patrimônio total', value: 205000, icon: CircleDollarSignIcon, total: true },
   ];
