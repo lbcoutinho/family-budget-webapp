@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relatórios · Saldos — protótipo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      /* Three variants of Reports > Balances, switchable via ?variant=, in the existing Reports shell. */
+      .topbar {
+        justify-content: flex-start;
+        gap: 12px;
+      }
+      .period {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex: none;
+      }
+      .period strong {
+        min-width: 46px;
+        text-align: center;
+      }
+      .view-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .view-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .content {
+        padding-bottom: 96px;
+      }
+      .intro {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .intro p {
+        color: var(--ink-soft);
+        max-width: 68ch;
+        margin-top: 5px;
+      }
+      .cutoff {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        white-space: nowrap;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .cutoff svg {
+        width: 15px;
+      }
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        background: var(--surface);
+        box-shadow: var(--shadow-sm);
+      }
+      .snapshot-grid > div {
+        padding: 18px;
+        border-right: 1px solid var(--line);
+      }
+      .snapshot-grid > div:last-child {
+        border-right: 0;
+        background: var(--wash);
+      }
+      .snapshot-grid .k {
+        color: var(--ink-soft);
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .snapshot-grid .v {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: clamp(1.5rem, 3vw, 1.95rem);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+      .snapshot-detail {
+        display: grid;
+        gap: 6px;
+        margin-top: 14px;
+        font-size: 12.5px;
+      }
+      .snapshot-detail > span {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .allocation {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 14px;
+      }
+      .allocation-chart {
+        width: 76px;
+        height: 76px;
+        flex: none;
+        border-radius: 50%;
+        background: conic-gradient(var(--cashbox) 0 51%, var(--transfer) 51%);
+        position: relative;
+      }
+      .allocation-chart::after {
+        content: '';
+        position: absolute;
+        inset: 18px;
+        border-radius: 50%;
+        background: var(--wash);
+      }
+      .allocation-legend {
+        display: grid;
+        gap: 7px;
+        font-size: 11.5px;
+      }
+      .allocation-legend span {
+        display: grid;
+        grid-template-columns: 9px 1fr auto;
+        align-items: center;
+        gap: 7px;
+      }
+      .allocation-legend i {
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+      }
+      .section {
+        margin-top: 18px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        margin-bottom: 9px;
+      }
+      .section-head p {
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+      .asset-list {
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        background: var(--surface);
+        box-shadow: var(--shadow-sm);
+      }
+      .asset-row {
+        display: grid;
+        grid-template-columns: minmax(130px, 1fr) auto;
+        gap: 16px;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .asset-row:last-child {
+        border-bottom: 0;
+      }
+      .asset-row small {
+        display: block;
+        color: var(--ink-soft);
+        margin-top: 2px;
+      }
+      .asset-row .num {
+        font-weight: 600;
+      }
+      .badge.inactive {
+        border: 1px dashed var(--line-strong);
+        background: transparent;
+        margin-left: 6px;
+      }
+      .chart-card {
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-sm);
+        padding: 18px;
+        overflow: hidden;
+      }
+      .chart {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 760 / 270;
+        min-height: 220px;
+      }
+      .chart .grid {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .chart .axis {
+        fill: var(--ink-faint);
+        font:
+          11px 'Public Sans',
+          sans-serif;
+      }
+      .chart .accounts {
+        fill: none;
+        stroke: var(--transfer);
+        stroke-width: 2.5;
+      }
+      .chart .cashboxes {
+        fill: none;
+        stroke: var(--cashbox);
+        stroke-width: 2.5;
+        stroke-dasharray: 7 4;
+      }
+      .chart .net {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 3.5;
+      }
+      .chart .future {
+        stroke: var(--line-strong);
+        stroke-dasharray: 4 4;
+      }
+      .chart .now-band {
+        fill: var(--wash);
+      }
+      .chart .point {
+        stroke: var(--surface);
+        stroke-width: 2;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: 8px;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .legend i {
+        width: 18px;
+        height: 2px;
+        background: var(--ink);
+      }
+      .legend .a {
+        background: var(--transfer);
+      }
+      .legend .c {
+        height: 0;
+        background: none;
+        border-top: 2px dashed var(--cashbox);
+      }
+      .difference {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 16px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-lg);
+        padding: 16px 18px;
+        background: var(--wash);
+      }
+      .difference .arrow {
+        color: var(--ink-faint);
+        font-size: 1.05rem;
+      }
+      .difference strong {
+        display: block;
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1.25rem;
+      }
+      .difference small {
+        color: var(--ink-soft);
+      }
+      .composition {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+      }
+      .composition-main {
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-lg);
+        background: var(--wash);
+        padding: 20px;
+      }
+      .net-value {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1.95rem;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        margin: 6px 0 18px;
+      }
+      .composition-bar {
+        display: flex;
+        height: 30px;
+        border-radius: var(--r-sm);
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+      .composition-bar span {
+        display: grid;
+        place-items: center;
+        min-width: 44px;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .composition-bar .accounts-part {
+        width: 49%;
+        color: var(--transfer);
+        background: var(--transfer-wash);
+      }
+      .composition-bar .cashboxes-part {
+        width: 51%;
+        color: var(--cashbox);
+        background: var(--cashbox-wash);
+        border-left: 1px solid var(--line-strong);
+      }
+      .group-panels {
+        display: grid;
+        gap: 12px;
+      }
+      .group-panel {
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        background: var(--surface);
+        padding: 15px;
+      }
+      .group-panel header {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 9px;
+        margin-bottom: 7px;
+      }
+      .mini-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 5px 0;
+        font-size: 12.5px;
+      }
+      .empty {
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r-lg);
+        background: var(--surface);
+        text-align: center;
+        padding: 54px 22px;
+      }
+      .empty svg {
+        width: 28px;
+        color: var(--ink-faint);
+      }
+      .empty h2 {
+        margin: 10px 0 5px;
+      }
+      .empty p {
+        max-width: 50ch;
+        margin: auto;
+        color: var(--ink-soft);
+      }
+      .prototype-switcher {
+        position: fixed;
+        z-index: 30;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 10px;
+        background: var(--ink);
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+      }
+      .prototype-switcher button {
+        border: 0;
+        background: transparent;
+        color: inherit;
+        min-width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .prototype-switcher button:hover {
+        background: var(--ink-soft);
+      }
+      .prototype-switcher button svg {
+        width: 16px;
+      }
+      .prototype-switcher strong {
+        min-width: 205px;
+        text-align: center;
+        font-size: 12px;
+      }
+      .decision-prompts {
+        margin-top: 20px;
+        border-top: 1px solid var(--line-strong);
+        padding-top: 16px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+      .decision-prompts b {
+        color: var(--ink);
+      }
+      @media (max-width: 900px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 7px;
+          padding-top: 9px;
+          padding-bottom: 9px;
+        }
+        .view-tabs {
+          max-width: calc(100vw - 28px);
+        }
+        .intro {
+          flex-direction: column;
+        }
+        .snapshot-grid {
+          grid-template-columns: 1fr;
+        }
+        .snapshot-grid > div {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .snapshot-grid > div:last-child {
+          border-bottom: 0;
+        }
+        .composition {
+          grid-template-columns: 1fr;
+        }
+        .difference {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        .difference .arrow {
+          transform: rotate(90deg);
+          justify-self: start;
+        }
+        .chart-card {
+          padding: 14px 8px;
+        }
+        .chart {
+          min-height: 240px;
+          width: 720px;
+        }
+        .chart-scroll {
+          overflow-x: auto;
+        }
+        .prototype-switcher {
+          bottom: 10px;
+          max-width: calc(100vw - 20px);
+        }
+        .prototype-switcher strong {
+          min-width: 178px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: Separate effective money today from accounting-month evolution; reject a dashboard of interchangeable metric cards.
+      OWN-WORLD: Existing Cromático instrument panel, achromatic chrome, semantic money lines, hairline containers.
+      STORY: Read today's spendable position, understand why August's close differs, then inspect the year.
+      FIRST VIEWPORT: Revised Reports header followed by one of three deliberately different hierarchies.
+      FORM: Existing Reports surface; three brief-mandated variants selected by ?variant=.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div data-proto="Sessão 2 — Relatórios › Saldos" data-ticket="#268 · protótipo descartável"></div>
+    <div class="proto-note">
+      <strong>Questão:</strong> como distinguir o dinheiro efetivamente disponível hoje da evolução por mês contábil? Use 2023 para ver o estado sem histórico.
+    </div>
+    <div data-shell="reports">
+      <div class="main">
+        <div class="topbar">
+          <div class="period">
+            <button class="btn icon ghost" id="previous-year" title="Ano anterior"><span data-icon="chevronLeft"></span></button>
+            <strong class="num" id="year">2026</strong>
+            <button class="btn icon ghost" id="next-year" title="Próximo ano"><span data-icon="chevronRight"></span></button>
+          </div>
+          <div class="segmented view-tabs">
+            <button onclick="location.href = 'approved/09-reports-monthly.html'">Mensal</button>
+            <button onclick="location.href = 'approved/10-reports-yearly.html'">Anual</button>
+            <button onclick="location.href = 'approved/11-reports-charts.html'">Gráficos</button>
+            <button aria-selected="true">Saldos</button>
+          </div>
+        </div>
+        <main class="content" id="prototype"></main>
+      </div>
+    </div>
+    <nav class="prototype-switcher" aria-label="Alternar variante do protótipo">
+      <button id="previous-variant" aria-label="Variante anterior"><span data-icon="chevronLeft"></span></button>
+      <strong id="variant-label"></strong>
+      <button id="next-variant" aria-label="Próxima variante"><span data-icon="chevronRight"></span></button>
+    </nav>
+    <script>
+      const names = { a: 'A — Posição de hoje primeiro', b: 'B — Evolução primeiro', c: 'C — Composição dos ativos primeiro' };
+      const assets = `
+        <div class="asset-list">
+          <div class="asset-row"><span><b>Millennium</b><small>Conta corrente</small></span><span class="num in">+ 1.420,00 €</span></div>
+          <div class="asset-row"><span><b>Revolut</b><small>Conta corrente</small></span><span class="num out">− 80,00 €</span></div>
+          <div class="asset-row"><span><b>Conta antiga</b><span class="badge inactive">Inativa</span><small>Incluída porque ainda tem saldo</small></span><span class="num out">− 140,00 €</span></div>
+        </div>`;
+      const snapshot = `
+        <div class="snapshot-grid">
+          <div><div class="k">Total em contas</div><div class="v num">1.200,00 €</div></div>
+          <div><div class="k">Total em caixinhas</div><div class="v num cx">1.250,00 €</div></div>
+          <div><div class="k">Patrimônio total hoje</div><div class="v num">2.450,00 €</div></div>
+        </div>`;
+      const detailedSnapshot = `
+        <div class="snapshot-grid">
+          <div><div class="k">Total em contas</div><div class="v num">1.200,00 €</div><div class="snapshot-detail"><span><b>Millennium</b><span class="num">1.420,00 €</span></span><span><b>Revolut</b><span class="num out">− 80,00 €</span></span><span><b>Conta antiga · inativa</b><span class="num out">− 140,00 €</span></span></div></div>
+          <div><div class="k">Total em caixinhas</div><div class="v num cx">1.250,00 €</div><div class="snapshot-detail"><span><b>Reserva</b><span class="num">900,00 €</span></span><span><b>Viagens</b><span class="num">350,00 €</span></span></div></div>
+          <div><div class="k">Patrimônio total hoje</div><div class="v num">2.450,00 €</div><div class="allocation"><div class="allocation-chart" role="img" aria-label="Contas 49%, caixinhas 51%"></div><div class="allocation-legend"><span><i style="background:var(--transfer)"></i>Contas <b class="num">49%</b></span><span><i style="background:var(--cashbox)"></i>Caixinhas <b class="num">51%</b></span></div></div></div>
+        </div>`;
+      const difference = `
+        <div class="difference section">
+          <div><small>Posição efetiva · 27 ago 2026</small><strong class="num">2.450,00 €</strong></div>
+          <div class="arrow">→</div>
+          <div><small>Fechamento contábil de agosto</small><strong class="num">2.675,00 €</strong><small>inclui 225,00 € confirmados com data futura</small></div>
+        </div>`;
+      const detailPanels = `<div class="group-panels"><section class="group-panel"><header><b>Contas</b><strong class="num">1.200,00 €</strong></header><div class="mini-row"><span>Millennium</span><span class="num">1.420,00 €</span></div><div class="mini-row"><span>Revolut</span><span class="num out">− 80,00 €</span></div><div class="mini-row"><span>Conta antiga · inativa</span><span class="num out">− 140,00 €</span></div></section><section class="group-panel"><header><b>Caixinhas</b><strong class="num cx">1.250,00 €</strong></header><div class="mini-row"><span>Reserva</span><span class="num">900,00 €</span></div><div class="mini-row"><span>Viagens</span><span class="num">350,00 €</span></div></section></div>`;
+      const chart = `
+        <div class="chart-card">
+          <div class="section-head"><div><h2>Evolução em 2026</h2><p>Fechamento de cada mês pelo mês de referência</p></div><span class="badge">Agosto em andamento</span></div>
+          <div class="chart-scroll"><svg class="chart" viewBox="0 0 760 270" role="img" aria-label="Evolução mensal de contas, caixinhas e patrimônio total">
+            <rect class="now-band" x="465" y="22" width="48" height="205" rx="5" />
+            <path class="grid" d="M52 42H735M52 100H735M52 158H735M52 216H735" />
+            <text class="axis" x="8" y="46">3.000 €</text><text class="axis" x="8" y="104">2.000 €</text><text class="axis" x="8" y="162">1.000 €</text><text class="axis" x="28" y="220">0 €</text>
+            <path class="accounts" d="M60 215L120 205L180 187L240 170L300 157L360 151L420 143L480 139" />
+            <path class="cashboxes" d="M60 204L120 193L180 178L240 164L300 150L360 136L420 126L480 119" />
+            <path class="net" d="M60 203L120 182L180 149L240 118L300 92L360 72L420 54L480 42" />
+            <path class="future" d="M510 227H735" />
+            <circle class="point" cx="480" cy="42" r="5" fill="var(--ink)" />
+            <text class="axis" x="455" y="18">em andamento</text>
+            <text class="axis" x="54" y="249">Jan</text><text class="axis" x="114" y="249">Fev</text><text class="axis" x="174" y="249">Mar</text><text class="axis" x="234" y="249">Abr</text><text class="axis" x="294" y="249">Mai</text><text class="axis" x="354" y="249">Jun</text><text class="axis" x="414" y="249">Jul</text><text class="axis" x="474" y="249">Ago</text><text class="axis" x="534" y="249">Set</text><text class="axis" x="594" y="249">Out</text><text class="axis" x="654" y="249">Nov</text><text class="axis" x="714" y="249">Dez</text>
+          </svg></div>
+          <div class="legend"><span><i class="a"></i>Contas</span><span><i class="c"></i>Caixinhas</span><span><i></i>Patrimônio total</span><span>Conta antiga (inativa) compõe jan–jun</span></div>
+        </div>`;
+      const intro = (text) => `<div class="intro"><div><h1>Saldos</h1><p>${text}</p></div><span class="cutoff">Posição em 27 de agosto de 2026</span></div>`;
+      const prompts = `<div class="decision-prompts"><b>Para decidir:</b> onde você olha primeiro? A diferença entre “hoje” e “mês contábil” ficou clara? No celular, a ordem ainda ajuda ou obriga a procurar?</div>`;
+
+      function variantA() {
+        return `${intro('Quanto há disponível agora, antes de consultar como o patrimônio evoluiu no ano.')}${detailedSnapshot}${difference}<section class="section">${chart}</section>${prompts}`;
+      }
+      function variantB() {
+        return `${intro('O ano contábil conduz a leitura; a posição de hoje aparece como conferência do mês em andamento.')}<section>${chart}</section>${difference}<section class="section"><div class="section-head"><div><h2>Posição efetiva hoje</h2><p>Corte por data, não pelo mês de referência</p></div></div>${snapshot}</section><section class="section"><div class="section-head"><h2>Contas hoje</h2></div>${assets}</section>${prompts}`;
+      }
+      function variantC() {
+        return `${intro('O patrimônio é apresentado pela sua composição; rótulos, percentuais e valores mantêm a leitura sem depender da cor.')}<div class="composition"><section class="composition-main"><h2>Patrimônio disponível hoje</h2><div class="net-value num">2.450,00 €</div><div class="composition-bar"><span class="accounts-part">Contas · 49%</span><span class="cashboxes-part">Caixinhas · 51%</span></div><p class="small muted" style="margin-top:10px">Rótulos e percentuais identificam os grupos mesmo sem cor.</p></section>${detailPanels}</div>${difference}<section class="section">${chart}</section>${prompts}`;
+      }
+      function empty() {
+        return `${intro('Este ano ainda não tem fechamentos suficientes para mostrar uma evolução útil.')}<div class="empty"><h2>Histórico insuficiente em 2023</h2><p>A evolução aparecerá depois do primeiro mês com saldo. A posição de hoje continua disponível ao selecionar 2026.</p></div>${prompts}`;
+      }
+
+      const variants = ['a', 'b', 'c'];
+      const params = new URLSearchParams(location.search);
+      let current = variants.includes(params.get('variant')) ? params.get('variant') : 'a';
+      let year = params.get('year') === '2023' ? 2023 : 2026;
+      const root = document.getElementById('prototype');
+      function render() {
+        document.getElementById('year').textContent = year;
+        document.getElementById('variant-label').textContent = names[current];
+        root.innerHTML = year === 2023 ? empty() : { a: variantA, b: variantB, c: variantC }[current]();
+      }
+      function setVariant(offset) {
+        current = variants[(variants.indexOf(current) + offset + variants.length) % variants.length];
+        params.set('variant', current);
+        params.set('year', String(year));
+        history.replaceState(null, '', `?${params}`);
+        render();
+      }
+      function setYear(next) {
+        year = next;
+        params.set('year', String(year));
+        params.set('variant', current);
+        history.replaceState(null, '', `?${params}`);
+        render();
+      }
+      document.getElementById('previous-variant').onclick = () => setVariant(-1);
+      document.getElementById('next-variant').onclick = () => setVariant(1);
+      document.getElementById('previous-year').onclick = () => setYear(year === 2026 ? 2023 : 2026);
+      document.getElementById('next-year').onclick = () => setYear(year === 2023 ? 2026 : 2023);
+      addEventListener('keydown', (event) => {
+        if (event.target.matches('input, textarea, [contenteditable]')) return;
+        if (event.key === 'ArrowLeft') setVariant(-1);
+        if (event.key === 'ArrowRight') setVariant(1);
+      });
+      render();
+    </script>
+  </body>
+</html>
