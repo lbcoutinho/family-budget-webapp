@@ -147,16 +147,19 @@ export class ReportsService {
     const previousMonth = new Date(Date.UTC(year, month - 2, 1));
     const nextMonth = new Date(Date.UTC(year, month, 1));
     const [accounts, previousSums, closingSums, cashboxSums] = await Promise.all([
-      this.prisma.account.findMany({ where: { userId, createdAt: { lt: nextMonth } }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
       this.balances.sumByAccountReferenceMonth(userId, previousMonth),
       this.balances.sumByAccountReferenceMonth(userId, referenceMonth),
       this.balances.sumByCashboxReferenceMonth(userId, referenceMonth),
     ]);
-    const accountBalances = accounts.map((account) => ({ ...account, balance: account.initialBalance + (closingSums.get(account.id) ?? 0) }));
+    const accountBalances = accounts
+      .filter((account) => account.createdAt < nextMonth || closingSums.has(account.id))
+      .map((account) => ({ ...account, balance: (account.createdAt < nextMonth ? account.initialBalance : 0) + (closingSums.get(account.id) ?? 0) }));
     const visibleAccounts = accountBalances.filter((account) => account.isActive || account.balance !== 0);
-    const previousAccountBalance = accounts
-      .filter((account) => account.createdAt < referenceMonth)
-      .reduce((total, account) => total + account.initialBalance + (previousSums.get(account.id) ?? 0), 0);
+    const previousAccountBalance = accounts.reduce(
+      (total, account) => total + (account.createdAt < referenceMonth ? account.initialBalance : 0) + (previousSums.get(account.id) ?? 0),
+      0,
+    );
     const accountBalance = accountBalances.reduce((total, account) => total + account.balance, 0);
     const cashboxBalance = [...cashboxSums.values()].reduce((total, balance) => total + balance, 0);
 
