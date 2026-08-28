@@ -82,6 +82,48 @@ export class BalancesService {
     return this.sumByCashboxWhere({ userId, status: 'CONFIRMED', referenceMonth: { lte: referenceMonth } });
   }
 
+  /** Confirmed account movements by accounting month through December of `year`. */
+  async accountMovementsByReferenceMonth(userId: string, year: number): Promise<Map<number, Map<string, number>>> {
+    const where: Prisma.TransactionWhereInput = { userId, status: 'CONFIRMED', referenceMonth: { lte: new Date(Date.UTC(year, 11, 1)) } };
+    const [source, destination] = await this.prisma.$transaction((tx) =>
+      Promise.all([
+        tx.transaction.groupBy({
+          by: ['accountId', 'type', 'referenceMonth'],
+          _sum: { amount: true },
+          where: { ...where, accountId: { not: null } },
+        }),
+        tx.transaction.groupBy({
+          by: ['destinationAccountId', 'referenceMonth'],
+          _sum: { amount: true },
+          where: { ...where, type: 'TRANSFER' },
+        }),
+      ]),
+    );
+
+    return movementsByMonth(source, destination, 'accountId', 'destinationAccountId', ACCOUNT_SIGN);
+  }
+
+  /** Confirmed cashbox movements by accounting month through December of `year`. */
+  async cashboxMovementsByReferenceMonth(userId: string, year: number): Promise<Map<number, Map<string, number>>> {
+    const where: Prisma.TransactionWhereInput = { userId, status: 'CONFIRMED', referenceMonth: { lte: new Date(Date.UTC(year, 11, 1)) } };
+    const [source, destination] = await this.prisma.$transaction((tx) =>
+      Promise.all([
+        tx.transaction.groupBy({
+          by: ['cashboxId', 'type', 'referenceMonth'],
+          _sum: { amount: true },
+          where: { ...where, cashboxId: { not: null } },
+        }),
+        tx.transaction.groupBy({
+          by: ['destinationCashboxId', 'referenceMonth'],
+          _sum: { amount: true },
+          where: { ...where, type: 'CASHBOX_TRANSFER' },
+        }),
+      ]),
+    );
+
+    return movementsByMonth(source, destination, 'cashboxId', 'destinationCashboxId', CASHBOX_SIGN);
+  }
+
   /**
    * Monthly cashbox movement for `ReportsService.cashboxes` (M6-T05, #185), grouped by
    * `referenceMonth` rather than `date` — reports always group by reference month. No lower bound:
@@ -161,4 +203,24 @@ function cashboxBalances(
 
 function add(balances: Map<string, number>, id: string, amount: number): void {
   balances.set(id, (balances.get(id) ?? 0) + amount);
+}
+
+function movementsByMonth(
+  source: { type: TransactionType; referenceMonth: Date; _sum: { amount: number | null }; [id: string]: unknown }[],
+  destination: { referenceMonth: Date; _sum: { amount: number | null }; [id: string]: unknown }[],
+  sourceId: string,
+  destinationId: string,
+  signs: Record<TransactionType, -1 | 0 | 1>,
+): Map<number, Map<string, number>> {
+  const months = new Map<number, Map<string, number>>();
+  const addToMonth = (month: Date, id: unknown, amount: number): void => {
+    if (typeof id !== 'string') return;
+    const balances = months.get(month.getTime()) ?? new Map<string, number>();
+    add(balances, id, amount);
+    months.set(month.getTime(), balances);
+  };
+
+  for (const row of source) addToMonth(row.referenceMonth, row[sourceId], (row._sum.amount ?? 0) * signs[row.type]);
+  for (const row of destination) addToMonth(row.referenceMonth, row[destinationId], row._sum.amount ?? 0);
+  return months;
 }

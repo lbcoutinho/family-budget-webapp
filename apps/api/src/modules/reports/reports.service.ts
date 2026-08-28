@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService, CASHBOX_SIGN } from '../transactions/balances.service';
 import { startOfMonthUtc } from '../transactions/reference-month';
 
+import { BalancesReportDto } from './dto/balances-report.dto';
 import { CashboxesReportDto } from './dto/cashboxes-report.dto';
 import { MonthlyBalanceDto } from './dto/monthly-balance.dto';
 import { MonthlyReportDto } from './dto/monthly-report.dto';
@@ -169,6 +170,73 @@ export class ReportsService {
       cashboxBalance,
       netWorth: accountBalance + cashboxBalance,
     };
+  }
+
+  async getBalances(userId: string, year: number, now: Date = new Date()): Promise<BalancesReportDto> {
+    const cutoff = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const currentMonth = startOfMonthUtc(now);
+    const [accounts, accountSums, cashboxSums, accountMovements, cashboxMovements, currentClose] = await Promise.all([
+      this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.balances.sumByAccount(userId, cutoff),
+      this.balances.sumByCashbox(userId, cutoff),
+      this.balances.accountMovementsByReferenceMonth(userId, year),
+      this.balances.cashboxMovementsByReferenceMonth(userId, year),
+      this.getMonthlyBalance(userId, now.getUTCFullYear(), now.getUTCMonth() + 1),
+    ]);
+    const snapshotAccounts = accounts
+      .filter((account) => account.createdAt <= cutoff)
+      .map((account) => ({
+        accountId: account.id,
+        name: account.name,
+        isActive: account.isActive,
+        balance: account.initialBalance + (accountSums.get(account.id) ?? 0),
+      }));
+    const totalAccounts = snapshotAccounts.reduce((total, account) => total + account.balance, 0);
+    const totalCashboxes = [...cashboxSums.values()].reduce((total, balance) => total + balance, 0);
+    const months = this.balanceEvolution(year, accounts, accountMovements, cashboxMovements, currentMonth);
+    const currentAccountingClose = currentClose.netWorth;
+
+    return {
+      year,
+      snapshot: { cutoffDate: dateOnly(cutoff), accounts: snapshotAccounts, totalAccounts, totalCashboxes, totalNetWorth: totalAccounts + totalCashboxes },
+      currentAccountingClose,
+      futureDatedTransactions: currentAccountingClose - totalAccounts - totalCashboxes,
+      evolution: { hasSufficientHistory: accounts.some((account) => account.createdAt < new Date(Date.UTC(year + 1, 0, 1))), months },
+    };
+  }
+
+  private balanceEvolution(
+    year: number,
+    accounts: { id: string; initialBalance: number; createdAt: Date }[],
+    accountMovements: Map<number, Map<string, number>>,
+    cashboxMovements: Map<number, Map<string, number>>,
+    currentMonth: Date,
+  ): BalancesReportDto['evolution']['months'] {
+    const accountSums = new Map<string, number>();
+    let cashboxes = 0;
+    const janOfYear = new Date(Date.UTC(year, 0, 1)).getTime();
+    for (const [time, movements] of accountMovements) {
+      if (time >= janOfYear) continue;
+      for (const [accountId, amount] of movements) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
+    }
+    for (const [time, movements] of cashboxMovements) {
+      if (time < janOfYear) for (const amount of movements.values()) cashboxes += amount;
+    }
+    return Array.from({ length: 12 }, (_, index) => {
+      const month = new Date(Date.UTC(year, index, 1));
+      for (const [accountId, amount] of accountMovements.get(month.getTime()) ?? []) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
+      for (const amount of cashboxMovements.get(month.getTime())?.values() ?? []) cashboxes += amount;
+      const accountsTotal = accounts
+        .filter((account) => account.createdAt < new Date(Date.UTC(year, index + 1, 1)))
+        .reduce((total, account) => total + account.initialBalance + (accountSums.get(account.id) ?? 0), 0);
+      return {
+        month: index + 1,
+        accounts: accountsTotal,
+        cashboxes,
+        netWorth: accountsTotal + cashboxes,
+        inProgress: month.getTime() === currentMonth.getTime(),
+      };
+    });
   }
 
   /**

@@ -21,7 +21,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BalancesReportDto,
   CashboxesReportDto,
+  GetBalancesReportParams,
   GetCashboxesReportParams,
   GetMonthlyBalanceParams,
   GetMonthlyReportParams,
@@ -227,6 +229,99 @@ export function useGetMonthlyBalance<TData = Awaited<ReturnType<typeof getMonthl
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMonthlyBalanceQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Effective current position and yearly accounting-balance evolution
+ */
+export const getBalancesReport = (
+    params: GetBalancesReportParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<BalancesReportDto>(
+      {url: `/reports/balances`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetBalancesReportQueryKey = (params?: GetBalancesReportParams,) => {
+    return [
+    `/reports/balances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetBalancesReportQueryOptions = <TData = Awaited<ReturnType<typeof getBalancesReport>>, TError = ErrorType<unknown>>(params: GetBalancesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBalancesReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBalancesReport>>> = ({ signal }) => getBalancesReport(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBalancesReportQueryResult = NonNullable<Awaited<ReturnType<typeof getBalancesReport>>>
+export type GetBalancesReportQueryError = ErrorType<unknown>
+
+
+export function useGetBalancesReport<TData = Awaited<ReturnType<typeof getBalancesReport>>, TError = ErrorType<unknown>>(
+ params: GetBalancesReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBalancesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getBalancesReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBalancesReport<TData = Awaited<ReturnType<typeof getBalancesReport>>, TError = ErrorType<unknown>>(
+ params: GetBalancesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBalancesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getBalancesReport>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBalancesReport<TData = Awaited<ReturnType<typeof getBalancesReport>>, TError = ErrorType<unknown>>(
+ params: GetBalancesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Effective current position and yearly accounting-balance evolution
+ */
+
+export function useGetBalancesReport<TData = Awaited<ReturnType<typeof getBalancesReport>>, TError = ErrorType<unknown>>(
+ params: GetBalancesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBalancesReport>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBalancesReportQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
