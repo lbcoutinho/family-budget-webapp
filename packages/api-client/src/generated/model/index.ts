@@ -13,6 +13,7 @@ export * from './apiErrorDtoCode';
 export * from './authUserDto';
 export * from './authUserDtoLocale';
 export * from './balancesReportAccountDto';
+export * from './balancesReportCashboxDto';
 export * from './balancesReportDto';
 export * from './balancesReportEvolutionDto';
 export * from './balancesReportEvolutionMonthDto';

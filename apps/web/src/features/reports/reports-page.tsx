@@ -6,12 +6,13 @@ import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ReportsBalances } from '@/features/reports/reports-balances';
 import { ReportsCharts } from '@/features/reports/reports-charts';
 import { ReportsMonthly } from '@/features/reports/reports-monthly';
 import { ReportsYearly } from '@/features/reports/reports-yearly';
 import { MonthPicker } from '@/features/transactions/month-page';
 
-type ReportView = 'monthly' | 'yearly' | 'charts';
+type ReportView = 'monthly' | 'yearly' | 'charts' | 'balances';
 
 function parseInRange(value: string | null, min: number, max: number, fallback: number): number {
   const parsed = value === null ? NaN : Number(value);
@@ -29,7 +30,14 @@ export function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
 
-  const view: ReportView = searchParams.get('view') === 'yearly' ? 'yearly' : searchParams.get('view') === 'charts' ? 'charts' : 'monthly';
+  const view: ReportView =
+    searchParams.get('view') === 'yearly'
+      ? 'yearly'
+      : searchParams.get('view') === 'charts'
+        ? 'charts'
+        : searchParams.get('view') === 'balances'
+          ? 'balances'
+          : 'monthly';
   const year = parseInRange(searchParams.get('year'), 2000, 2100, now.getFullYear());
   const month = parseInRange(searchParams.get('month'), 1, 12, now.getMonth() + 1);
   const compare = searchParams.get('compare') === '1';
@@ -58,21 +66,8 @@ export function ReportsPage() {
     <>
       <PageHeader
         title={
-          <Tabs value={view} onValueChange={(value) => setView(value as ReportView)}>
-            <TabsList>
-              <TabsTrigger value="monthly">{t('reports.view.monthly')}</TabsTrigger>
-              <TabsTrigger value="yearly">{t('reports.view.yearly')}</TabsTrigger>
-              <TabsTrigger value="charts">{t('reports.view.charts')}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        }
-        actions={
-          view === 'yearly' ? (
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-field text-muted-foreground">
-                <Checkbox checked={compare} onCheckedChange={(checked) => update({ compare: checked === true ? '1' : undefined })} />
-                {t('reports.yearly.compare', { year: year - 1 })}
-              </label>
+          <div className="flex flex-wrap items-center gap-3">
+            {view === 'yearly' || view === 'balances' ? (
               <span className="flex items-center gap-1">
                 <Button variant="ghost" size="icon-sm" aria-label={t('reports.yearly.previousYear')} onClick={() => moveYear(-1)}>
                   <ChevronLeftIcon />
@@ -82,18 +77,36 @@ export function ReportsPage() {
                   <ChevronRightIcon />
                 </Button>
               </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
+                  <ChevronLeftIcon />
+                </Button>
+                <MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />
+                <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
+                  <ChevronRightIcon />
+                </Button>
+              </span>
+            )}
+            <Tabs value={view} onValueChange={(value) => setView(value as ReportView)}>
+              <TabsList>
+                <TabsTrigger value="monthly">{t('reports.view.monthly')}</TabsTrigger>
+                <TabsTrigger value="yearly">{t('reports.view.yearly')}</TabsTrigger>
+                <TabsTrigger value="charts">{t('reports.view.charts')}</TabsTrigger>
+                <TabsTrigger value="balances">{t('reports.view.balances')}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        }
+        actions={
+          view === 'yearly' ? (
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2 text-field text-muted-foreground">
+                <Checkbox checked={compare} onCheckedChange={(checked) => update({ compare: checked === true ? '1' : undefined })} />
+                {t('reports.yearly.compare', { year: year - 1 })}
+              </label>
             </div>
-          ) : (
-            <span className="flex items-center gap-1">
-              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.previousMonth')} onClick={() => moveMonth(-1)}>
-                <ChevronLeftIcon />
-              </Button>
-              <MonthPicker key={referenceMonth.toISOString()} month={referenceMonth} onSelect={selectMonth} />
-              <Button variant="ghost" size="icon-sm" aria-label={t('transactions.nextMonth')} onClick={() => moveMonth(1)}>
-                <ChevronRightIcon />
-              </Button>
-            </span>
-          )
+          ) : undefined
         }
       />
       <PageContent className="space-y-4">
@@ -101,8 +114,10 @@ export function ReportsPage() {
           <ReportsMonthly year={year} month={month} />
         ) : view === 'yearly' ? (
           <ReportsYearly year={year} compare={compare} />
-        ) : (
+        ) : view === 'charts' ? (
           <ReportsCharts year={year} month={month} />
+        ) : (
+          <ReportsBalances year={year} />
         )}
       </PageContent>
     </>

@@ -6,11 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { BalancesReportAccountDto } from './balancesReportAccountDto';
+import type { BalancesReportCashboxDto } from './balancesReportCashboxDto';
 
 export interface BalancesReportSnapshotDto {
   /** Inclusive effective-balance cutoff. */
   cutoffDate: string;
   accounts: BalancesReportAccountDto[];
+  cashboxes: BalancesReportCashboxDto[];
   /** Consolidated account balance in cents. */
   totalAccounts: number;
   /** Consolidated cashbox balance in cents. */

@@ -1,4 +1,4 @@
-import { type MonthlyReportDto } from '@family-budget/api-client';
+import { type BalancesReportDto, type MonthlyReportDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -71,6 +71,30 @@ const MONTHLY_REPORT: MonthlyReportDto = {
     depositsTotal: 60_000,
     withdrawalsTotal: 0,
     balance: 60_000,
+  },
+};
+
+const BALANCES_REPORT: BalancesReportDto = {
+  year: 2026,
+  snapshot: {
+    cutoffDate: '2026-05-15',
+    accounts: [{ accountId: 'account-1', name: 'Current', isActive: true, balance: 120_000 }],
+    cashboxes: [{ cashboxId: 'cashbox-1', name: 'Reserve', isActive: true, balance: 30_000 }],
+    totalAccounts: 120_000,
+    totalCashboxes: 30_000,
+    totalNetWorth: 150_000,
+  },
+  currentAccountingClose: 170_000,
+  futureDatedTransactions: 20_000,
+  evolution: {
+    hasSufficientHistory: true,
+    months: Array.from({ length: 12 }, (_, index) => ({
+      month: index + 1,
+      accounts: 100_000 + index * 1_000,
+      cashboxes: 20_000 + index * 500,
+      netWorth: 120_000 + index * 1_500,
+      inProgress: index === 4,
+    })),
   },
 };
 
@@ -210,5 +234,37 @@ describe('ReportsPage — segmented control and URL state', () => {
 
     expect(await screen.findByRole('tab', { name: 'Anual', selected: true })).toBeInTheDocument();
     expect(screen.getByText('2025')).toBeInTheDocument();
+  });
+});
+
+describe('ReportsPage — balances view', () => {
+  it('shows the dated effective snapshot, its allocation, comparison, and in-progress yearly evolution', async () => {
+    server.use(http.get('/api/reports/balances', () => HttpResponse.json(BALANCES_REPORT)));
+
+    renderReports('/reports?view=balances&year=2026');
+
+    expect(await screen.findByRole('tab', { name: 'Saldos', selected: true })).toBeInTheDocument();
+    expect(await screen.findByText('Posição em 15/05/2026')).toBeInTheDocument();
+    expect(screen.getByLabelText('Total em contas')).toHaveTextContent('Current');
+    expect(screen.getByLabelText('Total em caixinhas')).toHaveTextContent('Reserve');
+    expect(screen.getByRole('img', { name: 'Contas 80%, caixinhas 20%' })).toBeInTheDocument();
+    expect(screen.getByText('Fechamento contábil atual')).toBeInTheDocument();
+    expect(screen.getByText('mai em andamento')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Evolução em 2026' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Legenda do gráfico')).toHaveTextContent('Total em caixinhas');
+  });
+
+  it('keeps the snapshot when the selected year has insufficient history', async () => {
+    server.use(
+      http.get('/api/reports/balances', () =>
+        HttpResponse.json({ ...BALANCES_REPORT, year: 2020, evolution: { hasSufficientHistory: false, months: BALANCES_REPORT.evolution.months } }),
+      ),
+    );
+
+    renderReports('/reports?view=balances&year=2020');
+
+    expect(await screen.findByText('Histórico insuficiente em 2020')).toBeInTheDocument();
+    expect(screen.getByText('Posição em 15/05/2026')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Evolução em 2020' })).not.toBeInTheDocument();
   });
 });

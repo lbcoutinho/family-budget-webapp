@@ -14,6 +14,8 @@
   4. Leave categories empty when no unambiguous match exists.
   5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
 
+- tela caixinhas tem que exibir saldo de cada caixinha
+
 # Docs
 
 - diagrama com endpoints existentes, para que servem e onde são usados

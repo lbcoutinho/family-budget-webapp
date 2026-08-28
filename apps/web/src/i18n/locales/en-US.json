@@ -620,7 +620,28 @@
     "view": {
       "monthly": "Monthly",
       "yearly": "Yearly",
-      "charts": "Charts"
+      "charts": "Charts",
+      "balances": "Balances"
+    },
+    "balances": {
+      "title": "Balances",
+      "intro": "What's available now and how net worth evolved during the year.",
+      "cutoff": "Position on {{date}}",
+      "accounts": "Total in accounts",
+      "cashboxes": "Total in cashboxes",
+      "netWorth": "Total net worth today",
+      "inactive": "inactive",
+      "allocationLabel": "Accounts {{accounts}}%, cashboxes {{cashboxes}}%",
+      "comparisonTitle": "Effective position and accounting close",
+      "effectivePosition": "Effective position today",
+      "accountingClose": "Current accounting close",
+      "futureDated": "includes {{value}} in confirmed future-dated entries",
+      "evolutionTitle": "Evolution in {{year}}",
+      "evolutionHint": "Each month's close by reference month",
+      "legend": "Chart legend",
+      "inProgress": "{{month}} in progress",
+      "insufficientTitle": "Insufficient history in {{year}}",
+      "insufficientDescription": "Today's position remains available; evolution appears after the first month with a balance."
     },
     "uncategorizedCategory": "No category",
     "noSubcategory": "No subcategory",
