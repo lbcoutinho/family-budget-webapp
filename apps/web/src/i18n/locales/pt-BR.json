@@ -63,6 +63,7 @@
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Só a categoria principal tem cor; a subcategoria herda a dela.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "Esta é a última subcategoria ativa da categoria. Desative a categoria principal.",
     "CASHBOX_NOT_EMPTY": "A caixinha ainda tem saldo. Apagar só é permitido com saldo zero — desative em vez disso, ou resgate o saldo antes de tentar de novo.",
+    "ACCOUNT_NOT_EMPTY": "A conta ainda tem saldo. Zere-a antes de desativar.",
     "TRANSACTION_FIELD_REQUIRED": "Preencha todos os campos obrigatórios deste tipo de lançamento.",
     "TRANSACTION_FIELD_NOT_ALLOWED": "Este campo não é permitido para este tipo de lançamento.",
     "TRANSACTION_SAME_ACCOUNT": "As contas de origem e destino precisam ser diferentes.",
@@ -109,7 +110,9 @@
     "deactivate": {
       "title": "Desativar \"{{name}}\"?",
       "description": "A conta some dos lançamentos novos. O histórico continua exatamente onde está.",
-      "confirm": "Desativar"
+      "confirm": "Desativar",
+      "blockedTitle": "Não é possível desativar esta conta",
+      "blockedDescription": "O saldo da conta é {{amount}}. Zere a conta antes de desativá-la."
     },
     "delete": {
       "title": "Apagar \"{{name}}\"?",

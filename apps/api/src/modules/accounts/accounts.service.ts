@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Account, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -76,7 +77,14 @@ export class AccountsService {
 
   /** `PATCH /accounts/:id/activate` and `/deactivate`, which is how the UI's toggle is spelled. */
   async setActive(userId: string, id: string, isActive: boolean): Promise<AccountDto> {
-    await this.load(userId, id);
+    const account = await this.load(userId, id);
+
+    if (!isActive) {
+      const balance = account.initialBalance + ((await this.balances.sumByAccount(userId)).get(id) ?? 0);
+      if (balance !== 0) {
+        throw conflict('ACCOUNT_NOT_EMPTY', `Account still holds ${balance} cents — zero it before deactivating.`, { balance });
+      }
+    }
 
     return toDto(await this.prisma.account.update({ where: { id }, data: { isActive } }));
   }

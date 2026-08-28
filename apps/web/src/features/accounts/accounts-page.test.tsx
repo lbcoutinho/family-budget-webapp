@@ -186,6 +186,25 @@ describe('AccountsPage', () => {
     });
   });
 
+  it('shows the formatted balance and keeps the account active when deactivation is blocked', async () => {
+    server.use(
+      http.get('/api/accounts', () => HttpResponse.json([ACTIVE])),
+      http.patch('/api/accounts/:id/deactivate', () =>
+        HttpResponse.json({ statusCode: 409, code: 'ACCOUNT_NOT_EMPTY', message: 'Account still holds 348215 cents.', balance: 348215 }, { status: 409 }),
+      ),
+    );
+
+    const { user } = renderPage();
+
+    await screen.findByText('Millennium');
+    await user.click(screen.getByRole('button', { name: 'Desativar' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Desativar' }));
+
+    expect(await within(dialog).findByText(`O saldo da conta é ${formatCents(348215)}. Zere a conta antes de desativá-la.`)).toBeInTheDocument();
+    expect(screen.getByText('Millennium')).toBeInTheDocument();
+  });
+
   it('shows the translated message and an offer to deactivate on a 409 delete', async () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([ACTIVE])),

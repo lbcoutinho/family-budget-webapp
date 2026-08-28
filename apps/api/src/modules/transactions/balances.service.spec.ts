@@ -51,7 +51,7 @@ describe('BalancesService', () => {
       expect((balances.get(accountId) ?? 0) + (balances.get(otherAccountId) ?? 0)).toBe(0);
     });
 
-    it('always carries status CONFIRMED, and date lte only when asOf is given', async () => {
+    it('always carries status CONFIRMED, excluding drafts, and date lte only when asOf is given', async () => {
       const { prisma, groupBy } = prismaDouble();
       const service = new BalancesService(prisma);
       groupBy.mockResolvedValue([]);

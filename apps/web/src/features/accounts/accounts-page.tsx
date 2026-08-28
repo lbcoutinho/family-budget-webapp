@@ -24,6 +24,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import i18n from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
+import { formatCents } from '@/lib/money';
 
 /** All five mutations invalidate the same prefix, which hits both the active-only and the
  * include-inactive cache entries — no per-params keys, no optimistic updates. */
@@ -48,6 +49,7 @@ export function AccountsPage() {
   const [showInactive, setShowInactive] = useState(false);
   const [editingAccount, setEditingAccount] = useState<AccountDto | 'new' | null>(null);
   const [deactivating, setDeactivating] = useState<AccountDto | null>(null);
+  const [deactivationBalance, setDeactivationBalance] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<AccountDto | null>(null);
   const [deleteBlocked, setDeleteBlocked] = useState(false);
 
@@ -79,6 +81,16 @@ export function AccountsPage() {
       onSuccess: () => {
         invalidate();
         setDeactivating(null);
+        setDeactivationBalance(null);
+      },
+      onError: (error) => {
+        const data = (error as { response?: { data?: { balance?: unknown; code?: unknown } } } | null)?.response?.data;
+        if (data?.code === 'ACCOUNT_NOT_EMPTY' && typeof data.balance === 'number') {
+          setDeactivationBalance(data.balance);
+          setDeactivating((current) => current ?? deleting);
+          setDeleting(null);
+          setDeleteBlocked(false);
+        }
       },
     },
   });
@@ -156,7 +168,10 @@ export function AccountsPage() {
               balances={balanceByAccountId}
               balancesLoading={balances.isPending}
               onEdit={setEditingAccount}
-              onDeactivate={setDeactivating}
+              onDeactivate={(account) => {
+                setDeactivationBalance(null);
+                setDeactivating(account);
+              }}
               onActivate={(account) => activateAccount.mutate({ id: account.id })}
               onDelete={(account) => {
                 setDeleting(account);
@@ -188,12 +203,29 @@ export function AccountsPage() {
 
       <ConfirmDialog
         open={deactivating !== null}
-        onOpenChange={(open) => !open && setDeactivating(null)}
-        title={t('accounts.deactivate.title', { name: deactivating?.name ?? '' })}
-        description={t('accounts.deactivate.description')}
-        confirmLabel={t('accounts.deactivate.confirm')}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeactivating(null);
+            setDeactivationBalance(null);
+          }
+        }}
+        title={deactivationBalance === null ? t('accounts.deactivate.title', { name: deactivating?.name ?? '' }) : t('accounts.deactivate.blockedTitle')}
+        description={
+          deactivationBalance === null
+            ? t('accounts.deactivate.description')
+            : t('accounts.deactivate.blockedDescription', { amount: formatCents(deactivationBalance) })
+        }
+        confirmLabel={deactivationBalance === null ? t('accounts.deactivate.confirm') : t('common.close')}
+        cancelLabel={deactivationBalance === null ? undefined : t('common.close')}
         isPending={deactivateAccount.isPending}
-        onConfirm={() => deactivating && deactivateAccount.mutate({ id: deactivating.id })}
+        onConfirm={() => {
+          if (deactivationBalance !== null) {
+            setDeactivating(null);
+            setDeactivationBalance(null);
+          } else if (deactivating) {
+            deactivateAccount.mutate({ id: deactivating.id });
+          }
+        }}
       />
 
       <ConfirmDialog

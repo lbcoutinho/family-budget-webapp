@@ -157,15 +157,35 @@ describe('AccountsService', () => {
     expect(account.update).toHaveBeenCalledWith({ where: { id: accountId }, data: { name: 'Renamed' } });
   });
 
-  it.each([
-    ['activate', true],
-    ['deactivate', false],
-  ])('flips isActive for %s', async (_name, isActive) => {
+  it('activates an account without reading its balance', async () => {
     account.findUnique.mockResolvedValue(row());
-    account.update.mockResolvedValue(row({ isActive }));
+    account.update.mockResolvedValue(row({ isActive: true }));
 
-    await expect(service.setActive(userId, accountId, isActive)).resolves.toMatchObject({ isActive });
-    expect(account.update).toHaveBeenCalledWith({ where: { id: accountId }, data: { isActive } });
+    await expect(service.setActive(userId, accountId, true)).resolves.toMatchObject({ isActive: true });
+    expect(sumByAccount).not.toHaveBeenCalled();
+    expect(account.update).toHaveBeenCalledWith({ where: { id: accountId }, data: { isActive: true } });
+  });
+
+  it('deactivates an account with a zero confirmed balance', async () => {
+    account.findUnique.mockResolvedValue(row({ initialBalance: 0 }));
+    account.update.mockResolvedValue(row({ initialBalance: 0, isActive: false }));
+
+    await expect(service.setActive(userId, accountId, false)).resolves.toMatchObject({ isActive: false });
+    expect(sumByAccount).toHaveBeenCalledWith(userId);
+    expect(account.update).toHaveBeenCalledWith({ where: { id: accountId }, data: { isActive: false } });
+  });
+
+  it.each([
+    ['positive', 1_000],
+    ['negative', -1_000],
+  ])('refuses to deactivate an account with a %s confirmed balance', async (_name, balance) => {
+    account.findUnique.mockResolvedValue(row({ initialBalance: 0 }));
+    sumByAccount.mockResolvedValue(new Map([[accountId, balance]]));
+
+    await expect(service.setActive(userId, accountId, false)).rejects.toMatchObject({
+      response: { code: 'ACCOUNT_NOT_EMPTY', balance },
+    });
+    expect(account.update).not.toHaveBeenCalled();
   });
 
   it('deletes for real rather than soft-deleting', async () => {

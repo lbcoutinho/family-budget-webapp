@@ -63,6 +63,7 @@
     "CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED": "Only a main category carries a colour; a subcategory inherits its own.",
     "CATEGORY_LAST_ACTIVE_SUBCATEGORY": "This is the last active subcategory of the category. Deactivate the main category instead.",
     "CASHBOX_NOT_EMPTY": "The cashbox still has a balance. Deleting is only allowed with a zero balance — deactivate it instead, or withdraw the balance and try again.",
+    "ACCOUNT_NOT_EMPTY": "The account still has a balance. Zero it before deactivating.",
     "TRANSACTION_FIELD_REQUIRED": "Fill in all required fields for this entry type.",
     "TRANSACTION_FIELD_NOT_ALLOWED": "This field is not allowed for this entry type.",
     "TRANSACTION_SAME_ACCOUNT": "The source and destination accounts must be different.",
@@ -109,7 +110,9 @@
     "deactivate": {
       "title": "Deactivate \"{{name}}\"?",
       "description": "The account disappears from new transactions. Its history stays exactly where it is.",
-      "confirm": "Deactivate"
+      "confirm": "Deactivate",
+      "blockedTitle": "This account cannot be deactivated",
+      "blockedDescription": "The account balance is {{amount}}. Zero the account before deactivating it."
     },
     "delete": {
       "title": "Delete \"{{name}}\"?",
