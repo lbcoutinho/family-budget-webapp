@@ -65,49 +65,21 @@ export class BalancesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async sumByAccount(userId: string, asOf?: Date): Promise<Map<string, number>> {
-    const where = this.where(userId, asOf);
-
-    const [bySource, byDestination] = await this.prisma.$transaction((tx) =>
-      Promise.all([
-        tx.transaction.groupBy({ by: ['accountId', 'type'], _sum: { amount: true }, where: { ...where, accountId: { not: null } } }),
-        tx.transaction.groupBy({ by: ['destinationAccountId'], _sum: { amount: true }, where: { ...where, type: 'TRANSFER' } }),
-      ]),
-    );
-
-    const balances = new Map<string, number>();
-    for (const row of bySource) {
-      if (row.accountId === null) continue;
-      add(balances, row.accountId, (row._sum.amount ?? 0) * ACCOUNT_SIGN[row.type]);
-    }
-    for (const row of byDestination) {
-      if (row.destinationAccountId === null) continue;
-      add(balances, row.destinationAccountId, row._sum.amount ?? 0);
-    }
-
-    return balances;
+    return this.sumByAccountWhere(this.where(userId, asOf));
   }
 
   async sumByCashbox(userId: string, asOf?: Date): Promise<Map<string, number>> {
-    const where = this.where(userId, asOf);
+    return this.sumByCashboxWhere(this.where(userId, asOf));
+  }
 
-    const [bySource, byDestination] = await this.prisma.$transaction((tx) =>
-      Promise.all([
-        tx.transaction.groupBy({ by: ['cashboxId', 'type'], _sum: { amount: true }, where: { ...where, cashboxId: { not: null } } }),
-        tx.transaction.groupBy({ by: ['destinationCashboxId'], _sum: { amount: true }, where: { ...where, type: 'CASHBOX_TRANSFER' } }),
-      ]),
-    );
+  /** Confirmed balance movements through an accounting month's close, never transaction date. */
+  async sumByAccountReferenceMonth(userId: string, referenceMonth: Date): Promise<Map<string, number>> {
+    return this.sumByAccountWhere({ userId, status: 'CONFIRMED', referenceMonth: { lte: referenceMonth } });
+  }
 
-    const balances = new Map<string, number>();
-    for (const row of bySource) {
-      if (row.cashboxId === null) continue;
-      add(balances, row.cashboxId, (row._sum.amount ?? 0) * CASHBOX_SIGN[row.type]);
-    }
-    for (const row of byDestination) {
-      if (row.destinationCashboxId === null) continue;
-      add(balances, row.destinationCashboxId, row._sum.amount ?? 0);
-    }
-
-    return balances;
+  /** Confirmed cashbox movements through an accounting month's close, never transaction date. */
+  async sumByCashboxReferenceMonth(userId: string, referenceMonth: Date): Promise<Map<string, number>> {
+    return this.sumByCashboxWhere({ userId, status: 'CONFIRMED', referenceMonth: { lte: referenceMonth } });
   }
 
   /**
@@ -143,6 +115,48 @@ export class BalancesService {
   private where(userId: string, asOf?: Date): Prisma.TransactionWhereInput {
     return { userId, status: 'CONFIRMED', ...(asOf ? { date: { lte: asOf } } : {}) };
   }
+
+  private async sumByAccountWhere(where: Prisma.TransactionWhereInput): Promise<Map<string, number>> {
+    const [bySource, byDestination] = await this.prisma.$transaction((tx) =>
+      Promise.all([
+        tx.transaction.groupBy({ by: ['accountId', 'type'], _sum: { amount: true }, where: { ...where, accountId: { not: null } } }),
+        tx.transaction.groupBy({ by: ['destinationAccountId'], _sum: { amount: true }, where: { ...where, type: 'TRANSFER' } }),
+      ]),
+    );
+
+    return accountBalances(bySource, byDestination);
+  }
+
+  private async sumByCashboxWhere(where: Prisma.TransactionWhereInput): Promise<Map<string, number>> {
+    const [bySource, byDestination] = await this.prisma.$transaction((tx) =>
+      Promise.all([
+        tx.transaction.groupBy({ by: ['cashboxId', 'type'], _sum: { amount: true }, where: { ...where, cashboxId: { not: null } } }),
+        tx.transaction.groupBy({ by: ['destinationCashboxId'], _sum: { amount: true }, where: { ...where, type: 'CASHBOX_TRANSFER' } }),
+      ]),
+    );
+
+    return cashboxBalances(bySource, byDestination);
+  }
+}
+
+function accountBalances(
+  bySource: { accountId: string | null; type: TransactionType; _sum: { amount: number | null } }[],
+  byDestination: { destinationAccountId: string | null; _sum: { amount: number | null } }[],
+): Map<string, number> {
+  const balances = new Map<string, number>();
+  for (const row of bySource) if (row.accountId !== null) add(balances, row.accountId, (row._sum.amount ?? 0) * ACCOUNT_SIGN[row.type]);
+  for (const row of byDestination) if (row.destinationAccountId !== null) add(balances, row.destinationAccountId, row._sum.amount ?? 0);
+  return balances;
+}
+
+function cashboxBalances(
+  bySource: { cashboxId: string | null; type: TransactionType; _sum: { amount: number | null } }[],
+  byDestination: { destinationCashboxId: string | null; _sum: { amount: number | null } }[],
+): Map<string, number> {
+  const balances = new Map<string, number>();
+  for (const row of bySource) if (row.cashboxId !== null) add(balances, row.cashboxId, (row._sum.amount ?? 0) * CASHBOX_SIGN[row.type]);
+  for (const row of byDestination) if (row.destinationCashboxId !== null) add(balances, row.destinationCashboxId, row._sum.amount ?? 0);
+  return balances;
 }
 
 function add(balances: Map<string, number>, id: string, amount: number): void {

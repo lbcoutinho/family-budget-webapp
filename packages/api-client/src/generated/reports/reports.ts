@@ -23,8 +23,10 @@ import type {
 import type {
   CashboxesReportDto,
   GetCashboxesReportParams,
+  GetMonthlyBalanceParams,
   GetMonthlyReportParams,
   GetYearlyReportParams,
+  MonthlyBalanceDto,
   MonthlyReportDto,
   YearlyReportDto
 } from '../model';
@@ -132,6 +134,99 @@ export function useGetMonthlyReport<TData = Awaited<ReturnType<typeof getMonthly
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMonthlyReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Asset position at one reference-month close
+ */
+export const getMonthlyBalance = (
+    params: GetMonthlyBalanceParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<MonthlyBalanceDto>(
+      {url: `/reports/monthly-balance`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetMonthlyBalanceQueryKey = (params?: GetMonthlyBalanceParams,) => {
+    return [
+    `/reports/monthly-balance`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMonthlyBalanceQueryOptions = <TData = Awaited<ReturnType<typeof getMonthlyBalance>>, TError = ErrorType<unknown>>(params: GetMonthlyBalanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonthlyBalanceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonthlyBalance>>> = ({ signal }) => getMonthlyBalance(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMonthlyBalanceQueryResult = NonNullable<Awaited<ReturnType<typeof getMonthlyBalance>>>
+export type GetMonthlyBalanceQueryError = ErrorType<unknown>
+
+
+export function useGetMonthlyBalance<TData = Awaited<ReturnType<typeof getMonthlyBalance>>, TError = ErrorType<unknown>>(
+ params: GetMonthlyBalanceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMonthlyBalance>>,
+          TError,
+          Awaited<ReturnType<typeof getMonthlyBalance>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMonthlyBalance<TData = Awaited<ReturnType<typeof getMonthlyBalance>>, TError = ErrorType<unknown>>(
+ params: GetMonthlyBalanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMonthlyBalance>>,
+          TError,
+          Awaited<ReturnType<typeof getMonthlyBalance>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMonthlyBalance<TData = Awaited<ReturnType<typeof getMonthlyBalance>>, TError = ErrorType<unknown>>(
+ params: GetMonthlyBalanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Asset position at one reference-month close
+ */
+
+export function useGetMonthlyBalance<TData = Awaited<ReturnType<typeof getMonthlyBalance>>, TError = ErrorType<unknown>>(
+ params: GetMonthlyBalanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMonthlyBalance>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMonthlyBalanceQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

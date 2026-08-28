@@ -97,6 +97,7 @@ describe('Balances API (e2e)', () => {
     cashboxId = cashbox.id;
     otherCashboxId = otherCashbox.id;
     inactiveCashboxId = inactiveCashbox.id;
+    await prisma.account.updateMany({ where: { userId }, data: { createdAt: new Date('2026-01-15') } });
   });
 
   afterAll(async () => {
@@ -203,6 +204,49 @@ describe('Balances API (e2e)', () => {
       const body = (await authed('get', '/cashboxes/balances').expect(200)).body as CashboxBalanceDto[];
 
       expect(body.find((c) => c.cashboxId === inactiveCashboxId)).toMatchObject({ isActive: false, balance: 1_000 });
+    });
+  });
+
+  describe('monthly balance', () => {
+    it('closes confirmed reference-month movements, nets transfers, and carries the close through an empty month', async () => {
+      await Promise.all([
+        seed({ type: 'INCOME', amount: 10_000, accountId }),
+        seed({ type: 'EXPENSE', amount: 3_000, accountId }),
+        seed({ type: 'CASHBOX_IN', amount: 1_000, accountId, cashboxId }),
+        seed({ type: 'CASHBOX_OUT', amount: 400, accountId, cashboxId }),
+        seed({ type: 'TRANSFER', amount: 2_000, accountId, destinationAccountId: otherAccountId }),
+        seed({ type: 'CASHBOX_TRANSFER', amount: 200, cashboxId, destinationCashboxId: otherCashboxId }),
+        seed({ type: 'INCOME', amount: 999_999, accountId, status: 'DRAFT', source: 'VOICE' }),
+      ]);
+      const march = (await authed('get', '/reports/monthly-balance?year=2026&month=3').expect(200)).body as {
+        previousAccountBalance: number;
+        accountBalance: number;
+        cashboxBalance: number;
+        netWorth: number;
+      };
+      const april = (await authed('get', '/reports/monthly-balance?year=2026&month=4').expect(200)).body as typeof march;
+
+      expect(march).toMatchObject({ previousAccountBalance: 1_500, accountBalance: 7_900, cashboxBalance: 600, netWorth: 8_500 });
+      expect(april).toMatchObject({ previousAccountBalance: 7_900, accountBalance: 7_900, cashboxBalance: 600, netWorth: 8_500 });
+    });
+
+    it('starts initial balances in their creation month and excludes zero-balance inactive accounts', async () => {
+      const [late, retired] = await Promise.all([
+        prisma.account.create({ data: { userId, name: 'Late', initialBalance: 700, createdAt: new Date('2026-04-15') } }),
+        prisma.account.create({ data: { userId, name: 'Retired zero', isActive: false, createdAt: new Date('2026-01-15') } }),
+      ]);
+      const march = (await authed('get', '/reports/monthly-balance?year=2026&month=3').expect(200)).body as {
+        accountBalance: number;
+        accounts: { accountId: string }[];
+      };
+      const april = (await authed('get', '/reports/monthly-balance?year=2026&month=4').expect(200)).body as typeof march;
+
+      expect(march).toMatchObject({ accountBalance: 1_500 });
+      expect(march.accounts.map((account) => account.accountId)).toContain(inactiveAccountId);
+      expect(march.accounts.map((account) => account.accountId)).not.toContain(late.id);
+      expect(march.accounts.map((account) => account.accountId)).not.toContain(retired.id);
+      expect(april).toMatchObject({ accountBalance: 2_200 });
+      expect(april.accounts.map((account) => account.accountId)).toContain(late.id);
     });
   });
 });
