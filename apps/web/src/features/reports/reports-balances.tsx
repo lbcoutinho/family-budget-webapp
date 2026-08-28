@@ -5,7 +5,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis
 
 import { Badge } from '@/components/ui/badge';
 import { ReportsErrorState, ReportsSkeleton } from '@/features/reports/report-shell';
-import { formatDate, formatMonthAbbreviation, parseDateOnly } from '@/lib/date';
+import { formatDate, formatMonthAbbreviation, formatMonthName, parseDateOnly } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
 type SnapshotItem = BalancesReportAccountDto | BalancesReportCashboxDto;
@@ -45,7 +45,7 @@ function Evolution({
 }) {
   const { t } = useTranslation();
   const current = months.find((month) => month.inProgress);
-  const data = months.map((month) => ({ ...month, label: formatMonthAbbreviation(new Date(year, month.month - 1, 1)) }));
+  const monthLabel = (month: number) => formatMonthAbbreviation(new Date(year, month - 1, 1));
 
   return (
     <section aria-labelledby="reports-balances-evolution" className="overflow-hidden rounded-lg border p-4">
@@ -63,9 +63,20 @@ function Evolution({
       <div className="overflow-x-auto">
         <div className="h-report-chart min-w-report-balance-chart">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-              <RechartsTooltip formatter={(value) => formatCents(Number(value))} />
+            <LineChart data={months}>
+              <XAxis
+                dataKey="month"
+                tickFormatter={monthLabel}
+                interval={0}
+                padding={{ left: 14, right: 14 }}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11 }}
+              />
+              <RechartsTooltip
+                labelFormatter={(month) => formatMonthName(new Date(year, Number(month) - 1, 1)).replace(/^./, (character) => character.toUpperCase())}
+                formatter={(value) => formatCents(Number(value))}
+              />
               <Line type="monotone" dataKey="accounts" name={t('reports.balances.accounts')} stroke="var(--color-transfer)" strokeWidth={2.5} dot={{ r: 3 }} />
               <Line
                 type="monotone"
@@ -81,10 +92,19 @@ function Evolution({
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-report-caption text-muted-foreground">
-        <span>{t('reports.balances.accounts')}</span>
-        <span>{t('reports.balances.cashboxes')}</span>
-        <span>{t('reports.balances.netWorth')}</span>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-report-caption text-muted-foreground" aria-label={t('reports.balances.legend')}>
+        <span className="inline-flex items-center gap-1.5">
+          <i className="h-0.5 w-4 bg-transfer" aria-hidden="true" />
+          {t('reports.balances.accounts')}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <i className="w-4 border-t-2 border-dashed border-cashbox" aria-hidden="true" />
+          {t('reports.balances.cashboxes')}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <i className="h-0.5 w-4 bg-foreground" aria-hidden="true" />
+          {t('reports.balances.netWorth')}
+        </span>
       </div>
     </section>
   );

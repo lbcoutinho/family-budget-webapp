@@ -638,6 +638,7 @@
       "futureDated": "inclui {{value}} em lançamentos confirmados com data futura",
       "evolutionTitle": "Evolução em {{year}}",
       "evolutionHint": "Fechamento de cada mês pelo mês de referência",
+      "legend": "Legenda do gráfico",
       "inProgress": "{{month}} em andamento",
       "insufficientTitle": "Histórico insuficiente em {{year}}",
       "insufficientDescription": "A posição de hoje continua disponível; a evolução aparecerá depois do primeiro mês com saldo."

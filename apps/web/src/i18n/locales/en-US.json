@@ -638,6 +638,7 @@
       "futureDated": "includes {{value}} in confirmed future-dated entries",
       "evolutionTitle": "Evolution in {{year}}",
       "evolutionHint": "Each month's close by reference month",
+      "legend": "Chart legend",
       "inProgress": "{{month}} in progress",
       "insufficientTitle": "Insufficient history in {{year}}",
       "insufficientDescription": "Today's position remains available; evolution appears after the first month with a balance."

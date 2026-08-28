@@ -251,6 +251,7 @@ describe('ReportsPage — balances view', () => {
     expect(screen.getByText('Fechamento contábil atual')).toBeInTheDocument();
     expect(screen.getByText('mai em andamento')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Evolução em 2026' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Legenda do gráfico')).toHaveTextContent('Total em caixinhas');
   });
 
   it('keeps the snapshot when the selected year has insufficient history', async () => {
