@@ -4,6 +4,7 @@ import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
+import { BalancesReportDto } from './dto/balances-report.dto';
 import { CashboxesReportQueryDto } from './dto/cashboxes-report-query.dto';
 import { CashboxesReportDto } from './dto/cashboxes-report.dto';
 import { MonthlyBalanceDto } from './dto/monthly-balance.dto';
@@ -42,6 +43,14 @@ export class ReportsController {
   @Get('monthly-balance')
   getMonthlyBalance(@CurrentUser() user: AuthenticatedUser, @Query() query: MonthlyReportQueryDto): Promise<MonthlyBalanceDto> {
     return this.reports.getMonthlyBalance(user.id, query.year, query.month);
+  }
+
+  @ApiOperation({ operationId: 'getBalancesReport', summary: 'Effective current position and yearly accounting-balance evolution' })
+  @ApiQuery({ name: 'year', type: Number, required: true, schema: { minimum: 2000, maximum: 2100 } })
+  @ApiOkResponse({ type: BalancesReportDto })
+  @Get('balances')
+  getBalances(@CurrentUser() user: AuthenticatedUser, @Query() query: CashboxesReportQueryDto): Promise<BalancesReportDto> {
+    return this.reports.getBalances(user.id, query.year);
   }
 
   @ApiOperation({ operationId: 'getYearlyReport', summary: 'Income and expense by category across a year, as a month-by-category matrix' })
