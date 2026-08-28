@@ -558,9 +558,9 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
         <DailyExpenseStrip referenceMonth={referenceMonth} selectedFilterId={selectedDateFilter?.id} onToggleFilter={toggleDateFilter} />
 
         <div className="grid items-start gap-4 lg:grid-cols-month-ledger">
-          <aside className="space-y-3 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1">
+          <div className="space-y-3 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1">
             <MonthBalancePanel year={referenceMonth.getFullYear()} month={referenceMonth.getMonth() + 1} />
-          </aside>
+          </div>
           <section aria-label={t('transactions.entries')} className="space-y-3 lg:col-start-1 lg:row-start-1">
             <Popover.Root>
               <div className="relative flex flex-wrap items-center justify-between gap-3">
