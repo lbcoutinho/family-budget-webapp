@@ -519,6 +519,13 @@
     "expense": "Despesas",
     "expenseExcludesCashboxes": "sem transferências e caixinhas",
     "monthNet": "Saldo do mês",
+    "monthMovements": "Movimentos do mês",
+    "cashboxDeposits": "Depósitos em caixinhas",
+    "cashboxWithdrawals": "Retiradas de caixinhas",
+    "monthlyClose": "Fechamento mensal",
+    "previousBalance": "Saldo anterior",
+    "closingBalance": "Saldo",
+    "filtersUnaffected": "não muda com filtros",
     "loadMore": "Carregar mais",
     "loadingMore": "Carregando mais…",
     "type": {
