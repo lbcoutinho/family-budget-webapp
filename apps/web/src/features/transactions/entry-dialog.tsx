@@ -1,4 +1,5 @@
 import {
+  getGetMonthlyBalanceQueryKey,
   getListAccountBalancesQueryKey,
   getListTransactionsQueryKey,
   type CreateTransactionDto,
@@ -274,6 +275,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       onSettled: () => {
         void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
       },
     },
@@ -289,6 +291,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       onSettled: () => {
         void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
       },
     },

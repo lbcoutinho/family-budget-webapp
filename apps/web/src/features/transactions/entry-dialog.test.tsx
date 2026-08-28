@@ -1,4 +1,4 @@
-import { getListTransactionsQueryKey } from '@family-budget/api-client';
+import { getGetMonthlyBalanceQueryKey, getListTransactionsQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -19,6 +19,7 @@ interface MutationOptions {
     onMutate: (variables: { data: ApiClient.CreateTransactionDto }) => Promise<{ key: readonly unknown[]; previous: unknown }>;
     onError: (error: unknown, variables: unknown, context: unknown) => void;
     onSuccess: () => void;
+    onSettled: () => void;
   };
 }
 let mutationOptions: MutationOptions | undefined;
@@ -191,6 +192,15 @@ describe('EntryDialog', () => {
       { id: 'account-1', name: 'Main account' },
       { id: 'account-2', name: 'Savings' },
     ];
+  });
+
+  it('invalidates historical monthly balances after a save settles', () => {
+    const { queryClient } = renderDialog();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    act(() => mutationOptions?.mutation.onSettled());
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: getGetMonthlyBalanceQueryKey() });
   });
 
   it('links to Accounts when none exist', () => {

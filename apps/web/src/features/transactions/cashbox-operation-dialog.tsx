@@ -1,4 +1,5 @@
 import {
+  getGetMonthlyBalanceQueryKey,
   getListAccountBalancesQueryKey,
   getListCashboxBalancesQueryKey,
   getListTransactionsQueryKey,
@@ -224,6 +225,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
   };
   const handleSuccess = () => {

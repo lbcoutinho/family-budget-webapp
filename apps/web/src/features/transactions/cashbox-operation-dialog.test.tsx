@@ -1,3 +1,4 @@
+import { getGetMonthlyBalanceQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,6 +15,7 @@ interface MutationOptions {
   mutation: {
     onError: (error: unknown, variables: unknown, context: unknown) => void;
     onSuccess: () => void;
+    onSettled: () => void;
   };
 }
 let mutationOptions: MutationOptions | undefined;
@@ -63,6 +65,7 @@ function renderDialog(onOpenChange = vi.fn(), transaction?: ApiClient.Transactio
   return {
     user: userEvent.setup(),
     onOpenChange,
+    queryClient,
     ...render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -128,6 +131,15 @@ describe('CashboxOperationDialog', () => {
       { cashboxId: 'cashbox-1', name: 'Férias', balance: 100000 },
       { cashboxId: 'cashbox-2', name: 'Obras', balance: 50000 },
     ];
+  });
+
+  it('invalidates historical monthly balances after a save settles', () => {
+    const { queryClient } = renderDialog();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    act(() => mutationOptions?.mutation.onSettled());
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: getGetMonthlyBalanceQueryKey() });
   });
 
   it('submits a deposit without forbidden fields', async () => {
