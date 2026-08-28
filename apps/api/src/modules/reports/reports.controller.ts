@@ -6,6 +6,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CashboxesReportQueryDto } from './dto/cashboxes-report-query.dto';
 import { CashboxesReportDto } from './dto/cashboxes-report.dto';
+import { MonthlyBalanceDto } from './dto/monthly-balance.dto';
 import { MonthlyReportQueryDto } from './dto/monthly-report-query.dto';
 import { MonthlyReportDto } from './dto/monthly-report.dto';
 import { YearlyReportQueryDto } from './dto/yearly-report-query.dto';
@@ -32,6 +33,15 @@ export class ReportsController {
   @Get('monthly')
   getMonthly(@CurrentUser() user: AuthenticatedUser, @Query() query: MonthlyReportQueryDto): Promise<MonthlyReportDto> {
     return this.reports.getMonthly(user.id, query.year, query.month);
+  }
+
+  @ApiOperation({ operationId: 'getMonthlyBalance', summary: 'Asset position at one reference-month close' })
+  @ApiQuery({ name: 'year', type: Number, required: true, schema: { minimum: 2000, maximum: 2100 } })
+  @ApiQuery({ name: 'month', type: Number, required: true, schema: { minimum: 1, maximum: 12 } })
+  @ApiOkResponse({ type: MonthlyBalanceDto })
+  @Get('monthly-balance')
+  getMonthlyBalance(@CurrentUser() user: AuthenticatedUser, @Query() query: MonthlyReportQueryDto): Promise<MonthlyBalanceDto> {
+    return this.reports.getMonthlyBalance(user.id, query.year, query.month);
   }
 
   @ApiOperation({ operationId: 'getYearlyReport', summary: 'Income and expense by category across a year, as a month-by-category matrix' })

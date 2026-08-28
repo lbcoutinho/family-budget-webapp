@@ -6,6 +6,7 @@ import { BalancesService, CASHBOX_SIGN } from '../transactions/balances.service'
 import { startOfMonthUtc } from '../transactions/reference-month';
 
 import { CashboxesReportDto } from './dto/cashboxes-report.dto';
+import { MonthlyBalanceDto } from './dto/monthly-balance.dto';
 import { MonthlyReportDto } from './dto/monthly-report.dto';
 import { YearlyReportDto } from './dto/yearly-report.dto';
 import { averageWindow, distributePercentages, monthsEndingAt, rollingAverage } from './report-math';
@@ -138,6 +139,35 @@ export class ReportsService {
       balance: incomeTotal - expenseTotal,
       categories: this.buildCategories(monthRows, windowRows, subcategoryRows, categoryLookup, incomeTotal, expenseTotal, end),
       cashboxes: this.buildCashboxes(cashboxSourceRows, cashboxDestinationRows, cashboxLookup),
+    };
+  }
+
+  async getMonthlyBalance(userId: string, year: number, month: number): Promise<MonthlyBalanceDto> {
+    const referenceMonth = new Date(Date.UTC(year, month - 1, 1));
+    const previousMonth = new Date(Date.UTC(year, month - 2, 1));
+    const nextMonth = new Date(Date.UTC(year, month, 1));
+    const [accounts, previousSums, closingSums, cashboxSums] = await Promise.all([
+      this.prisma.account.findMany({ where: { userId, createdAt: { lt: nextMonth } }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.balances.sumByAccountReferenceMonth(userId, previousMonth),
+      this.balances.sumByAccountReferenceMonth(userId, referenceMonth),
+      this.balances.sumByCashboxReferenceMonth(userId, referenceMonth),
+    ]);
+    const accountBalances = accounts.map((account) => ({ ...account, balance: account.initialBalance + (closingSums.get(account.id) ?? 0) }));
+    const visibleAccounts = accountBalances.filter((account) => account.isActive || account.balance !== 0);
+    const previousAccountBalance = accounts
+      .filter((account) => account.createdAt < referenceMonth)
+      .reduce((total, account) => total + account.initialBalance + (previousSums.get(account.id) ?? 0), 0);
+    const accountBalance = accountBalances.reduce((total, account) => total + account.balance, 0);
+    const cashboxBalance = [...cashboxSums.values()].reduce((total, balance) => total + balance, 0);
+
+    return {
+      year,
+      month,
+      previousAccountBalance,
+      accountBalance,
+      accounts: visibleAccounts.map(({ id, name, isActive, balance }) => ({ accountId: id, name, isActive, balance })),
+      cashboxBalance,
+      netWorth: accountBalance + cashboxBalance,
     };
   }
 
