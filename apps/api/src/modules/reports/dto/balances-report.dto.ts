@@ -14,12 +14,29 @@ class BalancesReportAccountDto {
   balance!: number;
 }
 
+class BalancesReportCashboxDto {
+  @ApiProperty({ type: String, format: 'uuid' })
+  cashboxId!: string;
+
+  @ApiProperty({ type: String })
+  name!: string;
+
+  @ApiProperty({ type: Boolean })
+  isActive!: boolean;
+
+  @ApiProperty({ type: Number, description: 'Balance in cents.' })
+  balance!: number;
+}
+
 class BalancesReportSnapshotDto {
   @ApiProperty({ type: String, format: 'date', description: 'Inclusive effective-balance cutoff.' })
   cutoffDate!: string;
 
   @ApiProperty({ type: BalancesReportAccountDto, isArray: true })
   accounts!: BalancesReportAccountDto[];
+
+  @ApiProperty({ type: BalancesReportCashboxDto, isArray: true })
+  cashboxes!: BalancesReportCashboxDto[];
 
   @ApiProperty({ type: Number, description: 'Consolidated account balance in cents.' })
   totalAccounts!: number;

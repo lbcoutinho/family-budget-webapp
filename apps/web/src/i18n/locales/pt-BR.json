@@ -620,7 +620,27 @@
     "view": {
       "monthly": "Mensal",
       "yearly": "Anual",
-      "charts": "Gráficos"
+      "charts": "Gráficos",
+      "balances": "Saldos"
+    },
+    "balances": {
+      "title": "Saldos",
+      "intro": "Quanto há disponível agora e como o patrimônio evoluiu no ano.",
+      "cutoff": "Posição em {{date}}",
+      "accounts": "Total em contas",
+      "cashboxes": "Total em caixinhas",
+      "netWorth": "Patrimônio total hoje",
+      "inactive": "inativa",
+      "allocationLabel": "Contas {{accounts}}%, caixinhas {{cashboxes}}%",
+      "comparisonTitle": "Posição efetiva e fechamento contábil",
+      "effectivePosition": "Posição efetiva hoje",
+      "accountingClose": "Fechamento contábil atual",
+      "futureDated": "inclui {{value}} em lançamentos confirmados com data futura",
+      "evolutionTitle": "Evolução em {{year}}",
+      "evolutionHint": "Fechamento de cada mês pelo mês de referência",
+      "inProgress": "{{month}} em andamento",
+      "insufficientTitle": "Histórico insuficiente em {{year}}",
+      "insufficientDescription": "A posição de hoje continua disponível; a evolução aparecerá depois do primeiro mês com saldo."
     },
     "uncategorizedCategory": "Sem categoria",
     "noSubcategory": "Sem subcategoria",

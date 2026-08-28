@@ -49,7 +49,7 @@ const prismaDouble = (): { prisma: PrismaService; groupBy: jest.Mock; accountFin
 describe('ReportsService', () => {
   describe('getBalances', () => {
     it('keeps the effective snapshot at its date cutoff while exposing future-dated accounting movements and a full yearly evolution', async () => {
-      const { prisma, accountFindMany } = prismaDouble();
+      const { prisma, accountFindMany, cashboxFindMany } = prismaDouble();
       const balances = balancesStub();
       const service = new ReportsService(prisma, balances);
       const accountId = '88888888-8888-8888-8888-888888888888';
@@ -64,6 +64,7 @@ describe('ReportsService', () => {
         createdAt: new Date(Date.UTC(2026, 5, 1)),
       };
       accountFindMany.mockResolvedValueOnce([account, futureAccount]).mockResolvedValueOnce([account]);
+      cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Reserve', isActive: true, createdAt: new Date(Date.UTC(2026, 0, 1)) }]);
       jest.mocked(balances.sumByAccount).mockResolvedValue(new Map([[accountId, 200]]));
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map([[cashboxId, 300]]));
       jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
@@ -86,6 +87,7 @@ describe('ReportsService', () => {
       expect(result.snapshot).toEqual({
         cutoffDate: '2026-05-15',
         accounts: [{ accountId, name: 'Current', isActive: true, balance: 1_200 }],
+        cashboxes: [{ cashboxId, name: 'Reserve', isActive: true, balance: 300 }],
         totalAccounts: 1_200,
         totalCashboxes: 300,
         totalNetWorth: 1_500,
@@ -121,6 +123,31 @@ describe('ReportsService', () => {
       expect(result.snapshot.totalNetWorth).toBe(1_000);
       expect(result.evolution.hasSufficientHistory).toBe(false);
       expect(result.evolution.months).toHaveLength(12);
+    });
+
+    it('includes retroactive account movements in their reference months even when the account was registered later', async () => {
+      const { prisma, accountFindMany } = prismaDouble();
+      const balances = balancesStub();
+      const service = new ReportsService(prisma, balances);
+      const accountId = '88888888-8888-8888-8888-888888888888';
+      const account = { id: accountId, name: 'Current', isActive: true, initialBalance: 0, createdAt: new Date(Date.UTC(2026, 7, 28)) };
+      accountFindMany.mockResolvedValue([account]);
+      jest.mocked(balances.sumByAccount).mockResolvedValue(new Map([[accountId, 300_000]]));
+      jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map());
+      jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
+        new Map([
+          [new Date(Date.UTC(2026, 5, 1)).getTime(), new Map([[accountId, 50_000]])],
+          [new Date(Date.UTC(2026, 6, 1)).getTime(), new Map([[accountId, 100_000]])],
+          [new Date(Date.UTC(2026, 7, 1)).getTime(), new Map([[accountId, 150_000]])],
+        ]),
+      );
+      jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(new Map());
+      jest.mocked(balances.sumByAccountReferenceMonth).mockResolvedValue(new Map([[accountId, 300_000]]));
+      jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map());
+
+      const result = await service.getBalances(userId, 2026, new Date(Date.UTC(2026, 7, 28)));
+
+      expect(result.evolution.months.slice(5, 8).map((month) => month.accounts)).toEqual([50_000, 150_000, 300_000]);
     });
   });
 
