@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, HttpStatus, NotFoundException } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * Every business error the API can answer with (M3-T11, ADR-0018). The `code` is what the client
@@ -47,6 +47,8 @@ export const ERROR_CODES = [
   'CASHBOX_INSUFFICIENT_FUNDS',
   /** Delete refused because the cashbox still holds money (M4-T09, ADR-0019). */
   'CASHBOX_NOT_EMPTY',
+  /** Deactivation refused because the account still has a confirmed balance. */
+  'ACCOUNT_NOT_EMPTY',
   /** A `RecurrenceRule.type` outside `INCOME`/`EXPENSE` reached the generator (M7-T02). */
   'RECURRENCE_TYPE_NOT_ALLOWED',
   /** `endDate` at or before `startDate` on a `RecurrenceRule` (M7-T03). */
@@ -84,6 +86,10 @@ export class ApiErrorDto {
 
   @ApiProperty({ type: String, description: 'English, for logs and debugging. Clients render the `code`, never this.' })
   message!: string;
+
+  /** Present when the business rule needs the account's current balance, in integer cents. */
+  @ApiPropertyOptional({ type: Number, description: 'Current account balance in integer cents.' })
+  balance?: number;
 }
 
 // The status lives in the body as well as on the response: `HttpException` hands an object payload
@@ -91,8 +97,8 @@ export class ApiErrorDto {
 export const badRequest = (code: ErrorCode, message: string): BadRequestException =>
   new BadRequestException({ statusCode: HttpStatus.BAD_REQUEST, code, message } satisfies ApiErrorDto);
 
-export const conflict = (code: ErrorCode, message: string): ConflictException =>
-  new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message } satisfies ApiErrorDto);
+export const conflict = (code: ErrorCode, message: string, details: Pick<ApiErrorDto, 'balance'> = {}): ConflictException =>
+  new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
 
 export const notFound = (code: ErrorCode, message: string): NotFoundException =>
   new NotFoundException({ statusCode: HttpStatus.NOT_FOUND, code, message } satisfies ApiErrorDto);

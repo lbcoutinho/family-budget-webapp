@@ -98,6 +98,7 @@ export class AccountsController {
   @ApiOperation({ operationId: 'deactivateAccount', summary: 'Retire an account, keeping its history' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({ type: AccountDto })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'The account has a non-zero confirmed balance and must be zeroed before deactivation.' })
   @Patch(':id/deactivate')
   deactivate(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<AccountDto> {
     return this.accounts.setActive(user.id, id, false);
