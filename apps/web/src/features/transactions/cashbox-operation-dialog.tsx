@@ -560,7 +560,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                     inputMode="decimal"
                     className="text-right tabular-nums"
                     placeholder={t('transactions.form.amountPlaceholder')}
-                    aria-describedby={`cashbox-operation-amount-hint${errors.amount ? ' cashbox-operation-amount-error' : ''}`}
+                    aria-describedby={errors.amount ? 'cashbox-operation-amount-error' : undefined}
                     aria-invalid={errors.amount !== undefined}
                     disabled={mutation.isPending}
                     {...register('amount', {
@@ -570,9 +570,6 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                       },
                     })}
                   />
-                  <p id="cashbox-operation-amount-hint" className="text-xs text-muted-foreground">
-                    {t('transactions.form.amountHint')}
-                  </p>
                   <FieldError id="cashbox-operation-amount-error" error={errors.amount?.message} />
                   {balanceWarning !== undefined ? (
                     <p className="border-l-2 border-cashbox bg-cashbox-wash px-3 py-2 text-xs text-cashbox">

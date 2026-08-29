@@ -28,6 +28,10 @@
         display: grid;
         gap: 13px;
       }
+      .field-error {
+        color: var(--expense);
+        font-size: 12px;
+      }
       @media (max-width: 620px) {
         .two {
           grid-template-columns: 1fr;
@@ -43,11 +47,11 @@
       #entry-form[data-type='tr'] .field-expense-specific {
         display: none;
       }
-      /* Reference month field visible only when credit card checkbox is checked */
-      .field-ref-month {
+      /* Settlement is visible only for credit-card expenses. */
+      .field-settlement-date {
         display: none;
       }
-      .field-ref-month.show {
+      .field-settlement-date.show {
         display: grid;
       }
     </style>
@@ -56,9 +60,8 @@
     <div data-proto="07 — Lançamento" data-ticket="M5-T02 · M5-T03 · M5-T09"></div>
 
     <div class="proto-note">
-      <strong>Novo diálogo em v2.</strong> Tipo (despesa, receita, transferência) via segmented control abrindo em "Despesa"; conta e data lado a lado, depois
-      categoria e subcategoria; cartão de crédito no final do formulário, revelando o mês de referência; otimista com rollback. O checkbox de cartão de crédito
-      não aparece em "Receita" — cartão é sempre despesa. O título do diálogo muda para "Editar lançamento" ao editar.
+      <strong>Questão deste protótipo:</strong> uma despesa no cartão deve guardar a data da compra e a data de liquidação separadamente, usando a liquidação
+      para definir o mês de referência e a entrada no saldo. Marque cartão, altere as duas datas e teste a virada de dezembro para janeiro.
     </div>
 
     <div data-shell="month">
@@ -106,8 +109,8 @@
                     </div>
 
                     <div class="field">
-                      <label for="e-date">Data</label>
-                      <input class="input" id="e-date" type="text" placeholder="dd/mm/aaaa" value="15/07/2026" />
+                      <label for="e-date">Data da compra</label>
+                      <input class="input" id="e-date" type="date" value="2026-07-15" />
                     </div>
                   </div>
 
@@ -141,7 +144,6 @@
                   <div class="field">
                     <label for="e-amount">Valor</label>
                     <input class="input num" id="e-amount" type="text" placeholder="0,00" value="128,40" inputmode="decimal" />
-                    <span class="hint">Aceita 1.234,56 e 1234.56</span>
                   </div>
 
                   <label class="check">
@@ -149,12 +151,10 @@
                     <span class="small">Compra no cartão de crédito</span>
                   </label>
 
-                  <div class="field-ref-month field">
-                    <label for="e-ref-month">Mês de referência</label>
-                    <input class="input" id="e-ref-month" type="text" placeholder="dd/mm/aaaa" value="01/08/2026" />
-                    <span class="hint"
-                      >O mês em que o lançamento entra nos relatórios — sugerido o mês seguinte, já que a fatura do cartão chega depois da compra.</span
-                    >
+                  <div class="field-settlement-date field">
+                    <label for="e-settlement-date">Data de liquidação</label>
+                    <input class="input" id="e-settlement-date" type="date" value="2026-08-01" />
+                    <span class="field-error" id="settlement-error" hidden>A liquidação não pode ser anterior à compra.</span>
                   </div>
                 </div>
 
@@ -195,7 +195,6 @@
                   <div class="field">
                     <label for="e-transfer-amount">Valor</label>
                     <input class="input num" id="e-transfer-amount" type="text" placeholder="0,00" value="500,00" inputmode="decimal" />
-                    <span class="hint">Aceita 1.234,56 e 1234.56</span>
                   </div>
                 </div>
               </form>
@@ -215,28 +214,19 @@
     <div class="content" style="max-width: 1120px; margin: 44px auto 60px; padding: 0 22px">
       <div class="decisions">
         <h2>Decisões a aprovar</h2>
-        <p>Questões que ainda precisam de resposta para a implementação começar.</p>
+        <p>Confirme se estas regras representam como a compra no cartão deve funcionar.</p>
         <ol>
           <li>
-            <b>Cor de ação para "Transferência".</b>
-            <span>
-              O azul da transferência fica em valores, nunca em chrome — o botão verde de ação segue sendo a ação, não o tipo. Guardado para depois: perguntar
-              se transferência merece seu próprio acento visual no botão "Salvar".
-            </span>
+            <b>Dois nomes explícitos.</b>
+            <span>"Data da compra" mantém o evento original; "Data de liquidação" determina mês de referência e saldo.</span>
           </li>
           <li>
-            <b>Categoria desativada mostrada como "(inativa)".</b>
-            <span>
-              A tela diz que edição de lançamento antigo cuja categoria foi desativada continua mostrando o valor — aqui o protótipo nota o caso no comentário,
-              mas uma implementação renderiza ela com um badge ou alguma marcação. Não há renderização explícita no protótipo porque é estático.
-            </span>
+            <b>Sem campo de mês de referência.</b>
+            <span>O mês é consequência da liquidação, não uma escolha separada do usuário.</span>
           </li>
           <li>
-            <b>Validação de campos — quando é feita?</b>
-            <span>
-              O protótipo não mostra erros de validação em tempo real, mas o padrão da aplicação é mostrar erros por campo no blur ou no submit. A ser definido
-              qual é o comportamento exato.
-            </span>
+            <b>Sugestão automática, sem sobrescrever.</b>
+            <span>Ao marcar cartão, a liquidação começa no primeiro dia do mês seguinte. Depois, mudar só a compra preserva a liquidação.</span>
           </li>
         </ol>
       </div>
@@ -248,7 +238,10 @@
       const categorySelect = document.getElementById('e-category');
       const subcategorySelect = document.getElementById('e-subcategory');
       const creditCardCheckbox = document.getElementById('e-credit-card');
-      const refMonthField = document.querySelector('.field-ref-month');
+      const purchaseDateInput = document.getElementById('e-date');
+      const settlementDateInput = document.getElementById('e-settlement-date');
+      const settlementDateField = document.querySelector('.field-settlement-date');
+      const settlementError = document.getElementById('settlement-error');
       const saveBtn = document.getElementById('save-btn');
       const saveAndAddBtn = document.getElementById('save-and-add-btn');
 
@@ -296,7 +289,7 @@
         // Clear subcategory on type change
         subcategorySelect.innerHTML = '<option value="">Selecione uma categoria primeiro</option>';
         subcategorySelect.disabled = true;
-        refMonthField.classList.remove('show');
+        settlementDateField.classList.remove('show');
         creditCardCheckbox.checked = false;
       });
 
@@ -315,14 +308,31 @@
         subcategorySelect.disabled = false;
       });
 
-      // Credit card checkbox — show/hide reference month field
+      const firstDayOfNextMonth = (date) => {
+        const [year, month] = date.split('-').map(Number);
+        const next = new Date(year, month, 1);
+        return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-01`;
+      };
+
+      const renderSettlementState = () => {
+        if (!purchaseDateInput.value || !settlementDateInput.value) return;
+        const invalid = settlementDateInput.value < purchaseDateInput.value;
+        settlementError.hidden = !invalid;
+        settlementDateInput.setAttribute('aria-invalid', String(invalid));
+      };
+
+      // Suggest settlement once; later purchase edits preserve it.
       creditCardCheckbox.addEventListener('change', (e) => {
         if (e.target.checked) {
-          refMonthField.classList.add('show');
+          settlementDateInput.value = firstDayOfNextMonth(purchaseDateInput.value);
+          settlementDateField.classList.add('show');
+          renderSettlementState();
         } else {
-          refMonthField.classList.remove('show');
+          settlementDateField.classList.remove('show');
         }
       });
+      purchaseDateInput.addEventListener('change', renderSettlementState);
+      settlementDateInput.addEventListener('change', renderSettlementState);
 
       // Save buttons — simple log for demo (real app would submit via API)
       const handleSave = (addAnother = false) => {
