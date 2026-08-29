@@ -96,8 +96,11 @@ export class TransactionsService {
   async create(userId: string, dto: CreateTransactionDto): Promise<TransactionDto> {
     const refs = await this.validator.validate(userId, dto, { requireActive: true });
 
-    const referenceMonth = resolveReferenceMonthOnCreate({ date: dto.date, referenceMonth: dto.referenceMonth });
-    const settlementDate = resolveSettlementDate(dto.date, referenceMonth, dto.isCreditCard ?? false);
+    const isCreditCard = dto.isCreditCard ?? false;
+    const legacyReferenceMonth = resolveReferenceMonthOnCreate({ date: dto.date, referenceMonth: dto.referenceMonth });
+    const settlementDate = resolveSettlementDate(dto.date, legacyReferenceMonth, isCreditCard, dto.settlementDate);
+    assertSettlementIsNotBeforeDate(dto.date, settlementDate, isCreditCard);
+    const referenceMonth = dto.settlementDate && isCreditCard ? startOfMonthUtc(settlementDate) : legacyReferenceMonth;
     const cashboxIds = collectCashboxIds(refs.cashbox?.id, refs.destinationCashbox?.id);
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -164,11 +167,15 @@ export class TransactionsService {
       refs = await this.validator.validate(userId, mergedRefs, { requireActive: true });
     }
 
-    const referenceMonth = resolveReferenceMonthOnUpdate(
+    const legacyReferenceMonth = resolveReferenceMonthOnUpdate(
       { date: current.date, referenceMonth: current.referenceMonth, isCreditCard: current.isCreditCard },
       { date: dto.date, referenceMonth: dto.referenceMonth, isCreditCard: dto.isCreditCard },
     );
-    const settlementDate = resolveSettlementDate(dto.date ?? current.date, referenceMonth, dto.isCreditCard ?? current.isCreditCard);
+    const date = dto.date ?? current.date;
+    const isCreditCard = dto.isCreditCard ?? current.isCreditCard;
+    const settlementDate = isCreditCard ? (dto.settlementDate ?? current.settlementDate) : date;
+    assertSettlementIsNotBeforeDate(date, settlementDate, isCreditCard);
+    const referenceMonth = dto.settlementDate && isCreditCard ? startOfMonthUtc(settlementDate) : legacyReferenceMonth;
 
     // Re-snapshotting the label only when the id field itself was patched — not merely because the
     // validator ran for some other reason — is what ADR-0019 means by "kept in sync ... never
@@ -262,6 +269,12 @@ const SERIALIZABLE = { isolationLevel: 'Serializable' as const };
 /** Every distinct, non-null cashbox id among the arguments — the set a balance guard must check. */
 function collectCashboxIds(...ids: (string | null | undefined)[]): string[] {
   return [...new Set(ids.filter((id): id is string => id !== null && id !== undefined))];
+}
+
+function assertSettlementIsNotBeforeDate(date: Date, settlementDate: Date, isCreditCard: boolean): void {
+  if (isCreditCard && settlementDate < date) {
+    throw badRequest('TRANSACTION_SETTLEMENT_BEFORE_DATE', 'Settlement date cannot be before transaction date.');
+  }
 }
 
 /** Prisma row → response body. Date columns become plain `YYYY-MM-DD`, `userId` is dropped. */

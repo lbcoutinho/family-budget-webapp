@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { businessCodeField, EntryDialog, suggestedReferenceMonth } from './entry-dialog';
+import { businessCodeField, EntryDialog, suggestedSettlementDate } from './entry-dialog';
 
 import type * as ApiClient from '@family-budget/api-client';
 
@@ -166,7 +166,7 @@ async function fillExpense(user: ReturnType<typeof userEvent.setup>, amount = '1
 
 describe('entry dialog helpers', () => {
   it('suggests the first day of the next month', () => {
-    expect(suggestedReferenceMonth('2026-12-31')).toBe('2027-01-01');
+    expect(suggestedSettlementDate('2026-12-31')).toBe('2027-01-01');
   });
 
   it.each([
@@ -349,7 +349,7 @@ describe('EntryDialog', () => {
       type: 'EXPENSE',
       amount: cents,
       date: '2026-08-15',
-      referenceMonth: '2026-08-01',
+      settlementDate: '2026-08-15',
       accountId: 'account-1',
       categoryId: 'category-1',
       subcategoryId: 'subcategory-1',
@@ -413,7 +413,7 @@ describe('EntryDialog', () => {
     expect(screen.queryByLabelText('transactions.form.creditCard')).not.toBeInTheDocument();
   });
 
-  it('sends the calendar reference month for an income entry, even after ticking the card box on the expense tab', async () => {
+  it('sends the transaction date as settlement for a non-card income entry', async () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
@@ -427,22 +427,21 @@ describe('EntryDialog', () => {
 
     const saved = mutate.mock.calls[0]?.[0]?.data;
     expect(saved).toMatchObject({ type: 'INCOME', isCreditCard: false });
-    expect(saved).toHaveProperty('referenceMonth', `${today().slice(0, 7)}-01`);
+    expect(saved).toHaveProperty('settlementDate', today());
   });
 
-  it('suggests the credit-card reference month and restores the calendar month when unticked', async () => {
+  it('suggests next month settlement once and preserves it when purchase date changes', async () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-12-31' } });
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2027-01');
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2027-01-10' } });
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2027-02');
-    await user.click(screen.getByLabelText('transactions.form.creditCard'));
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2027-01');
+    expect(screen.getByLabelText('transactions.form.purchaseDate')).toHaveValue('2026-12-31');
+    expect(screen.getByLabelText('transactions.form.settlementDate')).toHaveValue('2027-01-01');
+    fireEvent.change(screen.getByLabelText('transactions.form.purchaseDate'), { target: { value: '2027-01-10' } });
+    expect(screen.getByLabelText('transactions.form.settlementDate')).toHaveValue('2027-01-01');
   });
 
-  it('sends the calendar reference month after credit card is unticked', async () => {
+  it('keeps settlement equal to the transaction date after credit card is unticked', async () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
@@ -450,7 +449,7 @@ describe('EntryDialog', () => {
     await fillExpense(user);
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    expect(mutate.mock.calls[0]?.[0].data).toHaveProperty('referenceMonth', `${today().slice(0, 7)}-01`);
+    expect(mutate.mock.calls[0]?.[0].data).toHaveProperty('settlementDate', today());
   });
 
   it('clears category and credit-card fields when switching transaction type', async () => {
@@ -462,28 +461,26 @@ describe('EntryDialog', () => {
 
     expect(screen.getByTestId('selected-category')).toHaveTextContent('');
     expect(screen.getByTestId('selected-subcategory')).toHaveTextContent('');
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toBeInTheDocument();
+    expect(screen.queryByLabelText('transactions.form.settlementDate')).not.toBeInTheDocument();
   });
 
-  it('keeps an overridden credit-card reference month after the date changes', async () => {
+  it('rejects a card settlement before its purchase date', async () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-12-31' } });
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
-    fireEvent.change(screen.getByLabelText('transactions.form.referenceMonth'), { target: { value: '2026-10' } });
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2027-01-10' } });
+    fireEvent.change(screen.getByLabelText('transactions.form.settlementDate'), { target: { value: '2026-12-30' } });
+    await fillExpense(user);
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-10');
+    expect(document.getElementById('entry-settlement-date-error')).toHaveTextContent('transactions.form.settlementBeforePurchase');
+    expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('follows a non-card date until the reference month is changed manually', () => {
+  it('does not expose an independently editable reference month', () => {
     renderDialog();
 
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-09');
-    fireEvent.change(screen.getByLabelText('transactions.form.referenceMonth'), { target: { value: '2026-11' } });
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-10-15' } });
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-11');
+    expect(screen.queryByLabelText('transactions.form.referenceMonth')).not.toBeInTheDocument();
   });
 
   it('clears every field, resets the date, keeps the type tab, and focuses "Conta" after save and add another', async () => {
@@ -659,24 +656,22 @@ describe('EntryDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('preserves the stored reference month when an existing transaction date changes', async () => {
-    const { user } = renderDialog(vi.fn(), makeTransaction({ referenceMonth: '2026-12-01', isCreditCard: true }));
+  it('preserves settlement when an existing card purchase date changes', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ date: '2026-08-15', settlementDate: '2026-12-01', isCreditCard: true }));
 
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12');
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
-    await waitFor(() => expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-12'));
-    await user.clear(screen.getByLabelText('transactions.form.referenceMonth'));
-    await user.type(screen.getByLabelText('transactions.form.referenceMonth'), '2026-11');
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-10-15' } });
-    expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-11');
-  });
-
-  it('sends the stored reference month with an edited ordinary entry date', async () => {
-    const { user } = renderDialog(vi.fn(), makeTransaction({ referenceMonth: '2026-12-01' }));
-
-    fireEvent.change(screen.getByLabelText('transactions.form.date'), { target: { value: '2026-09-15' } });
+    expect(screen.getByLabelText('transactions.form.settlementDate')).toHaveValue('2026-12-01');
+    fireEvent.change(screen.getByLabelText('transactions.form.purchaseDate'), { target: { value: '2026-09-15' } });
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
 
-    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { date: '2026-09-15', referenceMonth: '2026-12-01' } });
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { date: '2026-09-15' } });
+  });
+
+  it('updates settlement and lets the server derive the reference month', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ isCreditCard: true }));
+
+    fireEvent.change(screen.getByLabelText('transactions.form.settlementDate'), { target: { value: '2026-09-15' } });
+    await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
+
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { settlementDate: '2026-09-15' } });
   });
 });

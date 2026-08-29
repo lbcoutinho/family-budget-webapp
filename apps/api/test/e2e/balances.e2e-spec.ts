@@ -152,17 +152,27 @@ describe('Balances API (e2e)', () => {
       expect(body.find((a) => a.accountId === inactiveAccountId)).toMatchObject({ isActive: false, balance: 500 });
     });
 
-    it('applies ?asOf as an inclusive upper bound on date', async () => {
+    it('applies ?asOf as an inclusive upper bound on settlement date', async () => {
       await Promise.all([
-        seed({ type: 'INCOME', amount: 1_000, accountId, date: new Date('2026-03-10') }),
-        seed({ type: 'INCOME', amount: 2_000, accountId, date: new Date('2026-03-20') }),
+        seed({ type: 'INCOME', amount: 1_000, accountId, date: new Date('2026-03-10'), settlementDate: new Date('2026-03-20') }),
+        seed({ type: 'INCOME', amount: 2_000, accountId, date: new Date('2026-03-20'), settlementDate: new Date('2026-03-10') }),
       ]);
 
       const before = (await authed('get', '/accounts/balances?asOf=2026-03-15').expect(200)).body as AccountBalanceDto[];
-      expect(before.find((a) => a.accountId === accountId)).toMatchObject({ balance: 2_000 });
+      expect(before.find((a) => a.accountId === accountId)).toMatchObject({ balance: 3_000 });
 
       const onTheDay = (await authed('get', '/accounts/balances?asOf=2026-03-10').expect(200)).body as AccountBalanceDto[];
-      expect(onTheDay.find((a) => a.accountId === accountId)).toMatchObject({ balance: 2_000 });
+      expect(onTheDay.find((a) => a.accountId === accountId)).toMatchObject({ balance: 3_000 });
+    });
+
+    it('excludes a future confirmed settlement from the current balance', async () => {
+      await seed({ type: 'EXPENSE', amount: 1_000, accountId, date: new Date('2026-03-15'), settlementDate: new Date('2099-01-01') });
+
+      const current = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
+      const future = (await authed('get', '/accounts/balances?asOf=2099-01-01').expect(200)).body as AccountBalanceDto[];
+
+      expect(current.find((a) => a.accountId === accountId)).toMatchObject({ balance: 1_000 });
+      expect(future.find((a) => a.accountId === accountId)).toMatchObject({ balance: 0 });
     });
 
     it('answers 400 for a malformed asOf', async () => {

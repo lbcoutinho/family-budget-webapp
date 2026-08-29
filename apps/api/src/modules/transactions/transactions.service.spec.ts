@@ -138,6 +138,24 @@ describe('TransactionsService', () => {
       });
     });
 
+    it('derives a card reference month from its explicit settlement date', async () => {
+      doubled.transaction.create.mockResolvedValue(row({ isCreditCard: true }));
+      const dto = {
+        type: 'EXPENSE' as const,
+        amount: 1_000,
+        date: new Date('2026-03-15'),
+        settlementDate: new Date('2026-04-20'),
+        isCreditCard: true,
+        description: 'Coffee',
+      };
+
+      await service.create(userId, dto);
+
+      expect(doubled.transaction.create).toHaveBeenCalledWith({
+        data: { ...dto, userId, referenceMonth: new Date('2026-04-01'), cashboxLabel: null, destinationCashboxLabel: null },
+      });
+    });
+
     it('skips the balance guard entirely for INCOME/EXPENSE — no groupBy query', async () => {
       doubled.transaction.create.mockResolvedValue(row());
 
@@ -495,15 +513,32 @@ describe('TransactionsService', () => {
       expect(idsQueried).toEqual(expect.arrayContaining([cashboxId, destinationCashboxId]) as unknown);
     });
 
-    it('preserves referenceMonth on a credit-card date change', async () => {
-      doubled.transaction.findUnique.mockResolvedValue(row({ isCreditCard: true }));
+    it('preserves settlement and referenceMonth on a credit-card purchase date change', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(
+        row({ isCreditCard: true, referenceMonth: new Date('2026-05-01'), settlementDate: new Date('2026-05-01') }),
+      );
       doubled.transaction.update.mockResolvedValue(row({ isCreditCard: true }));
 
       await service.update(userId, transactionId, { date: new Date('2026-04-01') });
 
       expect(doubled.transaction.update).toHaveBeenCalledWith({
         where: { id: transactionId },
-        data: { date: new Date('2026-04-01'), referenceMonth: new Date('2026-03-01'), settlementDate: new Date('2026-04-01') },
+        data: { date: new Date('2026-04-01'), referenceMonth: new Date('2026-05-01'), settlementDate: new Date('2026-05-01') },
+      });
+    });
+
+    it('derives referenceMonth when a card settlement date changes and rejects an earlier settlement', async () => {
+      doubled.transaction.findUnique.mockResolvedValue(row({ isCreditCard: true }));
+      doubled.transaction.update.mockResolvedValue(row({ isCreditCard: true }));
+
+      await service.update(userId, transactionId, { settlementDate: new Date('2026-04-20') });
+
+      expect(doubled.transaction.update).toHaveBeenCalledWith({
+        where: { id: transactionId },
+        data: { settlementDate: new Date('2026-04-20'), referenceMonth: new Date('2026-04-01') },
+      });
+      await expect(service.update(userId, transactionId, { settlementDate: new Date('2026-03-14') })).rejects.toMatchObject({
+        response: { code: 'TRANSACTION_SETTLEMENT_BEFORE_DATE' },
       });
     });
 

@@ -51,18 +51,19 @@ describe('BalancesService', () => {
       expect((balances.get(accountId) ?? 0) + (balances.get(otherAccountId) ?? 0)).toBe(0);
     });
 
-    it('always carries status CONFIRMED, excluding drafts, and date lte only when asOf is given', async () => {
+    it('always carries status CONFIRMED and excludes settlements after the requested or current date', async () => {
       const { prisma, groupBy } = prismaDouble();
       const service = new BalancesService(prisma);
       groupBy.mockResolvedValue([]);
 
       await service.sumByAccount(userId);
       const calls = groupBy.mock.calls as [{ where: Record<string, unknown> }][];
-      expect(calls[0]![0].where).toEqual({ userId, status: 'CONFIRMED', accountId: { not: null } });
+      expect(calls[0]![0].where).toMatchObject({ userId, status: 'CONFIRMED', accountId: { not: null } });
+      expect((calls[0]![0].where.settlementDate as { lte: unknown }).lte).toBeInstanceOf(Date);
 
       const asOf = new Date('2026-08-31T00:00:00.000Z');
       await service.sumByAccount(userId, asOf);
-      expect(calls[2]![0].where).toEqual({ userId, status: 'CONFIRMED', date: { lte: asOf }, accountId: { not: null } });
+      expect(calls[2]![0].where).toEqual({ userId, status: 'CONFIRMED', settlementDate: { lte: asOf }, accountId: { not: null } });
     });
 
     it('maps an account absent from the grouped rows to no entry, so the caller falls back to initialBalance', async () => {

@@ -11,6 +11,8 @@ import type { UpdateTransactionDtoType } from './updateTransactionDtoType';
 export interface UpdateTransactionDto {
   /** When it happened, `YYYY-MM-DD`. */
   date?: string;
+  /** When the transaction settles. Card expenses cannot settle before their purchase date. */
+  settlementDate?: string;
   /** Which month it reports in, `YYYY-MM-DD`. Derived from `date` when omitted, normalized to the 1st when supplied (ADR-0009). */
   referenceMonth?: string;
   /** @maxLength 200 */

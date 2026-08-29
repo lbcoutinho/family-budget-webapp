@@ -43,6 +43,8 @@ export const ERROR_CODES = [
   'TRANSACTION_SUBCATEGORY_PARENT_MISMATCH',
   /** `PATCH` tried to change `type` (M4-T04) — not supported, `type` is fixed at creation. */
   'TRANSACTION_TYPE_IMMUTABLE',
+  /** A card settlement date precedes its purchase date. */
+  'TRANSACTION_SETTLEMENT_BEFORE_DATE',
   /** `CASHBOX_OUT`/`CASHBOX_TRANSFER` would drive a cashbox balance negative (M4-T05). */
   'CASHBOX_INSUFFICIENT_FUNDS',
   /** Delete refused because the cashbox still holds money (M4-T09, ADR-0019). */

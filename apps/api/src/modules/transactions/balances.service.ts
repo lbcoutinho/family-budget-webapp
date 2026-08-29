@@ -155,7 +155,7 @@ export class BalancesService {
 
   /** The only shape a balance query may take. `status = CONFIRMED` is not optional here. */
   private where(userId: string, asOf?: Date): Prisma.TransactionWhereInput {
-    return { userId, status: 'CONFIRMED', ...(asOf ? { date: { lte: asOf } } : {}) };
+    return { userId, status: 'CONFIRMED', settlementDate: { lte: asOf ?? new Date() } };
   }
 
   private async sumByAccountWhere(where: Prisma.TransactionWhereInput): Promise<Map<string, number>> {

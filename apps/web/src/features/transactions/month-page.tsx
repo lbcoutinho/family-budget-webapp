@@ -102,7 +102,7 @@ function restorePayload(entry: TransactionListItemDto & { amount: number }): Cre
     date: entry.date,
     description: entry.description,
     ...(entry.notes !== null ? { notes: entry.notes } : {}),
-    ...(entry.isCreditCard ? { isCreditCard: true, referenceMonth: entry.referenceMonth } : {}),
+    ...(entry.isCreditCard ? { isCreditCard: true, settlementDate: entry.settlementDate } : {}),
     ...(entry.accountId ? { accountId: entry.accountId } : {}),
     ...(entry.destinationAccountId ? { destinationAccountId: entry.destinationAccountId } : {}),
     ...(entry.categoryId ? { categoryId: entry.categoryId } : {}),
