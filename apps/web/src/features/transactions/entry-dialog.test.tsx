@@ -45,6 +45,7 @@ function makeTransaction(overrides: Partial<ApiClient.TransactionListItemDto> = 
     amount: 1000,
     date: '2026-08-15',
     referenceMonth: '2026-08-01',
+    settlementDate: '2026-08-15',
     description: 'Groceries',
     notes: null,
     isCreditCard: false,

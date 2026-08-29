@@ -45,6 +45,7 @@ const CONFIRMED: TransactionListItemDto = {
   amount: 12345,
   date: '2026-07-14',
   referenceMonth: '2026-07-01',
+  settlementDate: '2026-07-14',
   description: 'Groceries',
   notes: null,
   isCreditCard: true,

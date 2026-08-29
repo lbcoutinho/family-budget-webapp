@@ -19,6 +19,7 @@ function transaction(overrides: Partial<TransactionListItemDto> & Pick<Transacti
     status: TransactionStatus.CONFIRMED,
     source: 'MANUAL',
     referenceMonth: REFERENCE_MONTH_ISO,
+    settlementDate: overrides.settlementDate ?? overrides.date,
     description: overrides.description ?? 'Expense',
     notes: null,
     isCreditCard: true,
