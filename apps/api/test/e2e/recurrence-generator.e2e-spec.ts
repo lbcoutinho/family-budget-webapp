@@ -89,6 +89,7 @@ describe('RecurrenceGeneratorService (e2e)', () => {
 
     const rows = await prisma.transaction.findMany({ where: { recurrenceRuleId: rule.id }, orderBy: { date: 'asc' } });
     expect(rows.map((r) => r.date.toISOString().slice(0, 10))).toEqual(['2026-01-10', '2026-02-10', '2026-03-10']);
+    expect(rows.map((r) => r.settlementDate.toISOString().slice(0, 10))).toEqual(['2026-01-10', '2026-02-10', '2026-03-10']);
     expect(rows.map((r) => r.referenceMonth.toISOString().slice(0, 10))).toEqual(['2026-01-01', '2026-02-01', '2026-03-01']);
     expect(rows.every((r) => r.source === 'RECURRING')).toBe(true);
     expect(rows.every((r) => r.amount === 5_000 && r.description === 'Seguro de casa')).toBe(true);

@@ -1,5 +1,7 @@
 import {
   type RecurrenceRuleDto,
+  getListAccountBalancesQueryKey,
+  getListCashboxBalancesQueryKey,
   getGetRecurrenceRuleQueryKey,
   getListRecurrenceRulesQueryKey,
   getListTransactionsQueryKey,
@@ -29,6 +31,7 @@ import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
 import i18n, { formKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 
@@ -115,6 +118,9 @@ export function RecurrencesPage() {
           invalidate();
           void queryClient.invalidateQueries({ queryKey: getGetRecurrenceRuleQueryKey(rule.id) });
           void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
           if (result.created > 0) {
             toast.success(t(formKey('recurrences.generate.success'), { count: result.created }));
           } else {

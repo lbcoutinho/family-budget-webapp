@@ -60,6 +60,8 @@ export class RecurrenceGeneratorService {
    * must never reach through to a transaction already generated.
    */
   private toTransactionData(userId: string, rule: RecurrenceRule, occurrenceDate: Date): Prisma.TransactionCreateManyInput {
+    const settlementDate = occurrenceDate;
+
     return {
       userId,
       type: rule.type,
@@ -70,8 +72,8 @@ export class RecurrenceGeneratorService {
       categoryId: rule.categoryId,
       subcategoryId: rule.subcategoryId,
       date: occurrenceDate,
-      referenceMonth: referenceMonthFor(occurrenceDate),
-      settlementDate: occurrenceDate,
+      settlementDate,
+      referenceMonth: referenceMonthFor(settlementDate),
       status: rule.autoConfirm ? 'CONFIRMED' : 'DRAFT',
       source: 'RECURRING',
       recurrenceRuleId: rule.id,

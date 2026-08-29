@@ -1,14 +1,22 @@
-import { type AccountDto, type CategoryDto, type RecurrenceRuleDto } from '@family-budget/api-client';
+import {
+  type AccountDto,
+  type CategoryDto,
+  type RecurrenceRuleDto,
+  getListAccountBalancesQueryKey,
+  getListCashboxBalancesQueryKey,
+  getListTransactionsQueryKey,
+} from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { Toaster } from 'sonner';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RecurrencesPage } from './recurrences-page';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { getDailyExpensesQueryKey } from '@/features/transactions/daily-expense-strip';
 import { server } from '@/test/server';
 
 const ACCOUNT: AccountDto = {
@@ -70,6 +78,7 @@ function renderPage() {
 
   return {
     user: userEvent.setup(),
+    queryClient,
     ...render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -159,12 +168,19 @@ describe('RecurrencesPage', () => {
       http.post('/api/recurrence-rules/:id/generate', () => HttpResponse.json({ created: 3, generatedUntil: '2026-10-10' })),
     );
 
-    const { user } = renderPage();
+    const { user, queryClient } = renderPage();
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await screen.findByText('Seguro do carro');
     await user.click(screen.getByRole('button', { name: 'Gerar agora' }));
 
     expect(await screen.findByText('3 lançamentos criados')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListTransactionsQueryKey() });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListAccountBalancesQueryKey() });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListCashboxBalancesQueryKey() });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getDailyExpensesQueryKey() });
+    });
   });
 
   it('reports when generate-now created nothing, without erroring', async () => {

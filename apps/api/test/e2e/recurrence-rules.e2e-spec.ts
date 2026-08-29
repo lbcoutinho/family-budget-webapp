@@ -294,12 +294,12 @@ describe('Recurrence rules API (e2e)', () => {
   });
 
   describe('preview', () => {
-    it('returns upcoming occurrences without writing anything', async () => {
+    it('returns the settlement dates that generation materializes, without writing during preview', async () => {
       const created = await createRule(validBody());
 
       const before = await prisma.transaction.count({ where: { recurrenceRuleId: created.id } });
 
-      const preview = (await authed('get', `/recurrence-rules/${created.id}/preview?months=12`).expect(200)).body as PreviewRecurrenceRuleDto;
+      const preview = (await authed('get', `/recurrence-rules/${created.id}/preview?months=3`).expect(200)).body as PreviewRecurrenceRuleDto;
       expect(preview.occurrences.length).toBeGreaterThan(0);
 
       const after = await prisma.transaction.count({ where: { recurrenceRuleId: created.id } });
@@ -307,6 +307,10 @@ describe('Recurrence rules API (e2e)', () => {
 
       const rule = await prisma.recurrenceRule.findUniqueOrThrow({ where: { id: created.id } });
       expect(rule.generatedUntil).toBeNull();
+
+      await authed('post', `/recurrence-rules/${created.id}/generate`).expect(201);
+      const generated = await prisma.transaction.findMany({ where: { recurrenceRuleId: created.id }, orderBy: { settlementDate: 'asc' } });
+      expect(generated.map((transaction) => transaction.settlementDate.toISOString().slice(0, 10))).toEqual(preview.occurrences);
     });
   });
 
