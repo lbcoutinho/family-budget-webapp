@@ -126,6 +126,8 @@ describe('Recurrence catch-up (e2e)', () => {
     const horizon = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + ROLLING_HORIZON_MONTHS + 1, 0));
     for (const transaction of generated) {
       expect(transaction.date.getTime()).toBeLessThanOrEqual(horizon.getTime());
+      expect(transaction.settlementDate).toEqual(transaction.date);
+      expect(transaction.referenceMonth).toEqual(new Date(Date.UTC(transaction.settlementDate.getUTCFullYear(), transaction.settlementDate.getUTCMonth(), 1)));
     }
   });
 

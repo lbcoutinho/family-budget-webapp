@@ -56,7 +56,15 @@ describe('RecurrenceGeneratorService', () => {
 
     expect(result.created).toBe(1);
     expect(createMany).toHaveBeenCalledWith({
-      data: [expect.objectContaining({ amount: null, status: 'DRAFT' }) as unknown],
+      data: [
+        expect.objectContaining({
+          amount: null,
+          status: 'DRAFT',
+          date: new Date('2026-01-15T00:00:00.000Z'),
+          settlementDate: new Date('2026-01-15T00:00:00.000Z'),
+          referenceMonth: new Date('2026-01-01T00:00:00.000Z'),
+        }) as unknown,
+      ],
       skipDuplicates: true,
     });
   });
