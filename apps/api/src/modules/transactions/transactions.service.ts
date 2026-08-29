@@ -11,7 +11,7 @@ import { ListTransactionsQueryDto, TransactionSort } from './dto/list-transactio
 import { TransactionListDto, type TransactionListItemDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, startOfMonthUtc } from './reference-month';
+import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, resolveSettlementDate, startOfMonthUtc } from './reference-month';
 import { type ResolvedTransactionRefs, type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
 
 const LIST_INCLUDE = {
@@ -97,6 +97,7 @@ export class TransactionsService {
     const refs = await this.validator.validate(userId, dto, { requireActive: true });
 
     const referenceMonth = resolveReferenceMonthOnCreate({ date: dto.date, referenceMonth: dto.referenceMonth });
+    const settlementDate = resolveSettlementDate(dto.date, referenceMonth, dto.isCreditCard ?? false);
     const cashboxIds = collectCashboxIds(refs.cashbox?.id, refs.destinationCashbox?.id);
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -107,6 +108,7 @@ export class TransactionsService {
           ...dto,
           userId,
           referenceMonth,
+          settlementDate,
           cashboxLabel: refs.cashbox?.name ?? null,
           destinationCashboxLabel: refs.destinationCashbox?.name ?? null,
         },
@@ -166,6 +168,7 @@ export class TransactionsService {
       { date: current.date, referenceMonth: current.referenceMonth, isCreditCard: current.isCreditCard },
       { date: dto.date, referenceMonth: dto.referenceMonth, isCreditCard: dto.isCreditCard },
     );
+    const settlementDate = resolveSettlementDate(dto.date ?? current.date, referenceMonth, dto.isCreditCard ?? current.isCreditCard);
 
     // Re-snapshotting the label only when the id field itself was patched — not merely because the
     // validator ran for some other reason — is what ADR-0019 means by "kept in sync ... never
@@ -180,6 +183,7 @@ export class TransactionsService {
         data: {
           ...dto,
           referenceMonth,
+          settlementDate,
           ...(dto.cashboxId !== undefined ? { cashboxLabel: refs?.cashbox?.name ?? null } : {}),
           ...(dto.destinationCashboxId !== undefined ? { destinationCashboxLabel: refs?.destinationCashbox?.name ?? null } : {}),
         },
@@ -260,7 +264,7 @@ function collectCashboxIds(...ids: (string | null | undefined)[]): string[] {
   return [...new Set(ids.filter((id): id is string => id !== null && id !== undefined))];
 }
 
-/** Prisma row → response body. `date`/`referenceMonth` become plain `YYYY-MM-DD`, `userId` is dropped. */
+/** Prisma row → response body. Date columns become plain `YYYY-MM-DD`, `userId` is dropped. */
 function toDto(transaction: Transaction): TransactionDto {
   return {
     id: transaction.id,
@@ -270,6 +274,7 @@ function toDto(transaction: Transaction): TransactionDto {
     amount: transaction.amount,
     date: transaction.date.toISOString().slice(0, 10),
     referenceMonth: transaction.referenceMonth.toISOString().slice(0, 10),
+    settlementDate: transaction.settlementDate.toISOString().slice(0, 10),
     description: transaction.description,
     notes: transaction.notes,
     isCreditCard: transaction.isCreditCard,

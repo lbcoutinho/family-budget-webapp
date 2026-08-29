@@ -4,7 +4,7 @@ import { badRequest } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Prisma, type RecurrenceRule, type Transaction } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { startOfMonthUtc } from '../transactions/reference-month';
+import { resolveSettlementDate, startOfMonthUtc } from '../transactions/reference-month';
 import { type TransactionRefInput, TransactionValidator } from '../transactions/validators/transaction-validator';
 
 import { CancelInstallmentPlanResultDto } from './dto/cancel-installment-plan-result.dto';
@@ -75,6 +75,7 @@ export class InstallmentsService {
         notes: null,
         date,
         referenceMonth: startOfMonthUtc(date),
+        settlementDate: resolveSettlementDate(date, startOfMonthUtc(date), isCreditCard),
         isCreditCard,
         accountId: dto.accountId ?? null,
         categoryId: dto.categoryId ?? null,
@@ -188,6 +189,7 @@ function toInstallmentDto(transaction: Transaction): InstallmentTransactionDto {
     amount: transaction.amount,
     date: transaction.date.toISOString().slice(0, 10),
     referenceMonth: transaction.referenceMonth.toISOString().slice(0, 10),
+    settlementDate: transaction.settlementDate.toISOString().slice(0, 10),
     description: transaction.description,
     notes: transaction.notes,
     isCreditCard: transaction.isCreditCard,

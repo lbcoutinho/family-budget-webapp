@@ -356,6 +356,9 @@ model Transaction {
   /// Which month it reports in, always the 1st (CHECK below, ADR-0009). Balances and every report
   /// group by this column, never by `date`.
   referenceMonth DateTime @map("reference_month") @db.Date
+  /// When money settles: the transaction date for non-card rows, otherwise no earlier than its
+  /// reference month (ADR-0021). Kept separate from the reporting month during the migration.
+  settlementDate DateTime @default(now()) @map("settlement_date") @db.Date
 
   /// Required: a statement row's primary text, and a `search` target (M4-T08).
   description String

@@ -39,9 +39,10 @@ A cashbox is expected to end: renaming never rewrites past entries (each transac
 
 **Cash basis**: expense recorded in the month the money actually leaves the account. Credit card purchases recorded in the month the statement is paid, preserving the original purchase date.
 
-Requires **two dates** on every transaction:
+Requires **three dates** on every transaction:
 
 - `date` — when the purchase happened (March 5)
+- `settlementDate` — when money settles (April 1 for a card purchase reported in April)
 - `referenceMonth` — which month it belongs to in reports (April 1)
 
 All reports and the monthly tab group by `referenceMonth`.
@@ -224,6 +225,7 @@ the server, not user input (ADR-0019).
 
 - `amount` is always positive; the sign is derived from `type`
 - `referenceMonth` is always normalized to the first day of the month
+- `settlementDate` is `date` for non-card transactions and no earlier than `referenceMonth` for card transactions
 - `category.kind` must match the transaction type (`INCOME` only accepts `INCOME` categories)
 - `subcategory.parentId === categoryId`
 - maximum category depth is 2 (`parent.parentId IS NULL`)

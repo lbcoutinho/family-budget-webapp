@@ -30,7 +30,7 @@ Project's architectural decisions and the reasoning behind them.
 | [0006](0006-userid-on-all-entities.md) | `userId` on every domain entity | Accepted |
 | [0007](0007-cashbox-as-transaction-type.md) | Cashbox as a transaction type, not a category | Accepted |
 | [0008](0008-cashbox-without-funding-trace.md) | Cashbox as a pot, without funding traceability | Accepted |
-| [0009](0009-dual-date-and-reference-month.md) | Dual dates and the credit card flag | Accepted |
+| [0009](0009-dual-date-and-reference-month.md) | Dual dates and the credit card flag | Superseded by [0021](0021-settlement-date-and-reference-month.md) |
 | [0010](0010-self-referencing-two-level-category.md) | Self-referencing category with two levels | Accepted |
 | [0011](0011-auth-with-passport-and-jwt.md) | Authentication with Passport and JWT | Accepted |
 | [0012](0012-draft-status-on-transaction.md) | Draft status on the transaction instead of an import table | Accepted |
@@ -42,3 +42,4 @@ Project's architectural decisions and the reasoning behind them.
 | [0018](0018-internationalization.md) | Internationalization | Accepted |
 | [0019](0019-cashbox-label-snapshot-and-deletion.md) | Cashbox label snapshot and deletion of empty cashboxes | Accepted |
 | [0020](0020-amountless-recurrence-rules.md) | Amountless recurrence rules | Accepted |
+| [0021](0021-settlement-date-and-reference-month.md) | Settlement date and reference month | Accepted |

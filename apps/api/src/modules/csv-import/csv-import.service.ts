@@ -48,6 +48,7 @@ export class CsvImportService {
               accountId: dto.accountId,
               date: row.date,
               referenceMonth: startOfMonthUtc(row.date),
+              settlementDate: row.date,
               description: row.description,
               amount: row.amount,
               type: row.type,

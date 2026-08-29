@@ -35,6 +35,7 @@ const row = (overrides: Partial<Transaction> = {}): Transaction => ({
   amount: 1_000,
   date: new Date('2026-03-15'),
   referenceMonth: new Date('2026-03-01'),
+  settlementDate: new Date('2026-03-15'),
   description: 'Coffee',
   notes: null,
   isCreditCard: false,
@@ -107,7 +108,14 @@ describe('TransactionsService', () => {
 
       expect(doubled.validate).toHaveBeenCalledWith(userId, dto, { requireActive: true });
       expect(doubled.transaction.create).toHaveBeenCalledWith({
-        data: { ...dto, userId, referenceMonth: new Date('2026-03-01'), cashboxLabel: null, destinationCashboxLabel: null },
+        data: {
+          ...dto,
+          userId,
+          referenceMonth: new Date('2026-03-01'),
+          settlementDate: new Date('2026-03-15'),
+          cashboxLabel: null,
+          destinationCashboxLabel: null,
+        },
       });
     });
 
@@ -119,7 +127,14 @@ describe('TransactionsService', () => {
       await service.create(userId, dto);
 
       expect(doubled.transaction.create).toHaveBeenCalledWith({
-        data: { ...dto, userId, referenceMonth: new Date('2026-04-01'), cashboxLabel: null, destinationCashboxLabel: null },
+        data: {
+          ...dto,
+          userId,
+          referenceMonth: new Date('2026-04-01'),
+          settlementDate: new Date('2026-03-15'),
+          cashboxLabel: null,
+          destinationCashboxLabel: null,
+        },
       });
     });
 
@@ -144,7 +159,14 @@ describe('TransactionsService', () => {
       await service.create(userId, dto);
 
       expect(doubled.transaction.create).toHaveBeenCalledWith({
-        data: { ...dto, userId, referenceMonth: new Date('2026-03-01'), cashboxLabel: 'Carro', destinationCashboxLabel: 'Férias' },
+        data: {
+          ...dto,
+          userId,
+          referenceMonth: new Date('2026-03-01'),
+          settlementDate: new Date('2026-03-15'),
+          cashboxLabel: 'Carro',
+          destinationCashboxLabel: 'Férias',
+        },
       });
     });
 
@@ -156,7 +178,14 @@ describe('TransactionsService', () => {
       await service.create(userId, dto);
 
       expect(doubled.transaction.create).toHaveBeenCalledWith({
-        data: { ...dto, userId, referenceMonth: new Date('2026-03-01'), cashboxLabel: null, destinationCashboxLabel: null },
+        data: {
+          ...dto,
+          userId,
+          referenceMonth: new Date('2026-03-01'),
+          settlementDate: new Date('2026-03-15'),
+          cashboxLabel: null,
+          destinationCashboxLabel: null,
+        },
       });
       expect(doubled.transaction.groupBy).not.toHaveBeenCalled();
     });
@@ -440,7 +469,7 @@ describe('TransactionsService', () => {
 
       expect(doubled.transaction.update).toHaveBeenCalledWith({
         where: { id: transactionId },
-        data: { accountId: destinationCashboxId, referenceMonth: new Date('2026-03-01') },
+        data: { accountId: destinationCashboxId, referenceMonth: new Date('2026-03-01'), settlementDate: new Date('2026-03-15') },
       });
     });
 
@@ -474,7 +503,7 @@ describe('TransactionsService', () => {
 
       expect(doubled.transaction.update).toHaveBeenCalledWith({
         where: { id: transactionId },
-        data: { date: new Date('2026-04-01'), referenceMonth: new Date('2026-03-01') },
+        data: { date: new Date('2026-04-01'), referenceMonth: new Date('2026-03-01'), settlementDate: new Date('2026-04-01') },
       });
     });
 
@@ -486,7 +515,7 @@ describe('TransactionsService', () => {
 
       expect(doubled.transaction.update).toHaveBeenCalledWith({
         where: { id: transactionId },
-        data: { date: new Date('2026-04-05'), referenceMonth: new Date('2026-04-01') },
+        data: { date: new Date('2026-04-05'), referenceMonth: new Date('2026-04-01'), settlementDate: new Date('2026-04-05') },
       });
     });
   });

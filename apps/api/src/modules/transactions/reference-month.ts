@@ -38,3 +38,8 @@ export function resolveReferenceMonthOnUpdate(
 
   return current.referenceMonth;
 }
+
+/** Cash-impact date (ADR-0021): cards cannot settle before their reporting month. */
+export function resolveSettlementDate(date: Date, referenceMonth: Date, isCreditCard: boolean): Date {
+  return isCreditCard && referenceMonth > date ? referenceMonth : date;
+}

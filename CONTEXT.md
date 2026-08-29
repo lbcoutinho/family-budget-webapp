@@ -49,6 +49,10 @@ A second-level classification within a Category.
 The day on which the underlying financial event happened.
 _Avoid_: Reference month
 
+**Settlement Date**:
+The day money settles: the Transaction Date for a non-card Transaction, otherwise no earlier than its Reference Month.
+_Avoid_: Reference month
+
 **Reference Month**:
 The accounting month to which a Transaction belongs in the monthly view and reports. It can differ from the Transaction Date for a credit-card purchase.
 _Avoid_: Transaction date
