@@ -405,6 +405,7 @@ export async function seedTransactions(prisma: PrismaClient, userId: string): Pr
         status: 'status' in transaction ? transaction.status : undefined,
         date,
         referenceMonth,
+        settlementDate: date,
         description: transaction.description,
         accountId: accountId(transaction.account),
         categoryId: category,

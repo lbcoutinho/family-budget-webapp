@@ -250,15 +250,18 @@ describe('Transactions API (e2e)', () => {
       expect(response.body).toMatchObject({ code: 'TRANSACTION_TYPE_IMMUTABLE' });
     });
 
-    it('preserves referenceMonth on a credit-card date change and recomputes it otherwise (ADR-0009)', async () => {
-      const creditCard = await createTransaction(minimalBody({ isCreditCard: true, date: '2026-03-15' }));
+    it('returns settlementDate and preserves referenceMonth on a credit-card date change', async () => {
+      const creditCard = await createTransaction(minimalBody({ isCreditCard: true, date: '2026-03-15', referenceMonth: '2026-04-01' }));
       const regular = await createTransaction(minimalBody({ isCreditCard: false, date: '2026-03-15' }));
 
       const updatedCreditCard = (await authed('patch', `/transactions/${creditCard.id}`).send({ date: '2026-04-10' }).expect(200)).body as TransactionDto;
       const updatedRegular = (await authed('patch', `/transactions/${regular.id}`).send({ date: '2026-04-10' }).expect(200)).body as TransactionDto;
 
-      expect(updatedCreditCard.referenceMonth).toBe('2026-03-01');
+      expect(creditCard.settlementDate).toBe('2026-04-01');
+      expect(updatedCreditCard.referenceMonth).toBe('2026-04-01');
+      expect(updatedCreditCard.settlementDate).toBe('2026-04-10');
       expect(updatedRegular.referenceMonth).toBe('2026-04-01');
+      expect(updatedRegular.settlementDate).toBe('2026-04-10');
     });
 
     it('deletes for good', async () => {

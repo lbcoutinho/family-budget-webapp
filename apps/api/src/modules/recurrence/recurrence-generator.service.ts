@@ -71,6 +71,7 @@ export class RecurrenceGeneratorService {
       subcategoryId: rule.subcategoryId,
       date: occurrenceDate,
       referenceMonth: referenceMonthFor(occurrenceDate),
+      settlementDate: occurrenceDate,
       status: rule.autoConfirm ? 'CONFIRMED' : 'DRAFT',
       source: 'RECURRING',
       recurrenceRuleId: rule.id,

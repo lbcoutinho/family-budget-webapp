@@ -258,6 +258,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
             amount: data.amount,
             date: data.date,
             referenceMonth,
+            settlementDate: data.date,
             description: data.description,
             notes: null,
             isCreditCard: false,

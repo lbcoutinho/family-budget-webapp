@@ -21,6 +21,7 @@ export interface TransactionDto {
   amount: number | null;
   date: string;
   referenceMonth: string;
+  settlementDate: string;
   description: string;
   /** @nullable */
   notes: string | null;

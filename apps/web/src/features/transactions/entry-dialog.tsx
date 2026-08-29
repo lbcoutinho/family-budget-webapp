@@ -201,6 +201,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             amount: data.amount,
             date: data.date,
             referenceMonth: resolvedReferenceMonth,
+            settlementDate: data.date,
             description: data.description,
             notes: data.notes ?? null,
             isCreditCard: data.isCreditCard ?? false,

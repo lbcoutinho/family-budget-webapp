@@ -1,7 +1,15 @@
 // Negative-offset zone (UTC-3): any accidental local-time getter makes the January 31 cases fail loudly.
 process.env.TZ = 'America/Sao_Paulo';
 
-import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, startOfMonthUtc } from './reference-month';
+import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, resolveSettlementDate, startOfMonthUtc } from './reference-month';
+
+describe('resolveSettlementDate', () => {
+  it('uses the transaction date except when a card reference month is later', () => {
+    const date = new Date('2026-03-15T00:00:00.000Z');
+    expect(resolveSettlementDate(date, new Date('2026-04-01T00:00:00.000Z'), true)).toEqual(new Date('2026-04-01T00:00:00.000Z'));
+    expect(resolveSettlementDate(date, new Date('2026-04-01T00:00:00.000Z'), false)).toEqual(date);
+  });
+});
 
 const utc = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
 

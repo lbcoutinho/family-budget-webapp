@@ -34,6 +34,9 @@ export class TransactionDto {
   @ApiProperty({ type: String, format: 'date', example: '2026-03-01' })
   referenceMonth!: string;
 
+  @ApiProperty({ type: String, format: 'date', example: '2026-03-15' })
+  settlementDate!: string;
+
   @ApiProperty({ type: String, example: 'Coffee' })
   description!: string;
 
