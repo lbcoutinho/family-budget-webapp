@@ -40,6 +40,18 @@ export class CreateTransactionDto {
     type: String,
     format: 'date',
     required: false,
+    example: '2026-04-01',
+    description: 'When the transaction settles. Card expenses cannot settle before their purchase date.',
+  })
+  @IsOptional()
+  @Transform(toDateOnly)
+  @IsDate({ message: 'settlementDate must be in the form YYYY-MM-DD.' })
+  settlementDate?: Date;
+
+  @ApiProperty({
+    type: String,
+    format: 'date',
+    required: false,
     example: '2026-03-01',
     description: 'Which month it reports in, `YYYY-MM-DD`. Derived from `date` when omitted, normalized to the 1st when supplied (ADR-0009).',
   })
