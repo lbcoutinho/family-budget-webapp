@@ -4,7 +4,7 @@ import { badRequest } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import { type Prisma, type RecurrenceRule, type Transaction } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { resolveSettlementDate, startOfMonthUtc } from '../transactions/reference-month';
+import { startOfMonthUtc } from '../transactions/reference-month';
 import { type TransactionRefInput, TransactionValidator } from '../transactions/validators/transaction-validator';
 
 import { CancelInstallmentPlanResultDto } from './dto/cancel-installment-plan-result.dto';
@@ -67,15 +67,15 @@ export class InstallmentsService {
         },
       });
 
-      const data: Prisma.TransactionCreateManyInput[] = occurrences.map((date, index) => ({
+      const data: Prisma.TransactionCreateManyInput[] = occurrences.map((settlementDate, index) => ({
         userId,
         type,
         amount: split[index]!,
         description: dto.description,
         notes: null,
-        date,
-        referenceMonth: startOfMonthUtc(date),
-        settlementDate: resolveSettlementDate(date, startOfMonthUtc(date), isCreditCard),
+        date: dto.purchaseDate,
+        referenceMonth: startOfMonthUtc(settlementDate),
+        settlementDate,
         isCreditCard,
         accountId: dto.accountId ?? null,
         categoryId: dto.categoryId ?? null,
@@ -100,7 +100,7 @@ export class InstallmentsService {
     return { rule: toRuleDto(rule), installments: installments.map(toInstallmentDto) };
   }
 
-  /** Deletes installments after today and deactivates the rule; today and past transactions stay. */
+  /** Deletes installments settling after today and deactivates the rule; today and past transactions stay. */
   async cancelPlan(userId: string, ruleId: string): Promise<CancelInstallmentPlanResultDto> {
     const rule = assertOwnership(await this.prisma.recurrenceRule.findUnique({ where: { id: ruleId } }), userId);
 
@@ -112,7 +112,7 @@ export class InstallmentsService {
 
     const deleted = await this.prisma.$transaction(async (tx) => {
       const result = await tx.transaction.deleteMany({
-        where: { recurrenceRuleId: ruleId, date: { gt: cancellationDate } },
+        where: { recurrenceRuleId: ruleId, settlementDate: { gt: cancellationDate } },
       });
 
       await tx.recurrenceRule.update({ where: { id: ruleId }, data: { isActive: false } });

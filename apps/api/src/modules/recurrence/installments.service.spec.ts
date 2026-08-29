@@ -109,12 +109,16 @@ describe('InstallmentsService.createPlan', () => {
     expect(result.rule.totalAmount).toBe(10_000);
   });
 
-  it('clamps a plan starting on the 31st to the 28th in February (non-leap year)', async () => {
+  it('keeps the purchase date while settlement dates and reference months follow each occurrence', async () => {
     const { service } = setup();
 
-    const result = await service.createPlan(userId, validDto({ firstPaymentDate: new Date('2027-01-31T00:00:00.000Z'), installments: 2 }));
+    const result = await service.createPlan(
+      userId,
+      validDto({ purchaseDate: new Date('2026-12-20T00:00:00.000Z'), firstPaymentDate: new Date('2027-01-31T00:00:00.000Z'), installments: 2 }),
+    );
 
-    expect(result.installments.map((i) => i.date)).toEqual(['2027-01-31', '2027-02-28']);
+    expect(result.installments.map((i) => i.date)).toEqual(['2026-12-20', '2026-12-20']);
+    expect(result.installments.map((i) => i.settlementDate)).toEqual(['2027-01-31', '2027-02-28']);
     expect(result.installments.map((i) => i.referenceMonth)).toEqual(['2027-01-01', '2027-02-01']);
   });
 
@@ -135,7 +139,7 @@ describe('InstallmentsService.createPlan', () => {
 
     expect(result.installments.every((i) => i.source === 'RECURRING')).toBe(true);
     expect(result.installments.every((i) => i.recurrenceRuleId === ruleId)).toBe(true);
-    expect(result.rule.generatedUntil).toBe(result.installments.at(-1)!.date);
+    expect(result.rule.generatedUntil).toBe(result.installments.at(-1)!.settlementDate);
   });
 
   it('validates references before writing anything', async () => {
@@ -170,7 +174,7 @@ describe('InstallmentsService.cancelPlan', () => {
     await expect(service.cancelPlan(userId, ruleId)).rejects.toThrow(BadRequestException);
   });
 
-  it('deletes installments dated after today regardless of status and deactivates the rule', async () => {
+  it('deletes installments settling after today regardless of status and deactivates the rule', async () => {
     const { service, findUnique, tx } = setup();
     findUnique.mockResolvedValue({ id: ruleId, userId, totalOccurrences: 3 });
     tx.transaction.deleteMany.mockResolvedValue({ count: 2 });
@@ -179,7 +183,7 @@ describe('InstallmentsService.cancelPlan', () => {
 
     expect(result).toEqual({ deleted: 2 });
     expect(tx.transaction.deleteMany).toHaveBeenCalledWith({
-      where: { recurrenceRuleId: ruleId, date: { gt: expect.any(Date) as Date } },
+      where: { recurrenceRuleId: ruleId, settlementDate: { gt: expect.any(Date) as Date } },
     });
     expect(tx.recurrenceRule.update).toHaveBeenCalledWith({ where: { id: ruleId }, data: { isActive: false } });
   });
