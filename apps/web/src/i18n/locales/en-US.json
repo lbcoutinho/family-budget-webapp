@@ -519,6 +519,13 @@
     "expense": "Expenses",
     "expenseExcludesCashboxes": "excluding transfers and cashboxes",
     "monthNet": "Month balance",
+    "monthMovements": "Monthly movements",
+    "cashboxDeposits": "Cashbox deposits",
+    "cashboxWithdrawals": "Cashbox withdrawals",
+    "monthlyClose": "Monthly close",
+    "previousBalance": "Previous balance",
+    "closingBalance": "Balance",
+    "filtersUnaffected": "unaffected by filters",
     "loadMore": "Load more",
     "loadingMore": "Loading more…",
     "type": {

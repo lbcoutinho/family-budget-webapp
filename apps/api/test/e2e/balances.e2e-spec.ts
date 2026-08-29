@@ -248,5 +248,21 @@ describe('Balances API (e2e)', () => {
       expect(april).toMatchObject({ accountBalance: 2_200 });
       expect(april.accounts.map((account) => account.accountId)).toContain(late.id);
     });
+
+    it('includes movements recorded retrospectively for an account created after the closing month', async () => {
+      const late = await prisma.account.create({ data: { userId, name: 'Retroactive', createdAt: new Date('2026-08-01') } });
+      await Promise.all([
+        seed({ type: 'INCOME', amount: 3_000, accountId: late.id, date: new Date('2026-07-01'), referenceMonth: new Date('2026-07-01') }),
+        seed({ type: 'EXPENSE', amount: 1_000, accountId: late.id, date: new Date('2026-07-02'), referenceMonth: new Date('2026-07-01') }),
+      ]);
+
+      const july = (await authed('get', '/reports/monthly-balance?year=2026&month=7').expect(200)).body as {
+        accountBalance: number;
+        accounts: { accountId: string; balance: number }[];
+      };
+
+      expect(july.accountBalance).toBe(3_500);
+      expect(july.accounts).toContainEqual({ accountId: late.id, balance: 2_000, isActive: true, name: 'Retroactive' });
+    });
   });
 });

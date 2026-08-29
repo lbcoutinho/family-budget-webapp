@@ -170,6 +170,10 @@
   grid-template-columns: 48px minmax(0, 1fr) auto auto;
 }
 
+@utility grid-cols-month-ledger {
+  grid-template-columns: minmax(0, 1fr) 20rem;
+}
+
 @utility duration-ui {
   transition-duration: 200ms;
 }

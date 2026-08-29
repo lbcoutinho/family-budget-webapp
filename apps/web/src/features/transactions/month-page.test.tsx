@@ -1,6 +1,7 @@
 import {
   type AccountBalanceDto,
   type CashboxBalanceDto,
+  type MonthlyBalanceDto,
   type TransactionListDto,
   type TransactionListItemDto,
   TransactionStatus,
@@ -100,6 +101,15 @@ function page(items: TransactionListItemDto[], overrides: Partial<TransactionLis
 
 const ACCOUNT_BALANCES: AccountBalanceDto[] = [{ accountId: 'account-1', name: 'Millennium', isActive: true, initialBalance: 0, balance: 348215 }];
 const CASHBOX_BALANCES: CashboxBalanceDto[] = [{ cashboxId: 'cashbox-1', name: 'Holiday fund', isActive: true, targetAmount: null, balance: 415000 }];
+const MONTHLY_BALANCE: MonthlyBalanceDto = {
+  year: 2026,
+  month: 7,
+  previousAccountBalance: 300000,
+  accountBalance: 348215,
+  accounts: ACCOUNT_BALANCES.map(({ accountId, name, isActive, balance }) => ({ accountId, name, isActive, balance })),
+  cashboxBalance: 415000,
+  netWorth: 763215,
+};
 
 function renderPage(initialEntry = '/month/2026/07') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -140,13 +150,9 @@ describe('MonthPage', () => {
 
   afterEach(() => vi.useRealTimers());
 
-  // Every render mounts `BalancePanel`, so every test needs these two handled — most don't care
-  // about the actual numbers, only that the request doesn't trip `onUnhandledRequest: 'error'`.
+  // The historical side panel is independent from the ledger and is present in every state.
   beforeEach(() => {
-    server.use(
-      http.get('/api/accounts/balances', () => HttpResponse.json(ACCOUNT_BALANCES)),
-      http.get('/api/cashboxes/balances', () => HttpResponse.json(CASHBOX_BALANCES)),
-    );
+    server.use(http.get('/api/reports/monthly-balance', () => HttpResponse.json(MONTHLY_BALANCE)));
   });
 
   it('loads confirmed entries and drafts separately for the route reference month', async () => {
@@ -172,6 +178,20 @@ describe('MonthPage', () => {
     expect(requests).toHaveLength(2);
     expect(requests.map((request) => request.searchParams.get('referenceMonth'))).toEqual(['2026-07-01', '2026-07-01']);
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
+  });
+
+  it('keeps historical assets and the close ahead of the ledger for an empty month', async () => {
+    server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+
+    renderPage();
+
+    const balance = (await screen.findAllByText(formatCents(348215)))[0]!;
+    const close = screen.getByRole('heading', { name: 'Fechamento mensal' });
+    const ledger = screen.getByRole('searchbox', { name: 'Buscar lançamentos' });
+    expect(balance.compareDocumentPosition(ledger)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(close.compareDocumentPosition(ledger)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.getByText('Saldo anterior')).toBeInTheDocument();
+    expect(screen.getByText('Nada lançado em Julho de 2026')).toBeInTheDocument();
   });
 
   it('filters the confirmed ledger to every transaction before an active chart boundary', async () => {
@@ -406,7 +426,7 @@ describe('MonthPage', () => {
     expect(screen.getByText('Despesas dia a dia')).toBeInTheDocument();
     expect(screen.getByText('altura = quanto saiu · cada cor = uma categoria daquele dia')).toBeInTheDocument();
     expect(await screen.findByText('Millennium')).toBeInTheDocument();
-    expect(screen.getByText(formatCents(348215))).toBeInTheDocument();
+    expect(screen.getAllByText(formatCents(348215))).not.toHaveLength(0);
     expect(screen.getByText('Caixinhas')).toBeInTheDocument();
     expect(screen.getByText('Total consolidado')).toBeInTheDocument();
     expect(screen.getByText(formatCents(348215 + 415000))).toBeInTheDocument();

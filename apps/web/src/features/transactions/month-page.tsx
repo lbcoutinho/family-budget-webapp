@@ -1,6 +1,7 @@
 import {
   getListAccountBalancesQueryKey,
   getListCashboxBalancesQueryKey,
+  getGetMonthlyBalanceQueryKey,
   getListTransactionsQueryOptions,
   getListTransactionsQueryKey,
   listTransactions,
@@ -49,10 +50,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { BalancePanel } from '@/features/balances/balance-panel';
 import { CashboxOperationDialog } from '@/features/transactions/cashbox-operation-dialog';
 import { DailyExpenseStrip, getDailyExpensesQueryKey, type DateFilter } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
+import { MonthBalancePanel } from '@/features/transactions/month-balance-panel';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
@@ -325,6 +326,32 @@ function EntriesSkeleton() {
   );
 }
 
+function MovementSummary({ totals }: { totals: { incomeTotal: number; expenseTotal: number; cashboxInTotal: number; cashboxOutTotal: number } | undefined }) {
+  const { t } = useTranslation();
+  const rows = [
+    [t('transactions.income'), totals?.incomeTotal ?? 0, 'text-income'],
+    [t('transactions.expense'), -(totals?.expenseTotal ?? 0), 'text-destructive'],
+    [t('transactions.cashboxDeposits'), -(totals?.cashboxInTotal ?? 0), 'text-cashbox'],
+    [t('transactions.cashboxWithdrawals'), totals?.cashboxOutTotal ?? 0, 'text-cashbox'],
+  ] as const;
+
+  return (
+    <section aria-labelledby="month-movements" className="rounded-xl border bg-card p-4 shadow-sm">
+      <h2 id="month-movements" className="font-semibold">
+        {t('transactions.monthMovements')}
+      </h2>
+      <div className="mt-3 grid gap-x-5 gap-y-2 sm:grid-cols-2">
+        {rows.map(([label, value, tone]) => (
+          <div key={label} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted-foreground">{label}</span>
+            <span className={`num font-semibold ${tone}`}>{formatCents(value, { sign: true })}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /** The month ledger keeps confirmed data paginated while drafts stay visibly separate and excluded from totals. */
 export function MonthPage() {
   const { year, month } = useParams();
@@ -371,6 +398,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
   };
   const restore = useCreateTransaction({
@@ -428,7 +456,8 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     ...(accountFilter ? { accountId: accountFilter } : {}),
     ...dayFilter,
   };
-  const hasActiveFilters = search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined;
+  const hasActiveFilters =
+    search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined || selectedDateFilter !== undefined;
   const activeFilterCount = Number(typeFilter !== undefined) + Number(categoryFilter !== undefined) + Number(accountFilter !== undefined);
   const clearFilters = () => {
     setSearchInput('');
@@ -436,6 +465,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     setTypeFilter(undefined);
     setCategoryFilter(undefined);
     setAccountFilter(undefined);
+    setSelectedDateFilter(undefined);
   };
   const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, sort, ...activeFilters };
   const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, sort, ...activeFilters };
@@ -527,242 +557,260 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
       <PageContent className="space-y-4">
         <DailyExpenseStrip referenceMonth={referenceMonth} selectedFilterId={selectedDateFilter?.id} onToggleFilter={toggleDateFilter} />
 
-        <BalancePanel />
-
-        <Popover.Root>
-          <div className="relative flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-1 flex-wrap items-center gap-2">
-              <div className="relative w-full sm:w-58">
-                <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  aria-label={t('transactions.search')}
-                  placeholder={t('transactions.search')}
-                  className="pl-8 text-field"
-                />
-              </div>
-              <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-field">
-                <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
-                {t('transactions.showPersonalNotes')}
-              </label>
-            </div>
-            <Popover.Trigger asChild>
-              <Button variant="outline" size="sm" className="text-field">
-                <FilterIcon className="size-3.5" />
-                {t('transactions.filters.menu')}
-                {activeFilterCount ? ` (${activeFilterCount})` : ''}
-              </Button>
-            </Popover.Trigger>
-            <Popover.Anchor className="absolute right-0 bottom-0" />
-            <Popover.Content
-              align="end"
-              side="bottom"
-              sideOffset={8}
-              className="z-50 grid min-w-72 gap-2 rounded-md border bg-popover p-3 text-popover-foreground shadow-md"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-field text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
-                <FilterSelect
-                  value={typeFilter}
-                  onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
-                  allLabel={t('transactions.filters.type')}
-                  ariaLabel={t('transactions.filters.typeAriaLabel')}
-                  options={typeOptions}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-field text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
-                <FilterSelect
-                  value={categoryFilter}
-                  onChange={setCategoryFilter}
-                  allLabel={t('transactions.filters.category')}
-                  ariaLabel={t('transactions.filters.categoryAriaLabel')}
-                  options={categoryOptions}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-field text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
-                <FilterSelect
-                  value={accountFilter}
-                  onChange={setAccountFilter}
-                  allLabel={t('transactions.filters.account')}
-                  ariaLabel={t('transactions.filters.accountAriaLabel')}
-                  options={accountOptions}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-field text-muted-foreground">{t('transactions.sort.label')}</label>
-                <FilterSelect
-                  value={sort}
-                  onChange={(value) => setSort(value as TransactionSort)}
-                  ariaLabel={t('transactions.sort.label')}
-                  options={[
-                    { id: TransactionSort.newest, name: t('transactions.sort.newest') },
-                    { id: TransactionSort.oldest, name: t('transactions.sort.oldest') },
-                    { id: TransactionSort.amountHighest, name: t('transactions.sort.amountHighest') },
-                    { id: TransactionSort.amountLowest, name: t('transactions.sort.amountLowest') },
-                    { id: TransactionSort.description, name: t('transactions.sort.description') },
-                  ]}
-                />
-              </div>
-              {activeFilterCount > 0 ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-center text-field"
-                  onClick={() => {
-                    setTypeFilter(undefined);
-                    setCategoryFilter(undefined);
-                    setAccountFilter(undefined);
-                  }}
-                >
-                  <RotateCcwIcon />
-                  {t('transactions.filters.clear')}
-                </Button>
-              ) : null}
-            </Popover.Content>
+        <div className="grid items-start gap-4 lg:grid-cols-month-ledger">
+          <div className="space-y-3 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1">
+            <MonthBalancePanel year={referenceMonth.getFullYear()} month={referenceMonth.getMonth() + 1} />
           </div>
-        </Popover.Root>
-
-        {loading ? <EntriesSkeleton /> : null}
-        {failed ? (
-          <EmptyState
-            icon={CalendarDaysIcon}
-            title={t('transactions.error.title')}
-            description={t('transactions.error.description')}
-            action={
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  void confirmed.refetch();
-                  void drafts.refetch();
-                }}
-              >
-                {t('common.retry')}
-              </Button>
-            }
-          />
-        ) : null}
-        {!loading && !failed && !hasEntries && hasActiveFilters ? (
-          <EmptyState
-            icon={SearchIcon}
-            title={t('transactions.filters.empty.title')}
-            description={t('transactions.filters.empty.description')}
-            action={
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                {t('transactions.filters.empty.clear')}
-              </Button>
-            }
-          />
-        ) : null}
-        {!loading && !failed && !hasEntries && !hasActiveFilters ? (
-          <EmptyState
-            icon={CalendarDaysIcon}
-            title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}
-            description={t('transactions.empty.description')}
-            action={
-              <Button size="sm" onClick={() => setEntryDialogOpen(true)}>
-                {t('transactions.new')}
-              </Button>
-            }
-          />
-        ) : null}
-        {!loading && !failed && hasEntries ? (
-          <section aria-labelledby="month-entries" className="overflow-hidden rounded-lg border">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
-              <h2 id="month-entries" className="font-semibold">
-                {t('transactions.entries')}
-              </h2>
-              <p className="text-table-header text-muted-foreground">
-                {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
-              </p>
-            </div>
-            <div>
-              {allEntries.map((entry) => (
-                <article
-                  key={entry.id}
-                  className={`group grid grid-cols-month-entry items-center gap-x-3 gap-y-1 border-b border-l-entry-accent px-4 py-2.5 pl-entry-content hover:bg-muted shell:grid-cols-month-entry-shell shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
-                  style={{
-                    borderLeftColor:
-                      entry.category?.color ??
-                      (entry.type === TransactionType.CASHBOX_TRANSFER ? 'var(--transfer)' : isCashboxOperation(entry.type) ? 'var(--cashbox)' : 'transparent'),
-                  }}
+          <section aria-label={t('transactions.entries')} className="space-y-3 lg:col-start-1 lg:row-start-1">
+            <Popover.Root>
+              <div className="relative flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-1 flex-wrap items-center gap-2">
+                  <div className="relative w-full sm:w-58">
+                    <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      value={searchInput}
+                      onChange={(event) => setSearchInput(event.target.value)}
+                      aria-label={t('transactions.search')}
+                      placeholder={t('transactions.search')}
+                      className="pl-8 text-field"
+                    />
+                  </div>
+                  <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-field">
+                    <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
+                    {t('transactions.showPersonalNotes')}
+                  </label>
+                </div>
+                <Popover.Trigger asChild>
+                  <Button variant="outline" size="sm" className="text-field">
+                    <FilterIcon className="size-3.5" />
+                    {t('transactions.filters.menu')}
+                    {activeFilterCount ? ` (${activeFilterCount})` : ''}
+                  </Button>
+                </Popover.Trigger>
+                <Popover.Anchor className="absolute right-0 bottom-0" />
+                <Popover.Content
+                  align="end"
+                  side="bottom"
+                  sideOffset={8}
+                  className="z-50 grid min-w-72 gap-2 rounded-md border bg-popover p-3 text-popover-foreground shadow-md"
                 >
-                  <time className={`num text-field text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
-                    {formatEntryDate(entry.date)}
-                  </time>
-                  <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
-                    <EntryMeta entry={entry} accountNames={accountNames} showPersonalNotes={showPersonalNotes} />
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-field text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
+                    <FilterSelect
+                      value={typeFilter}
+                      onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+                      allLabel={t('transactions.filters.type')}
+                      ariaLabel={t('transactions.filters.typeAriaLabel')}
+                      options={typeOptions}
+                    />
                   </div>
-                  <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
-                    <EntryAmount entry={entry} />
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-field text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
+                    <FilterSelect
+                      value={categoryFilter}
+                      onChange={setCategoryFilter}
+                      allLabel={t('transactions.filters.category')}
+                      ariaLabel={t('transactions.filters.categoryAriaLabel')}
+                      options={categoryOptions}
+                    />
                   </div>
-                  <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
-                    {entry.status === TransactionStatus.DRAFT ? (
-                      <Button
-                        size="icon-xs"
-                        aria-label={t('transactions.confirm')}
-                        className="opacity-50 transition-opacity group-hover:opacity-100"
-                        onClick={() => confirm.mutate({ id: entry.id, data: { status: TransactionStatus.CONFIRMED } })}
-                        disabled={confirm.isPending}
-                      >
-                        <CheckIcon />
-                      </Button>
-                    ) : null}
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-field text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
+                    <FilterSelect
+                      value={accountFilter}
+                      onChange={setAccountFilter}
+                      allLabel={t('transactions.filters.account')}
+                      ariaLabel={t('transactions.filters.accountAriaLabel')}
+                      options={accountOptions}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-field text-muted-foreground">{t('transactions.sort.label')}</label>
+                    <FilterSelect
+                      value={sort}
+                      onChange={(value) => setSort(value as TransactionSort)}
+                      ariaLabel={t('transactions.sort.label')}
+                      options={[
+                        { id: TransactionSort.newest, name: t('transactions.sort.newest') },
+                        { id: TransactionSort.oldest, name: t('transactions.sort.oldest') },
+                        { id: TransactionSort.amountHighest, name: t('transactions.sort.amountHighest') },
+                        { id: TransactionSort.amountLowest, name: t('transactions.sort.amountLowest') },
+                        { id: TransactionSort.description, name: t('transactions.sort.description') },
+                      ]}
+                    />
+                  </div>
+                  {activeFilterCount > 0 ? (
                     <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label={t('common.edit')}
-                      className="opacity-50 transition-opacity group-hover:opacity-100"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-center text-field"
                       onClick={() => {
-                        setEditing(entry);
-                        if (isCashboxOperation(entry.type)) setCashboxOperationDialogOpen(true);
-                        else setEntryDialogOpen(true);
+                        setTypeFilter(undefined);
+                        setCategoryFilter(undefined);
+                        setAccountFilter(undefined);
                       }}
                     >
-                      <PencilIcon />
+                      <RotateCcwIcon />
+                      {t('transactions.filters.clear')}
                     </Button>
+                  ) : null}
+                </Popover.Content>
+              </div>
+            </Popover.Root>
+
+            <MovementSummary totals={firstPage} />
+
+            {loading ? <EntriesSkeleton /> : null}
+            {failed ? (
+              <EmptyState
+                icon={CalendarDaysIcon}
+                title={t('transactions.error.title')}
+                description={t('transactions.error.description')}
+                action={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      void confirmed.refetch();
+                      void drafts.refetch();
+                    }}
+                  >
+                    {t('common.retry')}
+                  </Button>
+                }
+              />
+            ) : null}
+            {!loading && !failed && !hasEntries && hasActiveFilters ? (
+              <EmptyState
+                icon={SearchIcon}
+                title={t('transactions.filters.empty.title')}
+                description={t('transactions.filters.empty.description')}
+                action={
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    {t('transactions.filters.empty.clear')}
+                  </Button>
+                }
+              />
+            ) : null}
+            {!loading && !failed && !hasEntries && !hasActiveFilters ? (
+              <EmptyState
+                icon={CalendarDaysIcon}
+                title={t('transactions.empty.title', { month: formatMonth(referenceMonth) })}
+                description={t('transactions.empty.description')}
+                action={
+                  <Button size="sm" onClick={() => setEntryDialogOpen(true)}>
+                    {t('transactions.new')}
+                  </Button>
+                }
+              />
+            ) : null}
+            {!loading && !failed && hasEntries ? (
+              <section aria-labelledby="month-entries" className="overflow-hidden rounded-lg border">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
+                  <h2 id="month-entries" className="font-semibold">
+                    {t('transactions.entries')}
+                  </h2>
+                  <p className="text-table-header text-muted-foreground">
+                    {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
+                  </p>
+                </div>
+                <div>
+                  {allEntries.map((entry) => (
+                    <article
+                      key={entry.id}
+                      className={`group grid grid-cols-month-entry items-center gap-x-3 gap-y-1 border-b border-l-entry-accent px-4 py-2.5 pl-entry-content hover:bg-muted shell:grid-cols-month-entry-shell shell:gap-y-0 ${entry.status === TransactionStatus.DRAFT ? 'bg-muted/60' : ''}`}
+                      style={{
+                        borderLeftColor:
+                          entry.category?.color ??
+                          (entry.type === TransactionType.CASHBOX_TRANSFER
+                            ? 'var(--transfer)'
+                            : isCashboxOperation(entry.type)
+                              ? 'var(--cashbox)'
+                              : 'transparent'),
+                      }}
+                    >
+                      <time className={`num text-field text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
+                        {formatEntryDate(entry.date)}
+                      </time>
+                      <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
+                        <EntryMeta entry={entry} accountNames={accountNames} showPersonalNotes={showPersonalNotes} />
+                      </div>
+                      <div className={`text-right ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
+                        <EntryAmount entry={entry} />
+                      </div>
+                      <div className="col-start-2 col-end-4 flex justify-self-end shell:col-auto shell:justify-self-auto">
+                        {entry.status === TransactionStatus.DRAFT ? (
+                          <Button
+                            size="icon-xs"
+                            aria-label={t('transactions.confirm')}
+                            className="opacity-50 transition-opacity group-hover:opacity-100"
+                            onClick={() => confirm.mutate({ id: entry.id, data: { status: TransactionStatus.CONFIRMED } })}
+                            disabled={confirm.isPending}
+                          >
+                            <CheckIcon />
+                          </Button>
+                        ) : null}
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={t('common.edit')}
+                          className="opacity-50 transition-opacity group-hover:opacity-100"
+                          onClick={() => {
+                            setEditing(entry);
+                            if (isCashboxOperation(entry.type)) setCashboxOperationDialogOpen(true);
+                            else setEntryDialogOpen(true);
+                          }}
+                        >
+                          <PencilIcon />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={t('common.delete')}
+                          className="opacity-50 transition-opacity group-hover:opacity-100"
+                          onClick={() => setDeleting(entry)}
+                        >
+                          <Trash2Icon />
+                        </Button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                {confirmed.hasNextPage ? (
+                  <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-field">
                     <Button
                       variant="ghost"
-                      size="icon-xs"
-                      aria-label={t('common.delete')}
-                      className="opacity-50 transition-opacity group-hover:opacity-100"
-                      onClick={() => setDeleting(entry)}
+                      size="sm"
+                      className="text-field"
+                      onClick={() => void confirmed.fetchNextPage()}
+                      disabled={confirmed.isFetchingNextPage}
                     >
-                      <Trash2Icon />
+                      {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
                     </Button>
                   </div>
-                </article>
-              ))}
-            </div>
-            {confirmed.hasNextPage ? (
-              <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-field">
-                <Button variant="ghost" size="sm" className="text-field" onClick={() => void confirmed.fetchNextPage()} disabled={confirmed.isFetchingNextPage}>
-                  {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
-                </Button>
-              </div>
+                ) : null}
+                <footer className="bg-muted/70 px-4 py-3 text-table-cell">
+                  <div className="flex justify-between">
+                    <span>{t('transactions.income')}</span>
+                    <span className="num text-income">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
+                  </div>
+                  <div className="mt-1 flex justify-between">
+                    <span>
+                      {t('transactions.expense')}{' '}
+                      <small className="text-table-header text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
+                    </span>
+                    <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
+                  </div>
+                  <div className="mt-2 flex justify-between border-t pt-2 font-display text-month-total font-bold tracking-headline">
+                    <span>{t('transactions.monthNet')}</span>
+                    <span className={`num ${netTotal >= 0 ? 'text-income' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
+                  </div>
+                </footer>
+              </section>
             ) : null}
-            <footer className="bg-muted/70 px-4 py-3 text-table-cell">
-              <div className="flex justify-between">
-                <span>{t('transactions.income')}</span>
-                <span className="num text-income">{formatCents(firstPage?.incomeTotal ?? 0, { sign: true })}</span>
-              </div>
-              <div className="mt-1 flex justify-between">
-                <span>
-                  {t('transactions.expense')} <small className="text-table-header text-muted-foreground">{t('transactions.expenseExcludesCashboxes')}</small>
-                </span>
-                <span className="num text-destructive">{formatCents(-(firstPage?.expenseTotal ?? 0), { sign: true })}</span>
-              </div>
-              <div className="mt-2 flex justify-between border-t pt-2 font-display text-month-total font-bold tracking-headline">
-                <span>{t('transactions.monthNet')}</span>
-                <span className={`num ${netTotal >= 0 ? 'text-income' : 'text-destructive'}`}>{formatCents(netTotal, { sign: true })}</span>
-              </div>
-            </footer>
           </section>
-        ) : null}
+        </div>
       </PageContent>
       <EntryDialog
         open={entryDialogOpen}
