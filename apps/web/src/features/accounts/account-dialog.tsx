@@ -107,7 +107,7 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
               inputMode="decimal"
               className="text-right tabular-nums"
               aria-invalid={errors.initialBalance !== undefined}
-              aria-describedby={errors.initialBalance ? 'account-initial-balance-error' : 'account-initial-balance-hint'}
+              aria-describedby={errors.initialBalance ? 'account-initial-balance-error' : undefined}
               disabled={isPending}
               {...register('initialBalance', {
                 // The whole "mask": re-format from the parsed cents once the user leaves the field,
@@ -125,11 +125,7 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
               <span id="account-initial-balance-error" className="text-xs text-destructive">
                 {t(errors.initialBalance.message as TranslationKey)}
               </span>
-            ) : (
-              <span id="account-initial-balance-hint" className="text-xs text-muted-foreground">
-                {t('accounts.form.initialBalanceHint')}
-              </span>
-            )}
+            ) : null}
           </div>
 
           {error !== undefined && error !== null && (

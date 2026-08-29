@@ -7,9 +7,14 @@ action accent raised the question of whether a pre-selected type would contradic
 colour. It does not: nearly every entry is an expense, and pre-selecting saves an interaction.
 
 All five approved as prototyped: type as a segmented control at the top of the dialog; cashbox
-operations kept out of this form; reference month revealed only by the credit-card checkbox and
-suggesting the following month; date and amount before classification; optimistic insert with
-rollback.
+operations kept out of this form; date and amount before classification; optimistic insert with rollback.
+
+Issue #284 reopens one credit-card detail for approval. Card expenses expose distinct **purchase**
+and **settlement** dates instead of an editable reference month. Settlement suggests the first day
+of the month after purchase, including year rollover, but remains editable. Once edited, changing
+only the purchase date preserves settlement. Settlement cannot precede purchase; its month becomes
+the reference month and it determines when the expense enters balances. Non-card entries use their
+single date as both purchase and settlement date.
 
 Two of the prototype's own open decisions were settled during #169, which fixed the shipped dialog
 back onto the approved design:

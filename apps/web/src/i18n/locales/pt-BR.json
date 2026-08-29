@@ -104,7 +104,6 @@
       "nameRequired": "Informe o nome da conta.",
       "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
       "initialBalance": "Saldo inicial",
-      "initialBalanceHint": "Aceita 1.234,56 e 1234.56.",
       "initialBalanceInvalid": "Informe um valor válido."
     },
     "deactivate": {
@@ -605,7 +604,6 @@
       "notesTooLong": "A nota pessoal pode ter no máximo 1.000 caracteres.",
       "amount": "Valor",
       "amountPlaceholder": "0,00",
-      "amountHint": "Aceita 1.234,56 e 1234.56.",
       "creditCard": "Compra no cartão de crédito",
       "referenceMonth": "Mês de referência",
       "referenceMonthHint": "O mês em que o lançamento entra nos relatórios. Compras no cartão usam o mês seguinte por padrão.",

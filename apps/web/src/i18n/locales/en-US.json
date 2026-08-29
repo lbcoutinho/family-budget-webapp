@@ -104,7 +104,6 @@
       "nameRequired": "Enter the account's name.",
       "nameTooLong": "The name can have at most 80 characters.",
       "initialBalance": "Initial balance",
-      "initialBalanceHint": "Accepts 1,234.56 and 1.234,56.",
       "initialBalanceInvalid": "Enter a valid amount."
     },
     "deactivate": {
@@ -605,7 +604,6 @@
       "notesTooLong": "Personal note must be at most 1,000 characters.",
       "amount": "Amount",
       "amountPlaceholder": "0.00",
-      "amountHint": "Accepts 1,234.56 and 1.234,56.",
       "creditCard": "Credit card purchase",
       "referenceMonth": "Reference month",
       "referenceMonthHint": "The month when this entry appears in reports. Credit card purchases default to the following month.",

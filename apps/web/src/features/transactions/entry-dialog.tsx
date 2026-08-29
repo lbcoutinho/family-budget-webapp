@@ -545,7 +545,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   inputMode="decimal"
                   className="text-right tabular-nums"
                   placeholder={t(formKey('transactions.form.amountPlaceholder'))}
-                  aria-describedby={`entry-amount-hint${errors.amount ? ' entry-amount-error' : ''}`}
+                  aria-describedby={errors.amount ? 'entry-amount-error' : undefined}
                   aria-invalid={errors.amount !== undefined}
                   disabled={activeMutation.isPending}
                   {...register('amount', {
@@ -555,9 +555,6 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                     },
                   })}
                 />
-                <p id="entry-amount-hint" className="text-xs text-muted-foreground">
-                  {t(formKey('transactions.form.amountHint'))}
-                </p>
                 <FieldError id="entry-amount-error" error={errors.amount?.message} />
               </div>
             </div>
