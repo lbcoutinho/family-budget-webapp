@@ -113,6 +113,19 @@ describe('Installments API (e2e)', () => {
 
       expect(plan.installments).toHaveLength(10);
       expect(plan.installments.reduce((sum, i) => sum + (i.amount ?? 0), 0)).toBe(10_000);
+      expect(plan.installments.map((i) => i.date)).toEqual(Array(10).fill('2026-01-01'));
+      expect(plan.installments.map((i) => i.settlementDate)).toEqual([
+        '2026-01-15',
+        '2026-02-15',
+        '2026-03-15',
+        '2026-04-15',
+        '2026-05-15',
+        '2026-06-15',
+        '2026-07-15',
+        '2026-08-15',
+        '2026-09-15',
+        '2026-10-15',
+      ]);
 
       const referenceMonths = plan.installments.map((i) => i.referenceMonth);
       expect(referenceMonths).toEqual([
@@ -135,7 +148,7 @@ describe('Installments API (e2e)', () => {
       expect(plan.installments.every((i) => i.notes === null)).toBe(true);
       expect(plan.installments.every((i) => i.source === 'RECURRING')).toBe(true);
       expect(plan.installments.every((i) => i.recurrenceRuleId === plan.rule.id)).toBe(true);
-      expect(plan.rule.generatedUntil).toBe(plan.installments.at(-1)!.date);
+      expect(plan.rule.generatedUntil).toBe(plan.installments.at(-1)!.settlementDate);
     });
 
     it('exposes recurrenceRuleId/installmentNumber/installmentTotal on the general transaction detail and list endpoints too', async () => {
@@ -164,10 +177,10 @@ describe('Installments API (e2e)', () => {
 
     it('bills the 28th (29th in a leap year) in February for a plan starting on the 31st', async () => {
       const plan = await createPlan(validBody({ firstPaymentDate: '2027-01-31', installments: 2 }));
-      expect(plan.installments.map((i) => i.date)).toEqual(['2027-01-31', '2027-02-28']);
+      expect(plan.installments.map((i) => i.settlementDate)).toEqual(['2027-01-31', '2027-02-28']);
 
       const leapYearPlan = await createPlan(validBody({ firstPaymentDate: '2028-01-31', installments: 2 }));
-      expect(leapYearPlan.installments.map((i) => i.date)).toEqual(['2028-01-31', '2028-02-29']);
+      expect(leapYearPlan.installments.map((i) => i.settlementDate)).toEqual(['2028-01-31', '2028-02-29']);
     });
 
     it('produces DRAFT installments when autoConfirm is false, and they are excluded from balances', async () => {
@@ -229,16 +242,16 @@ describe('Installments API (e2e)', () => {
   });
 
   describe('cancel', () => {
-    it('deletes future CONFIRMED and DRAFT installments, keeps yesterday and today, and deactivates the rule', async () => {
+    it('deletes installments settling in the future, keeps yesterday and today, and deactivates the rule', async () => {
       const today = new Date();
       const date = (offset: number): Date => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + offset));
 
       const plan = await createPlan(validBody({ installments: 4 }));
       await Promise.all([
-        prisma.transaction.update({ where: { id: plan.installments[0]!.id }, data: { date: date(-1) } }),
-        prisma.transaction.update({ where: { id: plan.installments[1]!.id }, data: { date: date(0) } }),
-        prisma.transaction.update({ where: { id: plan.installments[2]!.id }, data: { date: date(1) } }),
-        prisma.transaction.update({ where: { id: plan.installments[3]!.id }, data: { date: date(1), status: 'DRAFT' } }),
+        prisma.transaction.update({ where: { id: plan.installments[0]!.id }, data: { settlementDate: date(-1) } }),
+        prisma.transaction.update({ where: { id: plan.installments[1]!.id }, data: { settlementDate: date(0) } }),
+        prisma.transaction.update({ where: { id: plan.installments[2]!.id }, data: { settlementDate: date(1) } }),
+        prisma.transaction.update({ where: { id: plan.installments[3]!.id }, data: { settlementDate: date(1), status: 'DRAFT' } }),
       ]);
 
       const result = (await authed('post', `/recurrence-rules/${plan.rule.id}/cancel-installments`).expect(200)).body as CancelInstallmentPlanResultDto;
@@ -246,7 +259,10 @@ describe('Installments API (e2e)', () => {
 
       const remaining = await prisma.transaction.findMany({ where: { recurrenceRuleId: plan.rule.id }, orderBy: { installmentNumber: 'asc' } });
       expect(remaining).toHaveLength(2);
-      expect(remaining.map((r) => r.date.toISOString().slice(0, 10))).toEqual([date(-1).toISOString().slice(0, 10), date(0).toISOString().slice(0, 10)]);
+      expect(remaining.map((r) => r.settlementDate.toISOString().slice(0, 10))).toEqual([
+        date(-1).toISOString().slice(0, 10),
+        date(0).toISOString().slice(0, 10),
+      ]);
 
       const rule = await prisma.recurrenceRule.findUniqueOrThrow({ where: { id: plan.rule.id } });
       expect(rule.isActive).toBe(false);
