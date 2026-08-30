@@ -22,6 +22,13 @@ interface Row {
   description: string;
   amount: number;
   type: 'INCOME' | 'EXPENSE';
+  suggestion?: CategorySuggestion;
+}
+interface CategorySuggestion {
+  categoryId: string;
+  categoryName: string;
+  subcategoryId: string;
+  subcategoryName: string;
 }
 type Outcome = CsvImportResultDto & { rows: Row[] };
 
@@ -54,6 +61,8 @@ export class CsvImportService {
               type: row.type,
               status: 'DRAFT',
               source: 'IMPORT_CSV',
+              categoryId: row.suggestion?.categoryId,
+              subcategoryId: row.suggestion?.subcategoryId,
             })),
           });
         }
@@ -85,14 +94,53 @@ export class CsvImportService {
     const parsed = parseRows(file, model);
     const existing = await db.transaction.findMany({
       where: { accountId: dto.accountId },
-      select: { date: true, type: true, amount: true, description: true },
+      select: {
+        date: true,
+        type: true,
+        amount: true,
+        description: true,
+        status: true,
+        categoryId: true,
+        subcategoryId: true,
+        category: { select: { name: true, isActive: true } },
+        subcategory: { select: { name: true, isActive: true } },
+      },
     });
     const counts = new Map<string, number>();
+    const suggestions = new Map<string, CategorySuggestion | null>();
 
     for (const transaction of existing) {
       if (transaction.amount !== null && (transaction.type === 'INCOME' || transaction.type === 'EXPENSE')) {
         const key = fingerprint(transaction.date, transaction.type, transaction.amount, transaction.description);
         counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+
+      if (
+        transaction.status === 'CONFIRMED' &&
+        transaction.categoryId !== null &&
+        transaction.subcategoryId !== null &&
+        transaction.category !== null &&
+        transaction.subcategory !== null
+      ) {
+        const description = normalizeDescription(transaction.description);
+        const suggestion = {
+          categoryId: transaction.categoryId,
+          categoryName: transaction.category.name,
+          subcategoryId: transaction.subcategoryId,
+          subcategoryName: transaction.subcategory.name,
+        };
+        const current = suggestions.get(description);
+
+        if (current === undefined) {
+          suggestions.set(description, transaction.category.isActive && transaction.subcategory.isActive ? suggestion : null);
+        } else if (
+          current?.categoryId !== suggestion.categoryId ||
+          current?.subcategoryId !== suggestion.subcategoryId ||
+          !transaction.category.isActive ||
+          !transaction.subcategory.isActive
+        ) {
+          suggestions.set(description, null);
+        }
       }
     }
 
@@ -107,6 +155,7 @@ export class CsvImportService {
       if (occurrence <= (counts.get(key) ?? 0)) {
         outcome.duplicate.push(resultRow(row));
       } else {
+        row.suggestion = suggestions.get(normalizeDescription(row.description)) ?? undefined;
         outcome.new.push(resultRow(row));
         outcome.rows.push(row);
       }
@@ -194,7 +243,19 @@ export function parseRows(
 }
 
 function resultRow(row: Row): CsvImportRowDto {
-  return { line: row.line, date: row.date.toISOString().slice(0, 10), description: row.description, amount: row.amount, type: row.type };
+  return {
+    line: row.line,
+    date: row.date.toISOString().slice(0, 10),
+    description: row.description,
+    amount: row.amount,
+    type: row.type,
+    ...(row.suggestion && {
+      suggestedCategoryId: row.suggestion.categoryId,
+      suggestedCategoryName: row.suggestion.categoryName,
+      suggestedSubcategoryId: row.suggestion.subcategoryId,
+      suggestedSubcategoryName: row.suggestion.subcategoryName,
+    }),
+  };
 }
 
 function mappedColumns(
@@ -233,5 +294,9 @@ function parseAmount(value: string | undefined): number | null {
 }
 
 export function fingerprint(date: Date, type: 'INCOME' | 'EXPENSE', amount: number, description: string): string {
-  return `${date.toISOString().slice(0, 10)}|${type}|${amount}|${description.trim().replace(/\s+/g, ' ').toLocaleLowerCase()}`;
+  return `${date.toISOString().slice(0, 10)}|${type}|${amount}|${normalizeDescription(description)}`;
+}
+
+function normalizeDescription(description: string): string {
+  return description.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
 }

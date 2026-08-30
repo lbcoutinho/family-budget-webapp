@@ -418,6 +418,8 @@
       "settlementDate": "Data de liquidação",
       "descriptionColumn": "Descrição",
       "amount": "Valor",
+      "category": "Categoria",
+      "subcategory": "Subcategoria",
       "status": "Situação",
       "reason": "Motivo",
       "newRow": "nova",
