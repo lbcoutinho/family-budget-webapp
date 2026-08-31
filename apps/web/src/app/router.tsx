@@ -1,18 +1,22 @@
+import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { NotFoundPlaceholder, RoutePlaceholder } from '@/components/layout/route-placeholder';
-import { AccountsPage } from '@/features/accounts/accounts-page';
 import { LoginPage } from '@/features/auth/login-page';
 import { ProtectedRoute } from '@/features/auth/protected-route';
-import { CashboxesPage } from '@/features/cashboxes/cashboxes-page';
-import { CategoriesPage } from '@/features/categories/categories-page';
-import { RecurrencesPage } from '@/features/recurrences/recurrences-page';
-import { ReportsPage } from '@/features/reports/reports-page';
-import { GeneralSettingsPage } from '@/features/settings/general-settings-page';
-import { CsvImportPage } from '@/features/transactions/csv-import-page';
-import { MonthPage } from '@/features/transactions/month-page';
 import { currentMonthPath } from '@/lib/date';
+
+const AccountsPage = lazy(() => import('@/features/accounts/accounts-page').then(({ AccountsPage }) => ({ default: AccountsPage })));
+const CashboxesPage = lazy(() => import('@/features/cashboxes/cashboxes-page').then(({ CashboxesPage }) => ({ default: CashboxesPage })));
+const CategoriesPage = lazy(() => import('@/features/categories/categories-page').then(({ CategoriesPage }) => ({ default: CategoriesPage })));
+const RecurrencesPage = lazy(() => import('@/features/recurrences/recurrences-page').then(({ RecurrencesPage }) => ({ default: RecurrencesPage })));
+const ReportsPage = lazy(() => import('@/features/reports/reports-page').then(({ ReportsPage }) => ({ default: ReportsPage })));
+const GeneralSettingsPage = lazy(() =>
+  import('@/features/settings/general-settings-page').then(({ GeneralSettingsPage }) => ({ default: GeneralSettingsPage })),
+);
+const CsvImportPage = lazy(() => import('@/features/transactions/csv-import-page').then(({ CsvImportPage }) => ({ default: CsvImportPage })));
+const MonthPage = lazy(() => import('@/features/transactions/month-page').then(({ MonthPage }) => ({ default: MonthPage })));
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.

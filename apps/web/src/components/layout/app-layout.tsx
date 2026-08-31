@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { AppSidebar } from './app-sidebar';
 import { SidebarContext, type SidebarContextValue } from './sidebar-context';
 
+import { LoadingSpinner } from '@/components/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useRecurrenceCatchUp } from '@/features/recurrence/use-recurrence-catch-up';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -98,7 +99,9 @@ export function AppLayout() {
         )}
 
         <div inert={isCompact && isOpen} className="flex min-w-0 flex-col">
-          <Outlet />
+          <Suspense fallback={<LoadingSpinner className="min-h-svh" />}>
+            <Outlet />
+          </Suspense>
         </div>
       </div>
     </SidebarContext>
