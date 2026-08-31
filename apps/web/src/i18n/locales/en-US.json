@@ -699,16 +699,18 @@
     },
     "charts": {
       "donutTitle": "{{month}} distribution",
-      "donutHint": "click a slice to open the filtered month",
+      "donutHint": "select a slice to open the filtered month",
       "donutTotalLabel": "month's expenses",
       "donutTotalPartial": "{{shown}} of {{total}} categories",
       "stackTitle": "{{year}}, month by month",
-      "stackHint": "stacked by category",
+      "stackHint": "stacked by category — select a segment to open its filtered month",
       "lineTitle": "Income × expense",
       "lineHint": "{{year}}, by reference month",
       "income": "Income",
       "expense": "Expenses",
-      "toggleSeries": "Toggle {{name}}"
+      "toggleSeries": "Toggle {{name}}",
+      "openCategory": "Open {{name}} in the filtered month",
+      "openMonth": "Open {{name}} in {{month}}"
     },
     "cashboxes": {
       "title": "Cashboxes in {{year}}",

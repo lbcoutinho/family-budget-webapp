@@ -1,6 +1,6 @@
 import { type BalancesReportDto, type MonthlyReportDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -199,7 +199,7 @@ describe('ReportsPage — monthly view', () => {
     expect(router.state.location.pathname).toBe('/month/2026/07');
     expect(router.state.location.search).toBe('?categoryId=cat-housing');
     expect(await screen.findByRole('button', { name: 'Mês anterior' })).toBeInTheDocument();
-    expect(requests.some((url) => url.searchParams.get('categoryId') === 'cat-housing')).toBe(true);
+    await waitFor(() => expect(requests.some((url) => url.searchParams.get('categoryId') === 'cat-housing')).toBe(true));
   });
 });
 
