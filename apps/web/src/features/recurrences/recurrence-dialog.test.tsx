@@ -149,7 +149,7 @@ describe('RecurrenceDialog', () => {
       ['Descrição', 'rule-description-error'],
       ['Valor', 'rule-amount-error'],
       ['Início', 'rule-start-error'],
-    ]) {
+    ] as const) {
       const control = screen.getByLabelText(label);
       expect(control).toHaveAttribute('aria-invalid', 'true');
       expect(control).toHaveAttribute('aria-describedby', errorId);

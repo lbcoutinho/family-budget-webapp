@@ -120,7 +120,7 @@ describe('InstallmentDialog', () => {
       ['Subcategoria', 'installment-subcategory-error'],
       ['Descrição', 'installment-description-error'],
       ['Valor total', 'installment-total-error'],
-    ]) {
+    ] as const) {
       const control = screen.getByLabelText(label);
       expect(control).toHaveAttribute('aria-invalid', 'true');
       expect(control).toHaveAttribute('aria-describedby', errorId);
