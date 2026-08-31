@@ -1,6 +1,6 @@
 import { type AccountDto, type CategoryDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -104,7 +104,29 @@ describe('InstallmentDialog', () => {
     await user.tab();
 
     expect(await screen.findByText('Precisa de ao menos 2 parcelas.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Parcelas')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Parcelas')).toHaveAttribute('aria-describedby', 'installment-count-error');
+    expect(document.getElementById('installment-count-error')).toHaveTextContent('Precisa de ao menos 2 parcelas.');
   }, 10000);
+
+  it('associates each required-field error with its installment control', () => {
+    const { container } = renderDialog();
+
+    fireEvent.submit(container.querySelector('form')!);
+
+    for (const [label, errorId] of [
+      ['Conta', 'installment-account-error'],
+      ['Categoria', 'installment-category-error'],
+      ['Subcategoria', 'installment-subcategory-error'],
+      ['Descrição', 'installment-description-error'],
+      ['Valor total', 'installment-total-error'],
+    ]) {
+      const control = screen.getByLabelText(label);
+      expect(control).toHaveAttribute('aria-invalid', 'true');
+      expect(control).toHaveAttribute('aria-describedby', errorId);
+      expect(document.getElementById(errorId)).not.toBeNull();
+    }
+  });
 
   it('sends the purchase date and first payment date as separate fields', async () => {
     const { user, onSubmit } = renderDialog();
