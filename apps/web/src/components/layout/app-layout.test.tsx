@@ -143,7 +143,7 @@ describe('AppLayout', () => {
     await user.click(screen.getByRole('link', { name: 'Caixinhas' }));
 
     expect(sidebar).toHaveAttribute('data-open', 'false');
-    expect(screen.getByRole('heading', { name: 'Caixinhas' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Caixinhas' })).toBeInTheDocument();
   });
 
   it('closes the drawer on Escape', async () => {
