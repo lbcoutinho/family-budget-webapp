@@ -18,7 +18,7 @@ describe('DialogContent', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Fechar' })).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toHaveClass('max-h-[calc(100dvh-2rem)]', 'overflow-y-auto');
+    expect(screen.getByRole('dialog')).toHaveClass('max-h-dvh', 'overflow-y-auto');
     expect(screen.getByText('Teste').parentElement).toHaveClass('sticky', 'top-0');
     expect(screen.getByRole('button', { name: 'Fechar' }).parentElement).toHaveClass('sticky', 'bottom-0');
   });
