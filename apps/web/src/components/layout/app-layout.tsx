@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
 
@@ -24,12 +24,17 @@ export function AppLayout() {
   useRecurrenceCatchUp();
   const isCompact = useMediaQuery(COMPACT);
   const [isOpen, setIsOpen] = useState(false);
+  const menuTrigger = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(false);
   const { pathname } = useLocation();
 
   const [lastPathname, setLastPathname] = useState(pathname);
 
   const close = useCallback(() => setIsOpen(false), []);
-  const open = useCallback(() => setIsOpen(true), []);
+  const open = useCallback(() => {
+    menuTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setIsOpen(true);
+  }, []);
 
   // Choosing a destination closes the drawer. Keyed on the route rather than on the click so a
   // navigation from anywhere — a link in the content, the browser's back button — closes it too.
@@ -63,6 +68,17 @@ export function AppLayout() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      wasOpen.current = true;
+    } else if (wasOpen.current) {
+      if (menuTrigger.current?.isConnected) {
+        menuTrigger.current.focus();
+      }
+      wasOpen.current = false;
+    }
+  }, [isOpen]);
+
   const sidebar = useMemo<SidebarContextValue>(() => ({ isOpen, isCompact, open, close }), [isOpen, isCompact, open, close]);
 
   return (
@@ -75,12 +91,13 @@ export function AppLayout() {
             variant="ghost"
             size="icon"
             aria-label={t('nav.closeMenu')}
+            tabIndex={-1}
             onClick={close}
             className="fixed inset-0 z-30 h-auto w-auto cursor-default rounded-none bg-foreground/35 hover:bg-foreground/35 animate-in fade-in"
           />
         )}
 
-        <div className="flex min-w-0 flex-col">
+        <div inert={isCompact && isOpen} className="flex min-w-0 flex-col">
           <Outlet />
         </div>
       </div>
