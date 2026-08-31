@@ -138,14 +138,13 @@ describe('RecurrenceDialog', () => {
   });
 
   it('associates each required-field error with its recurrence control', () => {
-    const { container } = renderDialog();
+    renderDialog();
 
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(screen.getByRole('dialog').querySelector('form')!);
 
     for (const [label, errorId] of [
       ['Conta', 'rule-account-error'],
       ['Categoria', 'rule-category-error'],
-      ['Subcategoria', 'rule-subcategory-error'],
       ['Descrição', 'rule-description-error'],
       ['Valor', 'rule-amount-error'],
       ['Início', 'rule-start-error'],

@@ -17,9 +17,10 @@ describe('DialogContent', () => {
       </Dialog>,
     );
 
-    expect(screen.getByRole('button', { name: 'Fechar' })).toBeInTheDocument();
+    const closeButtons = screen.getAllByRole('button', { name: 'Fechar' });
+    expect(closeButtons).toHaveLength(2);
     expect(screen.getByRole('dialog')).toHaveClass('max-h-dvh', 'overflow-y-auto');
     expect(screen.getByText('Teste').parentElement).toHaveClass('sticky', 'top-0');
-    expect(screen.getByRole('button', { name: 'Fechar' }).parentElement).toHaveClass('sticky', 'bottom-0');
+    expect(closeButtons[0]!.parentElement).toHaveClass('sticky', 'bottom-0');
   });
 });

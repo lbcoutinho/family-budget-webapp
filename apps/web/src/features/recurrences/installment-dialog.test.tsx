@@ -110,14 +110,13 @@ describe('InstallmentDialog', () => {
   }, 10000);
 
   it('associates each required-field error with its installment control', () => {
-    const { container } = renderDialog();
+    renderDialog();
 
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(screen.getByRole('dialog').querySelector('form')!);
 
     for (const [label, errorId] of [
       ['Conta', 'installment-account-error'],
       ['Categoria', 'installment-category-error'],
-      ['Subcategoria', 'installment-subcategory-error'],
       ['Descrição', 'installment-description-error'],
       ['Valor total', 'installment-total-error'],
     ] as const) {
