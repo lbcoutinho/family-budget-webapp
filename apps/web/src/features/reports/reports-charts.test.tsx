@@ -89,6 +89,7 @@ function renderReports(initialEntry = '/reports?view=charts&year=2026&month=7') 
 
   return {
     user: userEvent.setup(),
+    router,
     ...render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -154,6 +155,40 @@ describe('ReportsPage — charts view', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'false');
     // Only Lazer (180,00 €) remains — the centre total no longer counts Moradia.
     expect(within(donut).getByTestId('donut-total')).toHaveTextContent('180,00 €');
+  });
+
+  it('opens the filtered month when a donut segment is activated by keyboard', async () => {
+    const { router, user } = renderReports();
+
+    const segment = await screen.findByRole('button', { name: 'Abrir Moradia no mês filtrado' });
+    segment.focus();
+    await user.keyboard('{Enter}');
+
+    expect(router.state.location.pathname).toBe('/month/2026/07');
+    expect(router.state.location.search).toBe('?categoryId=cat-housing');
+  });
+
+  it('opens the matching category and month when a stacked-bar segment is activated by keyboard', async () => {
+    const { router, user } = renderReports();
+
+    const segment = await screen.findByRole('button', { name: 'Abrir Moradia em Janeiro de 2026' });
+    segment.focus();
+    await user.keyboard(' ');
+
+    expect(router.state.location.pathname).toBe('/month/2026/01');
+    expect(router.state.location.search).toBe('?categoryId=cat-housing');
+  });
+
+  it('keeps keyboard drill-down controls aligned with visible stacked-bar segments', async () => {
+    const { user } = renderReports();
+
+    expect(await screen.findByRole('button', { name: 'Abrir Moradia em Janeiro de 2026' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Abrir Moradia em Agosto de 2026' })).not.toBeInTheDocument();
+
+    const stack = screen.getByRole('heading', { name: '2026, mês a mês' }).closest('section')!;
+    await user.click(within(stack).getByRole('button', { name: 'Ligar ou desligar Moradia' }));
+
+    expect(within(stack).queryByRole('button', { name: 'Abrir Moradia em Janeiro de 2026' })).not.toBeInTheDocument();
   });
 
   it('shows an empty state instead of an empty chart frame when a period has no data', async () => {
