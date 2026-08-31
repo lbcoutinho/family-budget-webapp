@@ -153,7 +153,7 @@ function DonutCard({
   const referenceDate = new Date(year, month - 1, 1);
 
   return (
-    <div>
+    <div className="relative">
       <div className="flex flex-wrap items-center gap-5">
         <div className="relative hidden size-report-chart flex-none sm:block">
           <ResponsiveContainer width="100%" height="100%">
@@ -236,6 +236,20 @@ function DonutCard({
 
       <Legend items={categories.map((category) => ({ key: category.key, name: category.name, color: category.color }))} hidden={hidden} onToggle={toggle} />
 
+      {categories
+        .filter((category): category is CategorySlice & { id: string } => category.id !== null && !hidden.has(category.key))
+        .map((category) => (
+          <Button
+            key={category.key}
+            variant="outline"
+            size="xs"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-10"
+            onClick={() => onOpenCategory(category.id)}
+          >
+            {t('reports.charts.openCategory', { name: category.name })}
+          </Button>
+        ))}
+
       <p className="mt-2 text-report-caption text-muted-foreground">{t('reports.charts.donutHint', { month: formatMonth(referenceDate) })}</p>
     </div>
   );
@@ -246,12 +260,14 @@ function DonutCard({
  * (including empty ones — no month is skipped for having no movement).
  */
 function StackCard({
+  year,
   categories,
   months,
   hidden,
   onToggle,
   onOpenMonth,
 }: {
+  year: number;
   categories: CategorySlice[];
   months: { monthIndex: number; byCategory: Record<string, number> }[];
   hidden: ReadonlySet<string>;
@@ -271,7 +287,7 @@ function StackCard({
   }));
 
   return (
-    <div>
+    <div className="relative">
       <div className="h-report-chart w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} barCategoryGap="20%">
@@ -306,6 +322,23 @@ function StackCard({
         </ResponsiveContainer>
       </div>
       <Legend items={categories.map((category) => ({ key: category.key, name: category.name, color: category.color }))} hidden={hidden} onToggle={onToggle} />
+      {categories
+        .filter((category): category is CategorySlice & { id: string } => category.id !== null && !hidden.has(category.key))
+        .flatMap((category) =>
+          months
+            .filter((month) => (month.byCategory[category.key] ?? 0) > 0)
+            .map(({ monthIndex }) => (
+              <Button
+                key={`${category.key}-${monthIndex}`}
+                variant="outline"
+                size="xs"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-10"
+                onClick={() => onOpenMonth(category.id, monthIndex)}
+              >
+                {t('reports.charts.openMonth', { name: category.name, month: formatMonth(new Date(year, monthIndex, 1)) })}
+              </Button>
+            )),
+        )}
       <p className="mt-2 text-report-caption text-muted-foreground">{t('reports.charts.stackHint')}</p>
     </div>
   );
@@ -447,7 +480,7 @@ export function ReportsCharts({ year, month }: ReportsChartsProps) {
           <h2 id="reports-charts-stack" className="mb-3 font-semibold">
             {t('reports.charts.stackTitle', { year })}
           </h2>
-          <StackCard categories={stackCategories} months={stackMonths} hidden={hiddenYearly} onToggle={toggleYearly} onOpenMonth={openMonth} />
+          <StackCard year={year} categories={stackCategories} months={stackMonths} hidden={hiddenYearly} onToggle={toggleYearly} onOpenMonth={openMonth} />
         </section>
 
         <section aria-labelledby="reports-charts-line" className="overflow-hidden rounded-lg border p-4">
