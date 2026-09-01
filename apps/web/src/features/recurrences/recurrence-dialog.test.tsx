@@ -137,10 +137,11 @@ describe('RecurrenceDialog', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('associates each required-field error with its recurrence control', () => {
+  it('associates each required-field error with its recurrence control', async () => {
     renderDialog();
 
     fireEvent.submit(screen.getByRole('dialog').querySelector('form')!);
+    await screen.findAllByText('Preencha este campo.');
 
     for (const [label, errorId] of [
       ['Conta', 'rule-account-error'],

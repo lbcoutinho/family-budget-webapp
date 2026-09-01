@@ -109,10 +109,11 @@ describe('InstallmentDialog', () => {
     expect(document.getElementById('installment-count-error')).toHaveTextContent('Precisa de ao menos 2 parcelas.');
   }, 10000);
 
-  it('associates each required-field error with its installment control', () => {
+  it('associates each required-field error with its installment control', async () => {
     renderDialog();
 
     fireEvent.submit(screen.getByRole('dialog').querySelector('form')!);
+    await screen.findAllByText('Preencha este campo.');
 
     for (const [label, errorId] of [
       ['Conta', 'installment-account-error'],
