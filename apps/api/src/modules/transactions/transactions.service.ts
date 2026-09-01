@@ -11,7 +11,7 @@ import { ListTransactionsQueryDto, TransactionSort } from './dto/list-transactio
 import { TransactionListDto, type TransactionListItemDto } from './dto/transaction-list.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { resolveReferenceMonthOnCreate, resolveReferenceMonthOnUpdate, resolveSettlementDate, startOfMonthUtc } from './reference-month';
+import { startOfMonthUtc } from './reference-month';
 import { type ResolvedTransactionRefs, type TransactionRefInput, TransactionValidator } from './validators/transaction-validator';
 
 const LIST_INCLUDE = {
@@ -28,11 +28,11 @@ type ListedTransaction = Prisma.TransactionGetPayload<{ include: typeof LIST_INC
  * leading column(s) could skip or repeat a row across pages.
  */
 const SORT_ORDER_BY: Record<TransactionSort, Prisma.TransactionOrderByWithRelationInput[]> = {
-  [TransactionSort.NEWEST]: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-  [TransactionSort.OLDEST]: [{ date: 'asc' }, { createdAt: 'asc' }, { id: 'desc' }],
-  [TransactionSort.AMOUNT_HIGHEST]: [{ amount: 'desc' }, { date: 'desc' }, { id: 'desc' }],
-  [TransactionSort.AMOUNT_LOWEST]: [{ amount: 'asc' }, { date: 'desc' }, { id: 'desc' }],
-  [TransactionSort.DESCRIPTION]: [{ description: 'asc' }, { date: 'desc' }, { id: 'desc' }],
+  [TransactionSort.NEWEST]: [{ settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+  [TransactionSort.OLDEST]: [{ settlementDate: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+  [TransactionSort.AMOUNT_HIGHEST]: [{ amount: 'desc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+  [TransactionSort.AMOUNT_LOWEST]: [{ amount: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+  [TransactionSort.DESCRIPTION]: [{ description: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
 };
 
 /**
@@ -97,10 +97,12 @@ export class TransactionsService {
     const refs = await this.validator.validate(userId, dto, { requireActive: true });
 
     const isCreditCard = dto.isCreditCard ?? false;
-    const legacyReferenceMonth = resolveReferenceMonthOnCreate({ date: dto.date, referenceMonth: dto.referenceMonth });
-    const settlementDate = resolveSettlementDate(dto.date, legacyReferenceMonth, isCreditCard, dto.settlementDate);
+    if (isCreditCard && dto.type !== 'EXPENSE')
+      throw badRequest('TRANSACTION_CREDIT_CARD_EXPENSE_ONLY', 'isCreditCard is only valid for EXPENSE transactions.');
+    if (isCreditCard && !dto.settlementDate) throw badRequest('TRANSACTION_SETTLEMENT_DATE_REQUIRED', 'Settlement date is required for credit-card expenses.');
+    const settlementDate = isCreditCard ? dto.settlementDate! : dto.date;
     assertSettlementIsNotBeforeDate(dto.date, settlementDate, isCreditCard);
-    const referenceMonth = dto.settlementDate && isCreditCard ? startOfMonthUtc(settlementDate) : legacyReferenceMonth;
+    const referenceMonth = startOfMonthUtc(settlementDate);
     const cashboxIds = collectCashboxIds(refs.cashbox?.id, refs.destinationCashbox?.id);
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -167,15 +169,13 @@ export class TransactionsService {
       refs = await this.validator.validate(userId, mergedRefs, { requireActive: true });
     }
 
-    const legacyReferenceMonth = resolveReferenceMonthOnUpdate(
-      { date: current.date, referenceMonth: current.referenceMonth, isCreditCard: current.isCreditCard },
-      { date: dto.date, referenceMonth: dto.referenceMonth, isCreditCard: dto.isCreditCard },
-    );
     const date = dto.date ?? current.date;
     const isCreditCard = dto.isCreditCard ?? current.isCreditCard;
+    if (isCreditCard && current.type !== 'EXPENSE')
+      throw badRequest('TRANSACTION_CREDIT_CARD_EXPENSE_ONLY', 'isCreditCard is only valid for EXPENSE transactions.');
     const settlementDate = isCreditCard ? (dto.settlementDate ?? current.settlementDate) : date;
     assertSettlementIsNotBeforeDate(date, settlementDate, isCreditCard);
-    const referenceMonth = dto.settlementDate && isCreditCard ? startOfMonthUtc(settlementDate) : legacyReferenceMonth;
+    const referenceMonth = startOfMonthUtc(settlementDate);
 
     // Re-snapshotting the label only when the id field itself was patched — not merely because the
     // validator ran for some other reason — is what ADR-0019 means by "kept in sync ... never
@@ -249,7 +249,7 @@ export class TransactionsService {
       status: query.status ?? 'CONFIRMED',
       ...(query.referenceMonth ? { referenceMonth: startOfMonthUtc(query.referenceMonth) } : {}),
       ...(query.dateFrom !== undefined || query.dateTo !== undefined
-        ? { date: { ...(query.dateFrom !== undefined ? { gte: query.dateFrom } : {}), ...(query.dateTo !== undefined ? { lte: query.dateTo } : {}) } }
+        ? { settlementDate: { ...(query.dateFrom !== undefined ? { gte: query.dateFrom } : {}), ...(query.dateTo !== undefined ? { lte: query.dateTo } : {}) } }
         : {}),
       ...(query.type ? { type: { in: query.type } } : {}),
       ...(query.accountId ? { accountId: query.accountId } : {}),

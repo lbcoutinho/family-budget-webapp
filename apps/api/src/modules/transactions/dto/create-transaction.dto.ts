@@ -48,18 +48,6 @@ export class CreateTransactionDto {
   @IsDate({ message: 'settlementDate must be in the form YYYY-MM-DD.' })
   settlementDate?: Date;
 
-  @ApiProperty({
-    type: String,
-    format: 'date',
-    required: false,
-    example: '2026-03-01',
-    description: 'Which month it reports in, `YYYY-MM-DD`. Derived from `date` when omitted, normalized to the 1st when supplied (ADR-0009).',
-  })
-  @IsOptional()
-  @Transform(toDateOnly)
-  @IsDate({ message: 'referenceMonth must be in the form YYYY-MM-DD.' })
-  referenceMonth?: Date;
-
   @ApiProperty({ type: String, maxLength: 200, example: 'Coffee' })
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
@@ -74,7 +62,7 @@ export class CreateTransactionDto {
   @MaxLength(1000)
   notes?: string | null;
 
-  @ApiProperty({ type: Boolean, required: false, default: false, description: 'Drives whether editing `date` recomputes `referenceMonth` (ADR-0009).' })
+  @ApiProperty({ type: Boolean, required: false, default: false, description: 'Valid only for EXPENSE. Card expenses must provide a settlement date.' })
   @IsOptional()
   @IsBoolean()
   isCreditCard?: boolean;

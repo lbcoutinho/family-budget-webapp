@@ -13,8 +13,6 @@ export interface UpdateTransactionDto {
   date?: string;
   /** When the transaction settles. Card expenses cannot settle before their purchase date. */
   settlementDate?: string;
-  /** Which month it reports in, `YYYY-MM-DD`. Derived from `date` when omitted, normalized to the 1st when supplied (ADR-0009). */
-  referenceMonth?: string;
   /** @maxLength 200 */
   description?: string;
   /**
@@ -22,7 +20,7 @@ export interface UpdateTransactionDto {
      * @nullable
      */
   notes?: string | null;
-  /** Drives whether editing `date` recomputes `referenceMonth` (ADR-0009). */
+  /** Valid only for EXPENSE. Card expenses must provide a settlement date. */
   isCreditCard?: boolean;
   accountId?: string;
   /** TRANSFER destination account. */

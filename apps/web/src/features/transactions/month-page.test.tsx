@@ -197,8 +197,15 @@ describe('MonthPage', () => {
 
   it('filters the confirmed ledger to every transaction before an active chart boundary', async () => {
     const start = { ...CONFIRMED, id: 'window-start', date: '2026-07-14', isCreditCard: false, description: 'Window expense' };
-    const before = { ...TRANSFER, id: 'before-window', date: '2026-07-13', description: 'Before window' };
-    const after = { ...CONFIRMED, id: 'after-window', type: TransactionType.INCOME, date: '2026-08-14', description: 'After window' };
+    const before = { ...TRANSFER, id: 'before-window', date: '2026-07-13', settlementDate: '2026-07-13', description: 'Before window' };
+    const after = {
+      ...CONFIRMED,
+      id: 'after-window',
+      type: TransactionType.INCOME,
+      date: '2026-08-14',
+      settlementDate: '2026-08-14',
+      description: 'After window',
+    };
     const filteredRequests: URL[] = [];
 
     server.use(

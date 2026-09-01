@@ -119,25 +119,6 @@ describe('TransactionsService', () => {
       });
     });
 
-    it('normalizes an explicit referenceMonth to the 1st', async () => {
-      doubled.transaction.create.mockResolvedValue(row());
-
-      const dto = { type: 'EXPENSE' as const, amount: 1_000, date: new Date('2026-03-15'), referenceMonth: new Date('2026-04-15'), description: 'Coffee' };
-
-      await service.create(userId, dto);
-
-      expect(doubled.transaction.create).toHaveBeenCalledWith({
-        data: {
-          ...dto,
-          userId,
-          referenceMonth: new Date('2026-04-01'),
-          settlementDate: new Date('2026-03-15'),
-          cashboxLabel: null,
-          destinationCashboxLabel: null,
-        },
-      });
-    });
-
     it('derives a card reference month from its explicit settlement date', async () => {
       doubled.transaction.create.mockResolvedValue(row({ isCreditCard: true }));
       const dto = {
@@ -249,15 +230,15 @@ describe('TransactionsService', () => {
       );
     });
 
-    it('maps dateFrom/dateTo to date: { gte, lte }, only the supplied bound present', async () => {
+    it('maps dateFrom/dateTo to settlementDate: { gte, lte }, only the supplied bound present', async () => {
       await service.findAll(userId, listQuery({ dateFrom: new Date('2026-03-01') }));
       expect(doubled.transaction.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ date: { gte: new Date('2026-03-01') } }) as unknown }),
+        expect.objectContaining({ where: expect.objectContaining({ settlementDate: { gte: new Date('2026-03-01') } }) as unknown }),
       );
 
       await service.findAll(userId, listQuery({ dateTo: new Date('2026-03-31') }));
       expect(doubled.transaction.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ date: { lte: new Date('2026-03-31') } }) as unknown }),
+        expect.objectContaining({ where: expect.objectContaining({ settlementDate: { lte: new Date('2026-03-31') } }) as unknown }),
       );
     });
 
@@ -281,11 +262,11 @@ describe('TransactionsService', () => {
       );
     });
 
-    it('orders by date desc, createdAt desc, id desc, and requests limit + 1 rows', async () => {
+    it('orders by settlement date desc, createdAt desc, id desc, and requests limit + 1 rows', async () => {
       await service.findAll(userId, listQuery({ limit: 20 }));
 
       expect(doubled.transaction.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }], take: 21 }),
+        expect.objectContaining({ orderBy: [{ settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }], take: 21 }),
       );
     });
 
@@ -293,16 +274,16 @@ describe('TransactionsService', () => {
       await service.findAll(userId, { limit: 50, sort: undefined as unknown as TransactionSort });
 
       expect(doubled.transaction.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }] }),
+        expect.objectContaining({ orderBy: [{ settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }] }),
       );
     });
 
     it.each([
-      [TransactionSort.NEWEST, [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
-      [TransactionSort.OLDEST, [{ date: 'asc' }, { createdAt: 'asc' }, { id: 'desc' }]],
-      [TransactionSort.AMOUNT_HIGHEST, [{ amount: 'desc' }, { date: 'desc' }, { id: 'desc' }]],
-      [TransactionSort.AMOUNT_LOWEST, [{ amount: 'asc' }, { date: 'desc' }, { id: 'desc' }]],
-      [TransactionSort.DESCRIPTION, [{ description: 'asc' }, { date: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.NEWEST, [{ settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.OLDEST, [{ settlementDate: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }]],
+      [TransactionSort.AMOUNT_HIGHEST, [{ amount: 'desc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.AMOUNT_LOWEST, [{ amount: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
+      [TransactionSort.DESCRIPTION, [{ description: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]],
     ] as const)('maps sort %s to orderBy %j', async (sort, orderBy) => {
       await service.findAll(userId, listQuery({ sort }));
 

@@ -72,6 +72,8 @@
     "TRANSACTION_CATEGORY_KIND_MISMATCH": "A categoria precisa corresponder ao tipo do lançamento.",
     "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "A subcategoria precisa pertencer à categoria selecionada.",
     "TRANSACTION_SETTLEMENT_BEFORE_DATE": "A liquidação não pode ser anterior à compra.",
+    "TRANSACTION_SETTLEMENT_DATE_REQUIRED": "A data de liquidação é obrigatória para compras no cartão.",
+    "TRANSACTION_CREDIT_CARD_EXPENSE_ONLY": "Apenas despesas podem ser compras no cartão.",
     "CASHBOX_INSUFFICIENT_FUNDS": "Saldo disponível na caixinha: {{amount}}.",
     "RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM": "Uma regra que confirma automaticamente precisa de um valor.",
     "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Informe o valor antes de confirmar este lançamento.",

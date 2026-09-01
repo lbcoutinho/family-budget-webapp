@@ -102,6 +102,7 @@ const BUSINESS_CODE_FIELD: Record<string, keyof EntryFormValues | undefined> = {
   TRANSACTION_CATEGORY_KIND_MISMATCH: 'categoryId',
   TRANSACTION_SUBCATEGORY_PARENT_MISMATCH: 'subcategoryId',
   TRANSACTION_SETTLEMENT_BEFORE_DATE: 'settlementDate',
+  TRANSACTION_SETTLEMENT_DATE_REQUIRED: 'settlementDate',
 };
 
 /** The field errors are deliberately limited to codes that name one unambiguous input. */
