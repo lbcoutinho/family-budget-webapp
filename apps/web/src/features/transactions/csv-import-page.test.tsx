@@ -17,7 +17,17 @@ vi.mock('@family-budget/api-client', () => ({
       api.preview(value);
       options.mutation.onSuccess({
         new: [
-          { line: 3, date: '2026-07-02', description: 'Supermercado Aurora', amount: 8432, type: 'EXPENSE' },
+          {
+            line: 3,
+            date: '2026-07-02',
+            description: 'Supermercado Aurora',
+            amount: 8432,
+            type: 'EXPENSE',
+            suggestedCategoryId: 'category-1',
+            suggestedCategoryName: 'Alimentação',
+            suggestedSubcategoryId: 'subcategory-1',
+            suggestedSubcategoryName: 'Supermercado',
+          },
           { line: 8, date: '2026-07-08', description: 'Cinema', amount: 1800, type: 'EXPENSE' },
         ],
         duplicate: [{ line: 5, date: '2026-07-04', description: 'Farmácia Central', amount: 2240, type: 'EXPENSE', reason: 'Já existe nesta conta' }],
@@ -78,6 +88,11 @@ describe('CsvImportPage', () => {
     expect(screen.getByRole('checkbox', { name: 'duplicada' })).toBeDisabled();
     expect(screen.getByText('02/07/2026')).toBeInTheDocument();
     expect(screen.getByText('Supermercado Aurora')).toBeInTheDocument();
+    expect(screen.getByText('Categoria')).toBeInTheDocument();
+    expect(screen.getByText('Subcategoria')).toBeInTheDocument();
+    expect(screen.getByText('Alimentação')).toBeInTheDocument();
+    expect(screen.getByText('Supermercado')).toBeInTheDocument();
+    expect(screen.getByText('Cinema').closest('tr')).toHaveTextContent('—');
     expect(screen.getByText('− 84,32 €')).toBeInTheDocument();
     expect(screen.getByText('3').closest('td')).toHaveClass('num', 'text-field', 'text-muted-foreground');
     expect(screen.getByText('02/07/2026').closest('td')).toHaveClass('num', 'text-field', 'text-muted-foreground');

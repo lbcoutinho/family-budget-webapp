@@ -16,6 +16,18 @@ export class CsvImportRowDto {
   @ApiProperty({ type: String, enum: ['INCOME', 'EXPENSE'], required: false })
   type?: 'INCOME' | 'EXPENSE';
 
+  @ApiProperty({ type: String, format: 'uuid', required: false })
+  suggestedCategoryId?: string;
+
+  @ApiProperty({ type: String, required: false })
+  suggestedCategoryName?: string;
+
+  @ApiProperty({ type: String, format: 'uuid', required: false })
+  suggestedSubcategoryId?: string;
+
+  @ApiProperty({ type: String, required: false })
+  suggestedSubcategoryName?: string;
+
   @ApiProperty({ type: String, required: false })
   reason?: string;
 }

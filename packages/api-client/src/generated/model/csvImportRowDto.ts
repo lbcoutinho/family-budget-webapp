@@ -15,5 +15,9 @@ export interface CsvImportRowDto {
   /** Always positive, in cents. */
   amount?: number;
   type?: CsvImportRowDtoType;
+  suggestedCategoryId?: string;
+  suggestedCategoryName?: string;
+  suggestedSubcategoryId?: string;
+  suggestedSubcategoryName?: string;
   reason?: string;
 }

@@ -420,6 +420,8 @@
       "settlementDate": "Settlement date",
       "descriptionColumn": "Description",
       "amount": "Amount",
+      "category": "Category",
+      "subcategory": "Subcategory",
       "status": "Status",
       "reason": "Reason",
       "newRow": "new",

@@ -227,6 +227,8 @@ export function CsvImportPage() {
                     <th className="p-3">{t('transactions.import.date')}</th>
                     <th className="p-3">{t('transactions.import.descriptionColumn')}</th>
                     <th className="p-3 text-right">{t('transactions.import.amount')}</th>
+                    <th className="p-3">{t('transactions.import.category')}</th>
+                    <th className="p-3">{t('transactions.import.subcategory')}</th>
                     <th className="p-3">{t('transactions.import.status')}</th>
                     <th className="p-3">{t('transactions.import.reason')}</th>
                   </tr>
@@ -332,6 +334,8 @@ function Row({
           {row.amount === undefined ? '—' : formatCents(row.type === 'EXPENSE' ? -row.amount : row.amount, { sign: true })}
         </span>
       </td>
+      <td className="max-w-48 truncate p-3 text-sm text-muted-foreground">{row.suggestedCategoryName ?? '—'}</td>
+      <td className="max-w-48 truncate p-3 text-sm text-muted-foreground">{row.suggestedSubcategoryName ?? '—'}</td>
       <td className="p-3">
         <Badge
           variant="outline"
