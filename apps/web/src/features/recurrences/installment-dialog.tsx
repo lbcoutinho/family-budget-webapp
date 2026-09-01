@@ -154,7 +154,13 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
             <div className="grid grid-cols-2 gap-3">
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="installment-account">{t(formKey('recurrences.installmentForm.account'))}</Label>
-                <NativeSelect id="installment-account" aria-invalid={errors.accountId !== undefined} disabled={isPending} {...register('accountId')}>
+                <NativeSelect
+                  id="installment-account"
+                  aria-describedby={errors.accountId ? 'installment-account-error' : undefined}
+                  aria-invalid={errors.accountId !== undefined}
+                  disabled={isPending}
+                  {...register('accountId')}
+                >
                   <option value="" />
                   {accounts.map((account) => (
                     <option key={account.id} value={account.id}>
@@ -162,7 +168,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                     </option>
                   ))}
                 </NativeSelect>
-                <FieldError error={errors.accountId?.message} />
+                <FieldError id="installment-account-error" error={errors.accountId?.message} />
               </div>
               <div className="grid gap-1.5">
                 <div className="flex items-center gap-1.5">
@@ -176,8 +182,17 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="installment-count">{t(formKey('recurrences.installmentForm.count'))}</Label>
-                <Input id="installment-count" type="number" min={2} max={120} disabled={isPending} {...register('count')} />
-                <FieldError error={errors.count?.message} />
+                <Input
+                  id="installment-count"
+                  type="number"
+                  min={2}
+                  max={120}
+                  aria-describedby={errors.count ? 'installment-count-error' : undefined}
+                  aria-invalid={errors.count !== undefined}
+                  disabled={isPending}
+                  {...register('count')}
+                />
+                <FieldError id="installment-count-error" error={errors.count?.message} />
               </div>
               <div className="grid gap-1.5">
                 <div className="flex items-center gap-1.5">
@@ -196,6 +211,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 disabled={isPending}
                 categoryError={errors.categoryId?.message}
                 subcategoryError={errors.subcategoryId?.message}
+                idPrefix="installment"
                 onChange={(nextCategory, nextSubcategory) => {
                   setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
                   setValue('subcategoryId', nextSubcategory ?? '');
@@ -206,8 +222,14 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="installment-description">{t(formKey('recurrences.installmentForm.description'))}</Label>
-                <Input id="installment-description" disabled={isPending} {...register('description')} />
-                <FieldError error={errors.description?.message} />
+                <Input
+                  id="installment-description"
+                  aria-describedby={errors.description ? 'installment-description-error' : undefined}
+                  aria-invalid={errors.description !== undefined}
+                  disabled={isPending}
+                  {...register('description')}
+                />
+                <FieldError id="installment-description-error" error={errors.description?.message} />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="installment-total">{t(formKey('recurrences.installmentForm.total'))}</Label>
@@ -215,6 +237,8 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                   id="installment-total"
                   inputMode="decimal"
                   className="text-right tabular-nums"
+                  aria-describedby={errors.total ? 'installment-total-error' : undefined}
+                  aria-invalid={errors.total !== undefined}
                   disabled={isPending}
                   {...register('total', {
                     onBlur: (event: FocusEvent<HTMLInputElement>) => {
@@ -223,7 +247,7 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                     },
                   })}
                 />
-                <FieldError error={errors.total?.message} />
+                <FieldError id="installment-total-error" error={errors.total?.message} />
               </div>
             </div>
 

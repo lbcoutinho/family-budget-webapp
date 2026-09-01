@@ -16,6 +16,7 @@ export interface CategorySelectProps {
   subcategoryError?: string;
   categoryRef?: Ref<HTMLButtonElement>;
   subcategoryRef?: Ref<HTMLButtonElement>;
+  idPrefix?: string;
 }
 
 /** Category + subcategory, two dependent `Select`s. Handles the case where the entry being edited
@@ -33,6 +34,7 @@ export function CategorySelect({
   subcategoryError,
   categoryRef,
   subcategoryRef,
+  idPrefix = 'entry',
 }: CategorySelectProps) {
   const { t } = useTranslation();
 
@@ -50,13 +52,13 @@ export function CategorySelect({
   return (
     <>
       <div className="grid min-w-0 content-start gap-1.5">
-        <Label htmlFor="entry-category">{t('transactions.field.category')}</Label>
+        <Label htmlFor={`${idPrefix}-category`}>{t('transactions.field.category')}</Label>
         <Select value={categoryId} onValueChange={(value) => onChange(value, undefined)} disabled={disabled}>
           <SelectTrigger
             ref={categoryRef}
-            id="entry-category"
+            id={`${idPrefix}-category`}
             className="w-full min-w-0"
-            aria-describedby={categoryError ? 'entry-category-error' : undefined}
+            aria-describedby={categoryError ? `${idPrefix}-category-error` : undefined}
             aria-invalid={categoryError !== undefined}
           >
             <SelectValue placeholder={t('transactions.category.placeholder')} />
@@ -70,17 +72,17 @@ export function CategorySelect({
             ))}
           </SelectContent>
         </Select>
-        <FieldError id="entry-category-error" error={categoryError} />
+        <FieldError id={`${idPrefix}-category-error`} error={categoryError} />
       </div>
 
       <div className="grid min-w-0 content-start gap-1.5">
-        <Label htmlFor="entry-subcategory">{t('transactions.field.subcategory')}</Label>
+        <Label htmlFor={`${idPrefix}-subcategory`}>{t('transactions.field.subcategory')}</Label>
         <Select value={subcategoryId} onValueChange={(value) => onChange(categoryId, value)} disabled={(disabled ?? false) || categoryId === undefined}>
           <SelectTrigger
             ref={subcategoryRef}
-            id="entry-subcategory"
+            id={`${idPrefix}-subcategory`}
             className="w-full min-w-0"
-            aria-describedby={subcategoryError ? 'entry-subcategory-error' : undefined}
+            aria-describedby={subcategoryError ? `${idPrefix}-subcategory-error` : undefined}
             aria-invalid={subcategoryError !== undefined}
           >
             <SelectValue
@@ -96,7 +98,7 @@ export function CategorySelect({
             ))}
           </SelectContent>
         </Select>
-        <FieldError id="entry-subcategory-error" error={subcategoryError} />
+        <FieldError id={`${idPrefix}-subcategory-error`} error={subcategoryError} />
       </div>
     </>
   );
