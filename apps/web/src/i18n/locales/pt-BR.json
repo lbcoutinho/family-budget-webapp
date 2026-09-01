@@ -701,16 +701,18 @@
     },
     "charts": {
       "donutTitle": "Distribuição de {{month}}",
-      "donutHint": "clique numa fatia para abrir o mês filtrado",
+      "donutHint": "selecione uma fatia para abrir o mês filtrado",
       "donutTotalLabel": "despesas do mês",
       "donutTotalPartial": "{{shown}} de {{total}} categorias",
       "stackTitle": "{{year}}, mês a mês",
-      "stackHint": "empilhado por categoria",
+      "stackHint": "empilhado por categoria — selecione um segmento para abrir o mês filtrado",
       "lineTitle": "Receita × despesa",
       "lineHint": "{{year}}, por mês de referência",
       "income": "Receitas",
       "expense": "Despesas",
-      "toggleSeries": "Ligar ou desligar {{name}}"
+      "toggleSeries": "Ligar ou desligar {{name}}",
+      "openCategory": "Abrir {{name}} no mês filtrado",
+      "openMonth": "Abrir {{name}} em {{month}}"
     },
     "cashboxes": {
       "title": "Caixinhas em {{year}}",

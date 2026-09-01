@@ -1,6 +1,6 @@
 import { type AccountDto, type CategoryDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -131,7 +131,30 @@ describe('RecurrenceDialog', () => {
     await user.tab();
 
     expect(await screen.findByText('O dia deve ser entre 1 e 31.')).toBeInTheDocument();
+    expect(day).toHaveAttribute('aria-invalid', 'true');
+    expect(day).toHaveAttribute('aria-describedby', 'rule-day-error');
+    expect(document.getElementById('rule-day-error')).toHaveTextContent('O dia deve ser entre 1 e 31.');
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('associates each required-field error with its recurrence control', async () => {
+    renderDialog();
+
+    fireEvent.submit(screen.getByRole('dialog').querySelector('form')!);
+    await screen.findAllByText('Preencha este campo.');
+
+    for (const [label, errorId] of [
+      ['Conta', 'rule-account-error'],
+      ['Categoria', 'rule-category-error'],
+      ['Descrição', 'rule-description-error'],
+      ['Valor', 'rule-amount-error'],
+      ['Início', 'rule-start-error'],
+    ] as const) {
+      const control = screen.getByLabelText(label);
+      expect(control).toHaveAttribute('aria-invalid', 'true');
+      expect(control).toHaveAttribute('aria-describedby', errorId);
+      expect(document.getElementById(errorId)).not.toBeNull();
+    }
   });
 
   it('rejects an end month before the start month', async () => {

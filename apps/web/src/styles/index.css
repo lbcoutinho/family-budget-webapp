@@ -228,3 +228,17 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Keep state and loading indicators visible while removing spatial and continuous motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}

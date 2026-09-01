@@ -265,7 +265,13 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
             <div className="grid gap-3 md:grid-cols-3">
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="rule-account">{t(formKey('recurrences.ruleForm.account'))}</Label>
-                <NativeSelect id="rule-account" aria-invalid={errors.accountId !== undefined} disabled={isPending} {...register('accountId')}>
+                <NativeSelect
+                  id="rule-account"
+                  aria-describedby={errors.accountId ? 'rule-account-error' : undefined}
+                  aria-invalid={errors.accountId !== undefined}
+                  disabled={isPending}
+                  {...register('accountId')}
+                >
                   <option value="">{t(formKey('recurrences.ruleForm.accountPlaceholder'))}</option>
                   {accounts.map((account) => (
                     <option key={account.id} value={account.id} disabled={!account.isActive && account.id !== rule?.accountId}>
@@ -273,7 +279,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                     </option>
                   ))}
                 </NativeSelect>
-                <FieldError error={errors.accountId?.message} />
+                <FieldError id="rule-account-error" error={errors.accountId?.message} />
               </div>
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="rule-frequency">{t(formKey('recurrences.ruleForm.frequencyLabel'))}</Label>
@@ -284,8 +290,17 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
               </div>
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="rule-day">{t(formKey('recurrences.ruleForm.dayOfMonth'))}</Label>
-                <Input id="rule-day" type="number" min={1} max={31} disabled={isPending} {...register('dayOfMonth')} />
-                <FieldError error={errors.dayOfMonth?.message} />
+                <Input
+                  id="rule-day"
+                  type="number"
+                  min={1}
+                  max={31}
+                  aria-describedby={errors.dayOfMonth ? 'rule-day-error' : undefined}
+                  aria-invalid={errors.dayOfMonth !== undefined}
+                  disabled={isPending}
+                  {...register('dayOfMonth')}
+                />
+                <FieldError id="rule-day-error" error={errors.dayOfMonth?.message} />
               </div>
             </div>
 
@@ -297,6 +312,7 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 disabled={isPending}
                 categoryError={errors.categoryId?.message}
                 subcategoryError={errors.subcategoryId?.message}
+                idPrefix="rule"
                 onChange={(nextCategory, nextSubcategory) => {
                   setValue('categoryId', nextCategory ?? '', { shouldValidate: true });
                   setValue('subcategoryId', nextSubcategory ?? '');
@@ -307,8 +323,14 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
             <div className="grid gap-3 md:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label htmlFor="rule-description">{t(formKey('recurrences.ruleForm.description'))}</Label>
-                <Input id="rule-description" disabled={isPending} {...register('description')} />
-                <FieldError error={errors.description?.message} />
+                <Input
+                  id="rule-description"
+                  aria-describedby={errors.description ? 'rule-description-error' : undefined}
+                  aria-invalid={errors.description !== undefined}
+                  disabled={isPending}
+                  {...register('description')}
+                />
+                <FieldError id="rule-description-error" error={errors.description?.message} />
               </div>
 
               <div className="grid gap-1.5">
@@ -318,6 +340,8 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                   inputMode="decimal"
                   className="text-right tabular-nums"
                   placeholder={t(formKey('recurrences.ruleForm.amountPlaceholder'))}
+                  aria-describedby={errors.amount ? 'rule-amount-error' : undefined}
+                  aria-invalid={errors.amount !== undefined}
                   disabled={isPending}
                   {...register('amount', {
                     onBlur: (event: FocusEvent<HTMLInputElement>) => {
@@ -327,23 +351,37 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                   })}
                 />
                 {!autoConfirm ? <HintTooltip>{t(formKey('recurrences.ruleForm.amountHintVariable'))}</HintTooltip> : null}
-                <FieldError error={errors.amount?.message} />
+                <FieldError id="rule-amount-error" error={errors.amount?.message} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="rule-start">{t(formKey('recurrences.ruleForm.start'))}</Label>
-                <Input id="rule-start" type="month" disabled={isPending} {...register('startMonth')} />
-                <FieldError error={errors.startMonth?.message} />
+                <Input
+                  id="rule-start"
+                  type="month"
+                  aria-describedby={errors.startMonth ? 'rule-start-error' : undefined}
+                  aria-invalid={errors.startMonth !== undefined}
+                  disabled={isPending}
+                  {...register('startMonth')}
+                />
+                <FieldError id="rule-start-error" error={errors.startMonth?.message} />
               </div>
               <div className="grid gap-1.5">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="rule-end">{t(formKey('recurrences.ruleForm.end'))}</Label>
                   <HintTooltip>{t(formKey('recurrences.ruleForm.endHint'))}</HintTooltip>
                 </div>
-                <Input id="rule-end" type="month" disabled={isPending} {...register('endMonth')} />
-                <FieldError error={errors.endMonth?.message} />
+                <Input
+                  id="rule-end"
+                  type="month"
+                  aria-describedby={errors.endMonth ? 'rule-end-error' : undefined}
+                  aria-invalid={errors.endMonth !== undefined}
+                  disabled={isPending}
+                  {...register('endMonth')}
+                />
+                <FieldError id="rule-end-error" error={errors.endMonth?.message} />
               </div>
             </div>
             <div className="flex items-center gap-2.5">

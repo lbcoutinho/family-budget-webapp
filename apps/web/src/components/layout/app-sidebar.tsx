@@ -1,5 +1,5 @@
 import { ChevronRightIcon, LogOutIcon, SettingsIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
@@ -29,6 +29,8 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { isOpen, isCompact, close } = useSidebar();
+  const drawer = useRef<HTMLElement>(null);
+  const logoutButton = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
 
   const onSettingsRoute = SETTINGS_NAV_ITEMS.some((item) => pathname.startsWith(item.to));
@@ -46,8 +48,17 @@ export function AppSidebar() {
     }
   }
 
+  useEffect(() => {
+    if (isCompact && isOpen) {
+      drawer.current?.querySelector<HTMLElement>('a, button')?.focus();
+    }
+  }, [isCompact, isOpen]);
+
   return (
     <aside
+      ref={drawer}
+      role={isCompact ? 'dialog' : undefined}
+      aria-modal={isCompact && isOpen ? true : undefined}
       inert={isCompact && !isOpen}
       data-open={isOpen}
       className={cn(
@@ -71,8 +82,8 @@ export function AppSidebar() {
       </div>
 
       <nav aria-label={t('nav.mainNav')} className="grid gap-0.5">
-        {NAV_ITEMS.map((item) => (
-          <SidebarLink key={item.to} item={item} onNavigate={close} />
+        {NAV_ITEMS.map((item, index) => (
+          <SidebarLink key={item.to} item={item} onNavigate={close} onShiftTab={index === 0 ? () => logoutButton.current?.focus() : undefined} />
         ))}
 
         <Button
@@ -110,7 +121,20 @@ export function AppSidebar() {
           <span className="block truncate text-sidebar-avatar text-muted-foreground">{user?.email}</span>
         </span>
         {/* No confirmation: nothing is lost by leaving, and coming back costs a password. */}
-        <Button variant="ghost" size="icon-sm" title={t('nav.logout')} aria-label={t('nav.logout')} onClick={() => void logout()}>
+        <Button
+          ref={logoutButton}
+          variant="ghost"
+          size="icon-sm"
+          title={t('nav.logout')}
+          aria-label={t('nav.logout')}
+          onClick={() => void logout()}
+          onKeyDown={(event) => {
+            if (isCompact && isOpen && event.key === 'Tab' && !event.shiftKey) {
+              event.preventDefault();
+              drawer.current?.querySelector<HTMLElement>('a, button')?.focus();
+            }
+          }}
+        >
           <LogOutIcon />
         </Button>
       </div>
@@ -118,12 +142,22 @@ export function AppSidebar() {
   );
 }
 
-function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+function SidebarLink({ item, onNavigate, onShiftTab }: { item: NavItem; onNavigate: () => void; onShiftTab?: () => void }) {
   const { t } = useTranslation();
   const Icon = item.icon;
 
   return (
-    <NavLink to={item.to} onClick={onNavigate} className={({ isActive }) => linkClasses(isActive)}>
+    <NavLink
+      to={item.to}
+      onClick={onNavigate}
+      onKeyDown={(event) => {
+        if (onShiftTab && event.key === 'Tab' && event.shiftKey) {
+          event.preventDefault();
+          onShiftTab();
+        }
+      }}
+      className={({ isActive }) => linkClasses(isActive)}
+    >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       <span>{t(item.labelKey)}</span>
     </NavLink>

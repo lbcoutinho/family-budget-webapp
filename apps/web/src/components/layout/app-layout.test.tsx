@@ -128,22 +128,30 @@ describe('AppLayout', () => {
     useCompactViewport();
     const { user } = renderShell();
 
-    const sidebar = screen.getByRole('complementary');
+    const sidebar = screen.getByRole('dialog');
     expect(sidebar).toHaveAttribute('data-open', 'false');
     expect(sidebar).toHaveAttribute('inert');
 
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
     expect(sidebar).toHaveAttribute('data-open', 'true');
     expect(sidebar).not.toHaveAttribute('inert');
+    expect(sidebar).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('link', { name: 'Mês' })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Sair' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Mês' })).toHaveFocus();
 
     await user.click(screen.getByRole('button', { name: 'Fechar menu' }));
     expect(sidebar).toHaveAttribute('data-open', 'false');
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toHaveFocus();
 
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
     await user.click(screen.getByRole('link', { name: 'Caixinhas' }));
 
     expect(sidebar).toHaveAttribute('data-open', 'false');
-    expect(screen.getByRole('heading', { name: 'Caixinhas' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Caixinhas' })).toBeInTheDocument();
   });
 
   it('closes the drawer on Escape', async () => {
@@ -153,7 +161,8 @@ describe('AppLayout', () => {
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
     await user.keyboard('{Escape}');
 
-    expect(screen.getByRole('complementary')).toHaveAttribute('data-open', 'false');
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-open', 'false');
+    expect(screen.getByRole('button', { name: 'Abrir menu' })).toHaveFocus();
   });
 
   it('keeps an unknown address inside the shell', () => {
