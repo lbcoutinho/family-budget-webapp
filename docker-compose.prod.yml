@@ -1,0 +1,109 @@
+name: family-budget-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: family-budget-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env.prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env.prod}
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - prod
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: family-budget-api:prod
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.prod}
+    command: ['apps/api/node_modules/.bin/prisma', 'migrate', 'deploy', '--config', 'apps/api/prisma.config.ts']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prod
+    restart: 'no'
+
+  seed:
+    image: family-budget-api:prod
+    profiles: [tools]
+    environment:
+      NODE_ENV: ${NODE_ENV:?Set NODE_ENV in .env.prod}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.prod}
+      SEED_USER_EMAIL: ${SEED_USER_EMAIL:?Set SEED_USER_EMAIL in .env.prod}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:?Set SEED_USER_PASSWORD in .env.prod}
+    command: ['apps/api/node_modules/.bin/tsx', 'apps/api/prisma/seed.ts']
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - prod
+    restart: 'no'
+
+  api:
+    image: family-budget-api:prod
+    build:
+      context: .
+      target: api
+    container_name: family-budget-api-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:?Set NODE_ENV in .env.prod}
+      PORT: ${PORT:?Set PORT in .env.prod}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.prod}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env.prod}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:?Set JWT_EXPIRES_IN in .env.prod}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?Set REFRESH_TOKEN_SECRET in .env.prod}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:?Set REFRESH_TOKEN_EXPIRES_IN in .env.prod}
+      CORS_ORIGIN: ${CORS_ORIGIN:?Set CORS_ORIGIN in .env.prod}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env.prod}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - prod
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    image: family-budget-web:prod
+    container_name: family-budget-web-prod
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:443:443'
+    volumes:
+      - ./.certs:/etc/nginx/certs:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - prod
+    healthcheck:
+      test: ['CMD', 'wget', '--no-check-certificate', '--quiet', '--spider', 'https://127.0.0.1/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  prod:
+    name: family-budget-prod-network
+
+volumes:
+  postgres_data:
+    name: family-budget-postgres-prod-data

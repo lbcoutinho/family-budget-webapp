@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: family-budget-postgres
+    container_name: family-budget-postgres-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-budget}

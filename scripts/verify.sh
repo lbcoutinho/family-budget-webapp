@@ -22,7 +22,7 @@ if [[ "$target" == "backend" ]]; then
   if docker container inspect family-budget-postgres-test >/dev/null 2>&1; then
     echo "Postgres test container already exists."
   else
-    docker compose up -d postgres-test
+    docker compose up -d postgres_test
   fi
 
   pnpm api:db:migrate
