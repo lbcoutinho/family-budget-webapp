@@ -41,6 +41,9 @@ The MCP servers (`codegraph`, `shadcn`) and the skills under `.claude/skills/` n
 they're declared in [`.mcp.json`](.mcp.json) or vendored as files, so they work right after
 `git clone` with no extra install step.
 
+For a persistent Docker deployment on this computer, including trusted local HTTPS, use the
+[local production deployment guide](docs/deployment-local-production.md).
+
 ## Database
 
 PostgreSQL 16 runs in Docker: `docker compose up -d postgres postgres_test` (main on 5432, a
@@ -56,7 +59,7 @@ application takes it from the validated environment
 | Script                         | What it does                                                     |
 | ------------------------------ | ---------------------------------------------------------------- |
 | `pnpm --filter api db:migrate` | creates and applies a migration from the current schema          |
-| `pnpm --filter api db:seed`    | creates the two accounts that can log in — see below             |
+| `pnpm --filter api db:seed`    | creates the login and non-production sample data — see below     |
 | `pnpm --filter api db:studio`  | opens Prisma Studio against the main database                    |
 | `pnpm --filter api db:reset`   | **drops and recreates the database** — run by a human, see below |
 
@@ -64,12 +67,10 @@ Migrations are committed under `apps/api/prisma/migrations/` and never edited on
 schema change means a new migration. CI applies them with `prisma migrate deploy` before the
 tests run.
 
-The application is single-user and has no sign-up screen, so the logins come from the seed
-([`apps/api/prisma/seed.ts`](apps/api/prisma/seed.ts)): the owner, at `SEED_USER_EMAIL` /
-`SEED_USER_PASSWORD`, and a demo account with its own `SEED_DEMO_USER_PASSWORD`. The demo address
-is not configured — the seed derives it by adding a `+demo` sub-address to `SEED_USER_EMAIL`, so
-both accounts reach the same mailbox. The seed is idempotent: re-running it refreshes the two rows
-rather than duplicating them.
+The application is single-user and has no sign-up screen, so the seed creates its only login from
+`SEED_USER_EMAIL` / `SEED_USER_PASSWORD`. Outside production it also assigns the sample accounts,
+categories, cashboxes, and transactions to that user. With `NODE_ENV=production`, it creates only
+the login. The seed is idempotent: re-running it refreshes the user without duplicating sample data.
 
 `db:reset` is destructive and the Prisma 7 CLI knows it: it detects a coding agent and refuses
 to run unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` carries the user's verbatim
