@@ -308,9 +308,15 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
   return (
     <span className={`num block whitespace-nowrap text-sm font-medium ${tone}`}>
       {formatCents(amount, { sign: !neutral })}
-      {/* The list API does not supply running balances. */}
-      {entry.status === TransactionStatus.CONFIRMED ? (
-        <small className="mt-0.5 block text-report-caption font-normal text-muted-foreground">{t('transactions.balancePlaceholder')}</small>
+      {entry.accountBalanceAfter !== null ? (
+        <small
+          aria-label={t(localDate(entry.settlementDate) > new Date() ? 'transactions.projectedAccountBalanceAfter' : 'transactions.accountBalanceAfter', {
+            amount: formatCents(entry.accountBalanceAfter),
+          })}
+          className="mt-0.5 block text-report-caption font-normal text-muted-foreground"
+        >
+          {formatCents(entry.accountBalanceAfter)}
+        </small>
       ) : null}
     </span>
   );

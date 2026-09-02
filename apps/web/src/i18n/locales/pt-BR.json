@@ -467,7 +467,8 @@
     "recurringInstallment": "Lançamento recorrente, parcela {{index}} de {{total}}",
     "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "compra em {{date}}",
-    "balancePlaceholder": "Saldo indisponível",
+    "accountBalanceAfter": "Saldo da conta após o lançamento: {{amount}}",
+    "projectedAccountBalanceAfter": "Saldo projetado da conta após o lançamento: {{amount}}",
     "dailyExpense": {
       "title": "Despesas dia a dia",
       "caption": "altura = quanto saiu · cada cor = uma categoria daquele dia",

@@ -60,7 +60,7 @@ settled:
 - **Always chronological**, whatever the list is sorted by. Sorting by amount must not change a
   balance.
 - **Drafts carry none.** They affect nothing, so there is nothing to show.
-- **No `+` on a positive balance**; a negative one keeps its `−`, because there it is information.
+- **No `+` on a positive balance**; a negative one keeps its `−`, because there it is information. The visible value stays bare; assistive text says “Saldo da conta após o lançamento”, or “Saldo projetado da conta após o lançamento” for a future settlement.
 - The prototype's June 30 opening balances are picked backwards so the month closes exactly on the
   five balance cards at the top (Millennium 3.482,15 · Revolut 412,90 · Dinheiro −35,00 · caixinhas
   4.150,00 · total 8.010,05). Verified, not assumed.

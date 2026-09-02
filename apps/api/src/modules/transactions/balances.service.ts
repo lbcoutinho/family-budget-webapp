@@ -10,7 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
  * `Record` over every `TransactionType` so a new type fails this file's compile instead of silently
  * contributing zero.
  */
-const ACCOUNT_SIGN: Record<TransactionType, -1 | 0 | 1> = {
+export const ACCOUNT_SIGN: Record<TransactionType, -1 | 0 | 1> = {
   INCOME: 1,
   EXPENSE: -1,
   TRANSFER: -1,
