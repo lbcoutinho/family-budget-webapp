@@ -35,6 +35,7 @@ export class InstallmentsService {
 
   async createPlan(userId: string, dto: CreateInstallmentPlanDto): Promise<InstallmentPlanDto> {
     const type = dto.type ?? 'EXPENSE';
+    if (type !== 'EXPENSE') throw badRequest('TRANSACTION_CREDIT_CARD_EXPENSE_ONLY', 'Installment plans are credit-card expenses.');
 
     await this.validator.validate(userId, this.toRefInput(type, dto), { requireActive: true });
 
@@ -42,7 +43,7 @@ export class InstallmentsService {
     const occurrences = this.occurrenceDates(dto.firstPaymentDate, dto.installments);
     const lastOccurrence = occurrences.at(-1)!;
     const status = dto.autoConfirm === false ? 'DRAFT' : 'CONFIRMED';
-    const isCreditCard = dto.isCreditCard ?? false;
+    const isCreditCard = true;
 
     const [rule, installments] = await this.prisma.$transaction(async (tx) => {
       const createdRule = await tx.recurrenceRule.create({

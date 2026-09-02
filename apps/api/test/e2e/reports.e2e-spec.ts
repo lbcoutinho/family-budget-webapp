@@ -41,11 +41,18 @@ describe('Reports API (e2e)', () => {
 
   const authed = (method: 'get', path: string, as = token): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
 
-  const seed = (overrides: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number }): Promise<{ id: string }> =>
-    prisma.transaction.create({
-      data: { userId, date: new Date('2026-05-15'), referenceMonth: new Date('2026-05-01'), description: 'fixture', ...overrides },
-      select: { id: true },
-    });
+  const seed = ({
+    date: inputDate,
+    settlementDate: inputSettlementDate,
+    referenceMonth: inputReferenceMonth,
+    ...overrides
+  }: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number }): Promise<{ id: string }> => {
+    const date = inputDate ?? new Date('2026-05-15');
+    const settlementDate = inputSettlementDate ?? (overrides.isCreditCard ? (inputReferenceMonth ?? date) : date);
+    const settlement = new Date(settlementDate);
+    const referenceMonth = new Date(Date.UTC(settlement.getUTCFullYear(), settlement.getUTCMonth(), 1));
+    return prisma.transaction.create({ data: { userId, date, settlementDate, referenceMonth, description: 'fixture', ...overrides }, select: { id: true } });
+  };
 
   const removeFixtures = async (): Promise<void> => {
     await prisma.transaction.deleteMany({ where: { user: { email: { in: emails } } } });

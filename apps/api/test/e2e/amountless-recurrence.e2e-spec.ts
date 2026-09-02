@@ -91,7 +91,16 @@ describe('Amountless recurrence CHECK constraints (e2e)', () => {
   it('transaction_amount_positive rejects a zero or negative amount, but allows null', async () => {
     await expect(
       prisma.transaction.create({
-        data: { userId, type: 'EXPENSE', status: 'DRAFT', amount: 0, date: new Date('2026-01-01'), referenceMonth: new Date('2026-01-01'), description: 'Bad' },
+        data: {
+          userId,
+          type: 'EXPENSE',
+          status: 'DRAFT',
+          amount: 0,
+          date: new Date('2026-01-01'),
+          settlementDate: new Date('2026-01-01'),
+          referenceMonth: new Date('2026-01-01'),
+          description: 'Bad',
+        },
       }),
     ).rejects.toThrow();
 
@@ -102,6 +111,7 @@ describe('Amountless recurrence CHECK constraints (e2e)', () => {
         status: 'DRAFT',
         amount: null,
         date: new Date('2026-01-01'),
+        settlementDate: new Date('2026-01-01'),
         referenceMonth: new Date('2026-01-01'),
         description: 'Good',
       },
@@ -118,6 +128,7 @@ describe('Amountless recurrence CHECK constraints (e2e)', () => {
           status: 'CONFIRMED',
           amount: null,
           date: new Date('2026-01-01'),
+          settlementDate: new Date('2026-01-01'),
           referenceMonth: new Date('2026-01-01'),
           description: 'Bad',
         },

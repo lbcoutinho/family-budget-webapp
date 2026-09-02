@@ -47,13 +47,17 @@ describe('Cashboxes API (e2e)', () => {
   // delete-guard tests below is the balance check, not the create-side validation.
   const seed = (
     overrides: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number; cashboxId: string },
-  ): Promise<{
-    id: string;
-  }> =>
-    prisma.transaction.create({
-      data: { userId, accountId, date: new Date('2026-03-15'), referenceMonth: new Date('2026-03-01'), description: 'fixture', ...overrides },
+  ): Promise<{ id: string }> => {
+    const { date: inputDate, settlementDate: inputSettlementDate, referenceMonth: inputReferenceMonth, ...rest } = overrides;
+    const date = inputDate ?? new Date('2026-03-15');
+    const settlementDate = inputSettlementDate ?? (rest.isCreditCard ? (inputReferenceMonth ?? date) : date);
+    const settlement = new Date(settlementDate);
+    const referenceMonth = new Date(Date.UTC(settlement.getUTCFullYear(), settlement.getUTCMonth(), 1));
+    return prisma.transaction.create({
+      data: { userId, accountId, date, settlementDate, referenceMonth, description: 'fixture', ...rest },
       select: { id: true },
     });
+  };
 
   // Transactions hold a foreign key onto the cashbox (`onDelete: SetNull`, but still a reference
   // Postgres has to resolve first) and cashboxes hold one onto the user with `onDelete: Restrict`,

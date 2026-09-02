@@ -79,6 +79,7 @@ describe('Transaction model (e2e)', () => {
     type: TransactionType.EXPENSE,
     amount: 1_000,
     date: new Date('2026-03-15'),
+    settlementDate: new Date('2026-03-15'),
     referenceMonth: new Date('2026-03-01'),
     description: 'Coffee',
   });
@@ -119,14 +120,16 @@ describe('Transaction model (e2e)', () => {
     await expect(prisma.transaction.create({ data: { ...minimal(), amount: -1 } })).rejects.toMatchObject({ code: 'P2039' });
   });
 
-  it('rejects a referenceMonth that does not fall on the 1st', async () => {
-    const create = prisma.transaction.create({ data: { ...minimal(), referenceMonth: new Date('2026-03-15') } });
+  it('rejects a referenceMonth inconsistent with settlementDate', async () => {
+    const create = prisma.transaction.create({ data: { ...minimal(), referenceMonth: new Date('2026-04-01') } });
 
     await expect(create).rejects.toMatchObject({ code: 'P2039' });
   });
 
   it('round-trips date and referenceMonth as plain dates regardless of client timezone', async () => {
-    const created = await prisma.transaction.create({ data: { ...minimal(), date: new Date('2026-01-31'), referenceMonth: new Date('2026-01-01') } });
+    const created = await prisma.transaction.create({
+      data: { ...minimal(), date: new Date('2026-01-31'), settlementDate: new Date('2026-01-31'), referenceMonth: new Date('2026-01-01') },
+    });
 
     const rows = await prisma.$queryRaw<{ date: Date; reference_month: Date; data_type_date: string; data_type_reference_month: string }[]>`
       SELECT date, reference_month,

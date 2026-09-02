@@ -156,10 +156,10 @@ describe('Transactions API (e2e)', () => {
       expect(created.referenceMonth).toBe('2026-03-01');
     });
 
-    it('normalizes a supplied referenceMonth to the 1st', async () => {
-      const created = await createTransaction(minimalBody({ referenceMonth: '2026-04-20' }));
-
-      expect(created.referenceMonth).toBe('2026-04-01');
+    it('rejects a client-controlled referenceMonth', async () => {
+      await authed('post', '/transactions')
+        .send(minimalBody({ referenceMonth: '2026-04-20' }))
+        .expect(400);
     });
 
     it('rejects an unknown type with 400', async () => {
@@ -547,7 +547,11 @@ describe('Transactions API (e2e)', () => {
       firstOfPairId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 100, date: '2026-03-20', description: 'Same day A' }))).id;
       secondOfPairId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 200, date: '2026-03-20', description: 'Same day B' }))).id;
 
-      creditCardId = (await createTransaction(minimalBody({ type: 'EXPENSE', amount: 300, date: '2026-03-05', description: 'Card', isCreditCard: true }))).id;
+      creditCardId = (
+        await createTransaction(
+          minimalBody({ type: 'EXPENSE', amount: 300, date: '2026-03-05', settlementDate: '2026-04-01', description: 'Card', isCreditCard: true }),
+        )
+      ).id;
 
       deletedCashboxTxId = (
         await createTransaction(
@@ -575,6 +579,7 @@ describe('Transactions API (e2e)', () => {
             status: 'DRAFT',
             amount: 500,
             date: new Date('2026-03-01'),
+            settlementDate: new Date('2026-03-01'),
             referenceMonth: new Date('2026-03-01'),
             description: 'Voice draft',
             accountId,
@@ -597,7 +602,7 @@ describe('Transactions API (e2e)', () => {
       const byType = (await authed('get', '/transactions?type=INCOME').expect(200)).body as { items: { id: string }[] };
       expect(byType.items.map((i) => i.id)).toEqual([salaryId]);
 
-      const composed = (await authed('get', '/transactions?referenceMonth=2026-03-01&type=EXPENSE&isCreditCard=true').expect(200)).body as {
+      const composed = (await authed('get', '/transactions?referenceMonth=2026-04-01&type=EXPENSE&isCreditCard=true').expect(200)).body as {
         items: { id: string }[];
       };
       expect(composed.items.map((i) => i.id)).toEqual([creditCardId]);
@@ -692,8 +697,8 @@ describe('Transactions API (e2e)', () => {
     it.each(['newest', 'oldest', 'amountHighest', 'amountLowest', 'description'])('orders the whole filtered set by %s', async (sort) => {
       // Built inside the test body, not the `it.each` table, because the ids above are only assigned in `beforeEach`.
       const expectedBySort: Record<string, string[]> = {
-        newest: [aprilId, secondOfPairId, firstOfPairId, coffeeId, deletedCashboxTxId, salaryId, creditCardId],
-        oldest: [creditCardId, salaryId, deletedCashboxTxId, coffeeId, firstOfPairId, secondOfPairId, aprilId],
+        newest: [creditCardId, aprilId, secondOfPairId, firstOfPairId, coffeeId, deletedCashboxTxId, salaryId],
+        oldest: [salaryId, deletedCashboxTxId, coffeeId, firstOfPairId, secondOfPairId, aprilId, creditCardId],
         amountHighest: [salaryId, deletedCashboxTxId, aprilId, coffeeId, creditCardId, secondOfPairId, firstOfPairId],
         amountLowest: [firstOfPairId, secondOfPairId, creditCardId, coffeeId, aprilId, deletedCashboxTxId, salaryId],
         description: [creditCardId, coffeeId, deletedCashboxTxId, aprilId, salaryId, firstOfPairId, secondOfPairId],
