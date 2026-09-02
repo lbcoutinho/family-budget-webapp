@@ -242,16 +242,20 @@ describe('Installments API (e2e)', () => {
   });
 
   describe('cancel', () => {
-    it('deletes installments settling in the future, keeps yesterday and today, and deactivates the rule', async () => {
+    it('deletes installments settling in the future, keeps past and today, and deactivates the rule', async () => {
       const today = new Date();
       const date = (offset: number): Date => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + offset));
+      const referenceMonth = (offset: number): Date => new Date(Date.UTC(date(offset).getUTCFullYear(), date(offset).getUTCMonth(), 1));
 
       const plan = await createPlan(validBody({ installments: 4 }));
       await Promise.all([
-        prisma.transaction.update({ where: { id: plan.installments[0]!.id }, data: { settlementDate: date(-1) } }),
-        prisma.transaction.update({ where: { id: plan.installments[1]!.id }, data: { settlementDate: date(0) } }),
-        prisma.transaction.update({ where: { id: plan.installments[2]!.id }, data: { settlementDate: date(1) } }),
-        prisma.transaction.update({ where: { id: plan.installments[3]!.id }, data: { settlementDate: date(1), status: 'DRAFT' } }),
+        prisma.transaction.update({ where: { id: plan.installments[0]!.id }, data: { settlementDate: date(-32), referenceMonth: referenceMonth(-32) } }),
+        prisma.transaction.update({ where: { id: plan.installments[1]!.id }, data: { settlementDate: date(0), referenceMonth: referenceMonth(0) } }),
+        prisma.transaction.update({ where: { id: plan.installments[2]!.id }, data: { settlementDate: date(32), referenceMonth: referenceMonth(32) } }),
+        prisma.transaction.update({
+          where: { id: plan.installments[3]!.id },
+          data: { settlementDate: date(63), referenceMonth: referenceMonth(63), status: 'DRAFT' },
+        }),
       ]);
 
       const result = (await authed('post', `/recurrence-rules/${plan.rule.id}/cancel-installments`).expect(200)).body as CancelInstallmentPlanResultDto;
@@ -260,7 +264,7 @@ describe('Installments API (e2e)', () => {
       const remaining = await prisma.transaction.findMany({ where: { recurrenceRuleId: plan.rule.id }, orderBy: { installmentNumber: 'asc' } });
       expect(remaining).toHaveLength(2);
       expect(remaining.map((r) => r.settlementDate.toISOString().slice(0, 10))).toEqual([
-        date(-1).toISOString().slice(0, 10),
+        date(-32).toISOString().slice(0, 10),
         date(0).toISOString().slice(0, 10),
       ]);
 

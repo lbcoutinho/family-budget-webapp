@@ -30,13 +30,13 @@ export class ListTransactionsQueryDto {
   @IsDate({ message: 'referenceMonth must be in the form YYYY-MM-DD.' })
   referenceMonth?: Date;
 
-  @ApiProperty({ type: String, format: 'date', required: false, example: '2026-03-01', description: 'Inclusive lower bound on `date`.' })
+  @ApiProperty({ type: String, format: 'date', required: false, example: '2026-03-01', description: 'Inclusive lower bound on settlement date.' })
   @IsOptional()
   @Transform(toDateOnly)
   @IsDate({ message: 'dateFrom must be in the form YYYY-MM-DD.' })
   dateFrom?: Date;
 
-  @ApiProperty({ type: String, format: 'date', required: false, example: '2026-03-31', description: 'Inclusive upper bound on `date`.' })
+  @ApiProperty({ type: String, format: 'date', required: false, example: '2026-03-31', description: 'Inclusive upper bound on settlement date.' })
   @IsOptional()
   @Transform(toDateOnly)
   @IsDate({ message: 'dateTo must be in the form YYYY-MM-DD.' })

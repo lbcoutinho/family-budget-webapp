@@ -125,6 +125,7 @@ describe('CSV import models API (e2e)', () => {
         type: 'INCOME',
         amount: 1_000,
         date: new Date('2026-08-23'),
+        settlementDate: new Date('2026-08-23'),
         referenceMonth: new Date('2026-08-01'),
         description: 'Already imported',
       },

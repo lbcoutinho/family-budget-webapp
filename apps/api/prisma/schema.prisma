@@ -329,10 +329,8 @@ model CsvImportModel {
 /// `type` (M4-T04 enforces which fields each type actually uses; the foreign keys themselves stay
 /// nullable at the schema level because the constraint is per-type, not universal).
 ///
-/// Two dates (ADR-0009): `date` is when it happened, `referenceMonth` is which month it reports in,
-/// always normalized to the first of the month (CHECK below) so the monthly tab and every report can
-/// group by it directly. `isCreditCard` decides whether editing `date` recomputes `referenceMonth` or
-/// preserves it — that behaviour lands in M4-T03.
+/// `date` is when it happened; `settlementDate` is when it affects balances. `referenceMonth` is
+/// always the first day of `settlementDate`'s month, so monthly reports group by it directly.
 ///
 /// `cashboxId` and `destinationCashboxId` are the one deliberate departure from the `Restrict`
 /// every other relation here uses: they are `SetNull`, so deleting a zero-balance cashbox does not
@@ -353,11 +351,9 @@ model Transaction {
 
   /// When the purchase happened (ADR-0009).
   date           DateTime @db.Date
-  /// Which month it reports in, always the 1st (CHECK below, ADR-0009). Balances and every report
-  /// group by this column, never by `date`.
+  /// Which month it reports in, always derived from `settlementDate`.
   referenceMonth DateTime @map("reference_month") @db.Date
-  /// When money settles: the transaction date for non-card rows, otherwise no earlier than its
-  /// reference month (ADR-0021). Kept separate from the reporting month during the migration.
+  /// When money settles: equal to `date` for non-card rows and no earlier than `date` for cards.
   settlementDate DateTime @default(now()) @map("settlement_date") @db.Date
 
   /// Required: a statement row's primary text, and a `search` target (M4-T08).
@@ -365,7 +361,7 @@ model Transaction {
   /// Free text, the second `search` target (M4-T08).
   notes       String?
 
-  /// Drives whether editing `date` recomputes `referenceMonth` or preserves it (ADR-0009, M4-T03).
+  /// Valid only on an EXPENSE; card purchase-date edits preserve `settlementDate`.
   isCreditCard Boolean @default(false) @map("is_credit_card")
 
   accountId            String? @map("account_id") @db.Uuid

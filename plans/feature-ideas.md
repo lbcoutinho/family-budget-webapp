@@ -1,18 +1,9 @@
 # Top Priority 
-- "Saldo indisponível" em todas as linhas da tela Mês.
-- Fix impeccable critique and audit
-- utilizar skills de frontend para analisar projeto
 - executar /improve-codebase-architecture
+- utilizar skills de frontend para analisar projeto
 - exec /web-design-guidelines
 - exec /vercel-composition-patterns
 - exec /vercel-react-best-practices
-
-- import csv - category suggestions
-  1. Search confirmed historical transactions from the same account by exact normalized description.
-  2. Suggest category and subcategory only when all relevant matches agree.
-  3. Keep every imported transaction in `DRAFT`, including transactions with suggestions.
-  4. Leave categories empty when no unambiguous match exists.
-  5. Add approximate-description matching only after real import history provides examples and confidence rules can be specified.
 
 - tela caixinhas tem que exibir saldo de cada caixinha
 

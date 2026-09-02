@@ -41,11 +41,18 @@ describe('Balances API (e2e)', () => {
 
   const authed = (method: 'get', path: string, as = token): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
 
-  const seed = (overrides: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number }): Promise<{ id: string }> =>
-    prisma.transaction.create({
-      data: { userId, date: new Date('2026-03-15'), referenceMonth: new Date('2026-03-01'), description: 'fixture', ...overrides },
-      select: { id: true },
-    });
+  const seed = ({
+    date: inputDate,
+    settlementDate: inputSettlementDate,
+    referenceMonth: inputReferenceMonth,
+    ...overrides
+  }: Partial<Prisma.TransactionUncheckedCreateInput> & { type: TransactionType; amount: number }): Promise<{ id: string }> => {
+    const date = inputDate ?? new Date('2026-03-15');
+    const settlementDate = inputSettlementDate ?? (overrides.isCreditCard ? (inputReferenceMonth ?? date) : date);
+    const settlement = new Date(settlementDate);
+    const referenceMonth = new Date(Date.UTC(settlement.getUTCFullYear(), settlement.getUTCMonth(), 1));
+    return prisma.transaction.create({ data: { userId, date, settlementDate, referenceMonth, description: 'fixture', ...overrides }, select: { id: true } });
+  };
 
   const removeFixtures = async (): Promise<void> => {
     await prisma.transaction.deleteMany({ where: { user: { email: { in: emails } } } });
@@ -154,8 +161,8 @@ describe('Balances API (e2e)', () => {
 
     it('applies ?asOf as an inclusive upper bound on settlement date', async () => {
       await Promise.all([
-        seed({ type: 'INCOME', amount: 1_000, accountId, date: new Date('2026-03-10'), settlementDate: new Date('2026-03-20') }),
-        seed({ type: 'INCOME', amount: 2_000, accountId, date: new Date('2026-03-20'), settlementDate: new Date('2026-03-10') }),
+        seed({ type: 'INCOME', amount: 1_000, accountId, date: new Date('2026-03-20') }),
+        seed({ type: 'INCOME', amount: 2_000, accountId, date: new Date('2026-03-10') }),
       ]);
 
       const before = (await authed('get', '/accounts/balances?asOf=2026-03-15').expect(200)).body as AccountBalanceDto[];
@@ -166,7 +173,7 @@ describe('Balances API (e2e)', () => {
     });
 
     it('excludes a future confirmed settlement from the current balance', async () => {
-      await seed({ type: 'EXPENSE', amount: 1_000, accountId, date: new Date('2026-03-15'), settlementDate: new Date('2099-01-01') });
+      await seed({ type: 'EXPENSE', amount: 1_000, accountId, date: new Date('2099-01-01') });
 
       const current = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
       const future = (await authed('get', '/accounts/balances?asOf=2099-01-01').expect(200)).body as AccountBalanceDto[];

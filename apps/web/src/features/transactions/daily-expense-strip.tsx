@@ -114,7 +114,7 @@ function addDays(date: string, days: number): string {
 function chartWindow(referenceMonth: Date, items: TransactionListItemDto[]): { start: string; end: string } {
   const firstExpense = items
     .filter((item) => item.type === TransactionType.EXPENSE && !item.isCreditCard)
-    .map((item) => item.date)
+    .map((item) => item.settlementDate)
     .sort()[0];
   if (firstExpense) return { start: firstExpense, end: addDays(firstExpense, 30) };
 
@@ -127,8 +127,8 @@ function buildDays(start: string, end: string, items: TransactionListItemDto[], 
   for (let date = start; date <= end; date = addDays(date, 1)) byDate.set(date, new Map());
 
   for (const item of items) {
-    if (item.type !== TransactionType.EXPENSE || item.date < start || item.date > end) continue;
-    accumulate(byDate.get(item.date)!, item, noCategoryLabel);
+    if (item.type !== TransactionType.EXPENSE || item.settlementDate < start || item.settlementDate > end) continue;
+    accumulate(byDate.get(item.settlementDate)!, item, noCategoryLabel);
   }
 
   return Array.from(byDate.entries()).map(([date, segmentMap]) => {
@@ -141,13 +141,13 @@ function buildDays(start: string, end: string, items: TransactionListItemDto[], 
       date,
       totalCents,
       segments,
-      transactionCount: items.filter((item) => item.type === TransactionType.EXPENSE && item.date === date).length,
+      transactionCount: items.filter((item) => item.type === TransactionType.EXPENSE && item.settlementDate === date).length,
     };
   });
 }
 
 function buildBoundary(side: BoundaryBucket['side'], edge: string, items: TransactionListItemDto[], noCategoryLabel: string): BoundaryBucket | null {
-  const transactions = items.filter((item) => (side === 'before' ? item.date < edge : item.date > edge));
+  const transactions = items.filter((item) => (side === 'before' ? item.settlementDate < edge : item.settlementDate > edge));
   if (transactions.length === 0) return null;
 
   const totals = new Map<string, Segment>();

@@ -72,6 +72,8 @@
     "TRANSACTION_CATEGORY_KIND_MISMATCH": "The category must match the entry type.",
     "TRANSACTION_SUBCATEGORY_PARENT_MISMATCH": "The subcategory must belong to the selected category.",
     "TRANSACTION_SETTLEMENT_BEFORE_DATE": "Settlement cannot be before purchase.",
+    "TRANSACTION_SETTLEMENT_DATE_REQUIRED": "Settlement date is required for credit-card purchases.",
+    "TRANSACTION_CREDIT_CARD_EXPENSE_ONLY": "Only expenses can be credit-card purchases.",
     "CASHBOX_INSUFFICIENT_FUNDS": "Cashbox balance available: {{amount}}.",
     "RECURRENCE_AMOUNT_REQUIRED_WHEN_AUTO_CONFIRM": "A rule that auto-confirms needs an amount.",
     "TRANSACTION_AMOUNT_REQUIRED_WHEN_CONFIRMED": "Enter the amount before confirming this entry.",
