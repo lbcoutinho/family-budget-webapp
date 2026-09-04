@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>06 — Refinamento da tela Mês</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .review-bar {
+        position: sticky;
+        top: 0;
+        z-index: 80;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--line-strong);
+        background: color-mix(in srgb, var(--surface) 94%, transparent);
+        backdrop-filter: blur(12px);
+      }
+      .review-bar .group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .review-bar button[aria-pressed='true'] {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+      .review-bar button[aria-pressed='true']:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+      .stage {
+        max-width: 1220px;
+        margin: 22px auto 60px;
+        padding: 0 18px;
+      }
+      .frame {
+        overflow: visible;
+        margin: 0 auto;
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+        background: var(--bg);
+        box-shadow: var(--shadow-md);
+      }
+      .frame.phone {
+        width: min(390px, 100%);
+      }
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .month-nav,
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .month-name {
+        min-width: 132px;
+        text-align: center;
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-weight: 600;
+      }
+      .menu-wrap,
+      .help-wrap {
+        position: relative;
+      }
+      .menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 20;
+        width: 220px;
+        padding: 6px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        box-shadow: var(--shadow-md);
+      }
+      .menu button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .menu button:hover,
+      .menu button:focus-visible {
+        background: var(--wash);
+      }
+      .screen {
+        padding: 16px;
+      }
+      .daily {
+        grid-area: daily;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--surface);
+      }
+      .daily h2,
+      .section-title h2 {
+        font-size: 1.05rem;
+      }
+      .bars {
+        display: flex;
+        align-items: end;
+        gap: 3px;
+        height: 58px;
+        margin-top: 12px;
+      }
+      .bars i,
+      .bars button {
+        flex: 1;
+        min-width: 2px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-xs) var(--r-xs) 0 0;
+        background: var(--c3);
+        cursor: pointer;
+      }
+      .bars i:nth-child(4n),
+      .bars button:nth-child(4n) {
+        background: var(--c2);
+      }
+      .bars i:nth-child(5n),
+      .bars button:nth-child(5n) {
+        background: var(--c5);
+      }
+      .bars button[aria-pressed='true'] {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .bars button.multi {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        overflow: hidden;
+        background: transparent;
+      }
+      .bars button.multi span {
+        display: block;
+        width: 100%;
+      }
+      .daily.empty-month .bars button {
+        height: 2px !important;
+        background: var(--line);
+      }
+      .daily.empty-month .bars button span {
+        display: none;
+      }
+      .bar-axis,
+      .bar-legend {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 6px;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .bar-legend {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+      }
+      .bar-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 292px;
+        align-items: start;
+        gap: 16px;
+        margin-top: 14px;
+      }
+      .main-column,
+      .side-column {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+      }
+      .main-column {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .side-column {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .filters .search {
+        flex: 1 1 210px;
+      }
+      .movements {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--line);
+      }
+      .movement {
+        padding: 10px 12px;
+        background: var(--surface);
+      }
+      .movement span,
+      .asset span,
+      .close-row span {
+        display: block;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .movement b,
+      .asset b,
+      .close-row b {
+        font-variant-numeric: tabular-nums;
+      }
+      .assets {
+        display: grid;
+        gap: 8px;
+      }
+      .asset,
+      .close {
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+      }
+      .asset.total {
+        background: var(--ink);
+        color: #fff;
+      }
+      .asset.total span {
+        color: var(--line-strong);
+      }
+      .close {
+      }
+      .close-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+      }
+      .close-row span {
+        display: inline;
+      }
+      .close-row:last-child {
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line-strong);
+        font-size: 1.05rem;
+      }
+      .ledger {
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r);
+        background: var(--surface);
+        box-shadow: 0 4px 18px rgba(20, 22, 26, 0.07);
+      }
+      .ledger-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 15px 16px 12px;
+        border-bottom: 1px solid var(--line-strong);
+      }
+      .ledger-head h2 {
+        font-size: 1.05rem;
+      }
+      .ledger-head p {
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .entry {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .entry:last-child {
+        border-bottom: 0;
+      }
+      .entry:hover {
+        background: var(--wash);
+      }
+      .entry .date,
+      .entry p {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .entry .amount {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .entry.draft {
+        background: var(--wash);
+      }
+      .entry.cashbox .amount {
+        color: var(--cashbox);
+      }
+      .entry .badge {
+        border-radius: var(--r-xs);
+        font-size: 11.5px;
+      }
+      .guide-inline,
+      .guide-panel {
+        padding: 11px 13px;
+        border-bottom: 1px solid var(--line);
+        background: var(--action-wash);
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .guide-inline b,
+      .guide-panel b {
+        color: var(--ink);
+      }
+      .guide-panel {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+      }
+      .help-button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink-soft);
+        cursor: pointer;
+      }
+      .popover {
+        position: absolute;
+        right: 0;
+        bottom: calc(100% + 7px);
+        z-index: 15;
+        width: min(290px, 78vw);
+        padding: 11px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        box-shadow: var(--shadow-md);
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .state-note {
+        padding: 10px 13px;
+        border-bottom: 1px solid var(--line);
+        background: var(--transfer-wash);
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+      .empty {
+        padding: 46px 22px;
+      }
+      .empty .btn {
+        margin-top: 12px;
+      }
+      .decisions {
+        max-width: 880px;
+        margin: 28px auto 80px;
+      }
+      .decisions li + li {
+        margin-top: 10px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .phone .app-header {
+        align-items: flex-start;
+        padding: 10px 12px;
+      }
+      .phone .month-nav .btn.ghost:last-child,
+      .phone .header-actions .btn.outline span.label {
+        display: none;
+      }
+      .phone .month-name {
+        min-width: 110px;
+        font-size: 12.5px;
+      }
+      .phone .screen {
+        padding: 10px;
+      }
+      .phone .workspace {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .phone .main-column,
+      .phone .side-column {
+        display: contents;
+      }
+      .phone .assets {
+        order: 1;
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .phone .close {
+        order: 2;
+        width: 100%;
+      }
+      .phone .filters {
+        order: 3;
+        width: 100%;
+      }
+      .phone .movements {
+        order: 4;
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .phone .ledger {
+        order: 5;
+        width: 100%;
+      }
+      .phone .entry {
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+      }
+      .phone .entry .help-wrap {
+        grid-column: 2 / -1;
+        justify-self: end;
+      }
+      .phone .guide-panel {
+        grid-template-columns: 1fr;
+      }
+      .phone .bars {
+        height: 46px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: The ledger is the working surface; support stays available without competing with it.
+      OWN-WORLD: Existing Instrument Panel tokens, hairlines, compact controls, semantic data color.
+      STORY: Navigate the month, add a transaction, reconcile the ledger, consult support in context.
+      FIRST VIEWPORT: Compact month navigation, one green action, secondary menu, strip, then approved split composition.
+      FORM: Existing approved Month composition extended locally; no structural redesign or new visual system.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div data-proto="06 — Refinamento da tela Mês" data-ticket="#298"></div>
+
+    <div class="proto-note">
+      <strong>Comparação para #298.</strong> A estrutura aprovada em #274 não muda. Alterne variante, largura e estado; teste “Mais ações” e os botões de ajuda
+      com toque, teclado ou leitor de tela.
+    </div>
+
+    <nav class="review-bar" aria-label="Controles do protótipo">
+      <div class="group" aria-label="Variante de orientação">
+        <button class="btn sm outline" data-variant="a" aria-pressed="false">A · Explicação visível</button>
+        <button class="btn sm outline" data-variant="b" aria-pressed="true">B · Ajuda local</button>
+        <button class="btn sm outline" data-variant="c" aria-pressed="false">C · Painel único</button>
+      </div>
+      <div class="group" aria-label="Largura do protótipo">
+        <button class="btn sm outline" data-viewport="desktop" aria-pressed="true">Desktop</button>
+        <button class="btn sm outline" data-viewport="phone" aria-pressed="false">Telefone</button>
+      </div>
+      <label class="row small"
+        >Estado
+        <select class="select" id="state" style="width: auto">
+          <option value="first">Primeiro uso</option>
+          <option value="returning">Uso recorrente</option>
+          <option value="populated">Mês populado</option>
+          <option value="empty">Mês vazio</option>
+          <option value="filtered">Filtrado</option>
+          <option value="long">Lista longa</option>
+        </select>
+      </label>
+    </nav>
+
+    <main class="stage">
+      <div class="frame" id="frame">
+        <header class="app-header">
+          <div class="month-nav" aria-label="Navegação do mês">
+            <button class="btn icon ghost" aria-label="Mês anterior"><span data-icon="chevronLeft"></span></button>
+            <button class="btn sm ghost month-name" id="monthName">Julho de 2026</button>
+            <button class="btn icon ghost" aria-label="Próximo mês"><span data-icon="chevronRight"></span></button>
+          </div>
+          <div class="header-actions">
+            <div class="menu-wrap">
+              <button class="btn sm outline" id="moreButton" aria-label="Mais ações" aria-haspopup="menu" aria-expanded="false">
+                <span data-icon="menu"></span><span class="label">Mais ações</span>
+              </button>
+              <div class="menu" id="moreMenu" role="menu" hidden>
+                <button role="menuitem"><span data-icon="piggy"></span> Movimentar caixinha</button>
+                <button role="menuitem"><span data-icon="download"></span> Importar CSV</button>
+              </div>
+            </div>
+            <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
+          </div>
+        </header>
+
+        <div class="screen">
+          <section class="guide-panel" data-guide="c" hidden aria-label="Como este mês funciona">
+            <p><b>Rascunhos</b><br />Só entram em saldos e relatórios depois da confirmação.</p>
+            <p><b>Caixinhas</b><br />Guardar dinheiro não é despesa; gastar da caixinha é.</p>
+            <p><b>Duas datas</b><br />A compra registra quando ocorreu; a liquidação define o mês do relatório.</p>
+          </section>
+
+          <section class="daily" id="daily" aria-labelledby="dailyTitle">
+            <div class="spread">
+              <h2 id="dailyTitle">Despesas dia a dia</h2>
+              <span class="xs muted" id="dailyTotal">2.358,00 € no mês</span>
+            </div>
+            <div class="bars" aria-label="Gráfico de despesas diárias">
+              <i style="height: 16%"></i><i style="height: 4%"></i><i style="height: 56%"></i><i style="height: 32%"></i><i style="height: 72%"></i>
+              <i style="height: 24%"></i><i style="height: 44%"></i><i style="height: 12%"></i><i style="height: 63%"></i><i style="height: 28%"></i>
+              <i style="height: 94%"></i><i style="height: 38%"></i><i style="height: 18%"></i><i style="height: 68%"></i><i style="height: 49%"></i>
+              <i style="height: 20%"></i><i style="height: 78%"></i><i style="height: 34%"></i><i style="height: 14%"></i><i style="height: 58%"></i>
+              <i style="height: 26%"></i><i style="height: 82%"></i><i style="height: 30%"></i><i style="height: 10%"></i><i style="height: 51%"></i>
+              <i style="height: 22%"></i><i style="height: 61%"></i><i style="height: 35%"></i><i style="height: 8%"></i><i style="height: 47%"></i
+              ><i style="height: 18%"></i>
+            </div>
+            <div class="bar-axis" aria-hidden="true"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+            <div class="bar-legend" aria-label="Categorias no gráfico">
+              <span><i class="dot" style="background: var(--c3)"></i> Alimentação <b>613,00 €</b></span>
+              <span><i class="dot" style="background: var(--c2)"></i> Transporte <b>265,00 €</b></span>
+              <span><i class="dot" style="background: var(--c5)"></i> Lazer <b>214,00 €</b></span>
+            </div>
+          </section>
+
+          <div class="workspace">
+            <div class="side-column">
+              <aside class="assets" aria-label="Saldos históricos">
+                <div class="asset"><span>Millennium</span><b>3.482,15 €</b></div>
+                <div class="asset"><span>Revolut</span><b>412,90 €</b></div>
+                <div class="asset"><span>Dinheiro</span><b class="out">− 35,00 €</b></div>
+                <div class="asset"><span>Caixinhas</span><b>4.150,00 €</b></div>
+                <div class="asset total"><span>Patrimônio total</span><b>8.010,05 €</b></div>
+              </aside>
+
+              <section class="close" aria-labelledby="closeTitle">
+                <h2 id="closeTitle" style="font-size: 1rem; margin-bottom: 5px">Fechamento do mês</h2>
+                <div class="close-row"><span>Saldo anterior</span><b>7.484,05 €</b></div>
+                <div class="close-row"><strong>Saldo</strong><b>7.610,05 €</b></div>
+              </section>
+            </div>
+
+            <div class="main-column">
+              <div class="filters">
+                <div class="search"><span data-icon="search"></span><input class="input" aria-label="Buscar descrição" placeholder="Buscar descrição…" /></div>
+                <button class="btn sm outline"><span data-icon="filter"></span> Tipo: todos</button>
+                <button class="btn sm outline">Categoria: todas</button>
+                <button class="btn sm outline">Conta: todas</button>
+              </div>
+
+              <section class="movements" aria-label="Movimentos do mês">
+                <div class="movement"><span>Receitas</span><b class="in" data-total="+ 3.284,00 €">+ 3.284,00 €</b></div>
+                <div class="movement"><span>Despesas</span><b class="out" data-total="− 2.358,00 €">− 2.358,00 €</b></div>
+                <div class="movement"><span>Resgates</span><b class="cx" data-total="+ 200,00 €">+ 200,00 €</b></div>
+                <div class="movement"><span>Depósitos</span><b class="cx" data-total="− 600,00 €">− 600,00 €</b></div>
+              </section>
+
+              <section class="ledger" aria-labelledby="ledgerTitle">
+                <div class="ledger-head">
+                  <div>
+                    <h2 id="ledgerTitle">Lançamentos</h2>
+                    <p id="ledgerCount">31 lançamentos · 1 rascunho</p>
+                  </div>
+                  <select class="select" aria-label="Ordenar lançamentos" style="width: auto">
+                    <option>Mais recentes</option>
+                    <option>Mais antigos</option>
+                  </select>
+                </div>
+                <div class="guide-inline" data-guide="a" hidden>
+                  <b>Antes de conferir:</b> rascunhos não somam; guardar em caixinha não é despesa; em compras no cartão, a liquidação define o mês do
+                  relatório.
+                </div>
+                <div class="state-note" id="stateNote" hidden></div>
+                <div id="rows">
+                  <article class="entry draft">
+                    <span class="date">12/07</span>
+                    <div>
+                      <b>Farmácia</b> <span class="badge draft">rascunho</span>
+                      <p>Saúde · Millennium</p>
+                    </div>
+                    <span class="amount">− 24,90 €</span>
+                    <span class="help-wrap"
+                      ><button class="help-button" aria-label="Por que este rascunho não altera saldos?" aria-expanded="false" data-help="draft">
+                        ?
+                      </button></span
+                    >
+                  </article>
+                  <article class="entry cashbox">
+                    <span class="date">07/07</span>
+                    <div>
+                      <b>Reserva de férias</b> <span class="badge cashbox">depósito</span>
+                      <p>Millennium → Férias 2027</p>
+                    </div>
+                    <span class="amount">200,00 €</span>
+                    <span class="help-wrap"
+                      ><button class="help-button" aria-label="Como movimentos de caixinha afetam despesas?" aria-expanded="false" data-help="cashbox">
+                        ?
+                      </button></span
+                    >
+                  </article>
+                  <article class="entry">
+                    <span class="date">05/07</span>
+                    <div>
+                      <b>Supermercado Continente</b> <span data-icon="card"></span>
+                      <p>Compra em 05/06 · liquidação em julho</p>
+                    </div>
+                    <span class="amount out">− 128,40 €</span>
+                    <span class="help-wrap"
+                      ><button
+                        class="help-button"
+                        aria-label="Qual é a diferença entre data da compra e da liquidação?"
+                        aria-expanded="false"
+                        data-help="dates"
+                      >
+                        ?
+                      </button></span
+                    >
+                  </article>
+                  <article class="entry">
+                    <span class="date">03/07</span>
+                    <div>
+                      <b>Salário</b>
+                      <p>Trabalho · Millennium</p>
+                    </div>
+                    <span class="amount in">+ 3.200,00 €</span><span></span>
+                  </article>
+                  <article class="entry">
+                    <span class="date">01/07</span>
+                    <div>
+                      <b>Renda de julho</b>
+                      <p>Moradia · Millennium</p>
+                    </div>
+                    <span class="amount out">− 950,00 €</span><span></span>
+                  </article>
+                </div>
+                <div class="empty" id="empty" hidden>
+                  <h3>Nenhum lançamento em agosto</h3>
+                  <p class="small muted">O saldo anterior continua disponível. Registre o primeiro movimento quando ele acontecer.</p>
+                  <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <section class="decisions">
+      <h2>Decisões a aprovar</h2>
+      <ol>
+        <li>
+          <b>Variante B — ajuda local sob demanda (recomendada).</b> Mantém a explicação junto ao exemplo real, abre por toque ou teclado e não ocupa espaço
+          depois de aprendida.
+        </li>
+        <li>
+          <b>Variante A — explicação persistente.</b> Torna as três regras imediatamente visíveis, mas acrescenta leitura repetida antes de cada reconciliação.
+        </li>
+        <li><b>Variante C — painel único.</b> É fácil de descobrir no primeiro uso, mas separa a explicação do lançamento onde ela importa.</li>
+        <li>
+          <b>Hierarquia.</b> A lista ganha título maior, borda forte e elevação discreta; os resumos continuam presentes, planos e compactos. Nenhum bloco muda
+          de ordem.
+        </li>
+        <li><b>Ações.</b> “Novo lançamento” é o único botão preenchido. “Mais ações” agrupa “Movimentar caixinha” e “Importar CSV”.</li>
+      </ol>
+    </section>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const frame = document.getElementById('frame');
+        const state = document.getElementById('state');
+        const rows = document.getElementById('rows');
+        const empty = document.getElementById('empty');
+        const stateNote = document.getElementById('stateNote');
+        const ledgerCount = document.getElementById('ledgerCount');
+        const daily = document.getElementById('daily');
+        const dailyTotal = document.getElementById('dailyTotal');
+        const monthName = document.getElementById('monthName');
+        const movementTotals = [...document.querySelectorAll('[data-total]')];
+        let variant = 'b';
+
+        const helpText = {
+          draft: '<b>Rascunho ainda não conta.</b><br>Confirme quando categoria, conta e valor estiverem corretos; só então ele altera saldos e relatórios.',
+          cashbox:
+            '<b>Guardar não é gastar.</b><br>Depósitos, resgates e transferências entre caixinhas só movem dinheiro. Uma compra paga pela caixinha é uma despesa separada.',
+          dates: '<b>São datas diferentes.</b><br>A data da compra diz quando ela aconteceu. A liquidação define em qual mês o valor entra nos relatórios.',
+        };
+
+        function closeOverlays() {
+          document.querySelectorAll('.popover').forEach((popover) => popover.remove());
+          document.querySelectorAll('[data-help]').forEach((button) => {
+            button.setAttribute('aria-expanded', 'false');
+            button.removeAttribute('aria-describedby');
+          });
+          document.getElementById('moreMenu').hidden = true;
+          document.getElementById('moreButton').setAttribute('aria-expanded', 'false');
+        }
+
+        function showVariant(next) {
+          variant = next;
+          closeOverlays();
+          document.querySelectorAll('[data-variant]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.variant === next)));
+          document.querySelectorAll('[data-guide]').forEach((guide) => (guide.hidden = guide.dataset.guide !== next));
+          document.querySelectorAll('[data-help]').forEach((button) => (button.hidden = next !== 'b'));
+        }
+
+        document.querySelectorAll('[data-variant]').forEach((button) => button.addEventListener('click', () => showVariant(button.dataset.variant)));
+        document.querySelectorAll('[data-viewport]').forEach((button) => {
+          button.addEventListener('click', () => {
+            frame.classList.toggle('phone', button.dataset.viewport === 'phone');
+            document.querySelectorAll('[data-viewport]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+            closeOverlays();
+          });
+        });
+
+        document.querySelectorAll('.bars i').forEach((bar, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.style.cssText = bar.style.cssText;
+          button.setAttribute('aria-label', `${index + 1} de julho — abrir lançamentos do dia`);
+          button.setAttribute('aria-pressed', 'false');
+          if (index % 6 === 4) {
+            button.className = 'multi';
+            button.innerHTML = '<span style="height:38%;background:var(--c2)"></span><span style="height:62%;background:var(--c3)"></span>';
+          }
+          bar.replaceWith(button);
+        });
+        document.querySelector('.bars').addEventListener('click', (event) => {
+          const button = event.target.closest('button');
+          if (!button) return;
+          document.querySelectorAll('.bars button').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          state.value = 'filtered';
+          state.dispatchEvent(new Event('change'));
+        });
+
+        const baseRows = rows.innerHTML;
+        state.addEventListener('change', () => {
+          rows.innerHTML = baseRows;
+          rows.hidden = state.value === 'empty';
+          empty.hidden = state.value !== 'empty';
+          daily.classList.toggle('empty-month', state.value === 'empty');
+          dailyTotal.textContent = state.value === 'empty' ? '0,00 € no mês' : '2.358,00 € no mês';
+          monthName.textContent = state.value === 'empty' ? 'Agosto de 2026' : 'Julho de 2026';
+          stateNote.hidden = !['first', 'filtered'].includes(state.value);
+          stateNote.textContent =
+            state.value === 'first'
+              ? 'Primeira visita: os três pontos de ajuda apresentam as regras no contexto; depois continuam disponíveis sem destaque.'
+              : state.value === 'filtered'
+                ? 'Filtro ativo: Alimentação · 1 lançamento. Os movimentos mudam; o fechamento permanece igual.'
+                : '';
+          ledgerCount.textContent =
+            state.value === 'empty'
+              ? '0 lançamentos'
+              : state.value === 'filtered'
+                ? '1 de 31 lançamentos'
+                : state.value === 'long'
+                  ? '20 lançamentos · 4 rascunhos'
+                  : '31 lançamentos · 1 rascunho';
+          if (state.value === 'long') rows.insertAdjacentHTML('beforeend', baseRows.repeat(3));
+          if (state.value === 'filtered') rows.querySelectorAll('article:not(:nth-child(3))').forEach((row) => row.remove());
+          movementTotals.forEach((total, index) => {
+            total.textContent =
+              state.value === 'empty' ? '0,00 €' : state.value === 'filtered' ? ['0,00 €', '− 128,40 €', '0,00 €', '0,00 €'][index] : total.dataset.total;
+          });
+          closeOverlays();
+          showVariant(variant);
+        });
+
+        const moreButton = document.getElementById('moreButton');
+        const moreMenu = document.getElementById('moreMenu');
+        moreButton.addEventListener('click', () => {
+          const open = moreMenu.hidden;
+          closeOverlays();
+          moreMenu.hidden = !open;
+          moreButton.setAttribute('aria-expanded', String(open));
+          if (open) moreMenu.querySelector('[role="menuitem"]').focus();
+        });
+
+        document.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-help]');
+          if (button && variant === 'b') {
+            const wasOpen = button.getAttribute('aria-expanded') === 'true';
+            closeOverlays();
+            if (!wasOpen) {
+              const tooltipId = `help-${button.dataset.help}`;
+              button.setAttribute('aria-expanded', 'true');
+              button.setAttribute('aria-describedby', tooltipId);
+              button
+                .closest('.help-wrap')
+                .insertAdjacentHTML('beforeend', `<span class="popover" id="${tooltipId}" role="tooltip">${helpText[button.dataset.help]}</span>`);
+            }
+            return;
+          }
+          if (!event.target.closest('.menu-wrap') && !event.target.closest('.help-wrap')) closeOverlays();
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            const active = document.querySelector('[data-help][aria-expanded="true"]');
+            closeOverlays();
+            (active || moreButton).focus();
+          }
+        });
+
+        showVariant('b');
+        state.dispatchEvent(new Event('change'));
+        console.assert(document.querySelectorAll('.app-header .btn:not(.outline):not(.ghost)').length === 1, 'Header must have one primary action');
+        console.assert(moreMenu.querySelectorAll('[role="menuitem"]').length === 2, 'More actions must keep both secondary actions');
+      });
+    </script>
+  </body>
+</html>
