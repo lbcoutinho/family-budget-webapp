@@ -16,7 +16,9 @@ Balances sit at the top (one card per account, one aggregate for cashboxes, one 
 total), because the point of the screen is trusting the numbers. Footer totals follow the domain
 rule: **only `EXPENSE` counts as expense** — transfers and cashbox deposits are excluded, and the
 footer says so. Credit card rows carry an icon plus the original purchase date in a sub-line, since
-the date column shows the reference month. Voice `DRAFT` entries appear here dimmed and excluded
+the primary date shows settlement. Each eligible row shows its bare account balance after the
+transaction below the amount; drafts and cashbox transfers omit it, while assistive text identifies
+future settlements as projected. Voice `DRAFT` entries appear here dimmed and excluded
 from the totals, as prototyped.
 
 Entries are rows rather than table cells — date, description with its classification underneath,

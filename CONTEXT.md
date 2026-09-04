@@ -50,11 +50,11 @@ The day on which the underlying financial event happened.
 _Avoid_: Reference month
 
 **Settlement Date**:
-The day money settles: the Transaction Date for a non-card Transaction, otherwise no earlier than its Reference Month.
+The day a Transaction affects Account and Cashbox balances. It equals the Transaction Date for a non-card Transaction and cannot precede it for a credit-card Transaction.
 _Avoid_: Reference month
 
 **Reference Month**:
-The accounting month to which a Transaction belongs in the monthly view and reports. It can differ from the Transaction Date for a credit-card purchase.
+The first day of the Settlement Date's month, used to group a Transaction in the monthly view and reports. It is derived, never chosen independently.
 _Avoid_: Transaction date
 
 ## Confirmation
