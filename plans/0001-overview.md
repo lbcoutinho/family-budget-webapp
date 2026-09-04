@@ -1,7 +1,7 @@
 # Plan 0001 — Project Overview
 
 **Repository:** https://github.com/lbcoutinho/family-budget-webapp
-**Last updated:** 2026-07-22
+**Last updated:** 2026-09-04
 
 ---
 
@@ -41,9 +41,9 @@ A cashbox is expected to end: renaming never rewrites past entries (each transac
 
 Requires **three dates** on every transaction:
 
-- `date` — when the purchase happened (March 5)
-- `settlementDate` — when money settles (April 1 for a card purchase reported in April)
-- `referenceMonth` — which month it belongs to in reports (April 1)
+- `date` — when the underlying event happened (March 5)
+- `settlementDate` — when money affects balances (April 1 for a card purchase)
+- `referenceMonth` — the first day of the settlement month (April 1), derived by the server
 
 All reports and the monthly tab group by `referenceMonth`.
 
@@ -224,8 +224,8 @@ the server, not user input (ADR-0019).
 ### 5.3 Invariants
 
 - `amount` is always positive; the sign is derived from `type`
-- `referenceMonth` is always normalized to the first day of the month
-- `settlementDate` is `date` for non-card transactions and no earlier than `referenceMonth` for card transactions
+- `referenceMonth` is the first day of `settlementDate`'s month and is never client-controlled
+- `settlementDate` is `date` for non-card transactions; a credit-card settlement date cannot precede its purchase date
 - `category.kind` must match the transaction type (`INCOME` only accepts `INCOME` categories)
 - `subcategory.parentId === categoryId`
 - maximum category depth is 2 (`parent.parentId IS NULL`)
@@ -253,12 +253,12 @@ Cashbox = CASHBOX_IN − CASHBOX_OUT
         + CASHBOX_TRANSFER(destination) − CASHBOX_TRANSFER(source)
 ```
 
-### 5.5 `referenceMonth` rule
+### 5.5 Settlement and reference-month rules
 
-- On create: when omitted, `referenceMonth = startOfMonth(date)`
-- On update, when `date` changes:
-  - `isCreditCard = false` → recompute `referenceMonth`
-  - `isCreditCard = true` → preserve the chosen `referenceMonth`
+- On create and update, `referenceMonth = startOfMonth(settlementDate)`.
+- A non-card transaction derives `settlementDate` from `date`.
+- A credit-card transaction requires `settlementDate`; changing only its purchase date preserves settlement.
+- Chronological ledger order is `settlementDate`, then `createdAt`, then `id`.
 
 ---
 

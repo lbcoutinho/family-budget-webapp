@@ -42,4 +42,5 @@ Project's architectural decisions and the reasoning behind them.
 | [0018](0018-internationalization.md) | Internationalization | Accepted |
 | [0019](0019-cashbox-label-snapshot-and-deletion.md) | Cashbox label snapshot and deletion of empty cashboxes | Accepted |
 | [0020](0020-amountless-recurrence-rules.md) | Amountless recurrence rules | Accepted |
-| [0021](0021-settlement-date-and-reference-month.md) | Settlement date and reference month | Accepted |
+| [0021](0021-settlement-date-and-reference-month.md) | Settlement date and reference month | Superseded by [0022](0022-settlement-date-contract.md) |
+| [0022](0022-settlement-date-contract.md) | Settlement date contract | Accepted |
