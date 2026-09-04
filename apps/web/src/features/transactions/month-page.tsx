@@ -520,7 +520,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     const node = sentinel.current;
     if (!node || !confirmed.hasNextPage || confirmed.isFetchingNextPage) return;
     const onIntersect: IntersectionObserverCallback = (records) => {
-      if (records[0]?.isIntersecting) void confirmed.fetchNextPage();
+      if (records.some((record) => record.isIntersecting)) void confirmed.fetchNextPage();
     };
     const observer = new window.IntersectionObserver(onIntersect);
     observer.observe(node);
