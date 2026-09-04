@@ -65,6 +65,9 @@ void i18n.use(initReactI18next).init({
 
 i18n.on('languageChanged', (locale) => {
   localStorage.setItem(STORAGE_KEY, locale);
+  document.documentElement.lang = locale;
 });
+
+document.documentElement.lang = i18n.language;
 
 export default i18n;

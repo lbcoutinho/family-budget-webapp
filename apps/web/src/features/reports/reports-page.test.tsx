@@ -226,7 +226,7 @@ describe('ReportsPage — segmented control and URL state', () => {
     await user.click(screen.getByRole('tab', { name: 'Anual' }));
 
     expect(router.state.location.search).toContain('view=yearly');
-    expect(screen.getByRole('tab', { name: 'Anual', selected: true })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Anual', selected: true })).toBeInTheDocument();
   });
 
   it('restores the yearly view from a shared URL', async () => {
@@ -252,6 +252,7 @@ describe('ReportsPage — balances view', () => {
     expect(screen.getByText('mai em andamento')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Evolução em 2026' })).toBeInTheDocument();
     expect(screen.getByLabelText('Legenda do gráfico')).toHaveTextContent('Total em caixinhas');
+    expect(screen.getByRole('table', { name: 'Valores mensais da evolução de saldos' })).toHaveTextContent('1.000,00 €');
   });
 
   it('keeps the snapshot when the selected year has insufficient history', async () => {

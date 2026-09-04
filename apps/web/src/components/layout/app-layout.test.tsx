@@ -57,6 +57,13 @@ function renderShell(initialEntry = '/month', logout = vi.fn()) {
 }
 
 describe('AppLayout', () => {
+  it('offers a skip link to the current route content', () => {
+    renderShell();
+
+    expect(screen.getByRole('link', { name: 'Ir para o conteúdo' })).toHaveAttribute('href', '#route-content');
+    expect(document.getElementById('route-content')).toHaveAttribute('tabindex', '-1');
+  });
+
   it('renders every navigation item, with the registries under Configurações', async () => {
     const { user } = renderShell();
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });

@@ -36,7 +36,7 @@ import {
   Trash2Icon,
 } from 'lucide-react';
 import { Popover } from 'radix-ui';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -376,29 +376,43 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const [cashboxOperationDialogOpen, setCashboxOperationDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TransactionListItemDto>();
   const [deleting, setDeleting] = useState<TransactionListItemDto>();
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<TransactionType>();
-  // `?categoryId=` is what makes a report's category link real (M6-T03): read once on mount, same
-  // as every other filter here, which all live in local state rather than the URL.
-  const [searchParams] = useSearchParams();
-  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(() => searchParams.get('categoryId') ?? undefined);
-  const [accountFilter, setAccountFilter] = useState<string>();
-  const [sort, setSort] = useState<TransactionSort>(TransactionSort.newest);
-  const [showPersonalNotes, setShowPersonalNotes] = useState(true);
-  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>();
-  // A day filter belongs to the month it was picked in — comparing against the last
-  // `referenceMonth` seen (rather than an effect) clears it the moment navigation swaps in a new
-  // month, without an extra render/paint round trip.
-  const [dayFilterMonth, setDayFilterMonth] = useState(referenceMonth);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('search') ?? '';
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const type = searchParams.get('type');
+  const typeFilter = Object.values(TransactionType).includes(type as TransactionType) ? (type as TransactionType) : undefined;
+  const categoryFilter = searchParams.get('categoryId') ?? undefined;
+  const accountFilter = searchParams.get('accountId') ?? undefined;
+  const sortParam = searchParams.get('sort');
+  const sort = Object.values(TransactionSort).includes(sortParam as TransactionSort) ? (sortParam as TransactionSort) : TransactionSort.newest;
+  const showPersonalNotes = searchParams.get('notes') !== '0';
+  const dateFilterId = searchParams.get('dateFilter');
+  const dateFrom = searchParams.get('dateFrom') ?? undefined;
+  const dateTo = searchParams.get('dateTo') ?? undefined;
+  const selectedDateFilter = dateFilterId ? { id: dateFilterId, ...(dateFrom ? { dateFrom } : {}), ...(dateTo ? { dateTo } : {}) } : undefined;
   const sentinel = useRef<HTMLDivElement>(null);
 
-  if (dayFilterMonth !== referenceMonth) {
-    setDayFilterMonth(referenceMonth);
-    setSelectedDateFilter(undefined);
-  }
-
-  const toggleDateFilter = (filter: DateFilter) => setSelectedDateFilter((current) => (current?.id === filter.id ? undefined : filter));
+  const updateFilters = useCallback(
+    (patch: Record<string, string | undefined>) =>
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          for (const [key, value] of Object.entries(patch)) {
+            if (value === undefined) next.delete(key);
+            else next.set(key, value);
+          }
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+  const toggleDateFilter = (filter: DateFilter) =>
+    updateFilters(
+      selectedDateFilter?.id === filter.id
+        ? { dateFilter: undefined, dateFrom: undefined, dateTo: undefined }
+        : { dateFilter: filter.id, dateFrom: filter.dateFrom, dateTo: filter.dateTo },
+    );
 
   const invalidateTransactions = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
@@ -449,14 +463,14 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   });
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    const timeout = window.setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timeout);
-  }, [searchInput]);
+  }, [search]);
 
   const referenceMonthFilter = dateOnly(referenceMonth);
   const dayFilter = selectedDateFilter ? { dateFrom: selectedDateFilter.dateFrom, dateTo: selectedDateFilter.dateTo } : {};
   const activeFilters = {
-    ...(search ? { search } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(typeFilter ? { type: [typeFilter] } : {}),
     ...(categoryFilter ? { categoryId: categoryFilter } : {}),
     ...(accountFilter ? { accountId: accountFilter } : {}),
@@ -466,12 +480,15 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     search !== '' || typeFilter !== undefined || categoryFilter !== undefined || accountFilter !== undefined || selectedDateFilter !== undefined;
   const activeFilterCount = Number(typeFilter !== undefined) + Number(categoryFilter !== undefined) + Number(accountFilter !== undefined);
   const clearFilters = () => {
-    setSearchInput('');
-    setSearch('');
-    setTypeFilter(undefined);
-    setCategoryFilter(undefined);
-    setAccountFilter(undefined);
-    setSelectedDateFilter(undefined);
+    updateFilters({
+      search: undefined,
+      type: undefined,
+      categoryId: undefined,
+      accountId: undefined,
+      dateFilter: undefined,
+      dateFrom: undefined,
+      dateTo: undefined,
+    });
   };
   const confirmedParams = { referenceMonth: referenceMonthFilter, limit: PAGE_SIZE, sort, ...activeFilters };
   const draftsParams = { referenceMonth: referenceMonthFilter, status: TransactionStatus.DRAFT, limit: PAGE_SIZE, sort, ...activeFilters };
@@ -512,10 +529,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   }, [confirmed.fetchNextPage, confirmed.hasNextPage, confirmed.isFetchingNextPage]);
 
   const moveMonth = (offset: number) => {
-    void navigate(monthPath(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + offset, 1)));
+    void navigate({ pathname: monthPath(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + offset, 1)), search: searchParams.toString() });
   };
   const selectMonth = (next: Date) => {
-    void navigate(monthPath(next));
+    void navigate({ pathname: monthPath(next), search: searchParams.toString() });
   };
   const hasEntries = allEntries.length > 0;
   const loading = confirmed.isPending || drafts.isPending;
@@ -575,15 +592,19 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="search"
-                      value={searchInput}
-                      onChange={(event) => setSearchInput(event.target.value)}
+                      value={search}
+                      onChange={(event) => updateFilters({ search: event.target.value.trim() || undefined })}
                       aria-label={t('transactions.search')}
                       placeholder={t('transactions.search')}
                       className="pl-8 text-field"
                     />
                   </div>
                   <label htmlFor="show-personal-notes" className="flex items-center gap-2 text-field">
-                    <Switch id="show-personal-notes" checked={showPersonalNotes} onCheckedChange={setShowPersonalNotes} />
+                    <Switch
+                      id="show-personal-notes"
+                      checked={showPersonalNotes}
+                      onCheckedChange={(checked) => updateFilters({ notes: checked ? undefined : '0' })}
+                    />
                     {t('transactions.showPersonalNotes')}
                   </label>
                 </div>
@@ -605,7 +626,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <label className="text-field text-muted-foreground">{t('transactions.filters.typeLabel')}</label>
                     <FilterSelect
                       value={typeFilter}
-                      onChange={(value) => setTypeFilter(value as TransactionType | undefined)}
+                      onChange={(value) => updateFilters({ type: value })}
                       allLabel={t('transactions.filters.type')}
                       ariaLabel={t('transactions.filters.typeAriaLabel')}
                       options={typeOptions}
@@ -615,7 +636,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <label className="text-field text-muted-foreground">{t('transactions.filters.categoryLabel')}</label>
                     <FilterSelect
                       value={categoryFilter}
-                      onChange={setCategoryFilter}
+                      onChange={(value) => updateFilters({ categoryId: value })}
                       allLabel={t('transactions.filters.category')}
                       ariaLabel={t('transactions.filters.categoryAriaLabel')}
                       options={categoryOptions}
@@ -625,7 +646,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <label className="text-field text-muted-foreground">{t('transactions.filters.accountLabel')}</label>
                     <FilterSelect
                       value={accountFilter}
-                      onChange={setAccountFilter}
+                      onChange={(value) => updateFilters({ accountId: value })}
                       allLabel={t('transactions.filters.account')}
                       ariaLabel={t('transactions.filters.accountAriaLabel')}
                       options={accountOptions}
@@ -635,7 +656,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     <label className="text-field text-muted-foreground">{t('transactions.sort.label')}</label>
                     <FilterSelect
                       value={sort}
-                      onChange={(value) => setSort(value as TransactionSort)}
+                      onChange={(value) => updateFilters({ sort: value === TransactionSort.newest ? undefined : value })}
                       ariaLabel={t('transactions.sort.label')}
                       options={[
                         { id: TransactionSort.newest, name: t('transactions.sort.newest') },
@@ -652,9 +673,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                       size="sm"
                       className="w-full justify-center text-field"
                       onClick={() => {
-                        setTypeFilter(undefined);
-                        setCategoryFilter(undefined);
-                        setAccountFilter(undefined);
+                        updateFilters({ type: undefined, categoryId: undefined, accountId: undefined });
                       }}
                     >
                       <RotateCcwIcon />

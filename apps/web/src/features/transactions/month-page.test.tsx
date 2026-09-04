@@ -190,6 +190,28 @@ describe('MonthPage', () => {
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
   });
 
+  it('restores URL-backed filters and display preferences', async () => {
+    const requests: URL[] = [];
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        requests.push(new URL(request.url));
+        return HttpResponse.json(page([]));
+      }),
+    );
+
+    renderPage(
+      '/month/2026/07?search=market&type=EXPENSE&accountId=account-1&categoryId=category-1&sort=oldest&notes=0&dateFilter=2026-07-14&dateFrom=2026-07-14&dateTo=2026-07-14',
+    );
+
+    expect(await screen.findByRole('searchbox', { name: 'Buscar lançamentos' })).toHaveValue('market');
+    expect(screen.getByRole('switch', { name: 'Mostrar notas pessoais' })).not.toBeChecked();
+    await waitFor(() => expect(requests.some((request) => request.searchParams.get('search') === 'market')).toBe(true));
+    const request = requests.find((item) => item.searchParams.get('search') === 'market')!;
+    expect(request.searchParams.get('type')).toBe('EXPENSE');
+    expect(request.searchParams.get('sort')).toBe('oldest');
+    expect(request.searchParams.get('dateFrom')).toBe('2026-07-14');
+  });
+
   it('keeps historical assets and the close ahead of the ledger for an empty month', async () => {
     server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
 

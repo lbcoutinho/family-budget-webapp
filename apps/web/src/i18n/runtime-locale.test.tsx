@@ -48,6 +48,7 @@ describe('changing the language at runtime', () => {
     await i18n.changeLanguage('en-US');
 
     expect(await screen.findByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
+    expect(document.documentElement).toHaveAttribute('lang', 'en-US');
     expect(screen.getByRole('link', { name: 'Month' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Mês' })).not.toBeInTheDocument();
   });

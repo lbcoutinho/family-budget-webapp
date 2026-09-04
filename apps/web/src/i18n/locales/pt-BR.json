@@ -13,6 +13,7 @@
     "accounts": "Contas",
     "categories": "Categorias",
     "mainNav": "Navegação principal",
+    "skipToContent": "Ir para o conteúdo",
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
     "logout": "Sair"
@@ -652,6 +653,8 @@
       "futureDated": "inclui {{value}} em lançamentos confirmados com data futura",
       "evolutionTitle": "Evolução em {{year}}",
       "evolutionHint": "Fechamento de cada mês pelo mês de referência",
+      "evolutionTable": "Valores mensais da evolução de saldos",
+      "month": "Mês",
       "legend": "Legenda do gráfico",
       "inProgress": "{{month}} em andamento",
       "insufficientTitle": "Histórico insuficiente em {{year}}",

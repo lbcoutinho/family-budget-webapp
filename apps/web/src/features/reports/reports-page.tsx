@@ -1,4 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -6,13 +7,15 @@ import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReportsBalances } from '@/features/reports/reports-balances';
-import { ReportsCharts } from '@/features/reports/reports-charts';
-import { ReportsMonthly } from '@/features/reports/reports-monthly';
-import { ReportsYearly } from '@/features/reports/reports-yearly';
+import { ReportsSkeleton } from '@/features/reports/report-shell';
 import { MonthPicker } from '@/features/transactions/month-page';
 
 type ReportView = 'monthly' | 'yearly' | 'charts' | 'balances';
+
+const ReportsBalances = lazy(() => import('@/features/reports/reports-balances').then(({ ReportsBalances }) => ({ default: ReportsBalances })));
+const ReportsCharts = lazy(() => import('@/features/reports/reports-charts').then(({ ReportsCharts }) => ({ default: ReportsCharts })));
+const ReportsMonthly = lazy(() => import('@/features/reports/reports-monthly').then(({ ReportsMonthly }) => ({ default: ReportsMonthly })));
+const ReportsYearly = lazy(() => import('@/features/reports/reports-yearly').then(({ ReportsYearly }) => ({ default: ReportsYearly })));
 
 function parseInRange(value: string | null, min: number, max: number, fallback: number): number {
   const parsed = value === null ? NaN : Number(value);
@@ -110,15 +113,17 @@ export function ReportsPage() {
         }
       />
       <PageContent className="space-y-4">
-        {view === 'monthly' ? (
-          <ReportsMonthly year={year} month={month} />
-        ) : view === 'yearly' ? (
-          <ReportsYearly year={year} compare={compare} />
-        ) : view === 'charts' ? (
-          <ReportsCharts year={year} month={month} />
-        ) : (
-          <ReportsBalances year={year} />
-        )}
+        <Suspense fallback={<ReportsSkeleton />}>
+          {view === 'monthly' ? (
+            <ReportsMonthly year={year} month={month} />
+          ) : view === 'yearly' ? (
+            <ReportsYearly year={year} compare={compare} />
+          ) : view === 'charts' ? (
+            <ReportsCharts year={year} month={month} />
+          ) : (
+            <ReportsBalances year={year} />
+          )}
+        </Suspense>
       </PageContent>
     </>
   );
