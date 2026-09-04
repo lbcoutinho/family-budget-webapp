@@ -467,7 +467,8 @@
     "recurringInstallment": "Recurring entry, installment {{index}} of {{total}}",
     "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "purchased on {{date}}",
-    "balancePlaceholder": "Balance unavailable",
+    "accountBalanceAfter": "Account balance after transaction: {{amount}}",
+    "projectedAccountBalanceAfter": "Projected account balance after transaction: {{amount}}",
     "dailyExpense": {
       "title": "Daily expenses",
       "caption": "height = amount spent · each colour = a category from that day",

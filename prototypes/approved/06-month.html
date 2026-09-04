@@ -705,7 +705,7 @@
               <p>${sub(e)}</p>
             </div>
             <div class="amt ${e.draft ? '' : k.cls}">${amount}
-              ${e.bal ? `<small title="Saldo de ${e.bal.acc} depois deste lançamento">${saldo(e.bal.v)}</small>` : ''}
+              ${e.bal ? `<small aria-label="Saldo da conta após o lançamento: ${saldo(e.bal.v)}" title="Saldo de ${e.bal.acc} depois deste lançamento">${saldo(e.bal.v)}</small>` : ''}
             </div>
             <div class="acts">
               ${confirmAction(e, index)}

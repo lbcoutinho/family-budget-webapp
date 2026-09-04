@@ -6,6 +6,7 @@ import { type Prisma, type Transaction } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { cashboxBalances } from '../cashboxes/cashbox-balance';
 
+import { ACCOUNT_SIGN } from './balances.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { ListTransactionsQueryDto, TransactionSort } from './dto/list-transactions-query.dto';
 import { TransactionListDto, type TransactionListItemDto } from './dto/transaction-list.dto';
@@ -21,6 +22,7 @@ const LIST_INCLUDE = {
 } satisfies Prisma.TransactionInclude;
 
 type ListedTransaction = Prisma.TransactionGetPayload<{ include: typeof LIST_INCLUDE }>;
+type BalanceLedgerTransaction = Prisma.TransactionGetPayload<{ select: typeof BALANCE_LEDGER_SELECT }>;
 
 /**
  * One `orderBy` per `TransactionSort` (M5-T07). Every entry ends in `{ id: 'desc' }`: cursor
@@ -34,6 +36,16 @@ const SORT_ORDER_BY: Record<TransactionSort, Prisma.TransactionOrderByWithRelati
   [TransactionSort.AMOUNT_LOWEST]: [{ amount: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
   [TransactionSort.DESCRIPTION]: [{ description: 'asc' }, { settlementDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
 };
+
+const BALANCE_LEDGER_SELECT = {
+  id: true,
+  type: true,
+  amount: true,
+  accountId: true,
+  destinationAccountId: true,
+} satisfies Prisma.TransactionSelect;
+
+const BALANCE_ORDER_BY = [{ settlementDate: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] satisfies Prisma.TransactionOrderByWithRelationInput[];
 
 /**
  * `INCOME`/`EXPENSE`/`TRANSFER`/`CASHBOX_IN`/`CASHBOX_OUT`/`CASHBOX_TRANSFER` CRUD (M4-T04, M4-T05,
@@ -55,28 +67,37 @@ export class TransactionsService {
   ) {}
 
   /**
-   * Two queries in one `prisma.$transaction([...])` so the page and its aggregates read the same
-   * snapshot. `id desc` is appended to the ordering because cursor pagination needs a fully
+   * The page, aggregates, and balance ledger read from one snapshot. `id desc` is appended to the ordering because cursor pagination needs a fully
    * deterministic sort — otherwise a `date`/`createdAt` tie could skip or repeat a row across pages.
    * `limit + 1` rows are fetched so `nextCursor` is known without a second round-trip: if the extra
    * row came back, it is dropped and its predecessor's id becomes `nextCursor`.
    */
   async findAll(userId: string, query: ListTransactionsQueryDto): Promise<TransactionListDto> {
     const where = this.buildWhere(userId, query);
+    const needsBalances = query.status !== 'DRAFT';
 
-    const [rows, totals] = await this.prisma.$transaction([
-      this.prisma.transaction.findMany({
-        where,
-        orderBy: SORT_ORDER_BY[query.sort ?? TransactionSort.NEWEST],
-        take: query.limit + 1,
-        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-        include: LIST_INCLUDE,
-      }),
-      this.prisma.transaction.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: { _all: true } }),
-    ]);
+    const [rows, totals, balanceInputs] = await this.prisma.$transaction((tx) =>
+      Promise.all([
+        tx.transaction.findMany({
+          where,
+          orderBy: SORT_ORDER_BY[query.sort ?? TransactionSort.NEWEST],
+          take: query.limit + 1,
+          ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+          include: LIST_INCLUDE,
+        }),
+        tx.transaction.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: { _all: true } }),
+        needsBalances
+          ? Promise.all([
+              tx.account.findMany({ where: { userId }, select: { id: true, initialBalance: true } }),
+              tx.transaction.findMany({ where: { userId, status: 'CONFIRMED' }, orderBy: BALANCE_ORDER_BY, select: BALANCE_LEDGER_SELECT }),
+            ])
+          : Promise.resolve([[], []] as const),
+      ]),
+    );
 
     const hasNextPage = rows.length > query.limit;
-    const items = rows.slice(0, query.limit).map(toListItemDto);
+    const accountBalancesAfter = balancesAfterTransactions(balanceInputs[0], balanceInputs[1]);
+    const items = rows.slice(0, query.limit).map((row) => toListItemDto(row, accountBalancesAfter.get(row.id) ?? null));
 
     return {
       items,
@@ -308,6 +329,26 @@ function toDto(transaction: Transaction): TransactionDto {
 }
 
 /** `toDto` plus the three expanded relations a list row carries. */
-function toListItemDto(transaction: ListedTransaction): TransactionListItemDto {
-  return { ...toDto(transaction), account: transaction.account, category: transaction.category, subcategory: transaction.subcategory };
+function toListItemDto(transaction: ListedTransaction, accountBalanceAfter: number | null): TransactionListItemDto {
+  return { ...toDto(transaction), accountBalanceAfter, account: transaction.account, category: transaction.category, subcategory: transaction.subcategory };
+}
+
+function balancesAfterTransactions(
+  accounts: readonly { id: string; initialBalance: number }[],
+  ledger: readonly BalanceLedgerTransaction[],
+): Map<string, number> {
+  const balances = new Map(accounts.map((account) => [account.id, account.initialBalance]));
+  const after = new Map<string, number>();
+
+  for (const transaction of ledger) {
+    if (transaction.accountId !== null && transaction.amount !== null) {
+      balances.set(transaction.accountId, (balances.get(transaction.accountId) ?? 0) + transaction.amount * ACCOUNT_SIGN[transaction.type]);
+    }
+    if (transaction.type === 'TRANSFER' && transaction.destinationAccountId !== null && transaction.amount !== null) {
+      balances.set(transaction.destinationAccountId, (balances.get(transaction.destinationAccountId) ?? 0) + transaction.amount);
+    }
+    if (transaction.type !== 'CASHBOX_TRANSFER' && transaction.accountId !== null) after.set(transaction.id, balances.get(transaction.accountId) ?? 0);
+  }
+
+  return after;
 }

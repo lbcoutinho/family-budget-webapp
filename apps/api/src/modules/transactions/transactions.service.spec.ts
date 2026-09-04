@@ -76,13 +76,14 @@ const doubles = (): {
   };
   // `$transaction` doubles for both call shapes the service uses: a callback (create/update/remove)
   // and an array of already-issued promises (findAll's `[findMany, groupBy]`).
-  const $transaction = jest.fn((arg: ((tx: { transaction: typeof transaction }) => unknown) | unknown[]) =>
-    Array.isArray(arg) ? Promise.all(arg) : arg({ transaction }),
+  const account = { findMany: jest.fn().mockResolvedValue([]) };
+  const $transaction = jest.fn((arg: ((tx: { transaction: typeof transaction; account: typeof account }) => unknown) | unknown[]) =>
+    Array.isArray(arg) ? Promise.all(arg) : arg({ transaction, account }),
   );
   const validate = jest.fn().mockResolvedValue(NO_REFS);
 
   return {
-    prisma: { transaction, $transaction } as unknown as PrismaService,
+    prisma: { transaction, account, $transaction } as unknown as PrismaService,
     validator: { validate } as unknown as TransactionValidator,
     transaction,
     validate,
@@ -314,6 +315,47 @@ describe('TransactionsService', () => {
 
       expect(result.items).toHaveLength(2);
       expect(result.nextCursor).toBeNull();
+    });
+
+    it('returns balances from the complete chronological ledger for transfers and cashbox operations, independent of the requested sort', async () => {
+      doubled.transaction.findMany
+        .mockResolvedValueOnce([
+          row({ id: 'income', type: 'INCOME', amount: 100_000, accountId }),
+          row({ id: 'expense', type: 'EXPENSE', amount: 50_000, accountId }),
+          row({ id: 'transfer', type: 'TRANSFER', amount: 10_000, accountId, destinationAccountId }),
+          row({ id: 'destination-expense', type: 'EXPENSE', amount: 2_000, accountId: destinationAccountId }),
+          row({ id: 'cashbox-in', type: 'CASHBOX_IN', amount: 5_000, accountId }),
+          row({ id: 'cashbox-out', type: 'CASHBOX_OUT', amount: 2_000, accountId }),
+          row({ id: 'cashbox-transfer', type: 'CASHBOX_TRANSFER', amount: 1_000, accountId: null }),
+        ])
+        .mockResolvedValueOnce([
+          row({ id: 'income', type: 'INCOME', amount: 100_000, accountId }),
+          row({ id: 'expense', type: 'EXPENSE', amount: 50_000, accountId }),
+          row({ id: 'transfer', type: 'TRANSFER', amount: 10_000, accountId, destinationAccountId }),
+          row({ id: 'destination-expense', type: 'EXPENSE', amount: 2_000, accountId: destinationAccountId }),
+          row({ id: 'cashbox-in', type: 'CASHBOX_IN', amount: 5_000, accountId }),
+          row({ id: 'cashbox-out', type: 'CASHBOX_OUT', amount: 2_000, accountId }),
+          row({ id: 'cashbox-transfer', type: 'CASHBOX_TRANSFER', amount: 1_000, accountId: null }),
+        ]);
+      (doubled.prisma as unknown as { account: { findMany: jest.Mock } }).account.findMany.mockResolvedValue([
+        { id: accountId, initialBalance: 10_000 },
+        { id: destinationAccountId, initialBalance: 0 },
+      ]);
+
+      const result = await service.findAll(userId, listQuery({ sort: TransactionSort.AMOUNT_HIGHEST }));
+
+      expect(result.items.map(({ id, accountBalanceAfter }) => ({ id, accountBalanceAfter }))).toEqual([
+        { id: 'income', accountBalanceAfter: 110_000 },
+        { id: 'expense', accountBalanceAfter: 60_000 },
+        { id: 'transfer', accountBalanceAfter: 50_000 },
+        { id: 'destination-expense', accountBalanceAfter: 8_000 },
+        { id: 'cashbox-in', accountBalanceAfter: 45_000 },
+        { id: 'cashbox-out', accountBalanceAfter: 47_000 },
+        { id: 'cashbox-transfer', accountBalanceAfter: null },
+      ]);
+      expect(doubled.transaction.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({ where: { userId, status: 'CONFIRMED' }, orderBy: [{ settlementDate: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] }),
+      );
     });
 
     it('derives total/incomeTotal/expenseTotal/cashboxInTotal/cashboxOutTotal from the groupBy result, defaulting an absent type to 0', async () => {
