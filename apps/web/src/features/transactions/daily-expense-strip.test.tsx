@@ -36,6 +36,7 @@ function transaction(overrides: Partial<TransactionListItemDto> & Pick<Transacti
     recurrenceRuleId: null,
     installmentNumber: null,
     installmentTotal: null,
+    accountBalanceAfter: null,
     account: { id: 'account-1', name: 'Millennium' },
     category: { id: 'category-food', name: 'Alimentação', color: '#a85c1a' },
     subcategory: null,

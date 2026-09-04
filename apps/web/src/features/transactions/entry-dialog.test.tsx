@@ -62,6 +62,7 @@ function makeTransaction(overrides: Partial<ApiClient.TransactionListItemDto> = 
     recurrenceRuleId: null,
     installmentNumber: null,
     installmentTotal: null,
+    accountBalanceAfter: null,
     account: { id: 'account-1', name: 'Main account' },
     category: null,
     subcategory: null,
