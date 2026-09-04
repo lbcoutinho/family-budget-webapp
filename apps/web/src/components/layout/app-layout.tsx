@@ -87,6 +87,10 @@ export function AppLayout() {
       <div className="grid min-h-svh shell:grid-cols-shell">
         <AppSidebar />
 
+        <a href="#route-content" className="sr-only fixed top-3 left-3 z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only">
+          {t('nav.skipToContent')}
+        </a>
+
         {isCompact && isOpen && (
           <Button
             variant="ghost"
@@ -98,7 +102,7 @@ export function AppLayout() {
           />
         )}
 
-        <div inert={isCompact && isOpen} className="flex min-w-0 flex-col">
+        <div id="route-content" tabIndex={-1} inert={isCompact && isOpen} className="flex min-w-0 flex-col">
           <Suspense fallback={<LoadingSpinner className="min-h-svh" />}>
             <Outlet />
           </Suspense>

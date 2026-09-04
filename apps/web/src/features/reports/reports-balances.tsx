@@ -106,6 +106,29 @@ function Evolution({
           {t('reports.balances.netWorth')}
         </span>
       </div>
+      <div className="sr-only">
+        <table>
+          <caption>{t('reports.balances.evolutionTable')}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{t('reports.balances.month')}</th>
+              <th scope="col">{t('reports.balances.accounts')}</th>
+              <th scope="col">{t('reports.balances.cashboxes')}</th>
+              <th scope="col">{t('reports.balances.netWorth')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {months.map((month) => (
+              <tr key={month.month}>
+                <th scope="row">{formatMonthName(new Date(year, month.month - 1, 1))}</th>
+                <td>{formatCents(month.accounts)}</td>
+                <td>{formatCents(month.cashboxes)}</td>
+                <td>{formatCents(month.netWorth)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

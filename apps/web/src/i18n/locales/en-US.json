@@ -13,6 +13,7 @@
     "accounts": "Accounts",
     "categories": "Categories",
     "mainNav": "Main navigation",
+    "skipToContent": "Skip to content",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "logout": "Log out"
@@ -652,6 +653,8 @@
       "futureDated": "includes {{value}} in confirmed future-dated entries",
       "evolutionTitle": "Evolution in {{year}}",
       "evolutionHint": "Each month's close by reference month",
+      "evolutionTable": "Monthly balance evolution values",
+      "month": "Month",
       "legend": "Chart legend",
       "inProgress": "{{month}} in progress",
       "insufficientTitle": "Insufficient history in {{year}}",

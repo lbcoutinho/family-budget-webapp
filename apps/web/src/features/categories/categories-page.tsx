@@ -213,7 +213,13 @@ export function CategoriesPage() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-full shell:w-52">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder={t('categories.search')} className="pl-8" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <Input
+                aria-label={t('categories.search')}
+                placeholder={t('categories.search')}
+                className="pl-8"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
             </div>
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Switch checked={showInactive} onCheckedChange={setShowInactive} aria-label={t('categories.showInactive')} />
