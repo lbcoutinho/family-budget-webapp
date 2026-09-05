@@ -14,7 +14,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
-import { useEffect, useRef, type FocusEvent } from 'react';
+import { useEffect, useRef, useState, type FocusEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -50,6 +50,7 @@ interface EntryFormValues {
   amount: string;
   isCreditCard: boolean;
   settlementDate: string;
+  referenceMonth: string;
 }
 
 /**
@@ -74,6 +75,7 @@ function buildEntrySchema(allowEmptyAmount: boolean) {
         .refine((value) => (allowEmptyAmount && value.trim() === '') || (parseCurrencyInput(value) ?? 0) > 0, 'transactions.form.invalidAmount'),
       isCreditCard: z.boolean(),
       settlementDate: z.string().min(1, 'transactions.form.required'),
+      referenceMonth: z.string().min(1, 'transactions.form.required'),
     })
     .superRefine((values, context) => {
       if (values.type === 'TRANSFER') {
@@ -112,9 +114,9 @@ export function businessCodeField(code: string | undefined): keyof EntryFormValu
 
 /** Visual top-to-bottom order per tab, walked to focus the first errored field on a failed submit. */
 const FOCUS_ORDER: Record<EntryType, readonly (keyof EntryFormValues)[]> = {
-  EXPENSE: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount', 'settlementDate'],
-  INCOME: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount'],
-  TRANSFER: ['accountId', 'destinationAccountId', 'date', 'description', 'notes', 'amount'],
+  EXPENSE: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount', 'referenceMonth', 'settlementDate'],
+  INCOME: ['accountId', 'date', 'categoryId', 'subcategoryId', 'description', 'notes', 'amount', 'referenceMonth'],
+  TRANSFER: ['accountId', 'destinationAccountId', 'date', 'description', 'notes', 'amount', 'referenceMonth'],
 };
 
 /** Native month input emits YYYY-MM; the API requires its first day. */
@@ -144,6 +146,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const saveAnother = useRef(false);
+  const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(Boolean(transaction));
   const categoryRef = useRef<HTMLButtonElement>(null);
   const subcategoryRef = useRef<HTMLButtonElement>(null);
   const { data: accounts = [] } = useListAccounts(transaction ? { includeInactive: true } : undefined);
@@ -173,11 +176,12 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       settlementDate: transaction?.settlementDate ?? transaction?.date ?? today(),
+      referenceMonth: (transaction?.referenceMonth ?? referenceMonthFromDate(transaction?.settlementDate ?? transaction?.date ?? today())).slice(0, 7),
     },
   });
-  const [type, date, isCreditCard, selectedCategoryId, selectedSubcategoryId, selectedAccountId, selectedDestinationAccountId] = useWatch({
+  const [type, date, isCreditCard, selectedCategoryId, selectedSubcategoryId, selectedAccountId, selectedDestinationAccountId, settlementDate] = useWatch({
     control,
-    name: ['type', 'date', 'isCreditCard', 'categoryId', 'subcategoryId', 'accountId', 'destinationAccountId'],
+    name: ['type', 'date', 'isCreditCard', 'categoryId', 'subcategoryId', 'accountId', 'destinationAccountId', 'settlementDate'],
   });
   const categoryId = selectedCategoryId || undefined;
   const subcategoryId = selectedSubcategoryId || undefined;
@@ -193,7 +197,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
     mutation: {
       onMutate: async ({ data }) => {
         const settlementDate = data.settlementDate ?? data.date;
-        const resolvedReferenceMonth = referenceMonthFromDate(settlementDate);
+        const resolvedReferenceMonth = data.referenceMonth ?? referenceMonthFromDate(settlementDate);
         const key = getListTransactionsQueryKey({ referenceMonth: resolvedReferenceMonth, limit: 30 });
         await queryClient.cancelQueries({ queryKey: key });
         const previous = queryClient.getQueryData<InfiniteData<TransactionListDto>>(key);
@@ -272,7 +276,9 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             amount: '',
             isCreditCard: false,
             settlementDate: today(),
+            referenceMonth: referenceMonthFromDate(today()).slice(0, 7),
           });
+          setReferenceMonthOverridden(false);
           toast.success(t(formKey('transactions.form.save')));
           setTimeout(() => setFocus('accountId'));
         } else {
@@ -321,12 +327,18 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       amount: transaction?.amount !== null && transaction?.amount !== undefined ? formatCents(transaction.amount) : '',
       isCreditCard: transaction?.isCreditCard ?? false,
       settlementDate: transaction?.settlementDate ?? transaction?.date ?? nextDate,
+      referenceMonth: (transaction?.referenceMonth ?? referenceMonthFromDate(transaction?.settlementDate ?? transaction?.date ?? nextDate)).slice(0, 7),
     });
+    queueMicrotask(() => setReferenceMonthOverridden(Boolean(transaction)));
   }, [open, reset, transaction]);
 
   useEffect(() => {
     if (!isCreditCard) setValue('settlementDate', date, { shouldValidate: true });
   }, [date, isCreditCard, setValue]);
+
+  useEffect(() => {
+    if (!referenceMonthOverridden) setValue('referenceMonth', referenceMonthFromDate(settlementDate).slice(0, 7), { shouldValidate: true });
+  }, [referenceMonthOverridden, settlementDate, setValue]);
 
   const changeType = (nextType: string) => {
     setValue('type', nextType as EntryType, { shouldValidate: true });
@@ -334,6 +346,8 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
     setValue('subcategoryId', '');
     setValue('isCreditCard', false);
     setValue('settlementDate', date);
+    setValue('referenceMonth', referenceMonthFromDate(date).slice(0, 7));
+    setReferenceMonthOverridden(false);
     clearErrors();
   };
 
@@ -350,6 +364,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
         type: values.type,
         date: values.date,
         settlementDate: values.type === 'EXPENSE' && values.isCreditCard ? values.settlementDate : values.date,
+        referenceMonth: `${values.referenceMonth}-01`,
         description: values.description.trim(),
         notes: values.notes.trim() || null,
         isCreditCard: values.type === 'EXPENSE' ? values.isCreditCard : false,
@@ -388,6 +403,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       changed('categoryId', 'categoryId' in shared ? shared.categoryId : undefined, transaction.categoryId ?? undefined);
       changed('subcategoryId', 'subcategoryId' in shared ? shared.subcategoryId : undefined, transaction.subcategoryId ?? undefined);
       changed('settlementDate', shared.settlementDate, transaction.settlementDate);
+      changed('referenceMonth', shared.referenceMonth, transaction.referenceMonth);
       updateMutation.mutate({ id: transaction.id, data: update });
     },
     // eslint-disable-next-line react-hooks/refs -- focusCategoryOrSubcategory only ever runs from the submit event, never during render.
@@ -556,6 +572,18 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             </div>
             {type === 'EXPENSE' ? (
               <>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="entry-reference-month">{t(formKey('transactions.form.referenceMonth'))}</Label>
+                  <Input
+                    id="entry-reference-month"
+                    type="month"
+                    aria-describedby={errors.referenceMonth ? 'entry-reference-month-error' : undefined}
+                    aria-invalid={errors.referenceMonth !== undefined}
+                    disabled={activeMutation.isPending}
+                    {...register('referenceMonth', { onChange: () => setReferenceMonthOverridden(true) })}
+                  />
+                  <FieldError id="entry-reference-month-error" error={errors.referenceMonth?.message} />
+                </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="entry-credit-card"
@@ -570,6 +598,20 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   <Label htmlFor="entry-credit-card">{t(formKey('transactions.form.creditCard'))}</Label>
                 </div>
               </>
+            ) : null}
+            {type !== 'EXPENSE' ? (
+              <div className="grid gap-1.5">
+                <Label htmlFor="entry-reference-month">{t(formKey('transactions.form.referenceMonth'))}</Label>
+                <Input
+                  id="entry-reference-month"
+                  type="month"
+                  aria-describedby={errors.referenceMonth ? 'entry-reference-month-error' : undefined}
+                  aria-invalid={errors.referenceMonth !== undefined}
+                  disabled={activeMutation.isPending}
+                  {...register('referenceMonth', { onChange: () => setReferenceMonthOverridden(true) })}
+                />
+                <FieldError id="entry-reference-month-error" error={errors.referenceMonth?.message} />
+              </div>
             ) : null}
             {type === 'EXPENSE' && isCreditCard ? (
               <div className="grid gap-1.5">

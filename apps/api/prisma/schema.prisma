@@ -330,7 +330,7 @@ model CsvImportModel {
 /// nullable at the schema level because the constraint is per-type, not universal).
 ///
 /// `date` is when it happened; `settlementDate` is when it affects balances. `referenceMonth` is
-/// always the first day of `settlementDate`'s month, so monthly reports group by it directly.
+/// the first day of the accounting month, which may differ from the settlement month.
 ///
 /// `cashboxId` and `destinationCashboxId` are the one deliberate departure from the `Restrict`
 /// every other relation here uses: they are `SetNull`, so deleting a zero-balance cashbox does not
@@ -351,7 +351,7 @@ model Transaction {
 
   /// When the purchase happened (ADR-0009).
   date           DateTime @db.Date
-  /// Which month it reports in, always derived from `settlementDate`.
+  /// Which accounting month it reports in, normalized to the first day.
   referenceMonth DateTime @map("reference_month") @db.Date
   /// When money settles: equal to `date` for non-card rows and no earlier than `date` for cards.
   settlementDate DateTime @default(now()) @map("settlement_date") @db.Date

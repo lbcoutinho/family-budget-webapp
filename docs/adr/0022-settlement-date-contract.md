@@ -1,6 +1,6 @@
 # ADR-0022 — Settlement date contract
 
-**Status:** Accepted
+**Status:** Superseded by ADR-0023
 **Date:** 2026-09-04
 
 ## Context

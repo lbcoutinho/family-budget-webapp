@@ -123,7 +123,7 @@ export class TransactionsService {
     if (isCreditCard && !dto.settlementDate) throw badRequest('TRANSACTION_SETTLEMENT_DATE_REQUIRED', 'Settlement date is required for credit-card expenses.');
     const settlementDate = isCreditCard ? dto.settlementDate! : dto.date;
     assertSettlementIsNotBeforeDate(dto.date, settlementDate, isCreditCard);
-    const referenceMonth = startOfMonthUtc(settlementDate);
+    const referenceMonth = startOfMonthUtc(dto.referenceMonth ?? settlementDate);
     const cashboxIds = collectCashboxIds(refs.cashbox?.id, refs.destinationCashbox?.id);
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -196,7 +196,7 @@ export class TransactionsService {
       throw badRequest('TRANSACTION_CREDIT_CARD_EXPENSE_ONLY', 'isCreditCard is only valid for EXPENSE transactions.');
     const settlementDate = isCreditCard ? (dto.settlementDate ?? current.settlementDate) : date;
     assertSettlementIsNotBeforeDate(date, settlementDate, isCreditCard);
-    const referenceMonth = startOfMonthUtc(settlementDate);
+    const referenceMonth = dto.referenceMonth === undefined ? current.referenceMonth : startOfMonthUtc(dto.referenceMonth);
 
     // Re-snapshotting the label only when the id field itself was patched — not merely because the
     // validator ran for some other reason — is what ADR-0019 means by "kept in sync ... never

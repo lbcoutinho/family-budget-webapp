@@ -60,8 +60,8 @@
     <div data-proto="07 — Lançamento" data-ticket="M5-T02 · M5-T03 · M5-T09"></div>
 
     <div class="proto-note">
-      <strong>Questão deste protótipo:</strong> uma despesa no cartão deve guardar a data da compra e a data de liquidação separadamente, usando a liquidação
-      para definir o mês de referência e a entrada no saldo. Marque cartão, altere as duas datas e teste a virada de dezembro para janeiro.
+      <strong>Questão deste protótipo:</strong> uma despesa no cartão guarda data da compra, data de liquidação e mês de referência separados. A liquidação move
+      o saldo; o mês classifica o lançamento nos relatórios. Marque cartão, altere as datas e experimente ajustar o mês.
     </div>
 
     <div data-shell="month">
@@ -146,6 +146,11 @@
                     <input class="input num" id="e-amount" type="text" placeholder="0,00" value="128,40" inputmode="decimal" />
                   </div>
 
+                  <div class="field">
+                    <label for="e-reference-month">Mês de referência</label>
+                    <input class="input" id="e-reference-month" type="month" value="2026-08" />
+                  </div>
+
                   <label class="check">
                     <input type="checkbox" id="e-credit-card" />
                     <span class="small">Compra no cartão de crédito</span>
@@ -214,19 +219,19 @@
     <div class="content" style="max-width: 1120px; margin: 44px auto 60px; padding: 0 22px">
       <div class="decisions">
         <h2>Decisões a aprovar</h2>
-        <p>Confirme se estas regras representam como a compra no cartão deve funcionar.</p>
+        <p>Confirme se estas regras representam caixa e competência.</p>
         <ol>
           <li>
             <b>Dois nomes explícitos.</b>
-            <span>"Data da compra" mantém o evento original; "Data de liquidação" determina mês de referência e saldo.</span>
+            <span>"Data da compra" mantém o evento original; "Data de liquidação" determina o saldo.</span>
           </li>
           <li>
-            <b>Sem campo de mês de referência.</b>
-            <span>O mês é consequência da liquidação, não uma escolha separada do usuário.</span>
+            <b>Competência explícita.</b>
+            <span>"Mês de referência", imediatamente acima de cartão, classifica o lançamento nos relatórios.</span>
           </li>
           <li>
             <b>Sugestão automática, sem sobrescrever.</b>
-            <span>Ao marcar cartão, a liquidação começa no primeiro dia do mês seguinte. Depois, mudar só a compra preserva a liquidação.</span>
+            <span>O mês começa igual ao mês de liquidação e deixa de acompanhar a data depois de ajustado manualmente.</span>
           </li>
         </ol>
       </div>
@@ -240,10 +245,19 @@
       const creditCardCheckbox = document.getElementById('e-credit-card');
       const purchaseDateInput = document.getElementById('e-date');
       const settlementDateInput = document.getElementById('e-settlement-date');
+      const referenceMonthInput = document.getElementById('e-reference-month');
       const settlementDateField = document.querySelector('.field-settlement-date');
       const settlementError = document.getElementById('settlement-error');
       const saveBtn = document.getElementById('save-btn');
       const saveAndAddBtn = document.getElementById('save-and-add-btn');
+      let referenceMonthOverridden = false;
+
+      settlementDateInput.addEventListener('change', () => {
+        if (!referenceMonthOverridden) referenceMonthInput.value = settlementDateInput.value.slice(0, 7);
+      });
+      referenceMonthInput.addEventListener('change', () => {
+        referenceMonthOverridden = true;
+      });
 
       // Category to subcategories mapping — fixture data consistent with 04-categories.html
       const categories = {

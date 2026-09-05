@@ -9,12 +9,11 @@ colour. It does not: nearly every entry is an expense, and pre-selecting saves a
 All five approved as prototyped: type as a segmented control at the top of the dialog; cashbox
 operations kept out of this form; date and amount before classification; optimistic insert with rollback.
 
-Issue #284 reopens one credit-card detail for approval. Card expenses expose distinct **purchase**
-and **settlement** dates instead of an editable reference month. Settlement suggests the first day
-of the month after purchase, including year rollover, but remains editable. Once edited, changing
-only the purchase date preserves settlement. Settlement cannot precede purchase; its month becomes
-the reference month and it determines when the expense enters balances. Non-card entries use their
-single date as both purchase and settlement date.
+Issue #324 restores an editable **reference month** for every transaction type. It is the accounting
+classification used by monthly screens and reports, while settlement date remains the date that
+affects balances. The field begins with the settlement month, follows it until manually changed,
+and sits immediately above the credit-card checkbox on the expense tab. Card expenses retain their
+separate purchase and settlement dates; non-card entries use their single date as settlement.
 
 Two of the prototype's own open decisions were settled during #169, which fixed the shipped dialog
 back onto the approved design:

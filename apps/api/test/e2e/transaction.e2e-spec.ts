@@ -120,10 +120,10 @@ describe('Transaction model (e2e)', () => {
     await expect(prisma.transaction.create({ data: { ...minimal(), amount: -1 } })).rejects.toMatchObject({ code: 'P2039' });
   });
 
-  it('rejects a referenceMonth inconsistent with settlementDate', async () => {
-    const create = prisma.transaction.create({ data: { ...minimal(), referenceMonth: new Date('2026-04-01') } });
+  it('allows a referenceMonth independent from settlementDate', async () => {
+    const created = await prisma.transaction.create({ data: { ...minimal(), referenceMonth: new Date('2026-04-01') } });
 
-    await expect(create).rejects.toMatchObject({ code: 'P2039' });
+    expect(created.referenceMonth).toEqual(new Date('2026-04-01'));
   });
 
   it('round-trips date and referenceMonth as plain dates regardless of client timezone', async () => {
