@@ -13,8 +13,9 @@ The dialog titles itself for the mode it is in — "Novo lançamento" creating, 
 editing — and only the create dialog offers "Salvar e adicionar outro".
 
 Fields are ordered the way a bank statement is read: date and amount first, classification after,
-with the credit-card checkbox and settlement date last, right above the footer. The settlement date
-derives the reference month, which is not independently editable. The credit-card
+with the reference-month field immediately above the credit-card checkbox and settlement date last,
+right above the footer. Reference month is the accounting classification: it initially follows the
+settlement month but can be changed independently. The credit-card
 checkbox only appears on the expense tab — a credit-card purchase is a spend, never income — and an
 entry saved on any other tab always carries `isCreditCard: false`. "Descrição" is required on every
 tab; the API rejects a blank one, so the form does too.

@@ -15,6 +15,8 @@ export interface CreateTransactionDto {
   date: string;
   /** When the transaction settles. Card expenses cannot settle before their purchase date. */
   settlementDate?: string;
+  /** Accounting month, normalized to its first day. Defaults to the settlement date month. */
+  referenceMonth?: string;
   /** @maxLength 200 */
   description: string;
   /**

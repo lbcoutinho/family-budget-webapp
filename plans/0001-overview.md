@@ -43,7 +43,7 @@ Requires **three dates** on every transaction:
 
 - `date` — when the underlying event happened (March 5)
 - `settlementDate` — when money affects balances (April 1 for a card purchase)
-- `referenceMonth` — the first day of the settlement month (April 1), derived by the server
+- `referenceMonth` — the first day of the accounting month (for example, August 1 for salary settled on July 25)
 
 All reports and the monthly tab group by `referenceMonth`.
 
@@ -224,7 +224,7 @@ the server, not user input (ADR-0019).
 ### 5.3 Invariants
 
 - `amount` is always positive; the sign is derived from `type`
-- `referenceMonth` is the first day of `settlementDate`'s month and is never client-controlled
+- `referenceMonth` is the first day of the accounting month; clients may choose it independently from `settlementDate`
 - `settlementDate` is `date` for non-card transactions; a credit-card settlement date cannot precede its purchase date
 - `category.kind` must match the transaction type (`INCOME` only accepts `INCOME` categories)
 - `subcategory.parentId === categoryId`
@@ -255,7 +255,7 @@ Cashbox = CASHBOX_IN − CASHBOX_OUT
 
 ### 5.5 Settlement and reference-month rules
 
-- On create and update, `referenceMonth = startOfMonth(settlementDate)`.
+- On create, an omitted `referenceMonth` defaults to `startOfMonth(settlementDate)`; on update, an omitted value is preserved.
 - A non-card transaction derives `settlementDate` from `date`.
 - A credit-card transaction requires `settlementDate`; changing only its purchase date preserves settlement.
 - Chronological ledger order is `settlementDate`, then `createdAt`, then `id`.

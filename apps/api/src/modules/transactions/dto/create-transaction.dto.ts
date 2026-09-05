@@ -48,6 +48,18 @@ export class CreateTransactionDto {
   @IsDate({ message: 'settlementDate must be in the form YYYY-MM-DD.' })
   settlementDate?: Date;
 
+  @ApiProperty({
+    type: String,
+    format: 'date',
+    required: false,
+    example: '2026-04-01',
+    description: 'Accounting month, normalized to its first day. Defaults to the settlement date month.',
+  })
+  @IsOptional()
+  @Transform(toDateOnly)
+  @IsDate({ message: 'referenceMonth must be in the form YYYY-MM-DD.' })
+  referenceMonth?: Date;
+
   @ApiProperty({ type: String, maxLength: 200, example: 'Coffee' })
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()

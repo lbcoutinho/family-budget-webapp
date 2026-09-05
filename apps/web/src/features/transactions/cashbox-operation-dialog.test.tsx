@@ -89,6 +89,7 @@ describe('cashbox operation payloads', () => {
     destinationCashboxId: 'cashbox-2',
     amount: 123456,
     date: '2026-08-15',
+    referenceMonth: '2026-08',
     description: 'Fund holiday',
   };
 
@@ -100,6 +101,7 @@ describe('cashbox operation payloads', () => {
     expect(cashboxOperationPayload(mode, values)).toEqual({
       amount: 123456,
       date: '2026-08-15',
+      referenceMonth: '2026-08-01',
       description: 'Fund holiday',
       ...references,
     });
@@ -156,6 +158,7 @@ describe('CashboxOperationDialog', () => {
         cashboxId: 'cashbox-1',
         amount: 123456,
         date: '2026-08-15',
+        referenceMonth: '2026-08-01',
         description: 'Fundo de férias',
       },
     });
@@ -252,7 +255,7 @@ describe('CashboxOperationDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     const saved = mutate.mock.calls[0]?.[0]?.data;
-    expect(saved).toEqual({ type, ...references, amount: 2000, date: '2026-08-15', description: 'Fundo de férias' });
+    expect(saved).toEqual({ type, ...references, amount: 2000, date: '2026-08-15', referenceMonth: '2026-08-01', description: 'Fundo de férias' });
   });
 
   it('shows the selected balance beside both selectors', async () => {

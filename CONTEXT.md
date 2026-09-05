@@ -54,7 +54,7 @@ The day a Transaction affects Account and Cashbox balances. It equals the Transa
 _Avoid_: Reference month
 
 **Reference Month**:
-The first day of the Settlement Date's month, used to group a Transaction in the monthly view and reports. It is derived, never chosen independently.
+The first day of the accounting month, used to group a Transaction in the monthly view and reports. It may differ from the Settlement Date and is chosen independently when needed.
 _Avoid_: Transaction date
 
 ## Confirmation
