@@ -156,10 +156,14 @@ describe('Transactions API (e2e)', () => {
       expect(created.referenceMonth).toBe('2026-03-01');
     });
 
-    it('rejects a client-controlled referenceMonth', async () => {
-      await authed('post', '/transactions')
-        .send(minimalBody({ referenceMonth: '2026-04-20' }))
-        .expect(400);
+    it('accepts and normalizes a client-controlled referenceMonth', async () => {
+      const created = (
+        await authed('post', '/transactions')
+          .send(minimalBody({ referenceMonth: '2026-04-20' }))
+          .expect(201)
+      ).body as TransactionDto;
+
+      expect(created.referenceMonth).toBe('2026-04-01');
     });
 
     it('rejects an unknown type with 400', async () => {
@@ -250,7 +254,7 @@ describe('Transactions API (e2e)', () => {
       expect(response.body).toMatchObject({ code: 'TRANSACTION_TYPE_IMMUTABLE' });
     });
 
-    it('derives card referenceMonth from settlementDate, preserves settlement on purchase edits, and rejects earlier settlement', async () => {
+    it('derives card referenceMonth from settlementDate, preserves it on later edits, and rejects earlier settlement', async () => {
       const creditCard = await createTransaction(minimalBody({ isCreditCard: true, date: '2026-03-15', settlementDate: '2026-05-01' }));
       const regular = await createTransaction(minimalBody({ isCreditCard: false, date: '2026-03-15' }));
 
@@ -262,9 +266,9 @@ describe('Transactions API (e2e)', () => {
 
       expect(creditCard).toMatchObject({ settlementDate: '2026-05-01', referenceMonth: '2026-05-01' });
       expect(updatedCreditCard).toMatchObject({ referenceMonth: '2026-05-01', settlementDate: '2026-05-01' });
-      expect(settledCreditCard).toMatchObject({ referenceMonth: '2026-06-01', settlementDate: '2026-06-20' });
+      expect(settledCreditCard).toMatchObject({ referenceMonth: '2026-05-01', settlementDate: '2026-06-20' });
       expect(rejected.body).toMatchObject({ code: 'TRANSACTION_SETTLEMENT_BEFORE_DATE' });
-      expect(updatedRegular.referenceMonth).toBe('2026-04-01');
+      expect(updatedRegular.referenceMonth).toBe('2026-03-01');
       expect(updatedRegular.settlementDate).toBe('2026-04-10');
     });
 
