@@ -556,6 +556,51 @@ describe('MonthPage', () => {
     expect(cursors).toEqual([null, 'cursor-1']);
   });
 
+  it('fetches the next confirmed page when the pagination sentinel enters the viewport', async () => {
+    const cursors: (string | null)[] = [];
+    const callbacks: IntersectionObserverCallback[] = [];
+    const originalObserver = window.IntersectionObserver;
+    class Observer {
+      constructor(callback: IntersectionObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = () => undefined;
+      unobserve = () => undefined;
+      disconnect = () => undefined;
+      takeRecords = () => [];
+      root = null;
+      rootMargin = '';
+      thresholds = [];
+    }
+    Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: Observer });
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('status') === 'CONFIRMED' || url.searchParams.get('status') === 'DRAFT') return HttpResponse.json(page([]));
+        const cursor = url.searchParams.get('cursor');
+        cursors.push(cursor);
+        return HttpResponse.json(
+          cursor ? page([{ ...CONFIRMED, id: 'confirmed-2', description: 'Fuel' }]) : page([CONFIRMED], { nextCursor: 'cursor-1', total: 2 }),
+        );
+      }),
+    );
+
+    try {
+      renderPage();
+      await expectTextToBePresent('Groceries');
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+      callbacks[0]!(
+        [{ isIntersecting: false } as IntersectionObserverEntry, { isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      );
+
+      await expectTextToBePresent('Fuel');
+      expect(cursors).toEqual([null, 'cursor-1']);
+    } finally {
+      Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: originalObserver });
+    }
+  });
+
   it('routes an income or expense row edit to the prefilled entry dialog', async () => {
     server.use(
       http.get('/api/transactions', ({ request }) =>
