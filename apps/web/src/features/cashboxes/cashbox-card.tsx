@@ -12,8 +12,7 @@ import { cn } from '@/lib/utils';
 
 export interface CashboxCardProps {
   cashbox: CashboxDto;
-  /** Cents. `null` means "not computed yet" — M3 ships this card before the Transaction model
-   * exists, so every balance is unknown until M4-T07 wires the real number in. */
+  /** Cents. `null` means the balance has not loaded. */
   balance: number | null;
   onEdit: () => void;
   onDeactivate: () => void;
@@ -40,8 +39,9 @@ export function CashboxGridSkeleton({ count = 3 }: { count?: number }) {
 export function CashboxCard({ cashbox, balance, onEdit, onDeactivate, onActivate, onDelete }: CashboxCardProps) {
   const { t } = useTranslation();
 
-  const pct = balance !== null && cashbox.targetAmount !== null ? Math.min(100, Math.round((balance / cashbox.targetAmount) * 100)) : null;
-  const reached = pct !== null && pct >= 100;
+  const progress = balance !== null && cashbox.targetAmount !== null && cashbox.targetAmount > 0 ? Math.round((balance / cashbox.targetAmount) * 100) : null;
+  const barProgress = progress === null ? null : Math.max(0, Math.min(100, progress));
+  const reached = progress !== null && progress >= 100;
 
   return (
     <Card className={cn('gap-3 p-4', !cashbox.isActive && 'bg-muted/40 text-muted-foreground')}>
@@ -92,25 +92,26 @@ export function CashboxCard({ cashbox, balance, onEdit, onDeactivate, onActivate
         </div>
       </div>
 
-      {balance === null ? (
-        <p className="font-display text-2xl font-bold tabular-nums text-cashbox opacity-60" aria-label={t('cashboxes.balancePending')}>
-          —
-        </p>
-      ) : (
-        <p className="font-display text-2xl font-bold tabular-nums text-cashbox">{formatCents(balance)}</p>
-      )}
+      <div>
+        <p className="text-xs text-muted-foreground">{t('cashboxes.balance')}</p>
+        {balance === null ? (
+          <p className="font-display text-2xl font-bold tabular-nums text-cashbox opacity-60" aria-label={t('cashboxes.balancePending')}>
+            —
+          </p>
+        ) : (
+          <p className="font-display text-2xl font-bold tabular-nums text-cashbox">{formatCents(balance)}</p>
+        )}
+      </div>
 
-      {cashbox.targetAmount !== null && (
+      {cashbox.targetAmount !== null && cashbox.targetAmount > 0 && (
         <div className="grid gap-1.5">
-          {pct !== null && (
-            <div role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} className="h-1.5 overflow-hidden rounded-full bg-accent">
-              <div className={cn('h-full rounded-full', reached ? 'bg-primary' : 'bg-cashbox')} style={{ width: `${pct}%` }} />
+          {barProgress !== null && (
+            <div role="progressbar" aria-valuenow={barProgress} aria-valuemin={0} aria-valuemax={100} className="h-1.5 overflow-hidden rounded-full bg-accent">
+              <div className={cn('h-full rounded-full', reached ? 'bg-primary' : 'bg-cashbox')} style={{ width: `${barProgress}%` }} />
             </div>
           )}
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span className={cn(reached && 'font-medium text-primary')}>
-              {reached ? t('cashboxes.goal.reached') : pct !== null ? t('cashboxes.goal.progress', { percent: pct }) : null}
-            </span>
+            <span className={cn(reached && 'font-medium text-primary')}>{progress !== null ? t('cashboxes.goal.progress', { percent: progress }) : null}</span>
             <span className="tabular-nums">{t('cashboxes.goal.target', { amount: formatCents(cashbox.targetAmount) })}</span>
           </div>
         </div>

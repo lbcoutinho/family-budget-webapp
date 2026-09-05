@@ -2,20 +2,12 @@ import { useListCashboxBalances, useListTransactions } from '@family-budget/api-
 import { useTranslation } from 'react-i18next';
 
 import { StatCard } from '@/components/stat-card';
-import { formatMonthName, startOfMonth } from '@/lib/date';
+import { formatDateOnly, formatMonthName, startOfMonth } from '@/lib/date';
 import { formatCents } from '@/lib/money';
 
 export interface CashboxesSummaryProps {
   month: Date;
   activeCount: number;
-}
-
-function toDateOnly(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
 }
 
 /** The four `.stat` cards atop the cashboxes screen: how many are active, what moved in/out of
@@ -27,7 +19,7 @@ export function CashboxesSummary({ month, activeCount }: CashboxesSummaryProps) 
 
   const balances = useListCashboxBalances();
   const movements = useListTransactions({
-    referenceMonth: toDateOnly(startOfMonth(month)),
+    referenceMonth: formatDateOnly(startOfMonth(month)),
     type: ['CASHBOX_IN', 'CASHBOX_OUT'],
     limit: 1,
   });

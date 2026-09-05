@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { CashboxesPage } from './cashboxes-page';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { formatDateOnly } from '@/lib/date';
 import { server } from '@/test/server';
 
 const ACTIVE: CashboxDto = {
@@ -32,8 +33,12 @@ const INACTIVE: CashboxDto = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
-function renderPage() {
+type BalanceHandler = NonNullable<Parameters<typeof http.get>[1]>;
+
+function renderPage(balanceHandler: BalanceHandler = () => HttpResponse.json([])) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+
+  server.use(http.get('/api/cashboxes/balances', balanceHandler));
 
   return {
     user: userEvent.setup(),
@@ -233,20 +238,41 @@ describe('CashboxesPage', () => {
   });
 
   it('shows the error state and retries', async () => {
-    let calls = 0;
+    let cashboxCalls = 0;
+    let balanceCalls = 0;
+    const balanceRequests: URL[] = [];
     server.use(
       http.get('/api/cashboxes', () => {
-        calls += 1;
+        cashboxCalls += 1;
 
-        return calls === 1 ? new HttpResponse(null, { status: 500 }) : HttpResponse.json([ACTIVE]);
+        return HttpResponse.json([ACTIVE]);
       }),
     );
 
-    const { user } = renderPage();
+    const { user } = renderPage(({ request }) => {
+      balanceCalls += 1;
+      balanceRequests.push(new URL(request.url));
+
+      return balanceCalls === 1
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json([{ cashboxId: ACTIVE.id, name: ACTIVE.name, isActive: true, targetAmount: null, balance: 2_300_00 }]);
+    });
 
     await screen.findByText('Não foi possível carregar as caixinhas');
     await user.click(screen.getByRole('button', { name: 'Tentar de novo' }));
 
-    expect(await screen.findByText('Férias 2027')).toBeInTheDocument();
+    expect(await screen.findByText('2.300,00 €')).toBeInTheDocument();
+    expect(cashboxCalls).toBeGreaterThanOrEqual(2);
+    expect(balanceCalls).toBeGreaterThanOrEqual(2);
+    expect(balanceRequests.some((url) => url.searchParams.get('asOf') === formatDateOnly(new Date()))).toBe(true);
+  });
+
+  it('keeps the grid loading until the balance request resolves', () => {
+    server.use(http.get('/api/cashboxes', () => HttpResponse.json([ACTIVE])));
+
+    const { container } = renderPage(() => new Promise(() => undefined));
+
+    expect(container.querySelectorAll('[data-slot="skeleton"]')).not.toHaveLength(0);
+    expect(screen.queryByText('Férias 2027')).not.toBeInTheDocument();
   });
 });

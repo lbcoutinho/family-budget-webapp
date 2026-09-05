@@ -26,13 +26,19 @@ function renderCard(props: Partial<React.ComponentProps<typeof CashboxCard>> = {
 }
 
 describe('CashboxCard', () => {
-  // Tripwire: once M4-T07 wires a real balance the page will stop passing `null` here for a
-  // cashbox with a target, and this test should be updated to reflect that new reality.
-  it('renders an em dash and no progress bar when the balance is not computed yet', () => {
-    renderCard({ balance: null });
+  it('renders a balance label and no progress UI without a target', () => {
+    renderCard({ cashbox: { ...cashbox, targetAmount: null }, balance: 2_300_00 });
 
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('Saldo')).toBeInTheDocument();
+    expect(screen.getByText('2.300,00 €')).toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('treats a zero target as no target', () => {
+    renderCard({ cashbox: { ...cashbox, targetAmount: 0 }, balance: 2_300_00 });
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.queryByText(/meta/i)).not.toBeInTheDocument();
   });
 
   it('renders the progress bar against the target once the balance is known', () => {
@@ -41,10 +47,18 @@ describe('CashboxCard', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '46');
   });
 
-  it('shows the goal-reached state once the balance meets or exceeds the target', () => {
+  it('shows actual progress above the target while capping the visual bar', () => {
     renderCard({ balance: 6_000_00 });
 
-    expect(screen.getByText('Meta atingida')).toBeInTheDocument();
+    expect(screen.getByText('120% da meta')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+  });
+
+  it('keeps balance and progress visible for an inactive cashbox', () => {
+    renderCard({ cashbox: { ...cashbox, isActive: false }, balance: 2_300_00 });
+
+    expect(screen.getByText('inativa')).toBeInTheDocument();
+    expect(screen.getByText('2.300,00 €')).toBeInTheDocument();
+    expect(screen.getByText('46% da meta')).toBeInTheDocument();
   });
 });

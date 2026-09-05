@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { currentMonthPath, formatMonth, monthFromPathParams, monthPath, monthRange, startOfMonth } from './date';
+import { currentMonthPath, formatDateOnly, formatMonth, monthFromPathParams, monthPath, monthRange, startOfMonth } from './date';
 
 describe('startOfMonth', () => {
   it('normalizes any day of the month to the first, at midnight', () => {
@@ -27,6 +27,12 @@ describe('formatMonth', () => {
     expect(formatMonth(new Date(2026, 6, 15))).toBe('Julho de 2026');
     expect(formatMonth(new Date(2026, 0, 1))).toBe('Janeiro de 2026');
     expect(formatMonth(new Date(2025, 11, 31))).toBe('Dezembro de 2025');
+  });
+});
+
+describe('formatDateOnly', () => {
+  it('uses the local calendar day for API parameters', () => {
+    expect(formatDateOnly(new Date(2026, 6, 15, 23, 30))).toBe('2026-07-15');
   });
 });
 

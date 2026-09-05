@@ -6,6 +6,7 @@ import {
   useDeactivateCashbox,
   useDeleteCashbox,
   useListCashboxes,
+  useListCashboxBalances,
   useUpdateCashbox,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import i18n from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
+import { formatDateOnly } from '@/lib/date';
 
 function apiErrorCode(error: unknown): string | undefined {
   return (error as { response?: { data?: { code?: string } } } | null)?.response?.data?.code;
@@ -51,7 +53,21 @@ export function CashboxesPage() {
   const [deleting, setDeleting] = useState<CashboxDto | null>(null);
   const [deleteBlocked, setDeleteBlocked] = useState(false);
 
-  const { data: cashboxes, isPending, isError, refetch } = useListCashboxes(showInactive ? { includeInactive: true } : undefined);
+  const {
+    data: cashboxes,
+    isPending: cashboxesPending,
+    isError: cashboxesError,
+    refetch: refetchCashboxes,
+  } = useListCashboxes(showInactive ? { includeInactive: true } : undefined);
+  const {
+    data: balances,
+    isPending: balancesPending,
+    isError: balancesError,
+    refetch: refetchBalances,
+  } = useListCashboxBalances({ asOf: formatDateOnly(new Date()) });
+  const isPending = cashboxesPending || balancesPending;
+  const isError = cashboxesError || balancesError;
+  const balanceByCashboxId = new Map(balances?.map(({ cashboxId, balance }) => [cashboxId, balance]));
 
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: getListCashboxesQueryKey() });
 
@@ -136,7 +152,7 @@ export function CashboxesPage() {
             title={t('cashboxes.error.title')}
             description={t('cashboxes.error.description')}
             action={
-              <Button variant="outline" size="sm" onClick={() => void refetch()}>
+              <Button variant="outline" size="sm" onClick={() => void Promise.all([refetchCashboxes(), refetchBalances()])}>
                 {t('common.retry')}
               </Button>
             }
@@ -161,8 +177,7 @@ export function CashboxesPage() {
               <CashboxCard
                 key={cashbox.id}
                 cashbox={cashbox}
-                // No Transaction model exists yet in M3 — every balance is unknown until M4-T07.
-                balance={null}
+                balance={balanceByCashboxId.get(cashbox.id) ?? null}
                 onEdit={() => setEditing(cashbox)}
                 onDeactivate={() => setDeactivating(cashbox)}
                 onActivate={() => setActivating(cashbox)}
