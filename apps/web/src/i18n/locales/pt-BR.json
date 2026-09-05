@@ -228,6 +228,7 @@
       "delete": "Apagar"
     },
     "balancePending": "Saldo ainda não calculado",
+    "balance": "Saldo",
     "goal": {
       "target": "meta {{amount}}",
       "progress": "{{percent}}% da meta",

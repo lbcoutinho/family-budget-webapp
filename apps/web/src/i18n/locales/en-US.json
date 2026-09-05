@@ -228,6 +228,7 @@
       "delete": "Delete"
     },
     "balancePending": "Balance not yet calculated",
+    "balance": "Balance",
     "goal": {
       "target": "goal {{amount}}",
       "progress": "{{percent}}% of the goal",
