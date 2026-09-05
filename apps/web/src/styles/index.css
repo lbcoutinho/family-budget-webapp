@@ -155,7 +155,7 @@
 }
 
 @utility border-l-entry-accent {
-  border-left-width: 3px;
+  border-left-width: 1px;
 }
 
 @utility pl-entry-content {
@@ -199,7 +199,7 @@
 }
 
 @utility border-l-callout {
-  border-left-width: 3px;
+  border-left-width: 1px;
 }
 
 @utility h-segmented-trigger {
