@@ -100,7 +100,7 @@ export function CsvImportPage() {
   if (models.isError || accounts.isError) {
     return (
       <PageContent>
-        <p className="flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+        <p className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
           <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
           {apiErrorMessage(models.isError ? models.error : accounts.error, t)}
         </p>
@@ -177,13 +177,13 @@ export function CsvImportPage() {
           </div>
         </div>
         {fileError ? (
-          <p className="mt-2 flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+          <p className="mt-2 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
             <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
             {fileError}
           </p>
         ) : null}
         {importError ? (
-          <p className="mt-4 flex items-start gap-3 rounded-md border-l-4 border-destructive bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+          <p className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
             <TriangleAlertIcon className="mt-0.5 size-5 shrink-0" />
             {apiErrorMessage(importError, t)}
           </p>
