@@ -17,7 +17,7 @@ import {
   useDeleteTransaction,
   useUpdateTransaction,
 } from '@family-budget/api-client';
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { type TFunction } from 'i18next';
 import {
   CalendarDaysIcon,
@@ -501,7 +501,12 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-  const drafts = useQuery(draftsOptions);
+  const drafts = useInfiniteQuery({
+    queryKey: draftsOptions.queryKey,
+    queryFn: ({ pageParam, signal }) => listTransactions({ ...draftsParams, ...(pageParam ? { cursor: pageParam } : {}) }, signal),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
 
   const { data: categories = [] } = useListCategories({ tree: false });
   const categoryOptions = categories.filter((category) => category.parentId === null).map((category) => ({ id: category.id, name: category.name }));
@@ -511,22 +516,29 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   const typeOptions = Object.values(TransactionType).map((type) => ({ id: type, name: t(`transactions.filters.typeOption.${type}` as TranslationKey) }));
 
   const entries = useMemo(() => confirmed.data?.pages.flatMap((page) => page.items) ?? [], [confirmed.data]);
-  const draftEntries = drafts.data?.items ?? [];
+  const draftEntries = useMemo(() => drafts.data?.pages.flatMap((page) => page.items) ?? [], [drafts.data]);
   const firstPage = confirmed.data?.pages[0];
+  const firstDraftPage = drafts.data?.pages[0];
   const allEntries = [...draftEntries, ...entries];
   const netTotal = (firstPage?.incomeTotal ?? 0) - (firstPage?.expenseTotal ?? 0);
+  const hasNextPage = confirmed.hasNextPage || drafts.hasNextPage;
+  const isFetchingNextPage = confirmed.isFetchingNextPage || drafts.isFetchingNextPage;
+  const fetchNextPage = () => {
+    if (drafts.hasNextPage) void drafts.fetchNextPage();
+    if (confirmed.hasNextPage) void confirmed.fetchNextPage();
+  };
 
   useEffect(() => {
     const node = sentinel.current;
-    if (!node || !confirmed.hasNextPage || confirmed.isFetchingNextPage) return;
+    if (!node || !hasNextPage || isFetchingNextPage) return;
     const onIntersect: IntersectionObserverCallback = (records) => {
-      if (records.some((record) => record.isIntersecting)) void confirmed.fetchNextPage();
+      if (records.some((record) => record.isIntersecting)) fetchNextPage();
     };
     const observer = new window.IntersectionObserver(onIntersect);
     observer.observe(node);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Subscribe only when the observer inputs change, not on query object identity.
-  }, [confirmed.fetchNextPage, confirmed.hasNextPage, confirmed.isFetchingNextPage]);
+  }, [hasNextPage, isFetchingNextPage]);
 
   const moveMonth = (offset: number) => {
     void navigate({ pathname: monthPath(new Date(referenceMonth.getFullYear(), referenceMonth.getMonth() + offset, 1)), search: searchParams.toString() });
@@ -737,7 +749,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     {t('transactions.entries')}
                   </h2>
                   <p className="text-table-header text-muted-foreground">
-                    {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: drafts.data?.total ?? 0 })}
+                    {t('transactions.count', { count: firstPage?.total ?? 0 })} · {t('transactions.draftCount', { count: firstDraftPage?.total ?? 0 })}
                   </p>
                 </div>
                 <div>
@@ -802,16 +814,10 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                     </article>
                   ))}
                 </div>
-                {confirmed.hasNextPage ? (
+                {hasNextPage ? (
                   <div ref={sentinel} className="flex min-h-11 items-center justify-center gap-2 border-t px-4 py-2 text-field">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-field"
-                      onClick={() => void confirmed.fetchNextPage()}
-                      disabled={confirmed.isFetchingNextPage}
-                    >
-                      {confirmed.isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
+                    <Button variant="ghost" size="sm" className="text-field" onClick={fetchNextPage} disabled={isFetchingNextPage}>
+                      {isFetchingNextPage ? t('transactions.loadingMore') : t('transactions.loadMore')}
                     </Button>
                   </div>
                 ) : null}
