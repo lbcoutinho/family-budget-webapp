@@ -575,23 +575,23 @@ describe('Transactions API (e2e)', () => {
       await prisma.cashbox.delete({ where: { id: cashboxId } });
 
       const owner = (await prisma.account.findUniqueOrThrow({ where: { id: accountId } })).userId;
-      draftId = (
-        await prisma.transaction.create({
-          data: {
-            userId: owner,
-            type: 'EXPENSE',
-            status: 'DRAFT',
-            amount: 500,
-            date: new Date('2026-03-01'),
-            settlementDate: new Date('2026-03-01'),
-            referenceMonth: new Date('2026-03-01'),
-            description: 'Voice draft',
-            accountId,
-            categoryId,
-            subcategoryId,
-          },
-        })
-      ).id;
+      draftId = '12345678-1234-f234-9234-123456789abc';
+      await prisma.transaction.create({
+        data: {
+          id: draftId,
+          userId: owner,
+          type: 'EXPENSE',
+          status: 'DRAFT',
+          amount: 500,
+          date: new Date('2026-03-01'),
+          settlementDate: new Date('2026-03-01'),
+          referenceMonth: new Date('2026-03-01'),
+          description: 'Voice draft',
+          accountId,
+          categoryId,
+          subcategoryId,
+        },
+      });
     });
 
     it('unfiltered list hides the DRAFT; ?status=DRAFT shows only it', async () => {
@@ -600,6 +600,10 @@ describe('Transactions API (e2e)', () => {
 
       const draftsOnly = (await authed('get', '/transactions?status=DRAFT').expect(200)).body as { items: { id: string }[] };
       expect(draftsOnly.items.map((i) => i.id)).toEqual([draftId]);
+    });
+
+    it('accepts a PostgreSQL UUID with non-standard version bits as an opaque cursor', async () => {
+      await authed('get', `/transactions?status=DRAFT&cursor=${draftId}`).expect(200);
     });
 
     it('narrows by a single filter, and composes two filters', async () => {

@@ -601,6 +601,48 @@ describe('MonthPage', () => {
     }
   });
 
+  it('fetches the next draft page when the pagination sentinel enters the viewport', async () => {
+    const cursors: (string | null)[] = [];
+    const callbacks: IntersectionObserverCallback[] = [];
+    const originalObserver = window.IntersectionObserver;
+    class Observer {
+      constructor(callback: IntersectionObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = () => undefined;
+      unobserve = () => undefined;
+      disconnect = () => undefined;
+      takeRecords = () => [];
+      root = null;
+      rootMargin = '';
+      thresholds = [];
+    }
+    Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: Observer });
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+        const cursor = url.searchParams.get('cursor');
+        cursors.push(cursor);
+        return HttpResponse.json(
+          cursor ? page([{ ...DRAFT, id: 'draft-2', description: 'Imported draft 31' }]) : page([DRAFT], { nextCursor: 'draft-cursor-1', total: 31 }),
+        );
+      }),
+    );
+
+    try {
+      renderPage();
+      await expectTextToBePresent(DRAFT.description);
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+      callbacks[0]!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+
+      await expectTextToBePresent('Imported draft 31');
+      expect(cursors).toEqual([null, 'draft-cursor-1']);
+    } finally {
+      Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: originalObserver });
+    }
+  });
+
   it('routes an income or expense row edit to the prefilled entry dialog', async () => {
     server.use(
       http.get('/api/transactions', ({ request }) =>
