@@ -858,7 +858,8 @@
       document.getElementById('next-variant').addEventListener('click', () => move(1));
       document.getElementById('prototype-state').addEventListener('change', (event) => {
         state = event.target.value;
-        render();
+        if (state === 'failure' && document.querySelector('.save-status')) refreshStatus();
+        else render();
       });
       document.getElementById('previous-quarter').addEventListener('click', () => {
         const select = document.getElementById('quarter');
@@ -888,6 +889,20 @@
           (event.target.classList.contains('percent-input') && (!Number.isFinite(number) || number < 0 || number > 100)) ||
           (event.target.classList.contains('money-input') && (!Number.isFinite(number) || number < 0));
         event.target.toggleAttribute('aria-invalid', invalid);
+        const errorId = `runtime-error-${[...document.querySelectorAll('.budget-input')].indexOf(event.target)}`;
+        document.getElementById(errorId)?.remove();
+        if (invalid) {
+          const error = document.createElement('span');
+          error.id = errorId;
+          error.className = 'field-error runtime-error';
+          error.textContent = event.target.classList.contains('percent-input') ? 'Use um valor entre 0% e 100%.' : 'Use um valor igual ou maior que zero.';
+          const fieldLine = event.target.closest('.field-line');
+          if (fieldLine) fieldLine.after(error);
+          else event.target.after(error);
+          event.target.setAttribute('aria-describedby', errorId);
+        } else if (event.target.getAttribute('aria-describedby') === errorId) {
+          event.target.removeAttribute('aria-describedby');
+        }
         state = invalid ? 'invalid' : 'saving';
         refreshStatus();
         if (invalid) return;
@@ -925,13 +940,15 @@
           input.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (event.target.closest('[data-retry]')) {
+          const preserveFields = Boolean(document.querySelector('.save-status'));
           state = 'saving';
-          if (document.querySelector('.save-status')) refreshStatus();
+          if (preserveFields) refreshStatus();
           else render();
           setTimeout(() => {
             dirtyFields.clear();
             state = 'populated';
-            render();
+            if (preserveFields) refreshStatus();
+            else render();
           }, 800);
         }
       });
