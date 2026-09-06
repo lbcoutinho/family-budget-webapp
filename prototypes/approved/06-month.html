@@ -50,6 +50,7 @@
          justificada segmento a segmento. */
       .bar {
         width: 100%;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -321,7 +322,113 @@
         font-size: 12.5px;
       }
 
+      /* Budget is a compact reading layer above the ledger, not a competing
+         destination. The native disclosure keeps the summary in place. */
+      .budget {
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .budget-summary {
+        display: grid;
+        grid-template-columns: auto repeat(3, minmax(110px, 1fr)) auto;
+        gap: 12px 24px;
+        align-items: center;
+        padding: 14px 16px;
+      }
+      .budget-summary h2 {
+        font-size: 0.9rem;
+      }
+      .budget-metric span,
+      .budget-table .head {
+        display: block;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .budget-metric b {
+        display: block;
+        margin-top: 2px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .budget-toggle {
+        justify-self: end;
+      }
+      .budget-toggle svg {
+        transition: transform var(--fast) var(--ease);
+      }
+      .budget-toggle[aria-expanded='true'] svg {
+        transform: rotate(90deg);
+      }
+      .budget-detail {
+        border-top: 1px solid var(--line);
+        padding: 4px 16px 10px;
+        overflow-x: auto;
+      }
+      .budget-table {
+        width: 100%;
+        min-width: 500px;
+        border-collapse: collapse;
+      }
+      .budget-table th,
+      .budget-table td {
+        padding: 9px 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      .budget-table th {
+        text-align: left;
+      }
+      .budget-table .n {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .budget-category {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .budget-category:hover,
+      .budget-category[aria-pressed='true'] {
+        text-decoration: underline;
+      }
+      .budget-category[aria-pressed='true'] {
+        font-weight: 600;
+      }
+      .budget-state {
+        padding: 18px 16px;
+        border-top: 1px solid var(--line);
+      }
+      .budget-state p {
+        margin-top: 3px;
+      }
+      .state-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
       @media (max-width: 620px) {
+        .budget-summary {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+        .budget-summary h2 {
+          grid-column: 1 / 3;
+        }
+        .budget-toggle {
+          grid-column: 3;
+          grid-row: 1;
+        }
+        .budget-table th:first-child,
+        .budget-table td:first-child {
+          position: sticky;
+          left: 0;
+          background: var(--surface);
+        }
         .entry {
           grid-template-columns: 40px 1fr auto;
           row-gap: 4px;
@@ -344,6 +451,12 @@
       <strong>A tela principal.</strong> Não existe dashboard: <code>/</code> redireciona para cá. Os totais do rodapé seguem a regra do domínio —
       <em>só EXPENSE conta como despesa</em>, então transferências e depósitos em caixinha ficam de fora e o rodapé diz isso.
       <strong>Clique num dia da faixa</strong> para filtrar o mês.
+      <div class="state-controls" aria-label="Estados do protótipo">
+        <button class="btn sm outline" data-budget-state="ready">Com orçamento</button>
+        <button class="btn sm outline" data-budget-state="loading">Carregando</button>
+        <button class="btn sm outline" data-budget-state="error">Erro</button>
+        <button class="btn sm outline" data-budget-state="empty">Sem orçamento</button>
+      </div>
     </div>
 
     <div data-shell="month">
@@ -404,6 +517,117 @@
             </div>
           </div>
 
+          <!-- ===== acompanhamento do orçamento (#336) ===== -->
+          <section class="card budget" aria-labelledby="budgetTitle">
+            <div class="budget-summary">
+              <h2 id="budgetTitle">Orçamento do mês</h2>
+              <div class="budget-metric"><span>Orçamento</span><b class="num">2.450,00 €</b></div>
+              <div class="budget-metric"><span>Despesas</span><b class="num">2.358,00 €</b></div>
+              <div class="budget-metric"><span>Disponível</span><b class="num in">92,00 €</b></div>
+              <button class="btn sm ghost budget-toggle" type="button" aria-expanded="false" aria-controls="budgetDetail">
+                <span data-budget-label>Ver orçamento</span> <span data-icon="chevronRight"></span>
+              </button>
+            </div>
+            <div id="budgetDetail" class="budget-detail" hidden>
+              <table class="budget-table">
+                <thead>
+                  <tr>
+                    <th class="head" scope="col">Categoria</th>
+                    <th class="head n" scope="col">Orçamento</th>
+                    <th class="head n" scope="col">Despesas</th>
+                    <th class="head n" scope="col">Disponível</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="moradia" aria-pressed="false">
+                        <span class="dot" style="background: var(--c1)"></span> Moradia
+                      </button>
+                    </td>
+                    <td class="n">1.200,00 €</td>
+                    <td class="n">1.150,00 €</td>
+                    <td class="n">50,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="alimentacao" aria-pressed="false">
+                        <span class="dot" style="background: var(--c3)"></span> Alimentação
+                      </button>
+                    </td>
+                    <td class="n">600,00 €</td>
+                    <td class="n">613,00 €</td>
+                    <td class="n out">− 13,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="transporte" aria-pressed="false">
+                        <span class="dot" style="background: var(--c2)"></span> Transporte
+                      </button>
+                    </td>
+                    <td class="n">250,00 €</td>
+                    <td class="n">265,00 €</td>
+                    <td class="n out">− 15,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="saude" aria-pressed="false">
+                        <span class="dot" style="background: var(--c4)"></span> Saúde
+                      </button>
+                    </td>
+                    <td class="n">200,00 €</td>
+                    <td class="n">96,00 €</td>
+                    <td class="n">104,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="educacao" aria-pressed="false">
+                        <span class="dot" style="background: var(--c6)"></span> Educação
+                      </button>
+                    </td>
+                    <td class="n">150,00 €</td>
+                    <td class="n muted">0,00 €</td>
+                    <td class="n">150,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="outros" aria-pressed="false">
+                        <span class="dot" style="background: var(--c10)"></span> Outros
+                      </button>
+                    </td>
+                    <td class="n">50,00 €</td>
+                    <td class="n">54,00 €</td>
+                    <td class="n out">− 4,00 €</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button class="budget-category" data-category="lazer" aria-pressed="false">
+                        <span class="dot" style="background: var(--c5)"></span> Lazer
+                      </button>
+                    </td>
+                    <td class="n muted">Sem orçamento</td>
+                    <td class="n">180,00 €</td>
+                    <td class="n out">− 180,00 €</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="xs muted" style="margin-top: 9px">Selecione uma categoria para filtrar os lançamentos. Recolher o orçamento mantém o filtro.</p>
+            </div>
+            <div class="budget-state" data-budget-panel="loading" hidden>
+              <span class="spinner"></span> <span class="small muted">Carregando orçamento…</span>
+            </div>
+            <div class="budget-state" data-budget-panel="error" hidden>
+              <b>Não foi possível carregar o orçamento.</b>
+              <p class="small muted">Tente novamente sem perder os lançamentos do mês.</p>
+              <button class="btn sm outline" data-budget-state="ready" style="margin-top: 9px">Tentar novamente</button>
+            </div>
+            <div class="budget-state" data-budget-panel="empty" hidden>
+              <b>Nenhum orçamento para julho.</b>
+              <p class="small muted">Julho pertence ao terceiro trimestre de 2026.</p>
+              <button class="btn sm" style="margin-top: 9px">Criar orçamento do 3º trimestre</button>
+            </div>
+          </section>
+
           <!-- ===== filtros ===== -->
           <div class="spread" style="margin-bottom: 10px">
             <div class="row wrap">
@@ -412,7 +636,7 @@
                 <input class="input" placeholder="Buscar descrição…" />
               </div>
               <button class="btn sm outline"><span data-icon="filter"></span> Tipo: todos</button>
-              <button class="btn sm outline">Categoria: todas</button>
+              <button class="btn sm outline" id="categoryFilter">Categoria: todas</button>
               <button class="btn sm outline">Conta: todas</button>
             </div>
             <div class="row">
@@ -465,9 +689,7 @@
           <!-- ===== decisões ===== -->
           <div class="decisions">
             <h2>Decisões a aprovar</h2>
-            <p>
-              O conceito desta tela já estava aprovado em cheio na revisão da v1. O que muda aqui é o desenho — e três coisas que o desenho obrigou a decidir.
-            </p>
+            <p>O conceito base desta tela já estava aprovado. Esta revisão mantém as decisões anteriores e acrescenta o acompanhamento de orçamento.</p>
             <ol>
               <li>
                 <b>A faixa do mês é o topo da tela, acima dos saldos.</b>
@@ -508,6 +730,13 @@
                 <b>Rascunho de voz aparece na lista, esmaecido, e não soma.</b>
                 <span>Já aprovado — desenhado aqui para conferir se "não soma" fica claro o bastante.</span>
               </li>
+              <li>
+                <b>O orçamento abre em linha e filtra o mesmo livro de lançamentos.</b>
+                <span>
+                  O resumo continua visível quando o detalhe abre; escolher uma categoria reaproveita o filtro existente, e recolher o detalhe não desfaz a
+                  seleção. Os botões no aviso acima demonstram carregamento, erro e ausência de orçamento sem esconder os lançamentos.
+                </span>
+              </li>
             </ol>
           </div>
         </div>
@@ -522,6 +751,7 @@
           transporte: { n: 'Transporte', c: 'var(--c2)' },
           alimentacao: { n: 'Alimentação', c: 'var(--c3)' },
           saude: { n: 'Saúde', c: 'var(--c4)' },
+          educacao: { n: 'Educação', c: 'var(--c6)' },
           lazer: { n: 'Lazer', c: 'var(--c5)' },
           outros: { n: 'Outros', c: 'var(--c10)' },
           trabalho: { n: 'Trabalho', c: 'var(--c9)' },
@@ -724,9 +954,13 @@
         const fOut = document.getElementById('fOut');
         const fNet = document.getElementById('fNet');
         const fLabel = document.getElementById('fLabel');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const budgetToggle = document.querySelector('.budget-toggle');
+        const budgetDetail = document.getElementById('budgetDetail');
 
         let shown = 0; /* último total de despesas exibido, para o contador */
         let selectedDay = null;
+        let selectedCategory = null;
 
         /* Contador só aqui: o total responde a um filtro, não é saldo a
            conferir. Os cartões de saldo acima nunca se mexem. */
@@ -744,7 +978,7 @@
 
         function select(day) {
           selectedDay = day;
-          const items = day ? E.filter((e) => e.d === day) : E;
+          const items = E.filter((e) => (!day || e.d === day) && (!selectedCategory || e.cat === selectedCategory));
 
           document.querySelectorAll('.day').forEach((b) => {
             b.setAttribute('aria-pressed', String(Number(b.dataset.day) === day));
@@ -753,8 +987,8 @@
           rowsEl.innerHTML = items.length
             ? (day ? items : items.slice(0, PAGE)).map(render).join('')
             : `<div class="empty" style="padding:30px 20px">
-                 <h3>Nada lançado em ${day} de julho</h3>
-                 <p class="small muted">A faixa mostra o dia em cinza quando não saiu nada.</p>
+                 <h3>${selectedCategory ? `Nenhum lançamento em ${CAT[selectedCategory].n}` : `Nada lançado em ${day} de julho`}</h3>
+                 <p class="small muted">${selectedCategory ? 'O orçamento da categoria continua disponível para o mês.' : 'A faixa mostra o dia em cinza quando não saiu nada.'}</p>
                </div>`;
 
           moreEl.hidden = Boolean(day) || items.length <= PAGE;
@@ -769,11 +1003,48 @@
           fNet.textContent = eur(income - expense);
           fNet.className = 'num ' + (income - expense >= 0 ? 'in' : 'out');
 
-          titleEl.textContent = day ? `${String(day).padStart(2, '0')} de julho` : 'Lançamentos do mês';
+          titleEl.textContent = selectedCategory
+            ? `${CAT[selectedCategory].n}${day ? ` · ${String(day).padStart(2, '0')} de julho` : ''}`
+            : day
+              ? `${String(day).padStart(2, '0')} de julho`
+              : 'Lançamentos do mês';
           fLabel.textContent = day ? 'Saldo do dia' : 'Saldo do mês';
           countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
           clearEl.hidden = !day;
         }
+
+        function selectCategory(category) {
+          selectedCategory = selectedCategory === category ? null : category;
+          document.querySelectorAll('.budget-category').forEach((button) => {
+            button.setAttribute('aria-pressed', String(button.dataset.category === selectedCategory));
+          });
+          categoryFilter.textContent = selectedCategory ? `Categoria: ${CAT[selectedCategory].n}` : 'Categoria: todas';
+          select(selectedDay);
+        }
+
+        budgetToggle.addEventListener('click', () => {
+          const open = budgetToggle.getAttribute('aria-expanded') === 'true';
+          budgetToggle.setAttribute('aria-expanded', String(!open));
+          budgetToggle.querySelector('[data-budget-label]').textContent = open ? 'Ver orçamento' : 'Recolher orçamento';
+          budgetDetail.hidden = open;
+        });
+        budgetDetail.addEventListener('click', (event) => {
+          const category = event.target.closest('[data-category]')?.dataset.category;
+          if (category) selectCategory(category);
+        });
+        categoryFilter.addEventListener('click', () => selectedCategory && selectCategory(selectedCategory));
+
+        document.addEventListener('click', (event) => {
+          const state = event.target.closest('[data-budget-state]')?.dataset.budgetState;
+          if (!state) return;
+          document.querySelectorAll('[data-budget-panel]').forEach((panel) => (panel.hidden = panel.dataset.budgetPanel !== state));
+          document.querySelectorAll('.budget-metric, .budget-toggle').forEach((element) => (element.hidden = state !== 'ready'));
+          if (state !== 'ready') {
+            budgetDetail.hidden = true;
+            budgetToggle.setAttribute('aria-expanded', 'false');
+            budgetToggle.querySelector('[data-budget-label]').textContent = 'Ver orçamento';
+          }
+        });
 
         /* ---- o seletor de mês ----
            Protótipo: só julho de 2026 tem lançamentos, então escolher outro

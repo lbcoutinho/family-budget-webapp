@@ -1,7 +1,7 @@
 # 06 — Month
 
-Status: **approved**, in `approved/`, design-approved on 2026-08-02. M5-T01, M5-T05 and M5-T06
-unblocked on the UI side.
+Status: **approved base; Budget extension pending reapproval**, in `approved/`. The base design was
+approved on 2026-08-02; issue #336 reopens review only for the inline Budget addition.
 
 All six decisions approved as prototyped. Two are worth restating because they were phrased as
 questions or affect other screens:
@@ -71,3 +71,12 @@ settled:
 check icon in the row actions, before Edit. Only ready/valid drafts confirm directly; incomplete
 drafts must be completed first. Confirmation removes the draft state and makes the entry eligible
 for balances and reports. Variants B and C remain in commit `96ca12d` as reference.
+
+## Budget tracking extension — pending reapproval in issue #336
+
+- A compact Budget / expenses / available summary remains visible above the ledger.
+- “View budget” uses an accessible inline disclosure; the ledger never leaves the screen.
+- Category rows reuse the existing ledger Category filter. Closing the disclosure preserves it.
+- The table demonstrates zero spending, spending without Budget, and red negative availability.
+- Loading, error, and no-Budget states are switchable from the prototype note; the no-Budget action
+  creates the corresponding quarter's Budget.

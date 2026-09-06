@@ -30,3 +30,10 @@ opacity rather than appearing on hover, which is the same correction the categor
 Above the list sits the screen's signature: **a strip with one segment per day**, its height the
 day's expense and its colour the category that weighed most. Clicking a day filters the list and
 recomputes the footer. That recomputed total may animate; the balance panel never does.
+
+Between balances and filters, a compact **monthly Budget summary** keeps Budget, EXPENSE spending,
+and availability visible. “View budget” expands Category rows inline without replacing the ledger.
+Selecting a Category uses the ledger's existing Category filter, and collapsing the disclosure does
+not clear it. The native table includes Budgeted Categories with no spending and spending without
+Budget; negative availability is red. Loading and error states leave the ledger available, while a
+month with no Budget links to creating its quarter's Budget.
