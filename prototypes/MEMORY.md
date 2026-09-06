@@ -38,6 +38,7 @@ this table and that screen's own file, nothing else.
 | 13  | Voice                       | approved, in full | [memory/13-voice.md](memory/13-voice.md)                                     |
 | 14  | Settings › General          | **approved**      | [memory/14-settings-general.md](memory/14-settings-general.md)               |
 | 15  | CSV transaction import      | **approved**      | [memory/15-transaction-import.md](memory/15-transaction-import.md)           |
+| 16  | Quarterly Budget            | **under review**  | [memory/16-quarterly-budget.md](memory/16-quarterly-budget.md)               |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
 type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,

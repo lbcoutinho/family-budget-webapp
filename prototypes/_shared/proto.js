@@ -21,6 +21,7 @@ const ICONS = {
   wallet: '<rect x="2.5" y="5.5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M17 14.5h1.5"/>',
   tags: '<path d="M3 3h7.2L21 13.8 13.8 21 3 10.2z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
   piggy: '<path d="M3 12.5a6.5 6.5 0 0 1 6.5-6.5h3A6.5 6.5 0 0 1 19 12.5V18h-3.5v-2h-5v2H7v-3a6.4 6.4 0 0 1-4-2.5z"/><path d="M20 11h1.5M13 6V3.5"/>',
+  budget: '<path d="M4 5.5h16M4 12h16M4 18.5h16"/><path d="M8 3v5M15 9.5v5M11 16v5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   pencil: '<path d="M4 20h4L20 8l-4-4L4 16z"/>',
   trash: '<path d="M4 6.5h16M9 6.5V4h6v2.5M6.5 6.5l1 14h9l1-14"/>',
@@ -67,6 +68,7 @@ function eur(n, { sign = true } = {}) {
    screens and say so rather than pretending to be links. */
 const NAV = [
   { id: 'month', label: 'Mês', icon: 'calendar', href: '06-month.html' },
+  { id: 'budget', label: 'Orçamento', icon: 'budget', href: '16-quarterly-budget.html' },
   { id: 'cashboxes', label: 'Caixinhas', icon: 'piggy', href: '05-cashboxes.html' },
   { id: 'reports', label: 'Relatórios', icon: 'chart', href: '09-reports-monthly.html' },
   { id: 'voice', label: 'Lançar por voz', icon: 'mic', href: null },
