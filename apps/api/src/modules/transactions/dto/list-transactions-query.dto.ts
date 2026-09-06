@@ -104,7 +104,7 @@ export class ListTransactionsQueryDto {
 
   @ApiProperty({ type: String, format: 'uuid', required: false, description: 'Opaque to the client — the id of the last row of the previous page.' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('loose')
   cursor?: string;
 
   @ApiProperty({ type: Number, required: false, default: 50, minimum: 1, maximum: 200 })
