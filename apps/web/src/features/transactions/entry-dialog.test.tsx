@@ -628,6 +628,32 @@ describe('EntryDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('preserves an edited reference month when the mounted dialog opens for a transaction', async () => {
+    const onOpenChange = vi.fn();
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const view = render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <EntryDialog open={false} onOpenChange={onOpenChange} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    view.rerender(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <EntryDialog
+            open
+            onOpenChange={onOpenChange}
+            transaction={makeTransaction({ date: '2026-07-25', settlementDate: '2026-07-25', referenceMonth: '2026-08-01' })}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText('transactions.form.referenceMonth')).toHaveValue('2026-08'));
+  });
+
   it('leaves the amount field blank for an amountless DRAFT and allows saving other fields with it still empty (ADR-0020)', async () => {
     const transaction = makeTransaction({ status: 'DRAFT', amount: null });
     const { user } = renderDialog(vi.fn(), transaction);

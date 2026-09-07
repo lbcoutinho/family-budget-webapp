@@ -8,6 +8,7 @@ import {
   useListAccounts,
   useListCategories,
   type CreateTransactionDto,
+  type TransactionListDto,
   type TransactionListItemDto,
   TransactionSort,
   TransactionSource,
@@ -17,7 +18,7 @@ import {
   useDeleteTransaction,
   useUpdateTransaction,
 } from '@family-budget/api-client';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { type InfiniteData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { type TFunction } from 'i18next';
 import {
   CalendarDaysIcon,
@@ -454,7 +455,24 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
   });
   const confirm = useUpdateTransaction({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
+        queryClient.setQueriesData<InfiniteData<TransactionListDto>>(
+          {
+            queryKey: getListTransactionsQueryKey(),
+            predicate: ({ queryKey }) => (queryKey[1] as { status?: TransactionStatus } | undefined)?.status === TransactionStatus.DRAFT,
+          },
+          (cached) => {
+            if (!cached || !cached.pages.some((page) => page.items.some((entry) => entry.id === variables.id))) return cached;
+            return {
+              ...cached,
+              pages: cached.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((entry) => entry.id !== variables.id),
+                total: page.total - 1,
+              })),
+            };
+          },
+        );
         invalidateTransactions();
         toast.success(t('transactions.confirmed'));
       },

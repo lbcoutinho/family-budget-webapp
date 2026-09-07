@@ -388,6 +388,42 @@ describe('MonthPage', () => {
     expect(lastMessage()).toBe('Lançamento confirmado.');
   });
 
+  it('removes a confirmed draft before its draft-list refetch finishes', async () => {
+    let confirmed = false;
+    let confirmedRefetched = false;
+    let releaseDraftRefetch!: () => void;
+    const draftRefetch = new Promise<void>((resolve) => {
+      releaseDraftRefetch = resolve;
+    });
+    server.use(
+      http.get('/api/transactions', async ({ request }) => {
+        const status = new URL(request.url).searchParams.get('status');
+        if (status === 'DRAFT') {
+          if (confirmed) await draftRefetch;
+          return HttpResponse.json(page(confirmed ? [] : [DRAFT]));
+        }
+        if (confirmed) confirmedRefetched = true;
+        return HttpResponse.json(page(confirmed ? [{ ...DRAFT, status: TransactionStatus.CONFIRMED }] : [CONFIRMED]));
+      }),
+      http.patch('/api/transactions/:id', () => {
+        confirmed = true;
+        return HttpResponse.json({ ...DRAFT, status: TransactionStatus.CONFIRMED });
+      }),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Voice draft');
+
+    try {
+      await user.click(screen.getByRole('button', { name: 'Confirmar lançamento' }));
+      await waitFor(() => expect(confirmedRefetched).toBe(true));
+      expect(screen.queryByRole('button', { name: 'Confirmar lançamento' })).not.toBeInTheDocument();
+      expect(screen.getAllByText('Voice draft')).toHaveLength(1);
+    } finally {
+      releaseDraftRefetch();
+    }
+  });
+
   it('keeps drafts visible and shows the amount validation error when confirmation fails', async () => {
     const amountlessDraft = { ...DRAFT, amount: null };
     server.use(
