@@ -4,6 +4,7 @@
   },
   "nav": {
     "month": "Month",
+    "budgets": "Budget",
     "cashboxes": "Cashboxes",
     "reports": "Reports",
     "voice": "Voice entry",
@@ -741,6 +742,35 @@
       "created_other": "{{count}} recurring entries created",
       "error": "Couldn't generate recurring entries right now."
     }
+  },
+  "budgets": {
+    "title": "Budget",
+    "quarterNavigation": "Quarter navigation",
+    "quarter": "Quarter",
+    "quarterOption": "Q{{quarter}} {{year}}",
+    "previousQuarter": "Previous quarter",
+    "nextQuarter": "Next quarter",
+    "loading": "Loading budget…",
+    "loadErrorTitle": "Could not load the budget",
+    "loadErrorDescription": "Check your connection and try again. No local information was changed.",
+    "emptyTitle": "There is no Budget for Q{{quarter}} {{year}} yet",
+    "emptyDescription": "Enter estimated Income. The Budget is created only after the first valid change.",
+    "startIncome": "Start with Income",
+    "description": "Set the expected Income for this quarter.",
+    "yourQuarter": "Your quarter",
+    "planned": "Planned",
+    "estimatedIncome": "Estimated quarterly Income",
+    "incomeHelp": "The planning base; it is not divided into monthly estimates.",
+    "incomeInvalid": "Enter Income greater than zero.",
+    "quarterNote": "Quarter note",
+    "notePlaceholder": "Optional",
+    "saving": "Saving…",
+    "saved": "Budget saved",
+    "saveFailed": "Could not save",
+    "invalidStatus": "Correct the highlighted value",
+    "unsaved_one": "{{count}} unsaved change",
+    "unsaved_other": "{{count}} unsaved changes",
+    "leaveWarning": "There are unsaved changes. Do you still want to leave?"
   },
   "settingsGeneral": {
     "language": {

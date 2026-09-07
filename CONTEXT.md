@@ -57,6 +57,12 @@ _Avoid_: Reference month
 The first day of the accounting month, used to group a Transaction in the monthly view and reports. It may differ from the Settlement Date and is chosen independently when needed.
 _Avoid_: Transaction date
 
+## Planning
+
+**Budget**:
+A User-owned plan for one calendar quarter. It stores expected Income and planning notes; it does not move money, change Transactions, affect reports, alter Account balances, or set a Cashbox target.
+_Avoid_: Transaction, report, Account balance, Cashbox target
+
 ## Confirmation
 
 **Draft Transaction**:
