@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>16 — Orçamento trimestral</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script defer src="../_shared/proto.js"></script>
+    <style>
+      .budget-page {
+        padding-bottom: 96px;
+      }
+      .budget-page label {
+        display: grid;
+        gap: 5px;
+        color: var(--ink);
+        font-size: 12.5px;
+        font-weight: 500;
+      }
+      .budget-page input,
+      .budget-page textarea {
+        min-height: 36px;
+        padding: 7px 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 13.5px;
+      }
+      .budget-page textarea {
+        line-height: 1.4;
+      }
+      .budget-page input:focus,
+      .budget-page textarea:focus {
+        outline: 2px solid var(--action);
+        outline-offset: 1px;
+      }
+      .plan-fields {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.7fr) minmax(320px, 1.3fr);
+        gap: 18px;
+        align-items: start;
+      }
+      .plan-fields small,
+      .budget-page label small {
+        color: var(--ink-soft);
+        font-weight: 400;
+      }
+      .quarter-nav,
+      .save-status,
+      .prototype-switcher,
+      .state-picker,
+      .field-line,
+      .allocation-head,
+      .allocation-actions {
+        display: flex;
+        align-items: center;
+      }
+      .quarter-nav {
+        gap: 4px;
+      }
+      .quarter-nav select {
+        width: auto;
+        min-width: 128px;
+      }
+      .save-status {
+        gap: 7px;
+        min-height: 32px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+      .save-status[data-tone='error'] {
+        color: var(--expense);
+      }
+      .save-status[data-tone='saving'] .status-dot {
+        animation: pulse 900ms infinite;
+      }
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+      .intro p {
+        color: var(--ink-soft);
+        max-width: 62ch;
+        margin-top: 5px;
+      }
+      .money-input,
+      .percent-input {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+      .money-input {
+        max-width: 170px;
+      }
+      .percent-input {
+        width: 82px;
+      }
+      .field-line {
+        gap: 8px;
+      }
+      .field-line input {
+        margin: 0;
+      }
+      .field-error {
+        display: block;
+        color: var(--expense);
+        font-size: 11.5px;
+        margin-top: 4px;
+      }
+      .result-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+        background: var(--surface);
+        margin-bottom: 16px;
+      }
+      .result-strip > div {
+        padding: 15px;
+        border-right: 1px solid var(--line);
+      }
+      .result-strip > div:last-child {
+        border-right: 0;
+      }
+      .result-strip .k {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        margin-bottom: 5px;
+      }
+      .result-strip .v {
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .allocation-table input,
+      .allocation-table textarea {
+        min-width: 0;
+      }
+      .allocation-table textarea {
+        width: 190px;
+        min-height: 36px;
+        resize: vertical;
+      }
+      .allocation-table .calculated {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+      .allocation-table .inactive {
+        opacity: 0.65;
+      }
+      .category-name {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        min-width: 150px;
+      }
+      .allocation-head {
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .allocation-actions {
+        gap: 8px;
+      }
+      .reset {
+        border: 0;
+        background: none;
+        color: var(--transfer);
+        font: inherit;
+        font-size: 11px;
+        padding: 3px 0;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      .reset-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-grid;
+        place-items: center;
+        margin-left: 5px;
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink-soft);
+        vertical-align: middle;
+      }
+      .reset-icon:hover {
+        background: var(--wash);
+        color: var(--ink);
+      }
+      .reset-icon svg {
+        width: 14px;
+        height: 14px;
+      }
+      .totals-row {
+        background: var(--wash);
+        font-weight: 600;
+      }
+      .warning {
+        display: none;
+        padding: 11px 13px;
+        border: 1px solid color-mix(in srgb, var(--cashbox) 32%, var(--line));
+        border-radius: var(--r-sm);
+        color: var(--cashbox);
+        background: var(--cashbox-wash);
+        margin: 10px 0 0;
+        font-size: 12.5px;
+      }
+      .warning.visible {
+        display: block;
+      }
+      .review-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .review-grid .card {
+        min-width: 0;
+      }
+      .mini-bars {
+        display: grid;
+        gap: 11px;
+      }
+      .mini-bar {
+        display: grid;
+        grid-template-columns: 76px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+      }
+      .mini-bar .track {
+        height: 7px;
+        background: var(--wash);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .mini-bar .track i {
+        display: block;
+        height: 100%;
+        background: var(--income);
+      }
+      .category-breakdown {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+      .category-breakdown > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12.5px;
+      }
+      .state-screen {
+        min-height: 440px;
+        display: grid;
+        place-items: center;
+      }
+      .state-box {
+        max-width: 520px;
+        text-align: center;
+        padding: 34px;
+      }
+      .state-box p {
+        color: var(--ink-soft);
+        margin: 8px auto 16px;
+        max-width: 50ch;
+      }
+      .skeleton {
+        width: min(720px, 100%);
+        display: grid;
+        gap: 12px;
+      }
+      .skeleton i {
+        display: block;
+        height: 68px;
+        border-radius: var(--r);
+        background: linear-gradient(90deg, var(--wash), #eceef2, var(--wash));
+        background-size: 200% 100%;
+        animation: shimmer 1.25s infinite;
+      }
+      .skeleton i:first-child {
+        width: 55%;
+        height: 34px;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
+
+      /* B: one selected Category becomes the editing surface. */
+      .workspace {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr) 230px;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .category-rail {
+        border-right: 1px solid var(--line);
+      }
+      .category-rail button {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+        padding: 13px 14px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4px 8px;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+      }
+      .category-rail button[aria-selected='true'] {
+        background: var(--wash);
+        box-shadow: inset 3px 0 var(--c1);
+      }
+      .category-rail small {
+        color: var(--ink-soft);
+      }
+      .focus-editor {
+        padding: 22px;
+      }
+      .focus-editor .editor-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+        margin: 18px 0;
+      }
+      .focus-editor .editor-grid label {
+        margin: 0;
+      }
+      .focus-editor input,
+      .focus-editor textarea {
+        width: 100%;
+        max-width: none;
+      }
+      .focus-editor textarea {
+        min-height: 84px;
+      }
+      .result-rail {
+        background: var(--wash);
+        padding: 18px 16px;
+      }
+      .result-rail dl {
+        margin: 12px 0 0;
+      }
+      .result-rail dl div {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .result-rail dt {
+        color: var(--ink-soft);
+        font-size: 11px;
+      }
+      .result-rail dd {
+        margin: 3px 0 0;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+
+      /* C: a vertical quarter narrative, with allocation rows that wrap naturally. */
+      .story {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        gap: 18px;
+      }
+      .story-main {
+        min-width: 0;
+      }
+      .story-step {
+        border-top: 1px solid var(--line-strong);
+        padding: 22px 0 4px;
+        margin-top: 18px;
+      }
+      .story-step:first-child {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0;
+      }
+      .story-income {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.7fr) 1fr;
+        gap: 20px;
+        align-items: end;
+      }
+      .story-categories {
+        display: grid;
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+      .story-category {
+        background: var(--surface);
+        padding: 14px;
+        display: grid;
+        grid-template-columns: minmax(140px, 1fr) 90px 140px 120px;
+        gap: 12px;
+        align-items: center;
+      }
+      .story-category label {
+        margin: 0;
+      }
+      .story-category input {
+        width: 100%;
+      }
+      .sticky-summary {
+        position: sticky;
+        top: 84px;
+        align-self: start;
+      }
+      .sticky-summary .summary-line {
+        padding: 11px 0;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12.5px;
+      }
+      .sticky-summary .summary-line:last-child {
+        border: 0;
+      }
+
+      /* D: the chosen table density with the quarter card as the planning rail. */
+      .hybrid-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 12px;
+        align-items: start;
+      }
+      .hybrid-layout .allocation-table {
+        min-width: 0;
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .hybrid-layout .allocation-table table {
+        min-width: 680px;
+        table-layout: fixed;
+      }
+      .hybrid-layout .allocation-table th {
+        white-space: normal;
+        line-height: 1.25;
+      }
+      .hybrid-layout .allocation-table th:nth-child(1) {
+        width: 120px;
+      }
+      .hybrid-layout .allocation-table th:nth-child(2) {
+        width: 74px;
+      }
+      .hybrid-layout .allocation-table th:nth-child(3) {
+        width: 104px;
+      }
+      .hybrid-layout .allocation-table th:nth-child(4) {
+        width: 154px;
+      }
+      .hybrid-layout .allocation-table th:nth-child(5) {
+        width: 72px;
+      }
+      .hybrid-layout .allocation-table th:nth-child(6) {
+        width: 156px;
+      }
+      .hybrid-layout .allocation-table .category-name {
+        min-width: 0;
+      }
+      .hybrid-layout .allocation-table .money-input,
+      .hybrid-layout .allocation-table textarea {
+        width: 100%;
+        max-width: none;
+      }
+      .hybrid-layout .allocation-table .percent-input {
+        width: 52px;
+        min-width: 52px;
+        flex: none;
+      }
+      .quarter-card {
+        position: sticky;
+        top: 84px;
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .quarter-section {
+        padding: 14px 0;
+        border-top: 1px solid var(--line-strong);
+      }
+      .quarter-section:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+      .quarter-section:last-child {
+        padding-bottom: 0;
+      }
+      .quarter-section h3 {
+        margin-bottom: 10px;
+      }
+      .quarter-section .summary-line {
+        padding: 7px 0;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12.5px;
+      }
+      .quarter-section .summary-line small {
+        display: block;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 400;
+        text-align: right;
+      }
+      .quarter-section .money-input,
+      .quarter-section textarea {
+        width: 100%;
+        max-width: none;
+      }
+
+      .prototype-switcher {
+        position: fixed;
+        z-index: 100;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        gap: 6px;
+        padding: 7px;
+        border-radius: var(--r);
+        background: var(--ink);
+        color: #fff;
+        box-shadow: 0 14px 38px rgba(20, 22, 26, 0.24);
+      }
+      .prototype-switcher button,
+      .prototype-switcher select {
+        height: 34px;
+        border-radius: var(--r-sm);
+        border: 1px solid #45484d;
+        background: #25282d;
+        color: #fff;
+        font: inherit;
+        font-size: 12px;
+      }
+      .prototype-switcher button {
+        min-width: 34px;
+        cursor: pointer;
+      }
+      .prototype-switcher .variant-label {
+        min-width: 158px;
+        text-align: center;
+        font-size: 12px;
+      }
+      .state-picker {
+        gap: 6px;
+        padding-left: 6px;
+        border-left: 1px solid #45484d;
+      }
+      .state-picker label {
+        margin: 0;
+        font-size: 11.5px;
+        color: #c8cbd0;
+      }
+      .state-picker select {
+        width: 116px;
+        padding: 0 7px;
+      }
+      .decision-block {
+        margin-top: 22px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r);
+        padding: 18px;
+        background: var(--surface);
+      }
+      .decision-block ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+        color: var(--ink-soft);
+      }
+
+      @media (max-width: 900px) {
+        .result-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .result-strip > div:nth-child(2) {
+          border-right: 0;
+        }
+        .result-strip > div:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line);
+        }
+        .review-grid,
+        .story {
+          grid-template-columns: 1fr;
+        }
+        .workspace {
+          grid-template-columns: 190px minmax(0, 1fr);
+        }
+        .result-rail {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+        .result-rail h3 {
+          grid-column: 1 / -1;
+        }
+        .result-rail dl {
+          display: contents;
+        }
+        .sticky-summary {
+          position: static;
+        }
+        .hybrid-layout {
+          grid-template-columns: 1fr;
+        }
+        .quarter-card {
+          position: static;
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .hybrid-layout .allocation-table {
+          grid-column: 1;
+          grid-row: 2;
+        }
+      }
+      @media (max-width: 680px) {
+        .plan-fields {
+          grid-template-columns: 1fr;
+        }
+        .topbar {
+          align-items: flex-start;
+        }
+        .quarter-nav select {
+          min-width: 112px;
+        }
+        .intro {
+          grid-template-columns: 1fr;
+          align-items: start;
+        }
+        .intro .save-status {
+          order: -1;
+        }
+        .result-strip {
+          grid-template-columns: 1fr 1fr;
+        }
+        .result-strip > div {
+          padding: 12px;
+        }
+        .review-grid {
+          gap: 12px;
+        }
+        .allocation-table table,
+        .allocation-table tbody,
+        .allocation-table tr,
+        .allocation-table td {
+          display: block;
+          width: 100%;
+        }
+        .allocation-table thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+        }
+        .allocation-table tr {
+          padding: 14px;
+          border-bottom: 1px solid var(--line);
+        }
+        .allocation-table td {
+          border: 0;
+          padding: 5px 0;
+          text-align: left !important;
+        }
+        .allocation-table td::before {
+          content: attr(data-label);
+          display: block;
+          color: var(--ink-soft);
+          font-size: 11.5px;
+          margin-bottom: 3px;
+        }
+        .allocation-table .totals-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .allocation-table textarea,
+        .allocation-table .money-input {
+          width: 100%;
+          max-width: none;
+        }
+        .hybrid-layout .allocation-table tr {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px 12px;
+        }
+        .hybrid-layout .allocation-table table {
+          min-width: 0;
+          table-layout: auto;
+        }
+        .hybrid-layout .allocation-table td {
+          padding: 0;
+        }
+        .hybrid-layout .allocation-table td:first-child,
+        .hybrid-layout .allocation-table td:last-child {
+          grid-column: 1 / -1;
+        }
+        .hybrid-layout .allocation-table .totals-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .hybrid-layout .reset-icon {
+          width: 44px;
+          height: 44px;
+        }
+        .workspace {
+          display: block;
+        }
+        .category-rail {
+          border: 0;
+          border-bottom: 1px solid var(--line);
+          display: flex;
+          overflow-x: auto;
+        }
+        .category-rail button {
+          min-width: 155px;
+          border-right: 1px solid var(--line);
+          border-bottom: 0;
+        }
+        .category-rail button[aria-selected='true'] {
+          box-shadow: inset 0 -3px var(--c1);
+        }
+        .focus-editor {
+          padding: 16px 14px;
+        }
+        .focus-editor .editor-grid {
+          grid-template-columns: 1fr;
+        }
+        .result-rail {
+          display: block;
+        }
+        .story-income {
+          grid-template-columns: 1fr;
+        }
+        .story-category {
+          grid-template-columns: 1fr 1fr;
+        }
+        .story-category .category-name {
+          grid-column: 1 / -1;
+        }
+        .story-category .note-field {
+          grid-column: 1 / -1;
+        }
+        .prototype-switcher {
+          width: calc(100% - 20px);
+          bottom: 10px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        .prototype-switcher .variant-label {
+          flex: 1;
+          min-width: 130px;
+        }
+        .state-picker {
+          flex-basis: 100%;
+          justify-content: center;
+          border-left: 0;
+          border-top: 1px solid #45484d;
+          padding: 6px 0 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: Make allocation consequences visible beside the input; refuse a dashboard of detached metrics.
+      OWN-WORLD: The existing achromatic instrument panel, hairline divisions, Category dots, and semantic money text.
+      STORY: Choose a quarter, shape the Expense plan, understand overrides, then compare it with confirmed actuals.
+      FIRST VIEWPORT: Quarter navigation and save truth lead directly into editable Income and allocation consequences.
+      FORM: Operate-mode financial planning surface; seed key budget-allocation-consequences.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div data-proto="16 — Orçamento trimestral" data-ticket="#335"></div>
+    <div class="proto-note">
+      <strong>Quatro variantes da nova tela, alternáveis por <code>?variant=</code>.</strong> A variante D combina as escolhas da primeira revisão. Use o
+      seletor inferior para simular primeira criação, carregamento, erro e todos os estados de salvamento. Dados fictícios; somente receitas e despesas
+      confirmadas por mês de referência entram nos realizados.
+    </div>
+    <div data-shell="budget">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <h2>Orçamento</h2>
+          </div>
+          <div class="quarter-nav" aria-label="Navegação entre trimestres">
+            <button class="btn icon ghost" id="previous-quarter" title="Trimestre anterior" aria-label="Trimestre anterior">
+              <span data-icon="chevronLeft"></span>
+            </button>
+            <label class="sr-only" for="quarter">Trimestre</label>
+            <select class="select" id="quarter">
+              <option>1º tri de 2026</option>
+              <option>2º tri de 2026</option>
+              <option selected>3º tri de 2026</option>
+              <option>4º tri de 2026</option>
+              <option>1º tri de 2027</option>
+            </select>
+            <button class="btn icon ghost" id="next-quarter" title="Próximo trimestre" aria-label="Próximo trimestre">
+              <span data-icon="chevronRight"></span>
+            </button>
+          </div>
+        </header>
+        <div class="content budget-page" id="prototype-root"></div>
+      </main>
+    </div>
+
+    <div class="prototype-switcher" aria-label="Alternar variante do protótipo">
+      <button id="previous-variant" aria-label="Variante anterior">←</button>
+      <span class="variant-label" id="variant-label"></span>
+      <button id="next-variant" aria-label="Próxima variante">→</button>
+      <div class="state-picker">
+        <label for="prototype-state">Estado</label>
+        <select id="prototype-state">
+          <option value="populated">Preenchido</option>
+          <option value="empty">Primeira criação</option>
+          <option value="loading">Carregando</option>
+          <option value="error">Erro ao carregar</option>
+          <option value="saving">Salvando</option>
+          <option value="invalid">Entrada inválida</option>
+          <option value="failure">Falha ao salvar</option>
+          <option value="overallocated">Superalocado</option>
+        </select>
+      </div>
+    </div>
+
+    <script>
+      const variants = [
+        { key: 'A', name: 'Livro de planejamento' },
+        { key: 'B', name: 'Espaço por categoria' },
+        { key: 'C', name: 'História do trimestre' },
+        { key: 'D', name: 'Tabela + resumo lateral' },
+      ];
+      const categories = [
+        { name: 'Moradia', color: 'var(--c1)', pct: '35,00', monthly: '1.200,00', calculated: '1.225,00', note: 'Condomínio reajustado em agosto.' },
+        { name: 'Alimentação', color: 'var(--c3)', pct: '16,00', monthly: '550,00', calculated: '560,00', note: 'Inclui mercado e refeições.' },
+        { name: 'Transporte', color: 'var(--c2)', pct: '8,00', monthly: '280,00', calculated: '280,00', note: '' },
+        { name: 'Saúde', color: 'var(--c4)', pct: '5,00', monthly: '175,00', calculated: '175,00', note: 'Reserva para consultas.' },
+        { name: 'Lazer', color: 'var(--c5)', pct: '4,00', monthly: '140,00', calculated: '140,00', note: '' },
+        {
+          name: 'Educação (inativa)',
+          color: 'var(--c6)',
+          pct: '0,00',
+          monthly: '90,00',
+          calculated: '0,00',
+          note: 'Curso termina neste trimestre.',
+          inactive: true,
+        },
+      ];
+      let params = new URLSearchParams(location.search);
+      let current = Math.max(
+        0,
+        variants.findIndex((item) => item.key === (params.get('variant') || 'A')),
+      );
+      let state = params.get('state') || 'populated';
+      let saveTimer;
+      const dirtyFields = new Set();
+
+      const statusMarkup = () => {
+        const states = {
+          populated: ['saved', 'Orçamento salvo', ''],
+          saving: ['saving', 'Salvando…', `${dirtyFields.size || 1} ${dirtyFields.size === 1 ? 'alteração não salva' : 'alterações não salvas'}`],
+          invalid: ['error', 'Corrija o valor destacado', `${dirtyFields.size || 1} alteração não salva`],
+          failure: ['error', 'Não foi possível salvar', `${dirtyFields.size || 2} alterações não salvas`],
+          overallocated: ['saved', 'Orçamento salvo com aviso', ''],
+          empty: ['saved', 'Ainda não criado', 'Será criado na primeira alteração válida'],
+        };
+        const [tone, text, detail] = states[state] || states.populated;
+        return `<div class="save-status" data-tone="${tone}" role="status" aria-live="polite"><span class="status-dot"></span><span><b>${text}</b>${detail ? `<br><span>${detail}</span>` : ''}</span>${state === 'failure' ? '<button class="btn outline" data-retry>Repetir</button>' : ''}</div>`;
+      };
+      const introMarkup = () =>
+        `<div class="intro"><div><h1>Julho — setembro de 2026</h1><p>Defina limites mensais para despesas. O restante planejado continua disponível para objetivos financeiros.</p></div>${statusMarkup()}</div>`;
+      const incomeField = (wide = false) =>
+        `<label>Receita estimada no trimestre<input class="money-input budget-input" inputmode="decimal" value="10.500,00" aria-label="Receita estimada no trimestre" aria-describedby="income-help" ${wide ? 'style="max-width:none;width:100%"' : ''}><small id="income-help">Base para percentuais; não é dividida em estimativas mensais.</small></label>`;
+      const quarterNote = () =>
+        `<label>Nota do trimestre<textarea class="budget-input" rows="2" aria-label="Nota do trimestre">Bônus esperado em setembro; manter despesas fixas conservadoras.</textarea></label>`;
+      const results = () => `<div class="result-strip" aria-label="Resumo do trimestre">
+        <div><div class="k">Receita estimada</div><div class="v in">+ 10.500,00 €</div></div>
+        <div><div class="k">Despesas planejadas</div><div class="v out">− 7.305,00 €</div></div>
+        <div><div class="k">Disponível para objetivos</div><div class="v in">+ 3.195,00 €</div><small>30,43% da estimativa</small></div>
+        <div><div class="k">Superávit realizado</div><div class="v in">+ 1.842,00 €</div><small>confirmado até setembro</small></div></div>`;
+      const review = () => `<div class="review-grid">
+        <section class="card"><div class="card-head"><h2>Receita: estimada × realizada</h2><span class="badge income">+ 220,00 €</span></div><div class="card-body">
+          <div class="mini-bars"><div class="mini-bar"><b>Julho</b><span class="track"><i style="width:91%"></i></span><span class="num">3.284,00 €</span></div><div class="mini-bar"><b>Agosto</b><span class="track"><i style="width:96%"></i></span><span class="num">3.436,00 €</span></div><div class="mini-bar"><b>Setembro</b><span class="track"><i style="width:100%"></i></span><span class="num">4.000,00 €</span></div></div>
+          <div class="category-breakdown"><div><span>Salário</span><b class="num">9.600,00 €</b></div><div><span>Freelance</span><b class="num">820,00 €</b></div><div><span>Rendimentos</span><b class="num">300,00 €</b></div></div>
+        </div></section>
+        <section class="card"><div class="card-head"><h2>Resultado das despesas</h2></div><div class="card-body"><div class="spread"><span>Planejado no trimestre</span><b class="num">7.305,00 €</b></div><div class="spread" style="margin-top:10px"><span>Realizado</span><b class="num out">− 8.878,00 €</b></div><hr><div class="spread"><span>Orçamento restante</span><b class="num out">− 1.573,00 €</b></div><p class="small muted" style="margin-top:12px">Restante do orçamento compara plano e despesas. Superávit realizado compara receita e despesa confirmadas — não são o mesmo dinheiro.</p></div></section>
+      </div>`;
+      const allocationRows = () =>
+        categories
+          .map(
+            (cat, index) => `<tr class="${cat.inactive ? 'inactive' : ''}">
+        <td data-label="Categoria"><span class="category-name"><span class="dot" style="background:${cat.color}"></span><b>${cat.name}</b></span></td>
+        <td data-label="Meta"><div class="field-line"><input class="percent-input budget-input" inputmode="decimal" value="${state === 'invalid' && index === 0 ? '135,00' : cat.pct}" aria-label="Percentual de ${cat.name}" ${state === 'invalid' && index === 0 ? 'aria-invalid="true" aria-describedby="allocation-error"' : ''}><span>%</span></div>${state === 'invalid' && index === 0 ? '<span class="field-error" id="allocation-error">Use um valor entre 0% e 100%.</span>' : ''}</td>
+        <td data-label="Meta trimestral" class="num n">${index === 0 ? '3.675,00 €' : index === 1 ? '1.680,00 €' : index === 2 ? '840,00 €' : index === 3 ? '525,00 €' : index === 4 ? '420,00 €' : '0,00 €'}</td>
+        <td data-label="Mensal ajustado"><input class="money-input budget-input" inputmode="decimal" value="${state === 'overallocated' && index === 0 ? '2.500,00' : cat.monthly}" aria-label="Valor mensal ajustado de ${cat.name}"><span class="calculated">Meta mensal: ${cat.calculated} €</span>${cat.monthly !== cat.calculated ? '<button class="reset reset-icon" type="button" title="Limpar ajuste e usar a meta mensal" aria-label="Limpar ajuste e usar a meta mensal"><span data-icon="x"></span></button>' : ''}</td>
+        <td data-label="% efetivo" class="num n">${index === 0 ? '34,29%' : index === 1 ? '15,71%' : index === 2 ? '8,00%' : index === 3 ? '5,00%' : index === 4 ? '4,00%' : '2,57%'}</td>
+        <td data-label="Nota"><textarea class="budget-input" aria-label="Nota de ${cat.name}" placeholder="Opcional">${cat.note}</textarea></td></tr>`,
+          )
+          .join('');
+      const table = () =>
+        `<section class="card allocation-table"><div class="card-head allocation-head"><div><h2>Alocação por categoria</h2><p class="small muted">O valor mensal ajustado vale igualmente para julho, agosto e setembro.</p></div><span class="badge">6 categorias</span></div><div class="table-wrap"><table class="data"><thead><tr><th>Categoria</th><th>Meta</th><th class="n">Meta trimestral</th><th>Mensal ajustado</th><th class="n">% efetivo</th><th>Nota</th></tr></thead><tbody>${allocationRows()}<tr class="totals-row"><td data-label="Total">Total</td><td data-label="Metas" class="num">68,00%</td><td data-label="Meta trimestral" class="num n">7.140,00 €</td><td data-label="Efetivo mensal" class="num n">${state === 'overallocated' ? '3.735,00' : '2.435,00'} €</td><td data-label="% efetivo" class="num n">${state === 'overallocated' ? '106,71%' : '69,57%'}</td><td></td></tr></tbody></table></div><div class="card-body"><div class="warning ${state === 'overallocated' ? 'visible' : ''}" role="alert">O total efetivo ultrapassa a receita estimada em 705,00 €. Você ainda pode salvar este plano.</div></div></section>`;
+      const variantA = () =>
+        `${introMarkup()}<section class="card" style="margin-bottom:16px"><div class="card-body"><div class="plan-fields">${incomeField()}${quarterNote()}</div></div></section>${results()}${table()}${review()}`;
+      const categoryButtons = () =>
+        categories
+          .map(
+            (cat, index) =>
+              `<button type="button" aria-selected="${index === 0}" data-category="${index}"><b>${cat.name}</b><span class="num">${cat.pct}%</span><small>Mensal</small><span class="num">${cat.monthly} €</span></button>`,
+          )
+          .join('');
+      const variantB = () =>
+        `${introMarkup()}${results()}<div class="workspace"><nav class="category-rail" aria-label="Categorias do orçamento">${categoryButtons()}</nav><section class="focus-editor"><span class="category-name"><span class="dot" data-focused-dot style="background:var(--c1)"></span><h2 data-focused-name>Moradia</h2></span><p class="small muted">Ajuste a categoria selecionada; as consequências aparecem ao lado.</p><div class="editor-grid"><label>Meta percentual<div class="field-line"><input class="percent-input budget-input" data-focused-pct value="35,00" inputmode="decimal" aria-label="Meta percentual da categoria selecionada"><span>%</span></div></label><label>Mensal ajustado<input class="money-input budget-input" data-focused-monthly value="1.200,00" inputmode="decimal" aria-label="Valor mensal ajustado da categoria selecionada"><small>Calculado: <span data-focused-calculated>1.225,00</span> € · <button class="reset" data-calculated="1.225,00">Restaurar</button></small></label></div><label>Nota da categoria<textarea class="budget-input" data-focused-note aria-label="Nota da categoria selecionada">Condomínio reajustado em agosto.</textarea></label><div class="plan-fields" style="margin-top:20px">${incomeField(true)}${quarterNote()}</div></section><aside class="result-rail"><h3>Efeito de <span data-effect-name>Moradia</span></h3><dl><div><dt>Meta trimestral</dt><dd>3.675,00 €</dd></div><div><dt>Efetivo trimestral</dt><dd>3.600,00 €</dd></div><div><dt>Percentual efetivo</dt><dd>34,29%</dd></div><div><dt>Diferença do calculado</dt><dd class="in">+ 75,00 €</dd></div></dl></aside></div>${review()}`;
+      const storyCategories = () =>
+        categories
+          .slice(0, 5)
+          .map(
+            (cat) =>
+              `<div class="story-category"><span class="category-name"><span class="dot" style="background:${cat.color}"></span><b>${cat.name}</b></span><label>Meta<input class="percent-input budget-input" value="${cat.pct}" inputmode="decimal"></label><label>Mensal ajustado<input class="money-input budget-input" value="${cat.monthly}" inputmode="decimal"></label><label class="note-field">Nota<input class="budget-input" value="${cat.note}" placeholder="Opcional"></label></div>`,
+          )
+          .join('');
+      const variantC = () =>
+        `${introMarkup()}<div class="story"><div class="story-main"><section class="story-step"><h2>Comece pelo que espera receber</h2><div class="story-income">${incomeField(true)}${quarterNote()}</div></section><section class="story-step"><h2>Distribua o plano mensal</h2><p class="small muted" style="margin:4px 0 12px">Cada valor se repete nos três meses. Alterar a receita não apaga ajustes manuais.</p><div class="story-categories">${storyCategories()}</div></section><section class="story-step"><h2>Compare com o que aconteceu</h2>${review()}</section></div><aside class="card sticky-summary"><div class="card-head"><h2>Seu trimestre</h2></div><div class="card-body"><div class="summary-line"><span>Receita estimada</span><b>10.500,00 €</b></div><div class="summary-line"><span>Despesas planejadas</span><b>7.305,00 €</b></div><div class="summary-line"><span>Disponível para objetivos</span><b class="in">3.195,00 €</b></div><div class="summary-line"><span>Receita realizada</span><b class="in">10.720,00 €</b></div><div class="summary-line"><span>Despesas realizadas</span><b class="out">8.878,00 €</b></div><div class="summary-line"><span>Superávit realizado</span><b class="in">1.842,00 €</b></div></div></aside></div>`;
+      const quarterCard = () => `<aside class="card quarter-card"><div class="card-head"><h2>Seu trimestre</h2></div><div class="card-body">
+        <section class="quarter-section"><h3>Planejado</h3>${incomeField(true)}
+          <div class="summary-line"><span>Despesas planejadas</span><b class="out">− 7.305,00 €<small>69,57% da estimativa</small></b></div>
+          <div class="summary-line"><span>Disponível para objetivos</span><b class="in">+ 3.195,00 €<small>30,43% da estimativa</small></b></div>
+          <div class="summary-line"><span>Orçamento restante</span><b class="out">− 1.573,00 €</b></div>
+        </section>
+        <section class="quarter-section"><h3>Realizado</h3>
+          <div class="summary-line"><span>Receita</span><b class="in">+ 10.720,00 €</b></div>
+          <div class="summary-line"><span>Despesas</span><b class="out">− 8.878,00 €</b></div>
+          <div class="summary-line"><span>Superávit</span><b class="in">+ 1.842,00 €</b></div>
+        </section>
+        <section class="quarter-section"><h3>Nota do trimestre</h3>${quarterNote()}</section>
+      </div></aside>`;
+      const variantD = () => `${introMarkup()}<div class="hybrid-layout">${quarterCard()}${table()}</div>${review()}`;
+      const decisionBlock = () =>
+        `<section class="decision-block"><h2>Decisões a aprovar</h2><ul><li>A variante D combina corretamente a tabela da A com o resumo lateral e o ritmo móvel da C?</li><li>No celular, “Seu trimestre” deve aparecer antes da tabela, como nesta proposta?</li><li>As subdivisões Planejado, Realizado e Nota do trimestre deixam orçamento restante e superávit suficientemente distintos?</li></ul></section>`;
+      const stateScreen = () => {
+        if (state === 'loading')
+          return `<div class="state-screen"><div class="skeleton" role="status" aria-label="Carregando orçamento"><i></i><i></i><i></i><i></i></div></div>`;
+        const data =
+          state === 'empty'
+            ? [
+                'Ainda não há orçamento para o 3º trimestre',
+                'Preencha a receita estimada ou uma categoria. O orçamento só será criado depois da primeira alteração válida.',
+                'Começar pela receita',
+              ]
+            : ['Não foi possível carregar o orçamento', 'Confira sua conexão e tente novamente. Nenhuma informação local foi alterada.', 'Tentar novamente'];
+        return `<div class="state-screen"><section class="card state-box"><span data-icon="${state === 'empty' ? 'budget' : 'alert'}"></span><h1>${data[0]}</h1><p>${data[1]}</p><button class="btn" data-retry>${data[2]}</button></section></div>`;
+      };
+      function updateUrl() {
+        params.set('variant', variants[current].key);
+        params.set('state', state);
+        history.replaceState(null, '', `${location.pathname}?${params}`);
+      }
+      function refreshStatus() {
+        const status = document.querySelector('.save-status');
+        if (status) status.outerHTML = statusMarkup();
+        updateUrl();
+      }
+      function render() {
+        const root = document.getElementById('prototype-root');
+        root.innerHTML = ['loading', 'empty', 'error'].includes(state) ? stateScreen() : [variantA, variantB, variantC, variantD][current]() + decisionBlock();
+        root.dataset.variant = variants[current].key;
+        document.getElementById('variant-label').textContent = `${variants[current].key} — ${variants[current].name}`;
+        document.getElementById('prototype-state').value = state;
+        document.querySelectorAll('[data-icon]').forEach((el) => {
+          if (typeof icon === 'function') el.outerHTML = icon(el.dataset.icon);
+        });
+        updateUrl();
+      }
+      function move(step) {
+        current = (current + step + variants.length) % variants.length;
+        render();
+      }
+      document.getElementById('previous-variant').addEventListener('click', () => move(-1));
+      document.getElementById('next-variant').addEventListener('click', () => move(1));
+      document.getElementById('prototype-state').addEventListener('change', (event) => {
+        state = event.target.value;
+        if (state === 'failure' && document.querySelector('.save-status')) refreshStatus();
+        else render();
+      });
+      document.getElementById('previous-quarter').addEventListener('click', () => {
+        const select = document.getElementById('quarter');
+        select.selectedIndex = Math.max(0, select.selectedIndex - 1);
+        select.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('next-quarter').addEventListener('click', () => {
+        const select = document.getElementById('quarter');
+        select.selectedIndex = Math.min(select.options.length - 1, select.selectedIndex + 1);
+        select.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('quarter').addEventListener('change', (event) => {
+        const heading = document.querySelector('.intro h1');
+        if (heading) heading.textContent = event.target.selectedOptions[0].textContent;
+      });
+      document.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || event.target.matches('input, textarea, select, [contenteditable]')) return;
+        event.preventDefault();
+        move(event.key === 'ArrowRight' ? 1 : -1);
+      });
+      document.addEventListener('input', (event) => {
+        if (!event.target.matches('.budget-input')) return;
+        clearTimeout(saveTimer);
+        dirtyFields.add(event.target.getAttribute('aria-label') || event.target.closest('label')?.textContent.trim() || 'campo');
+        const number = Number(event.target.value.replaceAll('.', '').replace(',', '.'));
+        const invalid =
+          (event.target.classList.contains('percent-input') && (!Number.isFinite(number) || number < 0 || number > 100)) ||
+          (event.target.classList.contains('money-input') && (!Number.isFinite(number) || number < 0));
+        event.target.toggleAttribute('aria-invalid', invalid);
+        const errorId = `runtime-error-${[...document.querySelectorAll('.budget-input')].indexOf(event.target)}`;
+        document.getElementById(errorId)?.remove();
+        if (invalid) {
+          const error = document.createElement('span');
+          error.id = errorId;
+          error.className = 'field-error runtime-error';
+          error.textContent = event.target.classList.contains('percent-input') ? 'Use um valor entre 0% e 100%.' : 'Use um valor igual ou maior que zero.';
+          const fieldLine = event.target.closest('.field-line');
+          if (fieldLine) fieldLine.after(error);
+          else event.target.after(error);
+          event.target.setAttribute('aria-describedby', errorId);
+        } else if (event.target.getAttribute('aria-describedby') === errorId) {
+          event.target.removeAttribute('aria-describedby');
+        }
+        state = invalid ? 'invalid' : 'saving';
+        refreshStatus();
+        if (invalid) return;
+        saveTimer = setTimeout(() => {
+          dirtyFields.clear();
+          state = 'populated';
+          refreshStatus();
+        }, 800);
+      });
+      document.addEventListener('click', (event) => {
+        const categoryButton = event.target.closest('[data-category]');
+        if (categoryButton) {
+          const category = categories[Number(categoryButton.dataset.category)];
+          document.querySelectorAll('[data-category]').forEach((button) => button.setAttribute('aria-selected', String(button === categoryButton)));
+          document.querySelector('[data-focused-name]').textContent = category.name;
+          document.querySelector('[data-effect-name]').textContent = category.name;
+          document.querySelector('[data-focused-dot]').style.background = category.color;
+          document.querySelector('[data-focused-pct]').value = category.pct;
+          document.querySelector('[data-focused-monthly]').value = category.monthly;
+          document.querySelector('[data-focused-note]').value = category.note;
+          document.querySelector('[data-focused-calculated]').textContent = category.calculated;
+          document.querySelector('.focus-editor .reset').dataset.calculated = category.calculated;
+        }
+        const reset = event.target.closest('.reset');
+        if (reset) {
+          event.preventDefault();
+          const input = reset.closest('td, label').querySelector('.money-input');
+          const calculated =
+            reset.dataset.calculated ||
+            reset
+              .closest('td')
+              .querySelector('.calculated')
+              .textContent.match(/[\d.,]+/)[0];
+          input.value = calculated;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (event.target.closest('[data-retry]')) {
+          const preserveFields = Boolean(document.querySelector('.save-status'));
+          state = 'saving';
+          if (preserveFields) refreshStatus();
+          else render();
+          setTimeout(() => {
+            dirtyFields.clear();
+            state = 'populated';
+            if (preserveFields) refreshStatus();
+            else render();
+          }, 800);
+        }
+      });
+      window.addEventListener('beforeunload', (event) => {
+        if (!['saving', 'invalid', 'failure'].includes(state)) return;
+        event.preventDefault();
+        event.returnValue = '';
+      });
+      render();
+    </script>
+  </body>
+</html>

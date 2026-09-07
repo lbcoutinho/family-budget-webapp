@@ -40,6 +40,7 @@ already make.
 | 12  | [Recurrences](12-recurrences.md)              | `/recurrences`            |
 | 13  | [Voice entry](13-voice.md)                    | `/voice`                  |
 | 15  | [CSV transaction import](15-transaction-import.md) | `/transactions/import` |
+| 16  | [Quarterly Budget](16-quarterly-budget.md) | `/budgets/:year/:quarter` |
 
 Screen 14 (Settings › General, `/settings/general`, M3-T13) is outside the original thirteen; its
 issue (#73) asked for `07-settings-general.html`, but 07 is already the entry-form dialog above —
@@ -49,6 +50,10 @@ silently.
 Screen 15 (CSV transaction import, `/transactions/import`, issue #228) extends the transaction
 workflow after the original inventory. CSV model management remains a section of screen 14, not a
 separate screen.
+
+Screen 16 (quarterly Budget, `/budgets/:year/:quarter`, issue #335) adds the planning surface
+specified by parent issue #333. It is separate from reports because it combines editable plan
+inputs with realized results.
 
 Current per-screen prototype status (what's in `approved/`, what's still under review) lives in the
 table in `prototypes/MEMORY.md` — check there, not here, for "is screen N approved yet." The ticket
@@ -60,7 +65,6 @@ that implements each screen is named in its own file.
 | --- | --- |
 | Dashboard / home | The monthly tab is the home; a separate one would repeat the balance panel |
 | Sign-up, password reset | Single user, seeded; there is no self-service account |
-| Budget/limit per category | Not in the domain model; would be a new plan |
 | Attachments on entries | Not in the domain model |
 | Global search across months | The monthly filter covers the real use; revisit if it does not |
 | Onboarding / tour | One user, who wrote the requirements |
