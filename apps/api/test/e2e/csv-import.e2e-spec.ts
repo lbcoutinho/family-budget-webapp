@@ -36,13 +36,14 @@ describe('CSV import API (e2e)', () => {
   };
 
   const createHistory = async (data: Record<string, unknown>): Promise<void> => {
+    const date = data.date instanceof Date ? data.date : new Date('2026-07-01');
     await prisma.transaction.create({
       data: {
         userId,
         accountId,
-        date: new Date('2026-07-01'),
-        referenceMonth: new Date('2026-07-01'),
-        settlementDate: new Date('2026-07-01'),
+        date,
+        referenceMonth: date,
+        settlementDate: date,
         description: 'history',
         amount: 100,
         type: 'EXPENSE',
@@ -117,6 +118,17 @@ describe('CSV import API (e2e)', () => {
       categoryId,
       subcategoryId,
     });
+  });
+
+  it('inherits the latest confirmed matching transaction note without exposing it in the preview', async () => {
+    await createHistory({ date: new Date('2026-06-01'), description: 'Corner Market', notes: 'old note' });
+    await createHistory({ date: new Date('2026-07-01'), description: '  corner   market ', notes: 'latest note' });
+
+    const preview = (await importFile('/csv-import/preview', '02-08-2026;corner market;-10.00\n').expect(201)).body as CsvImportResultDto;
+    expect(preview.new[0]).not.toHaveProperty('notes');
+
+    await importFile('/csv-import/confirm', '02-08-2026;corner market;-10.00\n', [2]).expect(201);
+    await expect(prisma.transaction.findFirstOrThrow({ where: { accountId, description: 'corner market' } })).resolves.toMatchObject({ notes: 'latest note' });
   });
 
   it('leaves suggestions empty for unsafe or irrelevant history', async () => {
