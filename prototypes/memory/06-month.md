@@ -1,7 +1,7 @@
 # 06 — Month
 
-Status: **approved base; Budget extension pending reapproval**, in `approved/`. The base design was
-approved on 2026-08-02; issue #336 reopens review only for the inline Budget addition.
+Status: **approved**, in `approved/`. The base design was approved on 2026-08-02; the inline Budget
+extension from issue #336 was approved on 2026-09-07.
 
 All six decisions approved as prototyped. Two are worth restating because they were phrased as
 questions or affect other screens:
@@ -72,7 +72,7 @@ check icon in the row actions, before Edit. Only ready/valid drafts confirm dire
 drafts must be completed first. Confirmation removes the draft state and makes the entry eligible
 for balances and reports. Variants B and C remain in commit `96ca12d` as reference.
 
-## Budget tracking extension — pending reapproval in issue #336
+## Budget tracking extension — approved 2026-09-07 in issue #336
 
 - Budget tracking lives inside “Movimentos do mês”, reusing its existing Expenses value rather than
   duplicating it. Budget and Balance complete the summary.
