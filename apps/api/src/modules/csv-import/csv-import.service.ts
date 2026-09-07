@@ -23,6 +23,7 @@ interface Row {
   amount: number;
   type: 'INCOME' | 'EXPENSE';
   suggestion?: CategorySuggestion;
+  notes?: string | null;
 }
 interface CategorySuggestion {
   categoryId: string;
@@ -63,6 +64,7 @@ export class CsvImportService {
               source: 'IMPORT_CSV',
               categoryId: row.suggestion?.categoryId,
               subcategoryId: row.suggestion?.subcategoryId,
+              notes: row.notes,
             })),
           });
         }
@@ -94,11 +96,13 @@ export class CsvImportService {
     const parsed = parseRows(file, model);
     const existing = await db.transaction.findMany({
       where: { accountId: dto.accountId },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       select: {
         date: true,
         type: true,
         amount: true,
         description: true,
+        notes: true,
         status: true,
         categoryId: true,
         subcategoryId: true,
@@ -108,6 +112,7 @@ export class CsvImportService {
     });
     const counts = new Map<string, number>();
     const suggestions = new Map<string, CategorySuggestion | null>();
+    const notes = new Map<string, string | null>();
 
     for (const transaction of existing) {
       if (transaction.amount !== null && (transaction.type === 'INCOME' || transaction.type === 'EXPENSE')) {
@@ -142,6 +147,10 @@ export class CsvImportService {
           suggestions.set(description, null);
         }
       }
+
+      if (transaction.status === 'CONFIRMED' && !notes.has(normalizeDescription(transaction.description))) {
+        notes.set(normalizeDescription(transaction.description), transaction.notes);
+      }
     }
 
     const seen = new Map<string, number>();
@@ -156,6 +165,7 @@ export class CsvImportService {
         outcome.duplicate.push(resultRow(row));
       } else {
         row.suggestion = suggestions.get(normalizeDescription(row.description)) ?? undefined;
+        row.notes = notes.get(normalizeDescription(row.description));
         outcome.new.push(resultRow(row));
         outcome.rows.push(row);
       }
