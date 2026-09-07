@@ -322,37 +322,77 @@
         font-size: 12.5px;
       }
 
-      /* Budget is a compact reading layer above the ledger, not a competing
-         destination. The native disclosure keeps the summary in place. */
-      .budget {
-        margin-bottom: 16px;
+      /* The production Month screen is a ledger with a supporting balance
+         rail. Budget joins its existing movement summary instead of adding a
+         competing card to the page. */
+      .month-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 16px;
+        align-items: start;
+      }
+      .ledger-column,
+      .balance-rail {
+        display: grid;
+        gap: 12px;
+      }
+      .balance-rail {
+        position: sticky;
+        top: 74px;
+      }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .movement-card {
         overflow: hidden;
       }
+      .movement-card > .card-body {
+        padding: 16px;
+      }
+      .movement-grid,
       .budget-summary {
         display: grid;
-        grid-template-columns: auto repeat(3, minmax(110px, 1fr)) auto;
-        gap: 12px 24px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 28px;
+        margin-top: 12px;
+      }
+      .movement-row,
+      .budget-metric {
+        display: flex;
         align-items: center;
-        padding: 14px 16px;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
       }
-      .budget-summary h2 {
-        font-size: 0.9rem;
-      }
+      .movement-row span:first-child,
       .budget-metric span,
       .budget-table .head {
-        display: block;
         color: var(--ink-soft);
         font-size: 11.5px;
         font-weight: 600;
       }
+      .movement-row b,
       .budget-metric b {
-        display: block;
-        margin-top: 2px;
         font-variant-numeric: tabular-nums;
         font-weight: 600;
       }
+      .budget {
+        margin-top: 14px;
+        padding-top: 13px;
+        border-top: 1px solid var(--line-strong);
+      }
+      .budget-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
       .budget-toggle {
-        justify-self: end;
+        flex: 0 0 auto;
       }
       .budget-toggle svg {
         transition: transform var(--fast) var(--ease);
@@ -361,8 +401,9 @@
         transform: rotate(90deg);
       }
       .budget-detail {
+        margin-top: 12px;
+        padding-top: 4px;
         border-top: 1px solid var(--line);
-        padding: 4px 16px 10px;
         overflow-x: auto;
       }
       .budget-table {
@@ -398,8 +439,7 @@
         font-weight: 600;
       }
       .budget-state {
-        padding: 18px 16px;
-        border-top: 1px solid var(--line);
+        padding-top: 12px;
       }
       .budget-state p {
         margin-top: 3px;
@@ -410,18 +450,42 @@
         gap: 6px;
         margin-top: 10px;
       }
+      .close-card {
+        background: var(--wash);
+      }
+      .close-card .card-body {
+        padding: 16px;
+      }
+      .close-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 10px;
+        font-size: 13px;
+      }
+      .close-row.total {
+        margin-top: 10px;
+        border-top: 1px solid var(--line-strong);
+        font-weight: 700;
+      }
+
+      @media (max-width: 900px) {
+        .month-grid {
+          grid-template-columns: 1fr;
+        }
+        .ledger-column {
+          grid-row: 2;
+        }
+        .balance-rail {
+          position: static;
+          grid-row: 1;
+        }
+      }
 
       @media (max-width: 620px) {
+        .movement-grid,
         .budget-summary {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-        }
-        .budget-summary h2 {
-          grid-column: 1 / 3;
-        }
-        .budget-toggle {
-          grid-column: 3;
-          grid-row: 1;
+          grid-template-columns: 1fr;
         }
         .budget-table th:first-child,
         .budget-table td:first-child {
@@ -448,9 +512,9 @@
     <div data-proto="06 — Mês" data-ticket="M5-T01 · M5-T05 · M5-T06"></div>
 
     <div class="proto-note">
-      <strong>A tela principal.</strong> Não existe dashboard: <code>/</code> redireciona para cá. Os totais do rodapé seguem a regra do domínio —
-      <em>só EXPENSE conta como despesa</em>, então transferências e depósitos em caixinha ficam de fora e o rodapé diz isso.
-      <strong>Clique num dia da faixa</strong> para filtrar o mês.
+      <strong>A tela principal.</strong> Não existe dashboard: <code>/</code> redireciona para cá. “Movimentos do mês” segue a regra do domínio —
+      <em>só EXPENSE conta como despesa</em>, então transferências e depósitos em caixinha ficam separados. <strong>Clique num dia da faixa</strong> para
+      filtrar o mês.
       <div class="state-controls" aria-label="Estados do protótipo">
         <button class="btn sm outline" data-budget-state="ready">Com orçamento</button>
         <button class="btn sm outline" data-budget-state="loading">Carregando</button>
@@ -476,6 +540,7 @@
           <div class="row">
             <button class="btn sm cashbox"><span data-icon="piggy"></span> Movimentar caixinha</button>
             <button class="btn sm"><span data-icon="plus"></span> Novo lançamento</button>
+            <button class="btn sm outline">Importar</button>
           </div>
         </div>
 
@@ -493,183 +558,194 @@
             </div>
           </div>
 
-          <!-- ===== saldos (M5-T06) ===== -->
-          <div class="stats" style="margin-bottom: 16px">
-            <div class="stat">
-              <div class="k">Millennium</div>
-              <div class="v num">3.482,15 €</div>
-            </div>
-            <div class="stat">
-              <div class="k">Revolut</div>
-              <div class="v num">412,90 €</div>
-            </div>
-            <div class="stat">
-              <div class="k">Dinheiro</div>
-              <div class="v num out">− 35,00 €</div>
-            </div>
-            <div class="stat">
-              <div class="k">Caixinhas</div>
-              <div class="v num">4.150,00 €</div>
-            </div>
-            <div class="stat total">
-              <div class="k">Total consolidado</div>
-              <div class="v num">8.010,05 €</div>
-            </div>
-          </div>
-
-          <!-- ===== acompanhamento do orçamento (#336) ===== -->
-          <section class="card budget" aria-labelledby="budgetTitle">
-            <div class="budget-summary">
-              <h2 id="budgetTitle">Orçamento do mês</h2>
-              <div class="budget-metric"><span>Orçamento</span><b class="num">2.450,00 €</b></div>
-              <div class="budget-metric"><span>Despesas</span><b class="num">2.358,00 €</b></div>
-              <div class="budget-metric"><span>Disponível</span><b class="num in">92,00 €</b></div>
-              <button class="btn sm ghost budget-toggle" type="button" aria-expanded="false" aria-controls="budgetDetail">
-                <span data-budget-label>Ver orçamento</span> <span data-icon="chevronRight"></span>
-              </button>
-            </div>
-            <div id="budgetDetail" class="budget-detail" hidden>
-              <table class="budget-table">
-                <thead>
-                  <tr>
-                    <th class="head" scope="col">Categoria</th>
-                    <th class="head n" scope="col">Orçamento</th>
-                    <th class="head n" scope="col">Despesas</th>
-                    <th class="head n" scope="col">Disponível</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="moradia" aria-pressed="false">
-                        <span class="dot" style="background: var(--c1)"></span> Moradia
-                      </button>
-                    </td>
-                    <td class="n">1.200,00 €</td>
-                    <td class="n">1.150,00 €</td>
-                    <td class="n">50,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="alimentacao" aria-pressed="false">
-                        <span class="dot" style="background: var(--c3)"></span> Alimentação
-                      </button>
-                    </td>
-                    <td class="n">600,00 €</td>
-                    <td class="n">613,00 €</td>
-                    <td class="n out">− 13,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="transporte" aria-pressed="false">
-                        <span class="dot" style="background: var(--c2)"></span> Transporte
-                      </button>
-                    </td>
-                    <td class="n">250,00 €</td>
-                    <td class="n">265,00 €</td>
-                    <td class="n out">− 15,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="saude" aria-pressed="false">
-                        <span class="dot" style="background: var(--c4)"></span> Saúde
-                      </button>
-                    </td>
-                    <td class="n">200,00 €</td>
-                    <td class="n">96,00 €</td>
-                    <td class="n">104,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="educacao" aria-pressed="false">
-                        <span class="dot" style="background: var(--c6)"></span> Educação
-                      </button>
-                    </td>
-                    <td class="n">150,00 €</td>
-                    <td class="n muted">0,00 €</td>
-                    <td class="n">150,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="outros" aria-pressed="false">
-                        <span class="dot" style="background: var(--c10)"></span> Outros
-                      </button>
-                    </td>
-                    <td class="n">50,00 €</td>
-                    <td class="n">54,00 €</td>
-                    <td class="n out">− 4,00 €</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <button class="budget-category" data-category="lazer" aria-pressed="false">
-                        <span class="dot" style="background: var(--c5)"></span> Lazer
-                      </button>
-                    </td>
-                    <td class="n muted">Sem orçamento</td>
-                    <td class="n">180,00 €</td>
-                    <td class="n out">− 180,00 €</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p class="xs muted" style="margin-top: 9px">Selecione uma categoria para filtrar os lançamentos. Recolher o orçamento mantém o filtro.</p>
-            </div>
-            <div class="budget-state" data-budget-panel="loading" hidden>
-              <span class="spinner"></span> <span class="small muted">Carregando orçamento…</span>
-            </div>
-            <div class="budget-state" data-budget-panel="error" hidden>
-              <b>Não foi possível carregar o orçamento.</b>
-              <p class="small muted">Tente novamente sem perder os lançamentos do mês.</p>
-              <button class="btn sm outline" data-budget-state="ready" style="margin-top: 9px">Tentar novamente</button>
-            </div>
-            <div class="budget-state" data-budget-panel="empty" hidden>
-              <b>Nenhum orçamento para julho.</b>
-              <p class="small muted">Julho pertence ao terceiro trimestre de 2026.</p>
-              <button class="btn sm" style="margin-top: 9px">Criar orçamento do 3º trimestre</button>
-            </div>
-          </section>
-
-          <!-- ===== filtros ===== -->
-          <div class="spread" style="margin-bottom: 10px">
-            <div class="row wrap">
-              <div class="search" style="width: 232px">
-                <span data-icon="search"></span>
-                <input class="input" placeholder="Buscar descrição…" />
+          <div class="month-grid">
+            <div class="ledger-column">
+              <!-- ===== filtros atuais ===== -->
+              <div class="filters">
+                <div class="row wrap">
+                  <div class="search" style="width: 232px">
+                    <span data-icon="search"></span>
+                    <input class="input" placeholder="Buscar lançamentos" />
+                  </div>
+                  <span class="row small"
+                    ><button class="switch" type="button" role="switch" aria-checked="true" aria-label="Mostrar notas pessoais"></button> Mostrar notas
+                    pessoais</span
+                  >
+                </div>
+                <button class="btn sm outline" id="categoryFilter"><span data-icon="filter"></span> Filtros e ordenação</button>
               </div>
-              <button class="btn sm outline"><span data-icon="filter"></span> Tipo: todos</button>
-              <button class="btn sm outline" id="categoryFilter">Categoria: todas</button>
-              <button class="btn sm outline">Conta: todas</button>
-            </div>
-            <div class="row">
-              <label class="xs muted" for="sort">Ordenar</label>
-              <select class="select" id="sort" style="width: auto; font-size: 12.5px; padding: 4px 8px">
-                <option>Data — mais recente</option>
-                <option>Data — mais antiga</option>
-                <option>Valor — maior</option>
-                <option>Valor — menor</option>
-                <option>Descrição — A a Z</option>
-              </select>
-            </div>
-          </div>
 
-          <!-- ===== lista ===== -->
-          <div class="card entries">
-            <div class="card-head">
-              <h2 id="listTitle">Lançamentos do mês</h2>
-              <div class="row">
-                <span class="xs muted" id="count">31 lançamentos · 1 rascunho</span>
-                <button class="btn sm outline" id="clear" hidden>Ver o mês inteiro</button>
+              <!-- ===== movimentos + orçamento (#336) ===== -->
+              <section class="card movement-card" aria-labelledby="monthMovements">
+                <div class="card-body">
+                  <h2 id="monthMovements">Movimentos do mês</h2>
+                  <div class="movement-grid">
+                    <div class="movement-row"><span>Receitas</span><b class="num in" id="fIn">+ 3.284,00 €</b></div>
+                    <div class="movement-row"><span>Despesas</span><b class="num out" id="fOut">− 2.358,00 €</b></div>
+                    <div class="movement-row"><span>Depósitos em caixinhas</span><b class="num cx">− 600,00 €</b></div>
+                    <div class="movement-row"><span>Retiradas de caixinhas</span><b class="num cx">+ 200,00 €</b></div>
+                  </div>
+
+                  <section class="budget" aria-labelledby="budgetTitle">
+                    <div class="budget-head">
+                      <h3 id="budgetTitle">Orçamento do mês</h3>
+                      <button class="btn sm ghost budget-toggle" type="button" aria-expanded="false" aria-controls="budgetDetail">
+                        <span data-budget-label>Ver orçamento</span> <span data-icon="chevronRight"></span>
+                      </button>
+                    </div>
+                    <div class="budget-summary">
+                      <div class="budget-metric"><span>Orçamento</span><b class="num">2.450,00 €</b></div>
+                      <div class="budget-metric"><span>Saldo</span><b class="num in">92,00 €</b></div>
+                    </div>
+                    <div id="budgetDetail" class="budget-detail" hidden>
+                      <table class="budget-table">
+                        <thead>
+                          <tr>
+                            <th class="head" scope="col">Categoria</th>
+                            <th class="head n" scope="col">Orçamento</th>
+                            <th class="head n" scope="col">Despesas</th>
+                            <th class="head n" scope="col">Saldo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="moradia" aria-pressed="false">
+                                <span class="dot" style="background: var(--c1)"></span> Moradia
+                              </button>
+                            </td>
+                            <td class="n">1.200,00 €</td>
+                            <td class="n out">− 1.150,00 €</td>
+                            <td class="n">50,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="alimentacao" aria-pressed="false">
+                                <span class="dot" style="background: var(--c3)"></span> Alimentação
+                              </button>
+                            </td>
+                            <td class="n">600,00 €</td>
+                            <td class="n out">− 613,00 €</td>
+                            <td class="n out">− 13,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="transporte" aria-pressed="false">
+                                <span class="dot" style="background: var(--c2)"></span> Transporte
+                              </button>
+                            </td>
+                            <td class="n">250,00 €</td>
+                            <td class="n out">− 265,00 €</td>
+                            <td class="n out">− 15,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="saude" aria-pressed="false">
+                                <span class="dot" style="background: var(--c4)"></span> Saúde
+                              </button>
+                            </td>
+                            <td class="n">200,00 €</td>
+                            <td class="n out">− 96,00 €</td>
+                            <td class="n">104,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="educacao" aria-pressed="false">
+                                <span class="dot" style="background: var(--c6)"></span> Educação
+                              </button>
+                            </td>
+                            <td class="n">150,00 €</td>
+                            <td class="n out">0,00 €</td>
+                            <td class="n">150,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="outros" aria-pressed="false">
+                                <span class="dot" style="background: var(--c10)"></span> Outros
+                              </button>
+                            </td>
+                            <td class="n">50,00 €</td>
+                            <td class="n out">− 54,00 €</td>
+                            <td class="n out">− 4,00 €</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <button class="budget-category" data-category="lazer" aria-pressed="false">
+                                <span class="dot" style="background: var(--c5)"></span> Lazer
+                              </button>
+                            </td>
+                            <td class="n muted">Sem orçamento</td>
+                            <td class="n out">− 180,00 €</td>
+                            <td class="n out">− 180,00 €</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p class="xs muted" style="margin-top: 9px">Selecione uma categoria para filtrar os lançamentos. Recolher o orçamento mantém o filtro.</p>
+                    </div>
+                    <div class="budget-state" data-budget-panel="loading" hidden>
+                      <span class="spinner"></span> <span class="small muted">Carregando orçamento…</span>
+                    </div>
+                    <div class="budget-state" data-budget-panel="error" hidden>
+                      <b>Não foi possível carregar o orçamento.</b>
+                      <p class="small muted">Tente novamente sem perder os lançamentos do mês.</p>
+                      <button class="btn sm outline" data-budget-state="ready" style="margin-top: 9px">Tentar novamente</button>
+                    </div>
+                    <div class="budget-state" data-budget-panel="empty" hidden>
+                      <b>Nenhum orçamento para julho.</b>
+                      <p class="small muted">Julho pertence ao terceiro trimestre de 2026.</p>
+                      <button class="btn sm" style="margin-top: 9px">Criar orçamento do 3º trimestre</button>
+                    </div>
+                  </section>
+                </div>
+              </section>
+
+              <!-- ===== lista ===== -->
+              <div class="card entries">
+                <div class="card-head">
+                  <h2 id="listTitle">Lançamentos do mês</h2>
+                  <div class="row">
+                    <span class="xs muted" id="count">31 lançamentos · 1 rascunho</span>
+                    <button class="btn sm outline" id="clear" hidden>Ver o mês inteiro</button>
+                  </div>
+                </div>
+                <div id="rows"></div>
+                <div class="more" id="more"><span class="spinner"></span> Carregando mais…</div>
               </div>
             </div>
-            <div id="rows"></div>
-            <div class="more" id="more"><span class="spinner"></span> Carregando mais…</div>
-            <footer>
-              <div><span>Receitas</span><span class="num in" id="fIn">+ 3.284,00 €</span></div>
-              <div>
-                <span>Despesas <span class="xs muted">sem transferências e caixinhas</span></span>
-                <span class="num out" id="fOut">− 2.358,00 €</span>
+
+            <!-- ===== saldos e fechamento atuais ===== -->
+            <aside class="balance-rail" aria-label="Saldos do mês">
+              <div class="stat">
+                <div class="k">Millennium</div>
+                <div class="v num">3.482,15 €</div>
               </div>
-              <div class="total"><span id="fLabel">Saldo do mês</span><span class="num" id="fNet">+ 926,00 €</span></div>
-            </footer>
+              <div class="stat">
+                <div class="k">Revolut</div>
+                <div class="v num">412,90 €</div>
+              </div>
+              <div class="stat">
+                <div class="k">Dinheiro</div>
+                <div class="v num out">− 35,00 €</div>
+              </div>
+              <div class="stat">
+                <div class="k">Caixinhas</div>
+                <div class="v num">4.150,00 €</div>
+              </div>
+              <div class="stat total">
+                <div class="k">Total consolidado</div>
+                <div class="v num">8.010,05 €</div>
+              </div>
+              <section class="card close-card" aria-labelledby="monthlyClose">
+                <div class="card-body">
+                  <div class="spread">
+                    <h2 id="monthlyClose">Fechamento mensal</h2>
+                    <span class="xs muted">não muda com filtros</span>
+                  </div>
+                  <div class="close-row"><span class="muted">Saldo anterior</span><b class="num">7.084,05 €</b></div>
+                  <div class="close-row total"><span>Saldo</span><span class="num">8.010,05 €</span></div>
+                </div>
+              </section>
+            </aside>
           </div>
 
           <!-- ===== mês vazio ===== -->
@@ -707,10 +783,10 @@
                 </span>
               </li>
               <li>
-                <b>A lista virou linha, não tabela — então a ordenação virou um seletor.</b>
+                <b>A lista virou linha, não tabela — filtros e ordenação ficam acima dela.</b>
                 <span>
-                  O plano previa ordenar clicando no cabeçalho da coluna. Sem colunas, não há cabeçalho: a ordem se escolhe no seletor acima da lista. Ganha-se
-                  o mesmo desenho no celular e no desktop, sem tabela que rola de lado.
+                  Sem cabeçalhos de coluna, a busca, as notas pessoais e “Filtros e ordenação” formam a barra acima da lista. Ganha-se o mesmo desenho no
+                  celular e no desktop, sem tabela que rola de lado.
                 </span>
               </li>
               <li>
@@ -731,10 +807,10 @@
                 <span>Já aprovado — desenhado aqui para conferir se "não soma" fica claro o bastante.</span>
               </li>
               <li>
-                <b>O orçamento abre em linha e filtra o mesmo livro de lançamentos.</b>
+                <b>O orçamento faz parte de “Movimentos do mês”.</b>
                 <span>
-                  O resumo continua visível quando o detalhe abre; escolher uma categoria reaproveita o filtro existente, e recolher o detalhe não desfaz a
-                  seleção. Os botões no aviso acima demonstram carregamento, erro e ausência de orçamento sem esconder os lançamentos.
+                  “Despesas” não se repete: o resumo acrescenta apenas Orçamento e Saldo. A tabela abre dentro do mesmo cartão, mostra as despesas em vermelho,
+                  reaproveita o filtro de categoria e não esconde os lançamentos.
                 </span>
               </li>
             </ol>
@@ -952,9 +1028,8 @@
         const clearEl = document.getElementById('clear');
         const fIn = document.getElementById('fIn');
         const fOut = document.getElementById('fOut');
-        const fNet = document.getElementById('fNet');
-        const fLabel = document.getElementById('fLabel');
         const categoryFilter = document.getElementById('categoryFilter');
+        const notesSwitch = document.querySelector('.switch');
         const budgetToggle = document.querySelector('.budget-toggle');
         const budgetDetail = document.getElementById('budgetDetail');
 
@@ -1000,15 +1075,12 @@
           fIn.textContent = eur(income);
           countTo(fOut, shown, expense, true);
           shown = expense;
-          fNet.textContent = eur(income - expense);
-          fNet.className = 'num ' + (income - expense >= 0 ? 'in' : 'out');
 
           titleEl.textContent = selectedCategory
             ? `${CAT[selectedCategory].n}${day ? ` · ${String(day).padStart(2, '0')} de julho` : ''}`
             : day
               ? `${String(day).padStart(2, '0')} de julho`
               : 'Lançamentos do mês';
-          fLabel.textContent = day ? 'Saldo do dia' : 'Saldo do mês';
           countEl.textContent = `${items.length - drafts} lançamento${items.length - drafts === 1 ? '' : 's'}` + (drafts ? ` · ${drafts} rascunho` : '');
           clearEl.hidden = !day;
         }
@@ -1018,7 +1090,7 @@
           document.querySelectorAll('.budget-category').forEach((button) => {
             button.setAttribute('aria-pressed', String(button.dataset.category === selectedCategory));
           });
-          categoryFilter.textContent = selectedCategory ? `Categoria: ${CAT[selectedCategory].n}` : 'Categoria: todas';
+          categoryFilter.innerHTML = `${icon('filter')} Filtros e ordenação${selectedCategory ? ' (1)' : ''}`;
           select(selectedDay);
         }
 
@@ -1033,6 +1105,7 @@
           if (category) selectCategory(category);
         });
         categoryFilter.addEventListener('click', () => selectedCategory && selectCategory(selectedCategory));
+        notesSwitch.addEventListener('click', () => notesSwitch.setAttribute('aria-checked', String(notesSwitch.getAttribute('aria-checked') !== 'true')));
 
         document.addEventListener('click', (event) => {
           const state = event.target.closest('[data-budget-state]')?.dataset.budgetState;

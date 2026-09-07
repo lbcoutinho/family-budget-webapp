@@ -74,8 +74,10 @@ for balances and reports. Variants B and C remain in commit `96ca12d` as referen
 
 ## Budget tracking extension — pending reapproval in issue #336
 
-- A compact Budget / expenses / available summary remains visible above the ledger.
-- “View budget” uses an accessible inline disclosure; the ledger never leaves the screen.
+- Budget tracking lives inside “Movimentos do mês”, reusing its existing Expenses value rather than
+  duplicating it. Budget and Balance complete the summary.
+- “View budget” uses an accessible inline disclosure inside the same card; the ledger never leaves
+  the screen, and all Expense cells are red.
 - Category rows reuse the existing ledger Category filter. Closing the disclosure preserves it.
 - The table demonstrates zero spending, spending without Budget, and red negative availability.
 - Loading, error, and no-Budget states are switchable from the prototype note; the no-Budget action
