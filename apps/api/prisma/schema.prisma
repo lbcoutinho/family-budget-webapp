@@ -52,8 +52,26 @@ model User {
   transactions    Transaction[]
   recurrenceRules RecurrenceRule[]
   csvImportModels CsvImportModel[]
+  budgets         Budget[]
 
   @@map("users")
+}
+
+/// One user-owned spending plan for a fixed calendar quarter.
+model Budget {
+  id                       String   @id @default(uuid()) @db.Uuid
+  userId                   String   @map("user_id") @db.Uuid
+  year                     Int
+  quarter                  Int
+  estimatedQuarterlyIncome Int      @map("estimated_quarterly_income")
+  note                     String?
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, year, quarter])
+  @@map("budgets")
 }
 
 /// Where money sits: a current account, a savings account, a wallet. The first domain entity

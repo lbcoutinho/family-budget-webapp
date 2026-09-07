@@ -4,6 +4,7 @@
   },
   "nav": {
     "month": "Mês",
+    "budgets": "Orçamento",
     "cashboxes": "Caixinhas",
     "reports": "Relatórios",
     "voice": "Lançar por voz",
@@ -741,6 +742,35 @@
       "created_other": "{{count}} lançamentos recorrentes criados",
       "error": "Não foi possível gerar os lançamentos recorrentes agora."
     }
+  },
+  "budgets": {
+    "title": "Orçamento",
+    "quarterNavigation": "Navegação entre trimestres",
+    "quarter": "Trimestre",
+    "quarterOption": "{{quarter}}º tri de {{year}}",
+    "previousQuarter": "Trimestre anterior",
+    "nextQuarter": "Próximo trimestre",
+    "loading": "Carregando orçamento…",
+    "loadErrorTitle": "Não foi possível carregar o orçamento",
+    "loadErrorDescription": "Confira a conexão e tente novamente. Nenhuma informação local foi alterada.",
+    "emptyTitle": "Ainda não há orçamento para o {{quarter}}º trimestre de {{year}}",
+    "emptyDescription": "Preencha a receita estimada. O orçamento só será criado depois da primeira alteração válida.",
+    "startIncome": "Começar pela receita",
+    "description": "Defina a receita esperada para este trimestre.",
+    "yourQuarter": "Seu trimestre",
+    "planned": "Planejado",
+    "estimatedIncome": "Receita estimada no trimestre",
+    "incomeHelp": "Base para o planejamento; não é dividida em estimativas mensais.",
+    "incomeInvalid": "Informe uma receita maior que zero.",
+    "quarterNote": "Nota do trimestre",
+    "notePlaceholder": "Opcional",
+    "saving": "Salvando…",
+    "saved": "Orçamento salvo",
+    "saveFailed": "Não foi possível salvar",
+    "invalidStatus": "Corrija o valor destacado",
+    "unsaved_one": "{{count}} alteração não salva",
+    "unsaved_other": "{{count}} alterações não salvas",
+    "leaveWarning": "Há alterações não salvas. Deseja sair mesmo assim?"
   },
   "settingsGeneral": {
     "language": {

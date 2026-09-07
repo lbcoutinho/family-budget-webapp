@@ -9,6 +9,7 @@ import { currentMonthPath } from '@/lib/date';
 
 const AccountsPage = lazy(() => import('@/features/accounts/accounts-page').then(({ AccountsPage }) => ({ default: AccountsPage })));
 const CashboxesPage = lazy(() => import('@/features/cashboxes/cashboxes-page').then(({ CashboxesPage }) => ({ default: CashboxesPage })));
+const BudgetPage = lazy(() => import('@/features/budgets/budget-page').then(({ BudgetPage }) => ({ default: BudgetPage })));
 const CategoriesPage = lazy(() => import('@/features/categories/categories-page').then(({ CategoriesPage }) => ({ default: CategoriesPage })));
 const RecurrencesPage = lazy(() => import('@/features/recurrences/recurrences-page').then(({ RecurrencesPage }) => ({ default: RecurrencesPage })));
 const ReportsPage = lazy(() => import('@/features/reports/reports-page').then(({ ReportsPage }) => ({ default: ReportsPage })));
@@ -44,6 +45,8 @@ export const routes = [
       { index: true, element: <Navigate to="/month" replace /> },
       { path: 'month', element: <Navigate to={currentMonthPath()} replace /> },
       { path: 'month/:year/:month', element: <MonthPage /> },
+      { path: 'budgets', element: <Navigate to={currentBudgetPath()} replace /> },
+      { path: 'budgets/:year/:quarter', element: <BudgetPage /> },
       { path: 'transactions/import', element: <CsvImportPage /> },
       { path: 'cashboxes', element: <CashboxesPage /> },
       { path: 'reports', element: <ReportsPage /> },
@@ -60,3 +63,8 @@ export const routes = [
 ];
 
 export const router = createBrowserRouter(routes);
+
+function currentBudgetPath(): string {
+  const now = new Date();
+  return `/budgets/${now.getFullYear()}/${Math.floor(now.getMonth() / 3) + 1}`;
+}

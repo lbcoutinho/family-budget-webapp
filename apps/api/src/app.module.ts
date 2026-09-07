@@ -8,6 +8,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BackupWriteLockMiddleware } from './modules/backup/backup-write-lock.middleware';
 import { BackupModule } from './modules/backup/backup.module';
+import { BudgetsModule } from './modules/budgets/budgets.module';
 import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { CsvImportModule } from './modules/csv-import/csv-import.module';
@@ -44,6 +45,7 @@ import { PrismaModule } from './prisma/prisma.module';
     HealthModule,
     AuthModule,
     BackupModule,
+    BudgetsModule,
     AccountsModule,
     CashboxesModule,
     CategoriesModule,

@@ -1,4 +1,15 @@
-import { CalendarIcon, ChartColumnIcon, type LucideIcon, MicIcon, PiggyBankIcon, RepeatIcon, TagsIcon, UserRoundCogIcon, WalletIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  ChartColumnIcon,
+  type LucideIcon,
+  MicIcon,
+  PiggyBankIcon,
+  RepeatIcon,
+  SlidersHorizontalIcon,
+  TagsIcon,
+  UserRoundCogIcon,
+  WalletIcon,
+} from 'lucide-react';
 
 import { type TranslationKey } from '@/i18n';
 
@@ -15,6 +26,7 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/month', labelKey: 'nav.month', icon: CalendarIcon },
+  { to: '/budgets', labelKey: 'nav.budgets', icon: SlidersHorizontalIcon },
   { to: '/cashboxes', labelKey: 'nav.cashboxes', icon: PiggyBankIcon },
   { to: '/reports', labelKey: 'nav.reports', icon: ChartColumnIcon },
   { to: '/voice', labelKey: 'nav.voice', icon: MicIcon },

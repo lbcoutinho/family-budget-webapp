@@ -8,6 +8,7 @@ export * from './generated/model';
 export * from './generated/accounts/accounts';
 export * from './generated/auth/auth';
 export * from './generated/backup/backup';
+export * from './generated/budgets/budgets';
 export * from './generated/cashboxes/cashboxes';
 export * from './generated/categories/categories';
 export * from './generated/csv-import/csv-import';
