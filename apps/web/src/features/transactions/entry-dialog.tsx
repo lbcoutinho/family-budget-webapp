@@ -337,8 +337,8 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   }, [date, isCreditCard, setValue]);
 
   useEffect(() => {
-    if (!referenceMonthOverridden) setValue('referenceMonth', referenceMonthFromDate(settlementDate).slice(0, 7), { shouldValidate: true });
-  }, [referenceMonthOverridden, settlementDate, setValue]);
+    if (!transaction && !referenceMonthOverridden) setValue('referenceMonth', referenceMonthFromDate(settlementDate).slice(0, 7), { shouldValidate: true });
+  }, [referenceMonthOverridden, settlementDate, setValue, transaction]);
 
   const changeType = (nextType: string) => {
     setValue('type', nextType as EntryType, { shouldValidate: true });

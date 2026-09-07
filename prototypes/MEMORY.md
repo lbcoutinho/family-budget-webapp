@@ -28,7 +28,7 @@ this table and that screen's own file, nothing else.
 | 03  | Accounts                    | **approved**      | [memory/03-accounts.md](memory/03-accounts.md)                               |
 | 04  | Categories                  | **approved**      | [memory/04-categories.md](memory/04-categories.md)                           |
 | 05  | Cashboxes                   | **approved**      | [memory/05-cashboxes.md](memory/05-cashboxes.md)                             |
-| 06  | Month                       | **approved**      | [memory/06-month.md](memory/06-month.md)                                     |
+| 06  | Month                       | **reapproval**    | [memory/06-month.md](memory/06-month.md)                                     |
 | 07  | Income / expense / transfer | **approved**      | [memory/07-income-expense-transfer.md](memory/07-income-expense-transfer.md) |
 | 08  | Cashbox operations          | **approved**      | [memory/08-cashbox-operations.md](memory/08-cashbox-operations.md)           |
 | 09  | Monthly report              | **approved**      | [memory/09-monthly-report.md](memory/09-monthly-report.md)                   |

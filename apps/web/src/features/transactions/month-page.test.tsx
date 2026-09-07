@@ -388,6 +388,42 @@ describe('MonthPage', () => {
     expect(lastMessage()).toBe('Lançamento confirmado.');
   });
 
+  it('removes a confirmed draft before its draft-list refetch finishes', async () => {
+    let confirmed = false;
+    let confirmedRefetched = false;
+    let releaseDraftRefetch!: () => void;
+    const draftRefetch = new Promise<void>((resolve) => {
+      releaseDraftRefetch = resolve;
+    });
+    server.use(
+      http.get('/api/transactions', async ({ request }) => {
+        const status = new URL(request.url).searchParams.get('status');
+        if (status === 'DRAFT') {
+          if (confirmed) await draftRefetch;
+          return HttpResponse.json(page(confirmed ? [] : [DRAFT]));
+        }
+        if (confirmed) confirmedRefetched = true;
+        return HttpResponse.json(page(confirmed ? [{ ...DRAFT, status: TransactionStatus.CONFIRMED }] : [CONFIRMED]));
+      }),
+      http.patch('/api/transactions/:id', () => {
+        confirmed = true;
+        return HttpResponse.json({ ...DRAFT, status: TransactionStatus.CONFIRMED });
+      }),
+    );
+
+    const { user } = renderPage();
+    await expectTextToBePresent('Voice draft');
+
+    try {
+      await user.click(screen.getByRole('button', { name: 'Confirmar lançamento' }));
+      await waitFor(() => expect(confirmedRefetched).toBe(true));
+      expect(screen.queryByRole('button', { name: 'Confirmar lançamento' })).not.toBeInTheDocument();
+      expect(screen.getAllByText('Voice draft')).toHaveLength(1);
+    } finally {
+      releaseDraftRefetch();
+    }
+  });
+
   it('keeps drafts visible and shows the amount validation error when confirmation fails', async () => {
     const amountlessDraft = { ...DRAFT, amount: null };
     server.use(
@@ -596,6 +632,48 @@ describe('MonthPage', () => {
 
       await expectTextToBePresent('Fuel');
       expect(cursors).toEqual([null, 'cursor-1']);
+    } finally {
+      Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: originalObserver });
+    }
+  });
+
+  it('fetches the next draft page when the pagination sentinel enters the viewport', async () => {
+    const cursors: (string | null)[] = [];
+    const callbacks: IntersectionObserverCallback[] = [];
+    const originalObserver = window.IntersectionObserver;
+    class Observer {
+      constructor(callback: IntersectionObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = () => undefined;
+      unobserve = () => undefined;
+      disconnect = () => undefined;
+      takeRecords = () => [];
+      root = null;
+      rootMargin = '';
+      thresholds = [];
+    }
+    Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: Observer });
+    server.use(
+      http.get('/api/transactions', ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('status') !== 'DRAFT') return HttpResponse.json(page([]));
+        const cursor = url.searchParams.get('cursor');
+        cursors.push(cursor);
+        return HttpResponse.json(
+          cursor ? page([{ ...DRAFT, id: 'draft-2', description: 'Imported draft 31' }]) : page([DRAFT], { nextCursor: 'draft-cursor-1', total: 31 }),
+        );
+      }),
+    );
+
+    try {
+      renderPage();
+      await expectTextToBePresent(DRAFT.description);
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+      callbacks[0]!([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+
+      await expectTextToBePresent('Imported draft 31');
+      expect(cursors).toEqual([null, 'draft-cursor-1']);
     } finally {
       Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: originalObserver });
     }
