@@ -1,7 +1,7 @@
 # 06 — Month
 
-Status: **approved**, in `approved/`, design-approved on 2026-08-02. M5-T01, M5-T05 and M5-T06
-unblocked on the UI side.
+Status: **approved**, in `approved/`. The base design was approved on 2026-08-02; the inline Budget
+extension from issue #336 was approved on 2026-09-07.
 
 All six decisions approved as prototyped. Two are worth restating because they were phrased as
 questions or affect other screens:
@@ -71,3 +71,14 @@ settled:
 check icon in the row actions, before Edit. Only ready/valid drafts confirm directly; incomplete
 drafts must be completed first. Confirmation removes the draft state and makes the entry eligible
 for balances and reports. Variants B and C remain in commit `96ca12d` as reference.
+
+## Budget tracking extension — approved 2026-09-07 in issue #336
+
+- Budget tracking lives inside “Movimentos do mês”, reusing its existing Expenses value rather than
+  duplicating it. Budget and Balance complete the summary.
+- “View budget” uses an accessible inline disclosure inside the same card; the ledger never leaves
+  the screen, and all Expense cells are red.
+- Category rows reuse the existing ledger Category filter. Closing the disclosure preserves it.
+- The table demonstrates zero spending, spending without Budget, and red negative availability.
+- Loading, error, and no-Budget states are switchable from the prototype note; the no-Budget action
+  creates the corresponding quarter's Budget.
