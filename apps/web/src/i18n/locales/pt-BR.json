@@ -624,7 +624,8 @@
       "settlementBeforePurchase": "A liquidação não pode ser anterior à compra.",
       "sameAccount": "As contas de origem e destino precisam ser diferentes.",
       "save": "Salvar",
-      "saveAndAddAnother": "Salvar e adicionar outro"
+      "saveAndAddAnother": "Salvar e adicionar outro",
+      "saveAndConfirm": "Salvar e confirmar"
     }
   },
   "balances": {

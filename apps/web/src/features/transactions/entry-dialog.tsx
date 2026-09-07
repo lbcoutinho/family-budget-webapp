@@ -146,6 +146,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const saveAnother = useRef(false);
+  const saveAndConfirm = useRef(false);
   const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(Boolean(transaction));
   const categoryRef = useRef<HTMLButtonElement>(null);
   const subcategoryRef = useRef<HTMLButtonElement>(null);
@@ -352,13 +353,17 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   };
 
   const submit = handleSubmit(
+    // eslint-disable-next-line react-hooks/refs -- saveAndConfirm is set immediately before this submit-event callback runs.
     (values) => {
       const isDraftEdit = transaction?.status === TransactionStatus.DRAFT;
       const amount = parseCurrencyInput(values.amount);
       // A blank amount is only legal while editing a DRAFT (ADR-0020) — `buildEntrySchema` already
       // enforced that on the field itself; this guard covers a new entry (always CONFIRMED) and an
       // edit of an already-CONFIRMED transaction, neither of which the schema left an opening for.
-      if (!isDraftEdit && (amount === null || amount <= 0)) return;
+      if ((!isDraftEdit || saveAndConfirm.current) && (amount === null || amount <= 0)) {
+        setError('amount', { message: formKey('transactions.form.invalidAmount') }, { shouldFocus: true });
+        return;
+      }
 
       const shared = {
         type: values.type,
@@ -404,6 +409,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
       changed('subcategoryId', 'subcategoryId' in shared ? shared.subcategoryId : undefined, transaction.subcategoryId ?? undefined);
       changed('settlementDate', shared.settlementDate, transaction.settlementDate);
       changed('referenceMonth', shared.referenceMonth, transaction.referenceMonth);
+      if (saveAndConfirm.current) update.status = TransactionStatus.CONFIRMED;
       updateMutation.mutate({ id: transaction.id, data: update });
     },
     // eslint-disable-next-line react-hooks/refs -- focusCategoryOrSubcategory only ever runs from the submit event, never during render.
@@ -443,6 +449,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
             noValidate
             onSubmit={(event) => {
               saveAnother.current = event.nativeEvent.submitter?.getAttribute('data-save-another') === 'true';
+              saveAndConfirm.current = event.nativeEvent.submitter?.getAttribute('data-save-and-confirm') === 'true';
               void submit(event);
             }}
             className="grid gap-3.5"
@@ -638,6 +645,11 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               {!transaction ? (
                 <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-another="true">
                   {t(formKey('transactions.form.saveAndAddAnother'))}
+                </Button>
+              ) : null}
+              {transaction?.status === TransactionStatus.DRAFT ? (
+                <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-and-confirm="true">
+                  {t(formKey('transactions.form.saveAndConfirm'))}
                 </Button>
               ) : null}
             </DialogFooter>
