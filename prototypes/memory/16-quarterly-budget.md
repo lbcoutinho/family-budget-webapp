@@ -1,6 +1,6 @@
 # 16 — Quarterly Budget
 
-Status: **under review** in `16-quarterly-budget.html`, issue #335.
+Status: **approved** in `approved/16-quarterly-budget.html`, issue #335.
 
 ## Question
 
@@ -24,8 +24,10 @@ summary as the basis for D. In D:
   note move into it. Planned Expenses are red, and planned Expenses plus goal availability show
   their effective percentages as muted subtitles.
 
-All variants preserve the parent issue #333 contract. Review is still required; the winning
-structure and any borrowed parts must be recorded here before the prototype moves to `approved/`.
+## Approval — issue #335
+
+Variant D was approved on 2026-09-07. It preserves the parent issue #333 contract and settles the
+hybrid desktop and mobile structure described above.
 
 ## States and access
 

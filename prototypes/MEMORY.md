@@ -38,11 +38,11 @@ this table and that screen's own file, nothing else.
 | 13  | Voice                       | approved, in full | [memory/13-voice.md](memory/13-voice.md)                                     |
 | 14  | Settings › General          | **approved**      | [memory/14-settings-general.md](memory/14-settings-general.md)               |
 | 15  | CSV transaction import      | **approved**      | [memory/15-transaction-import.md](memory/15-transaction-import.md)           |
-| 16  | Quarterly Budget            | **under review**  | [memory/16-quarterly-budget.md](memory/16-quarterly-budget.md)               |
+| 16  | Quarterly Budget            | **approved**      | [memory/16-quarterly-budget.md](memory/16-quarterly-budget.md)               |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
 type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,
-06, 07, 08, 09, 10, 11 and 14 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
+06, 07, 08, 09, 10, 11, 14, 15 and 16 have passed it — those sit in `approved/` and unblock their tickets on the UI side.
 
 **14 is a new screen, added for M3-T13, outside the original thirteen-screen inventory.** Its ticket
 (issue #73) asked for `prototypes/07-settings-general.html`, but 07 is already the entry-form dialog
