@@ -677,6 +677,24 @@ describe('EntryDialog', () => {
     expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { amount: 4200 } });
   });
 
+  it('saves and confirms a DRAFT in one patch', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ status: 'DRAFT' }));
+
+    await user.click(screen.getByRole('button', { name: 'transactions.form.saveAndConfirm' }));
+
+    expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { status: 'CONFIRMED' } });
+  });
+
+  it('requires an amount before saving and confirming an amountless DRAFT', async () => {
+    const { user } = renderDialog(vi.fn(), makeTransaction({ status: 'DRAFT', amount: null }));
+
+    await user.click(screen.getByRole('button', { name: 'transactions.form.saveAndConfirm' }));
+
+    expect(screen.getByLabelText('transactions.form.amount')).toHaveFocus();
+    expect(screen.getByText('transactions.form.invalidAmount')).toBeInTheDocument();
+    expect(updateMutate).not.toHaveBeenCalled();
+  });
+
   it('still requires a positive amount when editing an already-CONFIRMED transaction', async () => {
     const { user } = renderDialog(vi.fn(), makeTransaction({ status: 'CONFIRMED' }));
 

@@ -624,7 +624,8 @@
       "settlementBeforePurchase": "Settlement cannot be before purchase.",
       "sameAccount": "The source and destination accounts must be different.",
       "save": "Save",
-      "saveAndAddAnother": "Save and add another"
+      "saveAndAddAnother": "Save and add another",
+      "saveAndConfirm": "Save and confirm"
     }
   },
   "balances": {
