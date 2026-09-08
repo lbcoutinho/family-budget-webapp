@@ -763,7 +763,6 @@
     "yourQuarter": "Seu trimestre",
     "planned": "Planejado",
     "estimatedIncome": "Receita estimada no trimestre",
-    "incomeHelp": "Base para o planejamento; não é dividida em estimativas mensais.",
     "incomeInvalid": "Informe uma receita maior que zero.",
     "quarterNote": "Nota do trimestre",
     "notePlaceholder": "Opcional",

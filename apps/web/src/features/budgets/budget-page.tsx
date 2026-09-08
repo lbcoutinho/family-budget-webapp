@@ -318,11 +318,11 @@ function AllocationTable({
               <div
                 key={category.id}
                 role="row"
-                className={`grid gap-x-3 gap-y-2 border-b px-3 py-3 last:border-b-0 shell:grid-cols-budget-allocation shell:items-start ${category.isActive ? '' : 'bg-muted/30 text-muted-foreground'}`}
+                className={`grid gap-x-3 gap-y-2 border-b px-3 py-3 last:border-b-0 shell:grid-cols-budget-allocation shell:items-center ${category.isActive ? '' : 'bg-muted/30 text-muted-foreground'}`}
               >
                 <div role="cell" className="flex min-w-0 items-center gap-2">
                   <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: category.color ?? 'currentColor' }} />
-                  <span className="truncate font-medium">{category.name}</span>
+                  <span className="truncate text-sm font-semibold">{category.name}</span>
                   {!category.isActive && <span className="text-xs">{t('budgets.inactive')}</span>}
                 </div>
                 <div role="cell" className="space-y-1">
@@ -343,7 +343,7 @@ function AllocationTable({
                   </div>
                   <FieldError id={`allocation-error-${category.id}`} error={error === 'percentage' ? t('budgets.percentageInvalid') : undefined} />
                 </div>
-                <div role="cell" className="text-right tabular-nums">
+                <div role="cell" className="num text-right text-sm font-medium">
                   <span className="shell:hidden text-xs text-muted-foreground">{t('budgets.quarterlyTarget')}</span>
                   <div>{formatCents(quarterly)}</div>
                 </div>
@@ -375,7 +375,7 @@ function AllocationTable({
                   <p className="text-xs text-muted-foreground">{t('budgets.monthlyTarget', { amount: formatCents(suggestion) })}</p>
                   <FieldError id={`allocation-error-${category.id}`} error={error === 'monthly' ? t('budgets.monthlyInvalid') : undefined} />
                 </div>
-                <div role="cell" className="text-right tabular-nums">
+                <div role="cell" className="num text-right text-sm font-medium">
                   <span className="shell:hidden text-xs text-muted-foreground">{t('budgets.effectivePercentage')}</span>
                   <div>{effectivePercentage === null ? '—' : `${formatPercentage(effectivePercentage)}%`}</div>
                 </div>
@@ -444,12 +444,9 @@ function QuarterCard({
               inputMode="decimal"
               value={fields.income}
               aria-invalid={Boolean(incomeError)}
-              aria-describedby="estimated-income-help estimated-income-error"
+              aria-describedby={incomeError ? 'estimated-income-error' : undefined}
               onChange={(event) => onIncome(event.target.value)}
             />
-            <p id="estimated-income-help" className="text-xs text-muted-foreground">
-              {t('budgets.incomeHelp')}
-            </p>
             <FieldError id="estimated-income-error" error={incomeError} />
           </div>
           <SummaryLine label={t('budgets.plannedExpenses')} amount={derived.expenses} percentage={derived.expensePercentage} negative />

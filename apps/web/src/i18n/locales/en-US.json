@@ -763,7 +763,6 @@
     "yourQuarter": "Your quarter",
     "planned": "Planned",
     "estimatedIncome": "Estimated quarterly Income",
-    "incomeHelp": "The planning base; it is not divided into monthly estimates.",
     "incomeInvalid": "Enter Income greater than zero.",
     "quarterNote": "Quarter note",
     "notePlaceholder": "Optional",
