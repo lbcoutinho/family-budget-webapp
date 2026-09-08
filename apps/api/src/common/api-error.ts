@@ -27,6 +27,8 @@ export const ERROR_CODES = [
   'CATEGORY_SUBCATEGORY_KIND_MISMATCH',
   'CATEGORY_SUBCATEGORY_COLOR_NOT_ALLOWED',
   'CATEGORY_LAST_ACTIVE_SUBCATEGORY',
+  'BUDGET_ALLOCATION_CATEGORY_INVALID',
+  'BUDGET_ALLOCATION_CATEGORY_DUPLICATE',
   /** Required for this transaction type, but absent (M4-T02). */
   'TRANSACTION_FIELD_REQUIRED',
   /** Forbidden for this transaction type, but present (M4-T02). */

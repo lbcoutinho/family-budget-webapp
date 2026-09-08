@@ -6,6 +6,7 @@ import request from 'supertest';
 
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
+import { CategoryKind } from '../../src/generated/prisma/client';
 import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -20,6 +21,17 @@ describe('Budgets API (e2e)', () => {
   const password = 'correct horse battery staple';
   const emails = ['budgets.api.e2e@family-budget.test', 'budgets.api.e2e.other@family-budget.test'];
   const authed = (method: 'get' | 'put', path: string, as = token): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
+  const userId = async (email = emails[0]!): Promise<string> => (await prisma.user.findUniqueOrThrow({ where: { email } })).id;
+  const createCategory = async (overrides: { userId?: string; kind?: CategoryKind; parentId?: string | null; isActive?: boolean } = {}) =>
+    prisma.category.create({
+      data: {
+        userId: overrides.userId ?? (await userId()),
+        name: crypto.randomUUID(),
+        kind: overrides.kind ?? CategoryKind.EXPENSE,
+        parentId: overrides.parentId ?? null,
+        isActive: overrides.isActive ?? true,
+      },
+    });
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -39,10 +51,14 @@ describe('Budgets API (e2e)', () => {
     otherToken = sessions[1]!;
   });
 
-  beforeEach(async () => prisma.budget.deleteMany({ where: { user: { email: { in: emails } } } }));
+  beforeEach(async () => {
+    await prisma.budget.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.category.deleteMany({ where: { user: { email: { in: emails } } } });
+  });
 
   afterAll(async () => {
     await prisma.budget.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.category.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await app.close();
   });
@@ -50,17 +66,108 @@ describe('Budgets API (e2e)', () => {
   it('requires authentication and does not persist an absent quarter', async () => {
     await request(server).get('/api/budgets/2026/3').expect(401);
     await authed('get', '/budgets/2026/3').expect(204);
-    expect(await prisma.budget.count()).toBe(0);
+    expect(await prisma.budget.count({ where: { user: { email: { in: emails } } } })).toBe(0);
   });
 
   it('creates, reads, and atomically replaces the one Budget for a quarter', async () => {
-    await authed('put', '/budgets/2026/3').send({ estimatedQuarterlyIncome: 1_050_000, note: 'First plan' }).expect(200);
-    await authed('put', '/budgets/2026/3').send({ estimatedQuarterlyIncome: 1_100_000, note: null }).expect(200);
+    const food = await createCategory();
+    const leisure = await createCategory();
+    await authed('put', '/budgets/2026/3')
+      .send({
+        estimatedQuarterlyIncome: 1_050_000,
+        note: 'First plan',
+        allocations: [{ categoryId: food.id, targetPercentage: 25, adjustedMonthlyAmount: 87_500 }],
+      })
+      .expect(200);
+    await authed('put', '/budgets/2026/3')
+      .send({
+        estimatedQuarterlyIncome: 1_100_000,
+        note: null,
+        allocations: [{ categoryId: leisure.id, targetPercentage: 30, adjustedMonthlyAmount: 110_000 }],
+      })
+      .expect(200);
 
     await expect(authed('get', '/budgets/2026/3').expect(200)).resolves.toMatchObject({
-      body: { year: 2026, quarter: 3, estimatedQuarterlyIncome: 1_100_000, note: null },
+      body: {
+        year: 2026,
+        quarter: 3,
+        estimatedQuarterlyIncome: 1_100_000,
+        note: null,
+        allocations: [{ categoryId: leisure.id, targetPercentage: 30, adjustedMonthlyAmount: 110_000 }],
+      },
     });
-    expect(await prisma.budget.count()).toBe(1);
+    expect(await prisma.budget.count({ where: { user: { email: { in: emails } } } })).toBe(1);
+    expect(await prisma.budgetAllocation.count({ where: { budget: { user: { email: { in: emails } } } } })).toBe(1);
+  });
+
+  it('validates allocatable Categories and omits zero allocations without notes', async () => {
+    const expense = await createCategory();
+    const income = await createCategory({ kind: CategoryKind.INCOME });
+    const inactive = await createCategory({ isActive: false });
+    const child = await createCategory({ parentId: expense.id });
+    const other = await createCategory({ userId: await userId(emails[1]) });
+
+    for (const categoryId of [income.id, inactive.id, child.id, other.id]) {
+      await authed('put', '/budgets/2026/3')
+        .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId, targetPercentage: 10, adjustedMonthlyAmount: 1_000 }] })
+        .expect(400);
+    }
+    await authed('put', '/budgets/2026/3')
+      .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId: expense.id, targetPercentage: 0, adjustedMonthlyAmount: 0 }] })
+      .expect(200)
+      .expect(({ body }: { body: unknown }) => expect((body as { allocations: unknown[] }).allocations).toEqual([]));
+  });
+
+  it('derives rounded values, allows over-allocation, and preserves an explicit zero percentage', async () => {
+    const food = await createCategory();
+    const rent = await createCategory();
+    const response = await authed('put', '/budgets/2026/3')
+      .send({
+        estimatedQuarterlyIncome: 100_001,
+        allocations: [
+          { categoryId: food.id, targetPercentage: 33.33, adjustedMonthlyAmount: 11_111, note: 'Rounded manually' },
+          { categoryId: rent.id, targetPercentage: 0, adjustedMonthlyAmount: 30_000 },
+        ],
+      })
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      effectiveQuarterlyExpenseTotal: 123_333,
+      plannedFinancialGoalsAvailability: -23_332,
+    });
+    const body = response.body as { allocations: unknown[] };
+    expect(body.allocations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          categoryId: food.id,
+          targetPercentage: 33.33,
+          suggestedQuarterlyTarget: 33_330,
+          suggestedMonthlyTarget: 11_110,
+          adjustedMonthlyAmount: 11_111,
+          effectiveQuarterlyTarget: 33_333,
+          effectivePercentage: 33.33,
+          note: 'Rounded manually',
+        }),
+        expect.objectContaining({ categoryId: rent.id, targetPercentage: 0, adjustedMonthlyAmount: 30_000, effectiveQuarterlyTarget: 90_000 }),
+      ]),
+    );
+  });
+
+  it('rejects duplicate, malformed, and more precise allocation inputs', async () => {
+    const category = await createCategory();
+    const allocation = { categoryId: category.id, targetPercentage: 10, adjustedMonthlyAmount: 1_000 };
+    for (const allocations of [[allocation, allocation], [{ ...allocation, targetPercentage: 10.001 }], [{ ...allocation, adjustedMonthlyAmount: -1 }]]) {
+      await authed('put', '/budgets/2026/3').send({ estimatedQuarterlyIncome: 100_000, allocations }).expect(400);
+    }
+  });
+
+  it('prevents deletion of a Category allocated to a Budget', async () => {
+    const category = await createCategory();
+    await authed('put', '/budgets/2026/3')
+      .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId: category.id, targetPercentage: 10, adjustedMonthlyAmount: 1_000 }] })
+      .expect(200);
+
+    await expect(prisma.category.delete({ where: { id: category.id } })).rejects.toMatchObject({ code: 'P2003' });
   });
 
   it('isolates the same period by owner', async () => {
@@ -69,7 +176,7 @@ describe('Budgets API (e2e)', () => {
 
     await expect(authed('get', '/budgets/2026/3').expect(200)).resolves.toMatchObject({ body: { estimatedQuarterlyIncome: 100_000 } });
     await expect(authed('get', '/budgets/2026/3', otherToken).expect(200)).resolves.toMatchObject({ body: { estimatedQuarterlyIncome: 200_000 } });
-    expect(await prisma.budget.count()).toBe(2);
+    expect(await prisma.budget.count({ where: { user: { email: { in: emails } } } })).toBe(2);
   });
 
   it.each([

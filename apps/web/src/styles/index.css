@@ -198,6 +198,14 @@
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.78fr);
 }
 
+@utility grid-cols-budget-layout {
+  grid-template-columns: minmax(0, 1fr) 17rem;
+}
+
+@utility grid-cols-budget-allocation {
+  grid-template-columns: minmax(7rem, 1fr) 5rem 6.5rem minmax(9rem, 1.25fr) 5rem minmax(9rem, 1.2fr);
+}
+
 @utility border-l-callout {
   border-left-width: 1px;
 }

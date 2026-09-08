@@ -11,12 +11,40 @@ import { AuthContext } from '@/features/auth/auth-context';
 import { server } from '@/test/server';
 
 const USER = { id: 'u1', email: 'luis@example.com', name: 'Luís', locale: 'pt-BR' as const };
+const CATEGORY = {
+  id: 'c1',
+  parentId: null,
+  name: 'Moradia',
+  kind: 'EXPENSE',
+  color: '#1f6f54',
+  isActive: true,
+  sortOrder: 0,
+  createdAt: '2026-07-01T00:00:00.000Z',
+  updatedAt: '2026-07-01T00:00:00.000Z',
+};
+const NEW_CATEGORY = { ...CATEGORY, id: 'c2', name: 'Lazer' };
 const BUDGET = {
   id: 'b1',
   year: 2026,
   quarter: 3,
   estimatedQuarterlyIncome: 1_050_000,
   note: 'Bônus em setembro',
+  allocations: [
+    {
+      categoryId: CATEGORY.id,
+      category: { id: CATEGORY.id, name: CATEGORY.name, color: CATEGORY.color, isActive: true },
+      targetPercentage: 20,
+      suggestedQuarterlyTarget: 210_000,
+      suggestedMonthlyTarget: 70_000,
+      adjustedMonthlyAmount: 10_000,
+      effectiveQuarterlyTarget: 30_000,
+      effectivePercentage: 2.86,
+      note: 'Valor manual',
+    },
+  ],
+  effectiveQuarterlyExpenseTotal: 30_000,
+  plannedFinancialGoalsAvailability: 1_020_000,
+  effectiveExpensePercentage: 2.86,
   createdAt: '2026-07-01T00:00:00.000Z',
   updatedAt: '2026-07-01T00:00:00.000Z',
 };
@@ -41,7 +69,10 @@ function renderBudget(initialEntry = '/budgets/2026/3') {
 
 describe('BudgetPage', () => {
   beforeEach(() => {
-    server.use(http.get('/api/budgets/:year/:quarter', () => HttpResponse.json(BUDGET)));
+    server.use(
+      http.get('/api/budgets/:year/:quarter', () => HttpResponse.json(BUDGET)),
+      http.get('/api/categories', () => HttpResponse.json([CATEGORY, NEW_CATEGORY])),
+    );
   });
 
   it('loads a populated quarter and navigates to adjacent and directly selected quarters', async () => {
@@ -135,5 +166,51 @@ describe('BudgetPage', () => {
     const { user } = renderBudget();
     await user.click(await screen.findByRole('button', { name: 'Tentar de novo' }));
     expect(await screen.findByDisplayValue('10.500,00')).toBeInTheDocument();
+  });
+
+  it('preserves a manual monthly amount, can reset it to the calculated target, and sends the complete allocation set', async () => {
+    let payload: { allocations: { categoryId: string; targetPercentage: number; adjustedMonthlyAmount: number }[] } | undefined;
+    server.use(
+      http.put('/api/budgets/:year/:quarter', async ({ request }) => {
+        payload = (await request.json()) as { allocations: { categoryId: string; targetPercentage: number; adjustedMonthlyAmount: number }[] };
+        return HttpResponse.json({ ...BUDGET, ...(payload as object) });
+      }),
+    );
+    const { user } = renderBudget();
+    expect(await screen.findByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('100,00');
+    await user.click(screen.getByRole('button', { name: 'Limpar ajuste e usar a meta mensal de Moradia' }));
+    expect(screen.getByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('700,00');
+    await waitFor(() =>
+      expect(payload?.allocations).toContainEqual(expect.objectContaining({ categoryId: 'c1', targetPercentage: 20, adjustedMonthlyAmount: 70_000 })),
+    );
+  });
+
+  it('shows an over-allocation warning without blocking autosave', async () => {
+    let writes = 0;
+    server.use(
+      http.put('/api/budgets/:year/:quarter', async ({ request }) => {
+        writes += 1;
+        return HttpResponse.json({ ...BUDGET, ...((await request.json()) as object) });
+      }),
+    );
+    const { user } = renderBudget();
+    const monthly = await screen.findByLabelText('Valor mensal ajustado de Moradia');
+    await user.clear(monthly);
+    await user.type(monthly, '50000');
+    expect(await screen.findByText(/O total efetivo ultrapassa a receita estimada/)).toBeInTheDocument();
+    await waitFor(() => expect(writes).toBe(1), { timeout: 1500 });
+  });
+
+  it('calculates a new allocation once and preserves an existing manual override when Income changes', async () => {
+    const { user } = renderBudget();
+    const income = await screen.findByLabelText('Receita estimada no trimestre');
+    await user.clear(income);
+    await user.type(income, '12000');
+    expect(screen.getByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('100,00');
+
+    const percentage = screen.getByLabelText('Meta percentual de Lazer');
+    await user.clear(percentage);
+    await user.type(percentage, '10');
+    expect(screen.getByLabelText('Valor mensal ajustado de Lazer')).toHaveValue('400,00');
   });
 });

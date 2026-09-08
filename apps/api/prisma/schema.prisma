@@ -69,9 +69,30 @@ model Budget {
   updatedAt                DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  allocations BudgetAllocation[]
 
   @@unique([userId, year, quarter])
   @@map("budgets")
+}
+
+/// One top-level Expense Category's effective monthly limit within a Budget. Percentages are basis
+/// points (25.50% is 2550), which keeps their two-decimal contract exact without decimal storage.
+model BudgetAllocation {
+  id                    String   @id @default(uuid()) @db.Uuid
+  budgetId              String   @map("budget_id") @db.Uuid
+  categoryId            String   @map("category_id") @db.Uuid
+  targetPercentageBasis Int      @map("target_percentage_basis")
+  adjustedMonthlyAmount Int      @map("adjusted_monthly_amount")
+  note                  String?
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  budget   Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([budgetId, categoryId])
+  @@index([categoryId])
+  @@map("budget_allocations")
 }
 
 /// Where money sits: a current account, a savings account, a wallet. The first domain entity
@@ -162,6 +183,7 @@ model Category {
   subcategoryTransactions    Transaction[]    @relation("TransactionSubcategory")
   recurrenceRules            RecurrenceRule[] @relation("RecurrenceRuleCategory")
   subcategoryRecurrenceRules RecurrenceRule[] @relation("RecurrenceRuleSubcategory")
+  budgetAllocations          BudgetAllocation[]
 
   // Subcategories only — see the note above on NULL and the partial index that covers roots.
   @@unique([userId, parentId, name])
