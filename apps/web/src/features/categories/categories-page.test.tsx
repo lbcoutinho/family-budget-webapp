@@ -256,6 +256,21 @@ describe('CategoriesPage', () => {
     expect(within(rendaRow!).getByRole('button', { name: 'Apagar' })).toBeInTheDocument();
   });
 
+  it('offers deactivation when deleting a Category used by a Budget is blocked', async () => {
+    server.use(
+      http.get('/api/categories', () => HttpResponse.json([ROOT])),
+      http.delete('/api/categories/:id', () => HttpResponse.json({ statusCode: 409, code: 'RECORD_IN_USE', message: 'in use' }, { status: 409 })),
+    );
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Apagar' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Apagar' }));
+
+    expect(await screen.findByText('Outros registos ainda usam este. Desative-o em vez de o eliminar.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Desativar' })).toBeInTheDocument();
+  });
+
   it('lists roots and subcategories alphabetically, with the automatic "Outros" pinned last', async () => {
     const rootB: CategoryDto = { ...ROOT, id: 'r3', name: 'Zeladoria', children: [] };
     server.use(http.get('/api/categories', () => HttpResponse.json([ROOT, rootB])));

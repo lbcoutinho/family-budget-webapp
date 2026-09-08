@@ -58,7 +58,7 @@ export function BudgetPage() {
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
   const activeCategories = useMemo(
-    () => (categoriesQuery.data ?? []).filter((category) => category.parentId === null && category.kind === CategoryKind.EXPENSE),
+    () => (categoriesQuery.data ?? []).filter((category) => category.parentId === null && category.kind === CategoryKind.EXPENSE && category.isActive),
     [categoriesQuery.data],
   );
   const categories = useMemo(() => mergeCategories(activeCategories, budgetQuery.data ?? undefined), [activeCategories, budgetQuery.data]);

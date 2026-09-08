@@ -45,3 +45,4 @@ Project's architectural decisions and the reasoning behind them.
 | [0021](0021-settlement-date-and-reference-month.md) | Settlement date and reference month | Superseded by [0022](0022-settlement-date-contract.md) |
 | [0022](0022-settlement-date-contract.md) | Settlement date contract | Superseded by [0023](0023-independent-reference-month.md) |
 | [0023](0023-independent-reference-month.md) | Independent reference month | Accepted |
+| [0024](0024-budget-category-history.md) | Budget Category history | Accepted |

@@ -20,7 +20,8 @@ describe('Budgets API (e2e)', () => {
 
   const password = 'correct horse battery staple';
   const emails = ['budgets.api.e2e@family-budget.test', 'budgets.api.e2e.other@family-budget.test'];
-  const authed = (method: 'get' | 'put', path: string, as = token): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
+  const authed = (method: 'get' | 'put' | 'patch' | 'delete', path: string, as = token): request.Test =>
+    request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
   const userId = async (email = emails[0]!): Promise<string> => (await prisma.user.findUniqueOrThrow({ where: { email } })).id;
   const createCategory = async (overrides: { userId?: string; kind?: CategoryKind; parentId?: string | null; isActive?: boolean } = {}) =>
     prisma.category.create({
@@ -161,13 +162,34 @@ describe('Budgets API (e2e)', () => {
     }
   });
 
-  it('prevents deletion of a Category allocated to a Budget', async () => {
+  it('preserves an allocated Category through rename and deactivation, but blocks deletion', async () => {
     const category = await createCategory();
     await authed('put', '/budgets/2026/3')
       .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId: category.id, targetPercentage: 10, adjustedMonthlyAmount: 1_000 }] })
       .expect(200);
 
-    await expect(prisma.category.delete({ where: { id: category.id } })).rejects.toMatchObject({ code: 'P2003' });
+    await authed('patch', `/categories/${category.id}`).send({ name: 'Renamed' }).expect(200);
+    const renamed = (await authed('get', '/budgets/2026/3').expect(200)).body as unknown as {
+      allocations: { categoryId: string; category: { name: string } }[];
+    };
+    expect(renamed.allocations[0]).toMatchObject({ categoryId: category.id, category: { name: 'Renamed' } });
+
+    await authed('patch', `/categories/${category.id}/deactivate`).expect(200);
+    const saved = (
+      await authed('put', '/budgets/2026/3')
+        .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId: category.id, targetPercentage: 10, adjustedMonthlyAmount: 1_000 }] })
+        .expect(200)
+    ).body as unknown as { allocations: { category: { isActive: boolean }; effectiveQuarterlyTarget: number }[] };
+    expect(saved.allocations[0]).toMatchObject({ category: { isActive: false }, effectiveQuarterlyTarget: 3_000 });
+
+    await authed('delete', `/categories/${category.id}`).expect(409).expect({
+      statusCode: 409,
+      code: 'RECORD_IN_USE',
+      message: 'Other records still reference this one. Deactivate it instead of deleting it.',
+    });
+    await authed('put', '/budgets/2026/3', otherToken)
+      .send({ estimatedQuarterlyIncome: 100_000, allocations: [{ categoryId: category.id, targetPercentage: 10, adjustedMonthlyAmount: 1_000 }] })
+      .expect(400);
   });
 
   it('isolates the same period by owner', async () => {

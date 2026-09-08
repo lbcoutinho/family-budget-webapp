@@ -213,4 +213,21 @@ describe('BudgetPage', () => {
     await user.type(percentage, '10');
     expect(screen.getByLabelText('Valor mensal ajustado de Lazer')).toHaveValue('400,00');
   });
+
+  it('keeps an allocated inactive Category, but omits inactive Categories without an allocation', async () => {
+    const inactive = { ...NEW_CATEGORY, id: 'c3', name: 'Arquivada', isActive: false };
+    const unallocatedInactive = { ...NEW_CATEGORY, id: 'c4', name: 'Removida', isActive: false };
+    server.use(
+      http.get('/api/budgets/:year/:quarter', () =>
+        HttpResponse.json({ ...BUDGET, allocations: [...BUDGET.allocations, { ...BUDGET.allocations[0], categoryId: inactive.id, category: inactive }] }),
+      ),
+      http.get('/api/categories', () => HttpResponse.json([CATEGORY, NEW_CATEGORY, unallocatedInactive])),
+    );
+
+    renderBudget();
+
+    expect(await screen.findByLabelText('Meta percentual de Arquivada')).toBeInTheDocument();
+    expect(screen.getByText('inativa')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Meta percentual de Removida')).not.toBeInTheDocument();
+  });
 });
