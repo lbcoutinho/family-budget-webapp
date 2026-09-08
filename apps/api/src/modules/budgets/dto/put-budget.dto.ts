@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsInt, IsOptional, IsPositive, IsString, MaxLength, ValidateNested } from 'class-validator';
+
+import { PutBudgetAllocationDto } from './put-budget-allocation.dto';
 
 export class PutBudgetDto {
   @ApiProperty({ type: Number, minimum: 1, description: 'Estimated quarterly Income in integer cents.' })
@@ -14,4 +16,11 @@ export class PutBudgetDto {
   @IsString()
   @MaxLength(2000)
   note?: string | null;
+
+  @ApiProperty({ type: () => [PutBudgetAllocationDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PutBudgetAllocationDto)
+  allocations?: PutBudgetAllocationDto[];
 }

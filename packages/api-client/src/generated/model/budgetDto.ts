@@ -5,6 +5,7 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { BudgetAllocationDto } from './budgetAllocationDto';
 
 export interface BudgetDto {
   id: string;
@@ -14,6 +15,12 @@ export interface BudgetDto {
   estimatedQuarterlyIncome: number;
   /** @nullable */
   note: string | null;
+  allocations: BudgetAllocationDto[];
+  /** Sum of effective quarterly Expense targets in integer cents. */
+  effectiveQuarterlyExpenseTotal: number;
+  /** Estimated Income less effective quarterly Expense targets, in integer cents. */
+  plannedFinancialGoalsAvailability: number;
+  effectiveExpensePercentage: number;
   createdAt: string;
   updatedAt: string;
 }

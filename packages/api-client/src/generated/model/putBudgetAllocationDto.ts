@@ -5,18 +5,22 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
-import type { PutBudgetAllocationDto } from './putBudgetAllocationDto';
 
-export interface PutBudgetDto {
+export interface PutBudgetAllocationDto {
+  categoryId: string;
   /**
-     * Estimated quarterly Income in integer cents.
-     * @minimum 1
+     * @minimum 0
+     * @maximum 100
      */
-  estimatedQuarterlyIncome: number;
+  targetPercentage: number;
+  /**
+     * Effective monthly target in integer cents.
+     * @minimum 0
+     */
+  adjustedMonthlyAmount: number;
   /**
      * @maxLength 2000
      * @nullable
      */
   note?: string | null;
-  allocations?: PutBudgetAllocationDto[];
 }
