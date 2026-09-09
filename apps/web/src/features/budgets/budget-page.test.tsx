@@ -84,8 +84,8 @@ const YEARLY_REPORT: YearlyReportDto = {
       name: 'Moradia',
       color: '#a32c3d',
       kind: 'EXPENSE',
-      monthly: new Array<number>(12).fill(0),
-      total: 0,
+      monthly: [0, 0, 0, 0, 0, 0, 20_000, 10_000, 20_000, 0, 0, 0],
+      total: 50_000,
       monthlyAverage: 0,
       subcategories: [],
     },
@@ -144,6 +144,8 @@ describe('BudgetPage', () => {
     expect(within(review).getByText('3.720,00 €')).toBeInTheDocument();
     expect(within(review).getByText('Salário')).toBeInTheDocument();
     expect(within(review).getByText('Bônus')).toBeInTheDocument();
+    const incomeCategories = within(review).getByRole('heading', { name: 'Receita por categoria' }).parentElement!;
+    expect(within(incomeCategories).queryByText('Moradia')).not.toBeInTheDocument();
     expect(within(review).getByText('−8.578,00 €')).toBeInTheDocument();
     expect(screen.getByText('Superávit realizado').parentElement).toHaveTextContent('1.842,00 €');
   });
