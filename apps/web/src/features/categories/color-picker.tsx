@@ -36,6 +36,7 @@ export function ColorPicker({ value, onChange, invalid }: ColorPickerProps) {
           return (
             <Button
               key={hex}
+              type="button"
               variant="ghost"
               size="icon-sm"
               aria-pressed={normalized === hex}
