@@ -137,7 +137,7 @@ describe('BudgetPage', () => {
     expect(await screen.findByText('Receita: estimada × realizada')).toBeInTheDocument();
     const review = screen.getByLabelText('Compare com o que aconteceu');
     expect(within(review).getByText('10.720,00 €')).toBeInTheDocument();
-    expect(within(review).getByText('+ 220,00 €')).toBeInTheDocument();
+    expect(within(review).getByText('220,00 €')).toBeInTheDocument();
     expect(within(review).getByText('2.10%')).toBeInTheDocument();
     expect(within(review).getByText('3.000,00 €')).toBeInTheDocument();
     expect(within(review).getByText('4.000,00 €')).toBeInTheDocument();

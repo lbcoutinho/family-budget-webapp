@@ -552,11 +552,8 @@ function QuarterReview({
   return (
     <section className="grid gap-4 lg:grid-cols-2" aria-label={t('budgets.reviewTitle')}>
       <Card>
-        <CardHeader className="flex-row items-start justify-between gap-3">
+        <CardHeader>
           <CardTitle>{t('budgets.incomeReview')}</CardTitle>
-          <span className={`num text-sm font-semibold ${review.variance < 0 ? 'text-destructive' : 'text-primary'}`}>
-            {formatCents(review.variance, { sign: true })}
-          </span>
         </CardHeader>
         <CardContent className="space-y-4">
           <SummaryLine label={t('budgets.estimatedIncome')} amount={review.estimatedIncome} percentage={null} />
