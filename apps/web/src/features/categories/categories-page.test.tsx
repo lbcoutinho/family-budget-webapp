@@ -158,6 +158,28 @@ describe('CategoriesPage', () => {
     });
   });
 
+  it('keeps the create dialog open when selecting a colour', async () => {
+    let creates = 0;
+    server.use(
+      http.get('/api/categories', () => HttpResponse.json([ROOT])),
+      http.post('/api/categories', () => {
+        creates += 1;
+
+        return HttpResponse.json(ROOT);
+      }),
+    );
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova categoria' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Nome'), 'Transportes');
+    await user.click(within(dialog).getByRole('button', { name: 'Cor 2' }));
+
+    expect(dialog).toBeInTheDocument();
+    expect(creates).toBe(0);
+  });
+
   it('cascades the inactive badge onto every subcategory when a root is deactivated', async () => {
     let root = ROOT;
     server.use(
