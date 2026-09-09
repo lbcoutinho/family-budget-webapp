@@ -1,7 +1,9 @@
 import {
   type AccountBalanceDto,
+  type BudgetDto,
   type CashboxBalanceDto,
   type MonthlyBalanceDto,
+  type MonthlyReportDto,
   type TransactionListDto,
   type TransactionListItemDto,
   TransactionStatus,
@@ -121,6 +123,98 @@ const MONTHLY_BALANCE: MonthlyBalanceDto = {
   netWorth: 763215,
 };
 
+const BUDGET: BudgetDto = {
+  id: 'budget-1',
+  year: 2026,
+  quarter: 3,
+  estimatedQuarterlyIncome: 900_000,
+  note: null,
+  allocations: [
+    {
+      categoryId: 'category-1',
+      category: { id: 'category-1', name: 'Food', color: '#ef6c00', isActive: true },
+      targetPercentage: 10,
+      suggestedQuarterlyTarget: 90_000,
+      suggestedMonthlyTarget: 30_000,
+      adjustedMonthlyAmount: 30_000,
+      effectiveQuarterlyTarget: 90_000,
+      effectivePercentage: 10,
+      note: null,
+    },
+    {
+      categoryId: 'category-2',
+      category: { id: 'category-2', name: 'Housing', color: '#1565c0', isActive: true },
+      targetPercentage: 20,
+      suggestedQuarterlyTarget: 180_000,
+      suggestedMonthlyTarget: 60_000,
+      adjustedMonthlyAmount: 58_000,
+      effectiveQuarterlyTarget: 174_000,
+      effectivePercentage: 20,
+      note: null,
+    },
+  ],
+  effectiveQuarterlyExpenseTotal: 264_000,
+  plannedFinancialGoalsAvailability: 636_000,
+  effectiveExpensePercentage: 29.33,
+  createdAt: '2026-07-01T00:00:00.000Z',
+  updatedAt: '2026-07-01T00:00:00.000Z',
+};
+
+const MONTHLY_REPORT: MonthlyReportDto = {
+  year: 2026,
+  month: 7,
+  incomeTotal: 0,
+  expenseTotal: 40_000,
+  balance: -40_000,
+  categories: [
+    {
+      categoryId: 'category-1',
+      name: 'Food',
+      color: '#ef6c00',
+      kind: 'EXPENSE',
+      amount: 10_000,
+      percentage: 28.57,
+      rollingAverage: 10_000,
+      count: 1,
+      subcategories: [],
+    },
+    {
+      categoryId: 'category-3',
+      name: 'Transport',
+      color: '#2e7d32',
+      kind: 'EXPENSE',
+      amount: 25_000,
+      percentage: 71.43,
+      rollingAverage: 25_000,
+      count: 1,
+      subcategories: [],
+    },
+    {
+      categoryId: null,
+      name: null,
+      color: null,
+      kind: 'EXPENSE',
+      amount: 5_000,
+      percentage: 12.5,
+      rollingAverage: 5_000,
+      count: 1,
+      subcategories: [],
+    },
+    {
+      categoryId: 'category-4',
+      name: 'Salary',
+      color: '#6a1b9a',
+      kind: 'INCOME',
+      amount: 100_000,
+      percentage: 100,
+      rollingAverage: 100_000,
+      count: 1,
+      subcategories: [],
+    },
+  ],
+  cashboxes: { items: [], depositsTotal: 0, withdrawalsTotal: 0, balance: 0 },
+};
+
 function renderPage(initialEntry = '/month/2026/07') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter([{ path: '/month/:year/:month', element: <MonthPage /> }], { initialEntries: [initialEntry] });
@@ -163,6 +257,13 @@ describe('MonthPage', () => {
   // The historical side panel is independent from the ledger and is present in every state.
   beforeEach(() => {
     server.use(http.get('/api/reports/monthly-balance', () => HttpResponse.json(MONTHLY_BALANCE)));
+  });
+
+  beforeEach(() => {
+    server.use(
+      http.get('/api/budgets/:year/:quarter', () => HttpResponse.json(BUDGET)),
+      http.get('/api/reports/monthly', () => HttpResponse.json(MONTHLY_REPORT)),
+    );
   });
 
   it('loads confirmed entries and drafts separately for the route reference month', async () => {
@@ -987,6 +1088,51 @@ describe('MonthPage', () => {
 
       await waitFor(() => expect(requests.at(-1)?.searchParams.get('type')).toBeNull());
       expect(requests.at(-1)?.searchParams.get('sort')).toBe('oldest');
+    });
+
+    it('shows the monthly Budget totals and unions allocated and spent Categories in an accessible disclosure', async () => {
+      server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+      const { user } = renderPage();
+
+      const disclosure = await screen.findByRole('button', { name: 'Ver orçamento' });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByText('880,00 €')).toBeInTheDocument();
+      expect(screen.getByText('480,00 €')).toBeInTheDocument();
+
+      await user.click(disclosure);
+
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('columnheader', { name: 'Categoria' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Food' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Housing' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Transport' })).toBeInTheDocument();
+      expect(screen.getByText('Categoria sem nome')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Salary' })).not.toBeInTheDocument();
+      expect(screen.getAllByText('− 250,00 €')).toHaveLength(2);
+      expect(screen.getAllByText('− 250,00 €').every((node) => node.classList.contains('text-destructive'))).toBe(true);
+    });
+
+    it('filters the ledger when a Budget Category is selected and preserves the filter when its detail closes', async () => {
+      server.use(http.get('/api/transactions', () => HttpResponse.json(page([]))));
+      const { user, router } = renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Ver orçamento' }));
+      await user.click(screen.getByRole('button', { name: 'Transport' }));
+      await waitFor(() => expect(router.state.location.search).toBe('?categoryId=category-3'));
+
+      await user.click(screen.getByRole('button', { name: 'Recolher orçamento' }));
+      expect(router.state.location.search).toBe('?categoryId=category-3');
+    });
+
+    it('links an absent monthly Budget to creation in its corresponding quarter', async () => {
+      server.use(
+        http.get('/api/transactions', () => HttpResponse.json(page([]))),
+        http.get('/api/budgets/:year/:quarter', () => new HttpResponse(null, { status: 404 })),
+      );
+
+      renderPage();
+
+      expect((await screen.findByRole('link', { name: 'Criar orçamento para o 3º trimestre' })).getAttribute('href')).toBe('/budgets/2026/3');
     });
   });
 });

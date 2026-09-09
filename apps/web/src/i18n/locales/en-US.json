@@ -530,6 +530,18 @@
     "expenseExcludesCashboxes": "excluding transfers and cashboxes",
     "monthNet": "Month balance",
     "monthMovements": "Monthly movements",
+    "budget": {
+      "title": "Monthly Budget",
+      "show": "View Budget",
+      "hide": "Hide Budget",
+      "planned": "Budget",
+      "available": "Available",
+      "category": "Category",
+      "create": "Create Budget for Q{{quarter}}",
+      "loading": "Loading Budget…",
+      "error": "Could not load the Budget. Try again.",
+      "uncategorized": "Unnamed Category"
+    },
     "cashboxDeposits": "Cashbox deposits",
     "cashboxWithdrawals": "Cashbox withdrawals",
     "monthlyClose": "Monthly close",
