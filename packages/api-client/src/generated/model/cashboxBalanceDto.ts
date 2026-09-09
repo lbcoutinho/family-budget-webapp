@@ -15,6 +15,6 @@ export interface CashboxBalanceDto {
      * @nullable
      */
   targetAmount: number | null;
-  /** CASHBOX_IN − CASHBOX_OUT + CASHBOX_TRANSFER(destination) − CASHBOX_TRANSFER(source), in **cents**. */
+  /** initialBalance + CASHBOX_IN − CASHBOX_OUT + CASHBOX_TRANSFER(destination) − CASHBOX_TRANSFER(source), in **cents**. */
   balance: number;
 }

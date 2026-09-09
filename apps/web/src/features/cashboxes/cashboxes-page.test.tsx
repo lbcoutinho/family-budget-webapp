@@ -15,6 +15,7 @@ const ACTIVE: CashboxDto = {
   id: 'c1',
   name: 'Férias 2027',
   description: null,
+  initialBalance: 0,
   targetAmount: null,
   isActive: true,
   sortOrder: 0,
@@ -26,6 +27,7 @@ const INACTIVE: CashboxDto = {
   id: 'c2',
   name: 'Emergência',
   description: null,
+  initialBalance: 0,
   targetAmount: null,
   isActive: false,
   sortOrder: 1,
@@ -85,9 +87,9 @@ describe('CashboxesPage', () => {
     expect(requestUrl?.searchParams.get('includeInactive')).toBe('true');
   });
 
-  it('creates a cashbox, posting the goal as integer cents, and shows the new card without a reload', async () => {
+  it('creates a cashbox with its starting amount in integer cents and shows the new card without a reload', async () => {
     let cashboxes = [ACTIVE];
-    let requestBody: { name: string; description: string | null; targetAmount: number | null } | undefined;
+    let requestBody: { name: string; description: string | null; targetAmount: number | null; initialBalance: number } | undefined;
     server.use(
       http.get('/api/cashboxes', () => HttpResponse.json(cashboxes)),
       http.post('/api/cashboxes', async ({ request }) => {
@@ -104,10 +106,12 @@ describe('CashboxesPage', () => {
     await screen.findByText('Férias 2027');
     await user.click(screen.getByRole('button', { name: 'Nova caixinha' }));
     await user.type(screen.getByLabelText('Nome'), 'Reforma da cozinha');
+    await user.type(screen.getByLabelText('Saldo inicial'), '1.250,00');
     await user.type(screen.getByLabelText('Meta'), '5.000,00');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Reforma da cozinha')).toBeInTheDocument();
+    expect(requestBody?.initialBalance).toBe(125000);
     expect(requestBody?.targetAmount).toBe(500000);
   });
 

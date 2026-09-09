@@ -20,6 +20,9 @@ export class CashboxDto {
   @ApiProperty({ type: String, nullable: true, example: 'Seis meses de despesas fixas.' })
   description!: string | null;
 
+  @ApiProperty({ type: Number, example: 50_000, description: 'Balance already held when this cashbox started being tracked, in **cents** (ADR-0005).' })
+  initialBalance!: number;
+
   @ApiProperty({
     type: Number,
     nullable: true,

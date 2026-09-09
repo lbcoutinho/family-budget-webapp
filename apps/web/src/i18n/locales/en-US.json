@@ -245,6 +245,8 @@
       "description": "Description",
       "descriptionPlaceholder": "Two weeks in Greece, in July",
       "descriptionTooLong": "The description can have at most 500 characters.",
+      "initialBalance": "Initial balance",
+      "initialBalanceInvalid": "Enter a valid amount.",
       "target": "Goal",
       "targetPlaceholder": "5,000.00",
       "targetHint": "Without a goal, the card shows only the balance. Reaching the goal does not block a deposit.",

@@ -11,6 +11,8 @@ export interface CashboxDto {
   name: string;
   /** @nullable */
   description: string | null;
+  /** Balance already held when this cashbox started being tracked, in **cents** (ADR-0005). */
+  initialBalance: number;
   /**
      * Goal to draw progress against, in **cents** (ADR-0005). Null means the cashbox simply accumulates.
      * @nullable

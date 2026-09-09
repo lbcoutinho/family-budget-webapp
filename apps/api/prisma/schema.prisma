@@ -196,9 +196,9 @@ model Category {
 /// of it with `CASHBOX_IN` / `CASHBOX_OUT` / `CASHBOX_TRANSFER`, and none of those count as an
 /// expense in the reports.
 ///
-/// The balance is deliberately **not** a column: it is the sum of the confirmed movements, computed
-/// in M4-T07. A stored total is one crash away from disagreeing with the transactions that produced
-/// it. `targetAmount` is only a goal to draw progress against, and never enters any calculation.
+/// The balance is deliberately **not** a column: it is the initial balance plus confirmed movements,
+/// computed in M4-T07. A stored total is one crash away from disagreeing with the transactions that
+/// produced it. `targetAmount` is only a goal to draw progress against, and never enters any calculation.
 model Cashbox {
   id           String   @id @default(uuid()) @db.Uuid
   /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
@@ -206,6 +206,8 @@ model Cashbox {
   name         String
   /// Free text: what this money is for. Null and empty mean the same thing to the UI.
   description  String?
+  /// Balance already held when the cashbox starts being tracked, in **cents** (ADR-0005).
+  initialBalance Int @default(0) @map("initial_balance")
   /// Optional goal, in **cents** (ADR-0005). Null means the cashbox simply accumulates.
   targetAmount Int?     @map("target_amount")
   isActive     Boolean  @default(true) @map("is_active")

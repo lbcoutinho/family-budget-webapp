@@ -6,10 +6,11 @@ const userId = '11111111-1111-1111-1111-111111111111';
 const cashboxId = '22222222-2222-2222-2222-222222222222';
 const otherCashboxId = '33333333-3333-3333-3333-333333333333';
 
-const prismaDouble = (): { client: Prisma.TransactionClient; groupBy: jest.Mock } => {
+const prismaDouble = (): { client: Prisma.TransactionClient; groupBy: jest.Mock; findMany: jest.Mock } => {
   const groupBy = jest.fn();
+  const findMany = jest.fn().mockResolvedValue([]);
 
-  return { client: { transaction: { groupBy } } as unknown as Prisma.TransactionClient, groupBy };
+  return { client: { cashbox: { findMany }, transaction: { groupBy } } as unknown as Prisma.TransactionClient, groupBy, findMany };
 };
 
 describe('cashboxBalances', () => {
@@ -18,6 +19,14 @@ describe('cashboxBalances', () => {
     groupBy.mockResolvedValue([]);
 
     await expect(cashboxBalances(client, userId, [cashboxId])).resolves.toEqual(new Map([[cashboxId, 0]]));
+  });
+
+  it('starts from the cashbox initial balance before applying confirmed movements', async () => {
+    const { client, groupBy, findMany } = prismaDouble();
+    findMany.mockResolvedValue([{ id: cashboxId, initialBalance: 5_000 }]);
+    groupBy.mockResolvedValue([{ type: 'CASHBOX_OUT', cashboxId, destinationCashboxId: null, _sum: { amount: 2_000 } }]);
+
+    await expect(cashboxBalances(client, userId, [cashboxId])).resolves.toEqual(new Map([[cashboxId, 3_000]]));
   });
 
   it('nets CASHBOX_IN minus CASHBOX_OUT', async () => {

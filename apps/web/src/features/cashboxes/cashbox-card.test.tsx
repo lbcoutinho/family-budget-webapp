@@ -10,6 +10,7 @@ const cashbox: CashboxDto = {
   id: '1',
   name: 'Férias 2027',
   description: 'Duas semanas na Grécia, em julho',
+  initialBalance: 0,
   targetAmount: 5_000_00,
   isActive: true,
   sortOrder: 0,

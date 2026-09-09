@@ -51,7 +51,7 @@ export class CashboxesService {
   /**
    * `GET /cashboxes/balances` (M4-T07, #104). Every cashbox, active or not — same reasoning as
    * `AccountsService.findBalances`. A cashbox absent from the aggregated map (no confirmed
-   * transactions yet) reports `0`.
+   * transactions yet) reports its `initialBalance`.
    */
   async findBalances(userId: string, asOf?: Date): Promise<CashboxBalanceDto[]> {
     const [rows, sums] = await Promise.all([
@@ -64,7 +64,7 @@ export class CashboxesService {
       name: cashbox.name,
       isActive: cashbox.isActive,
       targetAmount: cashbox.targetAmount,
-      balance: sums.get(cashbox.id) ?? 0,
+      balance: cashbox.initialBalance + (sums.get(cashbox.id) ?? 0),
     }));
   }
 
@@ -135,6 +135,7 @@ function toDto(cashbox: Cashbox): CashboxDto {
     id: cashbox.id,
     name: cashbox.name,
     description: cashbox.description,
+    initialBalance: cashbox.initialBalance,
     targetAmount: cashbox.targetAmount,
     isActive: cashbox.isActive,
     sortOrder: cashbox.sortOrder,

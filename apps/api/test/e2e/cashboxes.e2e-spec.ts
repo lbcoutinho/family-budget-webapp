@@ -113,12 +113,13 @@ describe('Cashboxes API (e2e)', () => {
   });
 
   describe('create', () => {
-    it('creates a cashbox and hands back the defaults', async () => {
-      const created = await createCashbox({ name: 'Fundo de emergência', description: 'Seis meses.', targetAmount: 500_000 });
+    it('creates a cashbox with its initial balance and hands back the defaults', async () => {
+      const created = await createCashbox({ name: 'Fundo de emergência', description: 'Seis meses.', initialBalance: 50_000, targetAmount: 500_000 });
 
       expect(created).toMatchObject({
         name: 'Fundo de emergência',
         description: 'Seis meses.',
+        initialBalance: 50_000,
         targetAmount: 500_000,
         isActive: true,
         sortOrder: 0,
