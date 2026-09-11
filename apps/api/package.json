@@ -57,7 +57,7 @@
     "cookie-parser": "^1.4.7",
     "csv-parse": "^7.0.2",
     "express": "^5.2.1",
-    "nestjs-pino": "^4.6.1",
+    "nestjs-pino": "^5.1.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
