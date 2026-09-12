@@ -55,6 +55,7 @@ import { CashboxOperationDialog } from '@/features/transactions/cashbox-operatio
 import { DailyExpenseStrip, getDailyExpensesQueryKey, type DateFilter } from '@/features/transactions/daily-expense-strip';
 import { EntryDialog } from '@/features/transactions/entry-dialog';
 import { MonthBalancePanel } from '@/features/transactions/month-balance-panel';
+import { MonthBudget } from '@/features/transactions/month-budget';
 import i18n, { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 import { currentMonthPath, formatMonth, monthPath, monthFromPathParams } from '@/lib/date';
@@ -333,7 +334,17 @@ function EntriesSkeleton() {
   );
 }
 
-function MovementSummary({ totals }: { totals: { incomeTotal: number; expenseTotal: number; cashboxInTotal: number; cashboxOutTotal: number } | undefined }) {
+function MovementSummary({
+  totals,
+  year,
+  month,
+  onSelectCategory,
+}: {
+  totals: { incomeTotal: number; expenseTotal: number; cashboxInTotal: number; cashboxOutTotal: number } | undefined;
+  year: number;
+  month: number;
+  onSelectCategory: (categoryId: string) => void;
+}) {
   const { t } = useTranslation();
   const rows = [
     [t('transactions.income'), totals?.incomeTotal ?? 0, 'text-income'],
@@ -355,6 +366,7 @@ function MovementSummary({ totals }: { totals: { incomeTotal: number; expenseTot
           </div>
         ))}
       </div>
+      <MonthBudget year={year} month={month} onSelectCategory={onSelectCategory} />
     </section>
   );
 }
@@ -714,7 +726,12 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
               </div>
             </Popover.Root>
 
-            <MovementSummary totals={firstPage} />
+            <MovementSummary
+              totals={firstPage}
+              year={referenceMonth.getFullYear()}
+              month={referenceMonth.getMonth() + 1}
+              onSelectCategory={(categoryId) => updateFilters({ categoryId })}
+            />
 
             {loading ? <EntriesSkeleton /> : null}
             {failed ? (
