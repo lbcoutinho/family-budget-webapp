@@ -10,7 +10,7 @@ import {
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircleIcon, ChevronLeftIcon, ChevronRightIcon, RotateCcwIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useBeforeUnload, useBlocker, useNavigate, useParams } from 'react-router-dom';
 
@@ -65,6 +65,8 @@ export function BudgetPage() {
   const [fields, setFields] = useState<BudgetFields>(EMPTY);
   const [saved, setSaved] = useState<BudgetFields>(EMPTY);
   const [saveFailed, setSaveFailed] = useState(false);
+  const fieldsRef = useRef(fields);
+  const loadedPeriodRef = useRef<string>();
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
   const activeCategories = useMemo(
@@ -78,15 +80,22 @@ export function BudgetPage() {
   const blocker = useBlocker(shouldBlock);
 
   useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  useEffect(() => {
     if (!budgetQuery.isSuccess) return;
+    const period = `${year}-${quarter}`;
+    if (loadedPeriodRef.current === period) return;
+    loadedPeriodRef.current = period;
     const next = toFields(budgetQuery.data ?? undefined);
     // A period change replaces the autosave baseline with that route's server snapshot.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setFields(next);
     setSaved(next);
     setEditing(Boolean(budgetQuery.data));
     setSaveFailed(false);
-  }, [budgetQuery.data, budgetQuery.isSuccess]);
+  }, [budgetQuery.data, budgetQuery.isSuccess, quarter, year]);
 
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
@@ -101,7 +110,7 @@ export function BudgetPage() {
   const mutation = usePutBudget({
     mutation: {
       onSuccess: (result) => {
-        const next = toFields(result);
+        const next = toFields(result, fieldsRef.current);
         setFields(next);
         setSaved(next);
         setSaveFailed(false);
@@ -684,7 +693,7 @@ function mergeCategories(active: (Category & { parentId: string | null })[], bud
   return [...categories.values()];
 }
 
-function toFields(budget: BudgetDto | undefined): BudgetFields {
+function toFields(budget: BudgetDto | undefined, previous?: BudgetFields): BudgetFields {
   if (!budget) return EMPTY;
   return {
     income: currencyInput(budget.estimatedQuarterlyIncome),
@@ -696,7 +705,9 @@ function toFields(budget: BudgetDto | undefined): BudgetFields {
           targetPercentage: String(allocation.targetPercentage),
           adjustedMonthlyAmount: currencyInput(allocation.adjustedMonthlyAmount),
           note: allocation.note ?? '',
-          autoAdjusted: false,
+          autoAdjusted:
+            previous?.allocations[allocation.categoryId]?.autoAdjusted ??
+            allocation.adjustedMonthlyAmount === suggestedMonthlyTarget(budget.estimatedQuarterlyIncome, allocation.targetPercentage),
         },
       ]),
     ),
