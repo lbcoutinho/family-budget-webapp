@@ -154,7 +154,11 @@ describe('CashboxesPage', () => {
       }),
     );
 
-    const { user } = renderPage();
+    const { user } = renderPage(() =>
+      HttpResponse.json([
+        { cashboxId: current.id, name: current.name, isActive: current.isActive, targetAmount: current.targetAmount, balance: current.initialBalance },
+      ]),
+    );
 
     await screen.findByText('Férias 2027');
     await user.click(screen.getByRole('button', { name: 'Editar' }));
@@ -169,6 +173,7 @@ describe('CashboxesPage', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Férias 2028')).toBeInTheDocument();
+    expect(await screen.findByText('250,00 €')).toBeInTheDocument();
     expect(requestBody?.name).toBe('Férias 2028');
     expect(requestBody?.initialBalance).toBe(25_000);
   });
