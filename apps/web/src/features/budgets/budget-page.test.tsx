@@ -264,6 +264,53 @@ describe('BudgetPage', () => {
     await waitFor(() =>
       expect(payload?.allocations).toContainEqual(expect.objectContaining({ categoryId: 'c1', targetPercentage: 20, adjustedMonthlyAmount: 70_000 })),
     );
+    const income = screen.getByLabelText('Receita estimada no trimestre');
+    await user.clear(income);
+    await user.type(income, '12000');
+    expect(screen.getByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('800,00');
+  });
+
+  it('keeps a calculated allocation automatic after autosave', async () => {
+    let writes = 0;
+    const calculatedBudget = { ...BUDGET, allocations: [{ ...BUDGET.allocations[0], adjustedMonthlyAmount: 70_000 }] };
+    server.use(
+      http.get('/api/budgets/:year/:quarter', () => HttpResponse.json(calculatedBudget)),
+      http.put('/api/budgets/:year/:quarter', async ({ request }) => {
+        writes += 1;
+        return HttpResponse.json({ ...calculatedBudget, ...((await request.json()) as object) });
+      }),
+    );
+    const { user } = renderBudget();
+    const income = await screen.findByLabelText('Receita estimada no trimestre');
+    await user.clear(income);
+    await user.type(income, '12000');
+    expect(screen.getByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('800,00');
+    await waitFor(() => expect(writes).toBe(1), { timeout: 1500 });
+
+    const percentage = screen.getByLabelText('Meta percentual de Moradia');
+    await user.clear(percentage);
+    await user.type(percentage, '25');
+    expect(screen.getByLabelText('Valor mensal ajustado de Moradia')).toHaveValue('1.000,00');
+  });
+
+  it('preserves an equal manual amount after autosave', async () => {
+    let writes = 0;
+    server.use(
+      http.put('/api/budgets/:year/:quarter', async ({ request }) => {
+        writes += 1;
+        return HttpResponse.json({ ...BUDGET, ...((await request.json()) as object) });
+      }),
+    );
+    const { user } = renderBudget();
+    const monthly = await screen.findByLabelText('Valor mensal ajustado de Moradia');
+    await user.clear(monthly);
+    await user.type(monthly, '700');
+    await waitFor(() => expect(writes).toBe(1), { timeout: 1500 });
+
+    const income = screen.getByLabelText('Receita estimada no trimestre');
+    await user.clear(income);
+    await user.type(income, '12000');
+    expect(monthly).toHaveValue('700,00');
   });
 
   it('shows an over-allocation warning without blocking autosave', async () => {
