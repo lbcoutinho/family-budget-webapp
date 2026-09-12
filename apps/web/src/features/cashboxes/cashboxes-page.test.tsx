@@ -141,14 +141,14 @@ describe('CashboxesPage', () => {
     expect(screen.queryByText(/meta/i)).not.toBeInTheDocument();
   });
 
-  it('prefills the edit form and issues a PATCH with the changed fields', async () => {
+  it('prefills the edit form and updates the initial balance', async () => {
     let current = ACTIVE;
-    let requestBody: { name: string } | undefined;
+    let requestBody: { name: string; initialBalance: number } | undefined;
     server.use(
       http.get('/api/cashboxes', () => HttpResponse.json([current])),
       http.patch('/api/cashboxes/:id', async ({ request }) => {
         requestBody = (await request.json()) as typeof requestBody;
-        current = { ...current, name: requestBody!.name };
+        current = { ...current, name: requestBody!.name, initialBalance: requestBody!.initialBalance };
 
         return HttpResponse.json(current);
       }),
@@ -160,13 +160,17 @@ describe('CashboxesPage', () => {
     await user.click(screen.getByRole('button', { name: 'Editar' }));
 
     expect(screen.getByLabelText('Nome')).toHaveValue('Férias 2027');
+    expect(screen.getByLabelText('Saldo inicial')).toHaveValue('0,00 €');
 
     await user.clear(screen.getByLabelText('Nome'));
     await user.type(screen.getByLabelText('Nome'), 'Férias 2028');
+    await user.clear(screen.getByLabelText('Saldo inicial'));
+    await user.type(screen.getByLabelText('Saldo inicial'), '250,00');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Férias 2028')).toBeInTheDocument();
     expect(requestBody?.name).toBe('Férias 2028');
+    expect(requestBody?.initialBalance).toBe(25_000);
   });
 
   it('asks for confirmation with the reversible variant before deactivating', async () => {

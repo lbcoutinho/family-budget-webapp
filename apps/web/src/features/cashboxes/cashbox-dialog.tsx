@@ -74,7 +74,7 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
         name: cashbox?.name ?? '',
         description: cashbox?.description ?? '',
         targetAmount: cashbox?.targetAmount != null ? formatCents(cashbox.targetAmount) : '',
-        initialBalance: formatCents(0),
+        initialBalance: formatCents(cashbox?.initialBalance ?? 0),
       });
     }
   }, [open, cashbox, reset]);
@@ -123,30 +123,28 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
             )}
           </div>
 
-          {!cashbox && (
-            <div className="grid gap-1.5">
-              <Label htmlFor="cashbox-initial-balance">{t('cashboxes.form.initialBalance')}</Label>
-              <Input
-                id="cashbox-initial-balance"
-                inputMode="decimal"
-                className="text-right tabular-nums"
-                aria-invalid={errors.initialBalance !== undefined}
-                aria-describedby={errors.initialBalance ? 'cashbox-initial-balance-error' : undefined}
-                disabled={isPending}
-                {...register('initialBalance', {
-                  onBlur: (event: FocusEvent<HTMLInputElement>) => {
-                    const cents = parseCurrencyInput(event.target.value);
-                    if (cents !== null) setValue('initialBalance', formatCents(cents), { shouldValidate: true });
-                  },
-                })}
-              />
-              {errors.initialBalance && (
-                <span id="cashbox-initial-balance-error" className="text-xs text-destructive">
-                  {t(errors.initialBalance.message as TranslationKey)}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="grid gap-1.5">
+            <Label htmlFor="cashbox-initial-balance">{t('cashboxes.form.initialBalance')}</Label>
+            <Input
+              id="cashbox-initial-balance"
+              inputMode="decimal"
+              className="text-right tabular-nums"
+              aria-invalid={errors.initialBalance !== undefined}
+              aria-describedby={errors.initialBalance ? 'cashbox-initial-balance-error' : undefined}
+              disabled={isPending}
+              {...register('initialBalance', {
+                onBlur: (event: FocusEvent<HTMLInputElement>) => {
+                  const cents = parseCurrencyInput(event.target.value);
+                  if (cents !== null) setValue('initialBalance', formatCents(cents), { shouldValidate: true });
+                },
+              })}
+            />
+            {errors.initialBalance && (
+              <span id="cashbox-initial-balance-error" className="text-xs text-destructive">
+                {t(errors.initialBalance.message as TranslationKey)}
+              </span>
+            )}
+          </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="cashbox-description">{t('cashboxes.form.description')}</Label>

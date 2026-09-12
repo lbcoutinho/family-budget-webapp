@@ -75,6 +75,22 @@ export class CashboxesService {
   async update(userId: string, id: string, dto: UpdateCashboxDto): Promise<CashboxDto> {
     await this.load(userId, id);
 
+    if (dto.initialBalance !== undefined) {
+      return this.prisma.$transaction(
+        async (tx) => {
+          const updated = await tx.cashbox.update({ where: { id }, data: dto });
+          const balance = (await cashboxBalances(tx, userId, [id])).get(id) ?? 0;
+
+          if (balance < 0) {
+            throw conflict('CASHBOX_INSUFFICIENT_FUNDS', `This would leave a cashbox balance negative — available balance: ${balance} cents.`);
+          }
+
+          return toDto(updated);
+        },
+        { isolationLevel: 'Serializable' },
+      );
+    }
+
     return toDto(await this.prisma.cashbox.update({ where: { id }, data: dto }));
   }
 

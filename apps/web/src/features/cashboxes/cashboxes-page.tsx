@@ -205,8 +205,7 @@ export function CashboxesPage() {
           if (editing === 'new') {
             createCashbox.mutate({ data: values });
           } else if (editing !== null) {
-            const { initialBalance: _initialBalance, ...data } = values;
-            updateCashbox.mutate({ id: editing.id, data });
+            updateCashbox.mutate({ id: editing.id, data: values });
           }
         }}
       />

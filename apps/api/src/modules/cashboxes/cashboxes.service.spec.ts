@@ -181,6 +181,24 @@ describe('CashboxesService', () => {
     expect(cashbox.update).toHaveBeenCalledWith({ where: { id: cashboxId }, data: { targetAmount: null } });
   });
 
+  it('updates the initial balance without allowing a negative resulting balance', async () => {
+    cashbox.findUnique.mockResolvedValue(row());
+    cashbox.findMany.mockResolvedValue([row({ initialBalance: 2_000 })]);
+    cashbox.update.mockResolvedValue(row({ initialBalance: 2_000 }));
+
+    await expect(service.update(userId, cashboxId, { initialBalance: 2_000 })).resolves.toMatchObject({ initialBalance: 2_000 });
+    expect(cashbox.update).toHaveBeenCalledWith({ where: { id: cashboxId }, data: { initialBalance: 2_000 } });
+  });
+
+  it('rejects an initial balance edit that leaves the cashbox negative', async () => {
+    cashbox.findUnique.mockResolvedValue(row());
+    cashbox.findMany.mockResolvedValue([row({ initialBalance: 0 })]);
+    cashbox.update.mockResolvedValue(row({ initialBalance: 0 }));
+    groupBy.mockResolvedValue([{ type: 'CASHBOX_OUT', cashboxId, destinationCashboxId: null, _sum: { amount: 1 } }]);
+
+    await expect(service.update(userId, cashboxId, { initialBalance: 0 })).rejects.toMatchObject({ response: { code: 'CASHBOX_INSUFFICIENT_FUNDS' } });
+  });
+
   it.each([
     ['activate', true],
     ['deactivate', false],
