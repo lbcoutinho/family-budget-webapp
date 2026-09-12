@@ -449,6 +449,7 @@ model Transaction {
   recurrenceRule RecurrenceRule? @relation(fields: [recurrenceRuleId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([userId, referenceMonth, status])
+  @@index([userId, referenceMonth, status, description, settlementDate(sort: Desc), createdAt(sort: Desc), id(sort: Desc)], map: "transactions_month_description_sort_idx")
   @@index([userId, type, referenceMonth])
   @@index([userId, categoryId, referenceMonth])
   @@index([userId, cashboxId])
