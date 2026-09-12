@@ -61,6 +61,8 @@ interface CashboxBucket {
   cashboxId: string | null;
   label: string;
   months: Map<number, CashboxMonthEntry>;
+  initialBalance: number;
+  initialBalanceMonth: number | null;
 }
 
 /**
@@ -147,8 +149,9 @@ export class ReportsService {
     const referenceMonth = new Date(Date.UTC(year, month - 1, 1));
     const previousMonth = new Date(Date.UTC(year, month - 2, 1));
     const nextMonth = new Date(Date.UTC(year, month, 1));
-    const [accounts, previousSums, closingSums, cashboxSums] = await Promise.all([
+    const [accounts, cashboxes, previousSums, closingSums, cashboxSums] = await Promise.all([
       this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+      this.prisma.cashbox.findMany({ where: { userId } }),
       this.balances.sumByAccountReferenceMonth(userId, previousMonth),
       this.balances.sumByAccountReferenceMonth(userId, referenceMonth),
       this.balances.sumByCashboxReferenceMonth(userId, referenceMonth),
@@ -162,7 +165,10 @@ export class ReportsService {
       0,
     );
     const accountBalance = accountBalances.reduce((total, account) => total + account.balance, 0);
-    const cashboxBalance = [...cashboxSums.values()].reduce((total, balance) => total + balance, 0);
+    const cashboxBalance = cashboxes.reduce(
+      (total, cashbox) => total + (cashbox.createdAt < nextMonth ? cashbox.initialBalance : 0) + (cashboxSums.get(cashbox.id) ?? 0),
+      0,
+    );
 
     return {
       year,
@@ -202,11 +208,11 @@ export class ReportsService {
         cashboxId: cashbox.id,
         name: cashbox.name,
         isActive: cashbox.isActive,
-        balance: cashboxSums.get(cashbox.id) ?? 0,
+        balance: cashbox.initialBalance + (cashboxSums.get(cashbox.id) ?? 0),
       }))
       .filter((cashbox) => cashbox.isActive || cashbox.balance !== 0);
-    const totalCashboxes = [...cashboxSums.values()].reduce((total, balance) => total + balance, 0);
-    const months = this.balanceEvolution(year, accounts, accountMovements, cashboxMovements, currentMonth);
+    const totalCashboxes = snapshotCashboxes.reduce((total, cashbox) => total + cashbox.balance, 0);
+    const months = this.balanceEvolution(year, accounts, cashboxes, accountMovements, cashboxMovements, currentMonth);
     const currentAccountingClose = currentClose.netWorth;
 
     return {
@@ -228,24 +234,28 @@ export class ReportsService {
   private balanceEvolution(
     year: number,
     accounts: { id: string; initialBalance: number; createdAt: Date }[],
+    cashboxes: { initialBalance: number; createdAt: Date }[],
     accountMovements: Map<number, Map<string, number>>,
     cashboxMovements: Map<number, Map<string, number>>,
     currentMonth: Date,
   ): BalancesReportDto['evolution']['months'] {
     const accountSums = new Map<string, number>();
-    let cashboxes = 0;
+    let cashboxMovementsTotal = 0;
     const janOfYear = new Date(Date.UTC(year, 0, 1)).getTime();
     for (const [time, movements] of accountMovements) {
       if (time >= janOfYear) continue;
       for (const [accountId, amount] of movements) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
     }
     for (const [time, movements] of cashboxMovements) {
-      if (time < janOfYear) for (const amount of movements.values()) cashboxes += amount;
+      if (time < janOfYear) for (const amount of movements.values()) cashboxMovementsTotal += amount;
     }
     return Array.from({ length: 12 }, (_, index) => {
       const month = new Date(Date.UTC(year, index, 1));
       for (const [accountId, amount] of accountMovements.get(month.getTime()) ?? []) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
-      for (const amount of cashboxMovements.get(month.getTime())?.values() ?? []) cashboxes += amount;
+      for (const amount of cashboxMovements.get(month.getTime())?.values() ?? []) cashboxMovementsTotal += amount;
+      const cashboxesTotal =
+        cashboxMovementsTotal +
+        cashboxes.reduce((total, cashbox) => total + (cashbox.createdAt < new Date(Date.UTC(year, index + 1, 1)) ? cashbox.initialBalance : 0), 0);
       const accountsTotal = accounts.reduce(
         (total, account) =>
           total + (account.createdAt < new Date(Date.UTC(year, index + 1, 1)) ? account.initialBalance : 0) + (accountSums.get(account.id) ?? 0),
@@ -254,8 +264,8 @@ export class ReportsService {
       return {
         month: index + 1,
         accounts: accountsTotal,
-        cashboxes,
-        netWorth: accountsTotal + cashboxes,
+        cashboxes: cashboxesTotal,
+        netWorth: accountsTotal + cashboxesTotal,
         inProgress: month.getTime() === currentMonth.getTime(),
       };
     });
@@ -544,7 +554,7 @@ export class ReportsService {
     const { source, destination } = await this.balances.monthlyByCashbox(userId, year);
     const liveCashboxes = await this.prisma.cashbox.findMany({
       where: { userId },
-      select: { id: true, name: true, isActive: true, targetAmount: true },
+      select: { id: true, name: true, isActive: true, targetAmount: true, initialBalance: true, createdAt: true },
     });
 
     const buckets = new Map<string, CashboxBucket>();
@@ -552,7 +562,7 @@ export class ReportsService {
       const key = id ?? `label:${label ?? ''}`;
       let bucket = buckets.get(key);
       if (!bucket) {
-        bucket = { cashboxId: id, label: label ?? '', months: new Map() };
+        bucket = { cashboxId: id, label: label ?? '', months: new Map(), initialBalance: 0, initialBalanceMonth: null };
         buckets.set(key, bucket);
       }
       return bucket;
@@ -584,7 +594,11 @@ export class ReportsService {
       entry.signedDelta += amount;
     }
 
-    for (const live of liveCashboxes) bucketFor(live.id, null);
+    for (const live of liveCashboxes) {
+      const bucket = bucketFor(live.id, null);
+      bucket.initialBalance = live.initialBalance;
+      bucket.initialBalanceMonth = startOfMonthUtc(live.createdAt).getTime();
+    }
 
     const liveById = new Map(liveCashboxes.map((cashbox) => [cashbox.id, cashbox]));
     const janOfYear = new Date(Date.UTC(year, 0, 1)).getTime();
@@ -601,9 +615,10 @@ export class ReportsService {
     bucket: CashboxBucket,
     janOfYear: number,
     year: number,
-    liveById: Map<string, { id: string; name: string; isActive: boolean; targetAmount: number | null }>,
+    liveById: Map<string, { id: string; name: string; isActive: boolean; targetAmount: number | null; initialBalance: number; createdAt: Date }>,
   ): CashboxesReportDto['cashboxes'][number] {
     let openingBalance = 0;
+    if (bucket.initialBalanceMonth !== null && bucket.initialBalanceMonth < janOfYear) openingBalance += bucket.initialBalance;
     for (const [time, entry] of bucket.months) {
       if (time < janOfYear) openingBalance += entry.signedDelta;
     }
@@ -620,6 +635,7 @@ export class ReportsService {
 
     let runningBalance = openingBalance;
     const months = monthIndexEntries.map((entry, index) => {
+      if (bucket.initialBalanceMonth === new Date(Date.UTC(year, index, 1)).getTime()) runningBalance += bucket.initialBalance;
       runningBalance += entry.signedDelta;
       return { month: index + 1, deposits: entry.deposits, withdrawals: entry.withdrawals, balance: index <= lastActiveIndex ? runningBalance : null };
     });

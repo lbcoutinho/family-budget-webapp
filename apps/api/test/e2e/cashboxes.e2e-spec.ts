@@ -113,12 +113,13 @@ describe('Cashboxes API (e2e)', () => {
   });
 
   describe('create', () => {
-    it('creates a cashbox and hands back the defaults', async () => {
-      const created = await createCashbox({ name: 'Fundo de emergência', description: 'Seis meses.', targetAmount: 500_000 });
+    it('creates a cashbox with its initial balance and hands back the defaults', async () => {
+      const created = await createCashbox({ name: 'Fundo de emergência', description: 'Seis meses.', initialBalance: 50_000, targetAmount: 500_000 });
 
       expect(created).toMatchObject({
         name: 'Fundo de emergência',
         description: 'Seis meses.',
+        initialBalance: 50_000,
         targetAmount: 500_000,
         isActive: true,
         sortOrder: 0,
@@ -221,9 +222,9 @@ describe('Cashboxes API (e2e)', () => {
     it('applies a partial update', async () => {
       const created = await createCashbox({ name: 'Carro', targetAmount: 500_000 });
 
-      const updated = (await authed('patch', `/cashboxes/${created.id}`).send({ name: 'Carro novo' }).expect(200)).body as CashboxDto;
+      const updated = (await authed('patch', `/cashboxes/${created.id}`).send({ name: 'Carro novo', initialBalance: 25_000 }).expect(200)).body as CashboxDto;
 
-      expect(updated).toMatchObject({ name: 'Carro novo', targetAmount: 500_000 });
+      expect(updated).toMatchObject({ name: 'Carro novo', initialBalance: 25_000, targetAmount: 500_000 });
     });
 
     it('clears the goal when null is sent explicitly', async () => {

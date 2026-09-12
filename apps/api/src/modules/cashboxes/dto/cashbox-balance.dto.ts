@@ -22,7 +22,7 @@ export class CashboxBalanceDto {
   @ApiProperty({
     type: Number,
     example: 6_000,
-    description: 'CASHBOX_IN − CASHBOX_OUT + CASHBOX_TRANSFER(destination) − CASHBOX_TRANSFER(source), in **cents**.',
+    description: 'initialBalance + CASHBOX_IN − CASHBOX_OUT + CASHBOX_TRANSFER(destination) − CASHBOX_TRANSFER(source), in **cents**.',
   })
   balance!: number;
 }

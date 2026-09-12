@@ -245,6 +245,8 @@
       "description": "Descrição",
       "descriptionPlaceholder": "Duas semanas na Grécia, em julho",
       "descriptionTooLong": "A descrição pode ter no máximo 500 caracteres.",
+      "initialBalance": "Saldo inicial",
+      "initialBalanceInvalid": "Informe um valor válido.",
       "target": "Meta",
       "targetPlaceholder": "5.000,00",
       "targetHint": "Sem meta, o cartão mostra só o saldo. Atingir a meta não bloqueia depósito.",
