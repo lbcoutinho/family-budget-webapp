@@ -441,7 +441,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
           <div className="grid gap-3">
             <p className="text-sm text-muted-foreground">{t(formKey('transactions.form.noAccounts'))}</p>
             <Button asChild size="sm" className="w-fit">
-              <Link to="/accounts">{t(formKey('transactions.form.createAccount'))}</Link>
+              <Link to="/settings/accounts">{t(formKey('transactions.form.createAccount'))}</Link>
             </Button>
           </div>
         ) : (

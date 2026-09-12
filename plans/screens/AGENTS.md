@@ -28,8 +28,8 @@ already make.
 | --- | ---------------------------------------------- | ------------------------ |
 | 01  | [Login](01-login.md)                          | `/login`                 |
 | 02  | [Shell / navigation](02-shell.md)             | (frame)                   |
-| 03  | [Accounts](03-accounts.md)                    | `/accounts`               |
-| 04  | [Categories](04-categories.md)                | `/categories`             |
+| 03  | [Accounts](03-accounts.md)                    | `/settings/accounts`      |
+| 04  | [Categories](04-categories.md)                | `/settings/categories`    |
 | 05  | [Cashboxes](05-cashboxes.md)                  | `/cashboxes`              |
 | 06  | [Monthly tab](06-month.md) — the main screen  | `/month/:year/:month`     |
 | 07  | [Entry form](07-entry-form.md) (dialog)       | (dialog)                  |

@@ -1,4 +1,4 @@
-# 03 — Accounts (`/accounts`)
+# 03 — Accounts (`/settings/accounts`)
 
 **Ticket:** M3-T07, M5-T06
 

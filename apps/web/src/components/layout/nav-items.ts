@@ -37,6 +37,6 @@ export const NAV_ITEMS: NavItem[] = [
  * sits above the two registries rather than joining them alphabetically. */
 export const SETTINGS_NAV_ITEMS: NavItem[] = [
   { to: '/settings/general', labelKey: 'nav.settingsGeneral', icon: UserRoundCogIcon },
-  { to: '/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
-  { to: '/categories', labelKey: 'nav.categories', icon: TagsIcon },
+  { to: '/settings/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
+  { to: '/settings/categories', labelKey: 'nav.categories', icon: TagsIcon },
 ];
