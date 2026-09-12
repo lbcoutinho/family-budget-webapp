@@ -423,6 +423,26 @@ describe('MonthPage', () => {
     expect(await screen.findByText(/Millennium → Revolut/)).toBeInTheDocument();
   });
 
+  it('warns when an income or expense is missing a category or subcategory', async () => {
+    const categorized = {
+      ...CONFIRMED,
+      id: 'categorized-1',
+      description: 'Fully categorized',
+      subcategoryId: 'subcategory-1',
+      subcategory: { id: 'subcategory-1', name: 'Market' },
+    };
+    const uncategorized = { ...CONFIRMED, id: 'uncategorized-1', description: 'Missing category', categoryId: null, category: null };
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([categorized, uncategorized, CONFIRMED, TRANSFER])),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findAllByLabelText('Categoria ou subcategoria ausente')).toHaveLength(2);
+  });
+
   it('shows a bare account balance with an accessible effective or projected label, and omits it when absent', async () => {
     const future = {
       ...CONFIRMED,

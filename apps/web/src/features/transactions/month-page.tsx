@@ -34,6 +34,7 @@ import {
   RepeatIcon,
   RotateCcwIcon,
   SearchIcon,
+  TriangleAlertIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { Popover } from 'radix-ui';
@@ -259,6 +260,9 @@ function EntryMeta({
         <span className="truncate text-sm font-semibold">
           {showPersonalNotes && !isCashboxOperation(entry.type) ? (entry.notes ?? entry.description) : entry.description}
         </span>
+        {(entry.type === TransactionType.INCOME || entry.type === TransactionType.EXPENSE) && (!entry.categoryId || !entry.subcategoryId) ? (
+          <TriangleAlertIcon aria-label={t('transactions.categoryWarning')} className="size-3.5 shrink-0 text-amber-600" />
+        ) : null}
         {entry.isCreditCard ? <CreditCardIcon aria-label={t('transactions.creditCard')} className="size-3.5 shrink-0 text-muted-foreground" /> : null}
         {entry.source === TransactionSource.RECURRING ? (
           <RepeatIcon
