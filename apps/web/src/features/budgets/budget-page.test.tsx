@@ -241,6 +241,47 @@ describe('BudgetPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Orçamento salvo');
   });
 
+  it('keeps edits made while autosave is pending and saves them next', async () => {
+    let writes = 0;
+    let releaseFirstSave: (() => void) | undefined;
+    const firstSave = new Promise<void>((resolve) => {
+      releaseFirstSave = resolve;
+    });
+    const payloads: { note: string | null; allocations: { categoryId: string; adjustedMonthlyAmount: number }[] }[] = [];
+    server.use(
+      http.put('/api/budgets/:year/:quarter', async ({ request }) => {
+        const payload = (await request.json()) as (typeof payloads)[number];
+        payloads.push(payload);
+        writes += 1;
+        if (writes === 1) {
+          await firstSave;
+        }
+        return HttpResponse.json({ ...BUDGET, ...payload });
+      }),
+    );
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const { user, router } = renderBudget();
+    const note = await screen.findByLabelText('Nota do trimestre');
+    await user.clear(note);
+    await user.type(note, 'Primeiro salvamento');
+    await waitFor(() => expect(writes).toBe(1), { timeout: 1500 });
+
+    const monthly = screen.getByLabelText('Valor mensal ajustado de Moradia');
+    await user.clear(monthly);
+    await user.type(monthly, '500');
+    releaseFirstSave?.();
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1 alteração não salva'));
+    expect(monthly).toHaveValue('500');
+    await user.click(screen.getByRole('button', { name: 'Próximo trimestre' }));
+    expect(confirm).toHaveBeenCalled();
+    expect(router.state.location.pathname).toBe('/budgets/2026/3');
+    await waitFor(() => expect(writes).toBe(2), { timeout: 1500 });
+    expect(payloads[1]).toMatchObject({ note: 'Primeiro salvamento' });
+    expect(payloads[1].allocations).toContainEqual(expect.objectContaining({ categoryId: 'c1', adjustedMonthlyAmount: 50_000 }));
+    confirm.mockRestore();
+  }, 10_000);
+
   it('offers retry for a recoverable loading failure', async () => {
     let attempts = 0;
     server.use(http.get('/api/budgets/:year/:quarter', () => (++attempts === 1 ? HttpResponse.json({}, { status: 503 }) : HttpResponse.json(BUDGET))));
