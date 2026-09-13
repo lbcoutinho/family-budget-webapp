@@ -174,11 +174,13 @@ export const createRecurrenceRule = (
 
 
 
-export const getCreateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,{data: BodyType<CreateRecurrenceRuleDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,{data: BodyType<CreateRecurrenceRuleDto>}, TContext> => {
+export const getCreateRecurrenceRuleMutationKey = () => ['createRecurrenceRule'] as const;
 
-const mutationKey = ['createRecurrenceRule'];
+export const getCreateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,CreateRecurrenceRuleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,CreateRecurrenceRuleMutationVariables, TContext> => {
+
+const mutationKey = getCreateRecurrenceRuleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -188,7 +190,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRecurrenceRule>>, {data: BodyType<CreateRecurrenceRuleDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRecurrenceRule>>, CreateRecurrenceRuleMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createRecurrenceRule(data,)
@@ -204,16 +206,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof createRecurrenceRule>>>
     export type CreateRecurrenceRuleMutationBody = BodyType<CreateRecurrenceRuleDto>
     export type CreateRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+    export type CreateRecurrenceRuleMutationVariables = {data: BodyType<CreateRecurrenceRuleDto>}
 
     /**
  * @summary Create a recurrence rule
  */
 export const useCreateRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,{data: BodyType<CreateRecurrenceRuleDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecurrenceRule>>, TError,CreateRecurrenceRuleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createRecurrenceRule>>,
         TError,
-        {data: BodyType<CreateRecurrenceRuleDto>},
+        CreateRecurrenceRuleMutationVariables,
         TContext
       > => {
       return useMutation(getCreateRecurrenceRuleMutationOptions(options), queryClient);
@@ -331,11 +334,13 @@ export const updateRecurrenceRule = (
 
 
 
-export const getUpdateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,{id: string;data: BodyType<UpdateRecurrenceRuleDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,{id: string;data: BodyType<UpdateRecurrenceRuleDto>}, TContext> => {
+export const getUpdateRecurrenceRuleMutationKey = () => ['updateRecurrenceRule'] as const;
 
-const mutationKey = ['updateRecurrenceRule'];
+export const getUpdateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,UpdateRecurrenceRuleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,UpdateRecurrenceRuleMutationVariables, TContext> => {
+
+const mutationKey = getUpdateRecurrenceRuleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -345,7 +350,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRecurrenceRule>>, {id: string;data: BodyType<UpdateRecurrenceRuleDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRecurrenceRule>>, UpdateRecurrenceRuleMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
           return  updateRecurrenceRule(id,data,)
@@ -361,16 +366,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof updateRecurrenceRule>>>
     export type UpdateRecurrenceRuleMutationBody = BodyType<UpdateRecurrenceRuleDto>
     export type UpdateRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+    export type UpdateRecurrenceRuleMutationVariables = {id: string;data: BodyType<UpdateRecurrenceRuleDto>}
 
     /**
  * @summary Update a recurrence rule
  */
 export const useUpdateRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,{id: string;data: BodyType<UpdateRecurrenceRuleDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecurrenceRule>>, TError,UpdateRecurrenceRuleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateRecurrenceRule>>,
         TError,
-        {id: string;data: BodyType<UpdateRecurrenceRuleDto>},
+        UpdateRecurrenceRuleMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateRecurrenceRuleMutationOptions(options), queryClient);
@@ -393,11 +399,13 @@ export const deleteRecurrenceRule = (
 
 
 
-export const getDeleteRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,{id: string}, TContext> => {
+export const getDeleteRecurrenceRuleMutationKey = () => ['deleteRecurrenceRule'] as const;
 
-const mutationKey = ['deleteRecurrenceRule'];
+export const getDeleteRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,DeleteRecurrenceRuleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,DeleteRecurrenceRuleMutationVariables, TContext> => {
+
+const mutationKey = getDeleteRecurrenceRuleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -407,7 +415,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecurrenceRule>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecurrenceRule>>, DeleteRecurrenceRuleMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteRecurrenceRule(id,)
@@ -423,16 +431,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRecurrenceRule>>>
 
     export type DeleteRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+    export type DeleteRecurrenceRuleMutationVariables = {id: string}
 
     /**
  * @summary Delete a recurrence rule, or deactivate it if it already generated transactions
  */
 export const useDeleteRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecurrenceRule>>, TError,DeleteRecurrenceRuleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteRecurrenceRule>>,
         TError,
-        {id: string},
+        DeleteRecurrenceRuleMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteRecurrenceRuleMutationOptions(options), queryClient);
@@ -455,11 +464,13 @@ export const generateRecurrenceRule = (
 
 
 
-export const getGenerateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,{id: string}, TContext> => {
+export const getGenerateRecurrenceRuleMutationKey = () => ['generateRecurrenceRule'] as const;
 
-const mutationKey = ['generateRecurrenceRule'];
+export const getGenerateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,GenerateRecurrenceRuleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,GenerateRecurrenceRuleMutationVariables, TContext> => {
+
+const mutationKey = getGenerateRecurrenceRuleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -469,7 +480,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateRecurrenceRule>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateRecurrenceRule>>, GenerateRecurrenceRuleMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  generateRecurrenceRule(id,)
@@ -485,16 +496,17 @@ const {mutation: mutationOptions} = options ?
     export type GenerateRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof generateRecurrenceRule>>>
 
     export type GenerateRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+    export type GenerateRecurrenceRuleMutationVariables = {id: string}
 
     /**
  * @summary Manually run generation for this rule, up to the rolling horizon
  */
 export const useGenerateRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRecurrenceRule>>, TError,GenerateRecurrenceRuleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof generateRecurrenceRule>>,
         TError,
-        {id: string},
+        GenerateRecurrenceRuleMutationVariables,
         TContext
       > => {
       return useMutation(getGenerateRecurrenceRuleMutationOptions(options), queryClient);
@@ -619,11 +631,13 @@ export const previewRecurrenceRulePayload = (
 
 
 
-export const getPreviewRecurrenceRulePayloadMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext> => {
+export const getPreviewRecurrenceRulePayloadMutationKey = () => ['previewRecurrenceRulePayload'] as const;
 
-const mutationKey = ['previewRecurrenceRulePayload'];
+export const getPreviewRecurrenceRulePayloadMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,PreviewRecurrenceRulePayloadMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,PreviewRecurrenceRulePayloadMutationVariables, TContext> => {
+
+const mutationKey = getPreviewRecurrenceRulePayloadMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -633,7 +647,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, {data: BodyType<PreviewRecurrenceRulePayloadDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, PreviewRecurrenceRulePayloadMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  previewRecurrenceRulePayload(data,)
@@ -649,16 +663,17 @@ const {mutation: mutationOptions} = options ?
     export type PreviewRecurrenceRulePayloadMutationResult = NonNullable<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>>
     export type PreviewRecurrenceRulePayloadMutationBody = BodyType<PreviewRecurrenceRulePayloadDto>
     export type PreviewRecurrenceRulePayloadMutationError = ErrorType<ApiErrorDto>
+    export type PreviewRecurrenceRulePayloadMutationVariables = {data: BodyType<PreviewRecurrenceRulePayloadDto>}
 
     /**
  * @summary Preview upcoming occurrences for an unsaved rule payload — persists nothing
  */
 export const usePreviewRecurrenceRulePayload = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,{data: BodyType<PreviewRecurrenceRulePayloadDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewRecurrenceRulePayload>>, TError,PreviewRecurrenceRulePayloadMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof previewRecurrenceRulePayload>>,
         TError,
-        {data: BodyType<PreviewRecurrenceRulePayloadDto>},
+        PreviewRecurrenceRulePayloadMutationVariables,
         TContext
       > => {
       return useMutation(getPreviewRecurrenceRulePayloadMutationOptions(options), queryClient);
@@ -681,11 +696,13 @@ export const deactivateRecurrenceRule = (
 
 
 
-export const getDeactivateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext> => {
+export const getDeactivateRecurrenceRuleMutationKey = () => ['deactivateRecurrenceRule'] as const;
 
-const mutationKey = ['deactivateRecurrenceRule'];
+export const getDeactivateRecurrenceRuleMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,DeactivateRecurrenceRuleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,DeactivateRecurrenceRuleMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateRecurrenceRuleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -695,7 +712,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, DeactivateRecurrenceRuleMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deactivateRecurrenceRule(id,)
@@ -711,16 +728,17 @@ const {mutation: mutationOptions} = options ?
     export type DeactivateRecurrenceRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateRecurrenceRule>>>
 
     export type DeactivateRecurrenceRuleMutationError = ErrorType<ApiErrorDto>
+    export type DeactivateRecurrenceRuleMutationVariables = {id: string}
 
     /**
  * @summary Deactivate a recurrence rule, keeping it and its generated transactions
  */
 export const useDeactivateRecurrenceRule = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateRecurrenceRule>>, TError,DeactivateRecurrenceRuleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateRecurrenceRule>>,
         TError,
-        {id: string},
+        DeactivateRecurrenceRuleMutationVariables,
         TContext
       > => {
       return useMutation(getDeactivateRecurrenceRuleMutationOptions(options), queryClient);
@@ -745,11 +763,13 @@ export const createInstallmentPlan = (
 
 
 
-export const getCreateInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext> => {
+export const getCreateInstallmentPlanMutationKey = () => ['createInstallmentPlan'] as const;
 
-const mutationKey = ['createInstallmentPlan'];
+export const getCreateInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,CreateInstallmentPlanMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,CreateInstallmentPlanMutationVariables, TContext> => {
+
+const mutationKey = getCreateInstallmentPlanMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -759,7 +779,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInstallmentPlan>>, {data: BodyType<CreateInstallmentPlanDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInstallmentPlan>>, CreateInstallmentPlanMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createInstallmentPlan(data,)
@@ -775,16 +795,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateInstallmentPlanMutationResult = NonNullable<Awaited<ReturnType<typeof createInstallmentPlan>>>
     export type CreateInstallmentPlanMutationBody = BodyType<CreateInstallmentPlanDto>
     export type CreateInstallmentPlanMutationError = ErrorType<ApiErrorDto>
+    export type CreateInstallmentPlanMutationVariables = {data: BodyType<CreateInstallmentPlanDto>}
 
     /**
  * @summary Create an installment plan, materializing every installment up front
  */
 export const useCreateInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,{data: BodyType<CreateInstallmentPlanDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInstallmentPlan>>, TError,CreateInstallmentPlanMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createInstallmentPlan>>,
         TError,
-        {data: BodyType<CreateInstallmentPlanDto>},
+        CreateInstallmentPlanMutationVariables,
         TContext
       > => {
       return useMutation(getCreateInstallmentPlanMutationOptions(options), queryClient);
@@ -807,11 +828,13 @@ export const cancelInstallmentPlan = (
 
 
 
-export const getCancelInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext> => {
+export const getCancelInstallmentPlanMutationKey = () => ['cancelInstallmentPlan'] as const;
 
-const mutationKey = ['cancelInstallmentPlan'];
+export const getCancelInstallmentPlanMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,CancelInstallmentPlanMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,CancelInstallmentPlanMutationVariables, TContext> => {
+
+const mutationKey = getCancelInstallmentPlanMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -821,7 +844,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelInstallmentPlan>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelInstallmentPlan>>, CancelInstallmentPlanMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  cancelInstallmentPlan(id,)
@@ -837,16 +860,17 @@ const {mutation: mutationOptions} = options ?
     export type CancelInstallmentPlanMutationResult = NonNullable<Awaited<ReturnType<typeof cancelInstallmentPlan>>>
 
     export type CancelInstallmentPlanMutationError = ErrorType<ApiErrorDto>
+    export type CancelInstallmentPlanMutationVariables = {id: string}
 
     /**
  * @summary Cancel an installment plan: remove installments after today and deactivate the rule
  */
 export const useCancelInstallmentPlan = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelInstallmentPlan>>, TError,CancelInstallmentPlanMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelInstallmentPlan>>,
         TError,
-        {id: string},
+        CancelInstallmentPlanMutationVariables,
         TContext
       > => {
       return useMutation(getCancelInstallmentPlanMutationOptions(options), queryClient);
@@ -869,11 +893,13 @@ export const catchUpRecurrences = (
 
 
 
+export const getCatchUpRecurrencesMutationKey = () => ['catchUpRecurrences'] as const;
+
 export const getCatchUpRecurrencesMutationOptions = <TError = ErrorType<ApiErrorDto>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof catchUpRecurrences>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof catchUpRecurrences>>, TError,void, TContext> => {
 
-const mutationKey = ['catchUpRecurrences'];
+const mutationKey = getCatchUpRecurrencesMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -899,6 +925,7 @@ const {mutation: mutationOptions} = options ?
     export type CatchUpRecurrencesMutationResult = NonNullable<Awaited<ReturnType<typeof catchUpRecurrences>>>
 
     export type CatchUpRecurrencesMutationError = ErrorType<ApiErrorDto>
+
 
     /**
  * @summary Generate every missing entry, up to the rolling horizon, for the caller's active rules

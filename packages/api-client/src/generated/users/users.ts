@@ -46,11 +46,13 @@ export const updateCurrentUser = (
 
 
 
-export const getUpdateCurrentUserMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,{data: BodyType<UpdateUserDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,{data: BodyType<UpdateUserDto>}, TContext> => {
+export const getUpdateCurrentUserMutationKey = () => ['updateCurrentUser'] as const;
 
-const mutationKey = ['updateCurrentUser'];
+export const getUpdateCurrentUserMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,UpdateCurrentUserMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,UpdateCurrentUserMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCurrentUserMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -60,7 +62,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCurrentUser>>, {data: BodyType<UpdateUserDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCurrentUser>>, UpdateCurrentUserMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  updateCurrentUser(data,)
@@ -76,16 +78,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateCurrentUserMutationResult = NonNullable<Awaited<ReturnType<typeof updateCurrentUser>>>
     export type UpdateCurrentUserMutationBody = BodyType<UpdateUserDto>
     export type UpdateCurrentUserMutationError = ErrorType<unknown>
+    export type UpdateCurrentUserMutationVariables = {data: BodyType<UpdateUserDto>}
 
     /**
  * @summary Update the caller's own account
  */
 export const useUpdateCurrentUser = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,{data: BodyType<UpdateUserDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCurrentUser>>, TError,UpdateCurrentUserMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCurrentUser>>,
         TError,
-        {data: BodyType<UpdateUserDto>},
+        UpdateCurrentUserMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateCurrentUserMutationOptions(options), queryClient);

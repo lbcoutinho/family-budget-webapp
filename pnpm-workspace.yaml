@@ -14,6 +14,8 @@ allowBuilds:
   # esbuild ships a platform-specific binary via its install script; tsx (the OpenAPI export)
   # and Vite/Vitest all drive it, so the binding must be built.
   esbuild: true
+  # Vite uses this native filesystem watcher when available.
+  '@parcel/watcher': true
   # Telemetry-only package; nothing needs its install script to run.
   '@scarf/scarf': false
   # msw's install script only copies the browser service worker into a public folder, which is for

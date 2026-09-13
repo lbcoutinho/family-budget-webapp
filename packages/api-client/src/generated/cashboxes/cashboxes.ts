@@ -168,11 +168,13 @@ export const createCashbox = (
 
 
 
-export const getCreateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext> => {
+export const getCreateCashboxMutationKey = () => ['createCashbox'] as const;
 
-const mutationKey = ['createCashbox'];
+export const getCreateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,CreateCashboxMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,CreateCashboxMutationVariables, TContext> => {
+
+const mutationKey = getCreateCashboxMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -182,7 +184,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCashbox>>, {data: BodyType<CreateCashboxDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCashbox>>, CreateCashboxMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createCashbox(data,)
@@ -198,16 +200,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof createCashbox>>>
     export type CreateCashboxMutationBody = BodyType<CreateCashboxDto>
     export type CreateCashboxMutationError = ErrorType<ApiErrorDto>
+    export type CreateCashboxMutationVariables = {data: BodyType<CreateCashboxDto>}
 
     /**
  * @summary Create a cashbox
  */
 export const useCreateCashbox = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,{data: BodyType<CreateCashboxDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashbox>>, TError,CreateCashboxMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCashbox>>,
         TError,
-        {data: BodyType<CreateCashboxDto>},
+        CreateCashboxMutationVariables,
         TContext
       > => {
       return useMutation(getCreateCashboxMutationOptions(options), queryClient);
@@ -418,11 +421,13 @@ export const updateCashbox = (
 
 
 
-export const getUpdateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext> => {
+export const getUpdateCashboxMutationKey = () => ['updateCashbox'] as const;
 
-const mutationKey = ['updateCashbox'];
+export const getUpdateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,UpdateCashboxMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,UpdateCashboxMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCashboxMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -432,7 +437,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCashbox>>, {id: string;data: BodyType<UpdateCashboxDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCashbox>>, UpdateCashboxMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
           return  updateCashbox(id,data,)
@@ -448,16 +453,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof updateCashbox>>>
     export type UpdateCashboxMutationBody = BodyType<UpdateCashboxDto>
     export type UpdateCashboxMutationError = ErrorType<ApiErrorDto>
+    export type UpdateCashboxMutationVariables = {id: string;data: BodyType<UpdateCashboxDto>}
 
     /**
  * @summary Update a cashbox
  */
 export const useUpdateCashbox = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,{id: string;data: BodyType<UpdateCashboxDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashbox>>, TError,UpdateCashboxMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCashbox>>,
         TError,
-        {id: string;data: BodyType<UpdateCashboxDto>},
+        UpdateCashboxMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateCashboxMutationOptions(options), queryClient);
@@ -480,11 +486,13 @@ export const deleteCashbox = (
 
 
 
-export const getDeleteCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext> => {
+export const getDeleteCashboxMutationKey = () => ['deleteCashbox'] as const;
 
-const mutationKey = ['deleteCashbox'];
+export const getDeleteCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,DeleteCashboxMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,DeleteCashboxMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCashboxMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -494,7 +502,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCashbox>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCashbox>>, DeleteCashboxMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteCashbox(id,)
@@ -510,16 +518,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCashbox>>>
 
     export type DeleteCashboxMutationError = ErrorType<ApiErrorDto>
+    export type DeleteCashboxMutationVariables = {id: string}
 
     /**
  * @summary Delete a cashbox for good
  */
 export const useDeleteCashbox = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashbox>>, TError,DeleteCashboxMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCashbox>>,
         TError,
-        {id: string},
+        DeleteCashboxMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteCashboxMutationOptions(options), queryClient);
@@ -542,11 +551,13 @@ export const activateCashbox = (
 
 
 
-export const getActivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext> => {
+export const getActivateCashboxMutationKey = () => ['activateCashbox'] as const;
 
-const mutationKey = ['activateCashbox'];
+export const getActivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,ActivateCashboxMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,ActivateCashboxMutationVariables, TContext> => {
+
+const mutationKey = getActivateCashboxMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -556,7 +567,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateCashbox>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateCashbox>>, ActivateCashboxMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  activateCashbox(id,)
@@ -572,16 +583,17 @@ const {mutation: mutationOptions} = options ?
     export type ActivateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof activateCashbox>>>
 
     export type ActivateCashboxMutationError = ErrorType<ApiErrorDto>
+    export type ActivateCashboxMutationVariables = {id: string}
 
     /**
  * @summary Put a retired cashbox back into use
  */
 export const useActivateCashbox = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCashbox>>, TError,ActivateCashboxMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateCashbox>>,
         TError,
-        {id: string},
+        ActivateCashboxMutationVariables,
         TContext
       > => {
       return useMutation(getActivateCashboxMutationOptions(options), queryClient);
@@ -604,11 +616,13 @@ export const deactivateCashbox = (
 
 
 
-export const getDeactivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext> => {
+export const getDeactivateCashboxMutationKey = () => ['deactivateCashbox'] as const;
 
-const mutationKey = ['deactivateCashbox'];
+export const getDeactivateCashboxMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,DeactivateCashboxMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,DeactivateCashboxMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateCashboxMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -618,7 +632,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateCashbox>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateCashbox>>, DeactivateCashboxMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deactivateCashbox(id,)
@@ -634,16 +648,17 @@ const {mutation: mutationOptions} = options ?
     export type DeactivateCashboxMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateCashbox>>>
 
     export type DeactivateCashboxMutationError = ErrorType<ApiErrorDto>
+    export type DeactivateCashboxMutationVariables = {id: string}
 
     /**
  * @summary Retire a cashbox, keeping its history
  */
 export const useDeactivateCashbox = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCashbox>>, TError,DeactivateCashboxMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateCashbox>>,
         TError,
-        {id: string},
+        DeactivateCashboxMutationVariables,
         TContext
       > => {
       return useMutation(getDeactivateCashboxMutationOptions(options), queryClient);
