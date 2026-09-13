@@ -65,6 +65,7 @@ export function BudgetPage() {
   const [fields, setFields] = useState<BudgetFields>(EMPTY);
   const [saved, setSaved] = useState<BudgetFields>(EMPTY);
   const [saveFailed, setSaveFailed] = useState(false);
+  const fieldsRef = useRef(fields);
   const loadedPeriod = useRef<string | undefined>(undefined);
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
@@ -77,6 +78,10 @@ export function BudgetPage() {
   const dirtyCount = dirtyFields(fields, saved);
   const shouldBlock = dirtyCount > 0;
   const blocker = useBlocker(shouldBlock);
+
+  useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
 
   useEffect(() => {
     if (!budgetQuery.isSuccess) return;
@@ -131,7 +136,7 @@ export function BudgetPage() {
       },
       {
         onSuccess: (result) => {
-          const next = toFields(result);
+          const next = toFields(result, fieldsRef.current);
           setFields((current) => (dirtyFields(current, fieldsAtSave) === 0 ? next : current));
           setSaved(next);
           setSaveFailed(false);
@@ -693,7 +698,7 @@ function mergeCategories(active: (Category & { parentId: string | null })[], bud
   return [...categories.values()];
 }
 
-function toFields(budget: BudgetDto | undefined): BudgetFields {
+function toFields(budget: BudgetDto | undefined, previous?: BudgetFields): BudgetFields {
   if (!budget) return EMPTY;
   return {
     income: currencyInput(budget.estimatedQuarterlyIncome),
@@ -705,7 +710,9 @@ function toFields(budget: BudgetDto | undefined): BudgetFields {
           targetPercentage: String(allocation.targetPercentage),
           adjustedMonthlyAmount: currencyInput(allocation.adjustedMonthlyAmount),
           note: allocation.note ?? '',
-          autoAdjusted: false,
+          autoAdjusted:
+            previous?.allocations[allocation.categoryId]?.autoAdjusted ??
+            allocation.adjustedMonthlyAmount === suggestedMonthlyTarget(budget.estimatedQuarterlyIncome, allocation.targetPercentage),
         },
       ]),
     ),
