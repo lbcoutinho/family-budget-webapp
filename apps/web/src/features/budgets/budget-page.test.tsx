@@ -278,7 +278,7 @@ describe('BudgetPage', () => {
     expect(router.state.location.pathname).toBe('/budgets/2026/3');
     await waitFor(() => expect(writes).toBe(2), { timeout: 1500 });
     expect(payloads[1]).toMatchObject({ note: 'Primeiro salvamento' });
-    expect(payloads[1].allocations).toContainEqual(expect.objectContaining({ categoryId: 'c1', adjustedMonthlyAmount: 50_000 }));
+    expect(payloads[1]?.allocations).toContainEqual(expect.objectContaining({ categoryId: 'c1', adjustedMonthlyAmount: 50_000 }));
     confirm.mockRestore();
   }, 10_000);
 

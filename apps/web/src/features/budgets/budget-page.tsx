@@ -65,7 +65,7 @@ export function BudgetPage() {
   const [fields, setFields] = useState<BudgetFields>(EMPTY);
   const [saved, setSaved] = useState<BudgetFields>(EMPTY);
   const [saveFailed, setSaveFailed] = useState(false);
-  const loadedPeriod = useRef<string>();
+  const loadedPeriod = useRef<string | undefined>(undefined);
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
   const activeCategories = useMemo(
