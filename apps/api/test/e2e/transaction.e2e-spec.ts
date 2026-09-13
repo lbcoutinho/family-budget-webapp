@@ -163,7 +163,7 @@ describe('Transaction model (e2e)', () => {
     expect(after).toMatchObject({ cashboxId: null, destinationCashboxId: null, cashboxLabel: 'Carro', destinationCashboxLabel: 'Carro' });
   });
 
-  it('has exactly the four indexes declared in the schema', async () => {
+  it('has exactly the five indexes declared in the schema', async () => {
     const rows = await prisma.$queryRaw<{ indexname: string }[]>`
       SELECT indexname FROM pg_indexes WHERE tablename = 'transactions' AND indexname LIKE 'transactions_%_idx'
     `;
@@ -171,6 +171,7 @@ describe('Transaction model (e2e)', () => {
     expect(new Set(rows.map((r) => r.indexname))).toEqual(
       new Set([
         'transactions_user_id_reference_month_status_idx',
+        'transactions_month_description_sort_idx',
         'transactions_user_id_type_reference_month_idx',
         'transactions_user_id_category_id_reference_month_idx',
         'transactions_user_id_cashbox_id_idx',
