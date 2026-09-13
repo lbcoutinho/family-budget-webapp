@@ -702,6 +702,16 @@ describe('Transactions API (e2e)', () => {
       expect(omitted.items.map((i) => i.id)).toEqual(explicit.items.map((i) => i.id));
     });
 
+    it('orders descriptions with the pt-BR collation', async () => {
+      await Promise.all(
+        ['Água', 'Almoço', 'Uber', 'uber', 'Zelador'].map((description) => createTransaction(minimalBody({ date: '2030-04-15', description }))),
+      );
+
+      const body = (await authed('get', '/transactions?referenceMonth=2030-04-01&sort=description').expect(200)).body as { items: { description: string }[] };
+
+      expect(body.items.map((item) => item.description)).toEqual(['Água', 'Almoço', 'uber', 'Uber', 'Zelador']);
+    });
+
     it.each(['newest', 'oldest', 'amountHighest', 'amountLowest', 'description'])('orders the whole filtered set by %s', async (sort) => {
       // Built inside the test body, not the `it.each` table, because the ids above are only assigned in `beforeEach`.
       const expectedBySort: Record<string, string[]> = {
