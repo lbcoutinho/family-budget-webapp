@@ -25,7 +25,7 @@ import { LocalStrategy } from './local.strategy';
  * knows nothing about authentication is still protected by it.
  */
 @Module({
-  imports: [PassportModule, JwtModule.register({})],
+  imports: [PassportModule.register({}), JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService, HashService, LocalStrategy, JwtStrategy, { provide: APP_GUARD, useClass: JwtAuthGuard }],
   exports: [AuthService, HashService],
