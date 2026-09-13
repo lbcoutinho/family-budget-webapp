@@ -807,7 +807,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
                       }}
                     >
                       <time className={`num text-field text-muted-foreground ${entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}`}>
-                        {formatEntryDate(entry.date)}
+                        {formatEntryDate(entry.settlementDate)}
                       </time>
                       <div className={entry.status === TransactionStatus.DRAFT ? 'opacity-60' : ''}>
                         <EntryMeta entry={entry} accountNames={accountNames} showPersonalNotes={showPersonalNotes} />

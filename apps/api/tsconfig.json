@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "Node16",
+    "module": "NodeNext",
     "lib": ["ES2022"],
     "types": ["node", "jest"],
     "experimentalDecorators": true,
@@ -9,6 +9,6 @@
     "outDir": "./dist",
     "incremental": true
   },
-  "include": ["src/**/*", "test/**/*", "prisma.config.ts", "prisma/**/*.ts"],
+  "include": ["src/**/*", "test/**/*", "prisma.config.ts", "prisma/**/*.ts", "vitest*.mts"],
   "exclude": ["node_modules", "dist"]
 }

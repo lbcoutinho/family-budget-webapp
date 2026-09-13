@@ -291,6 +291,20 @@ describe('MonthPage', () => {
     expect(requests.map((request) => request.searchParams.get('status'))).toEqual([null, 'DRAFT']);
   });
 
+  it('displays the settlement date used to order ledger entries', async () => {
+    const settledLater = { ...CONFIRMED, date: '2026-06-28', settlementDate: '2026-07-14' };
+    server.use(
+      http.get('/api/transactions', ({ request }) =>
+        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([]) : page([settledLater])),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('14/07')).toBeInTheDocument();
+    expect(screen.queryByText('28/06')).not.toBeInTheDocument();
+  });
+
   it('restores URL-backed filters and display preferences', async () => {
     const requests: URL[] = [];
     server.use(

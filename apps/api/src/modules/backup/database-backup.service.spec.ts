@@ -5,11 +5,12 @@ import { PassThrough } from 'node:stream';
 import { ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { type ConfigService } from '@nestjs/config';
 import { type Response } from 'express';
+import { vi } from 'vitest';
 
 import { BackupLockService } from './backup-lock.service';
 import { DatabaseBackupService } from './database-backup.service';
 
-jest.mock('node:child_process', () => ({ spawn: jest.fn() }));
+vi.mock('node:child_process', () => ({ spawn: vi.fn() }));
 
 class FakeChildProcess extends EventEmitter {
   readonly stdout = new PassThrough();
