@@ -1,4 +1,4 @@
-# 04 — Categories (`/categories`)
+# 04 — Categories (`/settings/categories`)
 
 **Ticket:** M3-T08
 

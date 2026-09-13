@@ -66,7 +66,7 @@ export function BudgetPage() {
   const [saved, setSaved] = useState<BudgetFields>(EMPTY);
   const [saveFailed, setSaveFailed] = useState(false);
   const fieldsRef = useRef(fields);
-  const loadedPeriodRef = useRef<string | undefined>(undefined);
+  const loadedPeriod = useRef<string | undefined>(undefined);
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
   const activeCategories = useMemo(
@@ -86,8 +86,8 @@ export function BudgetPage() {
   useEffect(() => {
     if (!budgetQuery.isSuccess) return;
     const period = `${year}-${quarter}`;
-    if (loadedPeriodRef.current === period) return;
-    loadedPeriodRef.current = period;
+    if (loadedPeriod.current === period) return;
+    loadedPeriod.current = period;
     const next = toFields(budgetQuery.data ?? undefined);
     // A period change replaces the autosave baseline with that route's server snapshot.
 
@@ -109,37 +109,42 @@ export function BudgetPage() {
 
   const mutation = usePutBudget({
     mutation: {
-      onSuccess: (result) => {
-        const next = toFields(result, fieldsRef.current);
-        setFields(next);
-        setSaved(next);
-        setSaveFailed(false);
-        queryClient.setQueryData(getGetBudgetQueryKey(year, quarter), result);
-      },
       onError: () => setSaveFailed(true),
     },
   });
 
   const save = useCallback(() => {
     if (income === null || income <= 0 || Object.keys(allocationErrors).length > 0 || dirtyCount === 0) return;
-    mutation.mutate({
-      year,
-      quarter,
-      data: {
-        estimatedQuarterlyIncome: income,
-        note: fields.note.trim() || null,
-        allocations: categories.map((category) => {
-          const allocation = fields.allocations[category.id] ?? EMPTY_ALLOCATION;
-          return {
-            categoryId: category.id,
-            targetPercentage: parsePercentage(allocation.targetPercentage) ?? 0,
-            adjustedMonthlyAmount: parseCurrencyInput(allocation.adjustedMonthlyAmount) ?? 0,
-            note: allocation.note.trim() || null,
-          };
-        }),
+    const fieldsAtSave = fields;
+    mutation.mutate(
+      {
+        year,
+        quarter,
+        data: {
+          estimatedQuarterlyIncome: income,
+          note: fields.note.trim() || null,
+          allocations: categories.map((category) => {
+            const allocation = fields.allocations[category.id] ?? EMPTY_ALLOCATION;
+            return {
+              categoryId: category.id,
+              targetPercentage: parsePercentage(allocation.targetPercentage) ?? 0,
+              adjustedMonthlyAmount: parseCurrencyInput(allocation.adjustedMonthlyAmount) ?? 0,
+              note: allocation.note.trim() || null,
+            };
+          }),
+        },
       },
-    });
-  }, [allocationErrors, categories, dirtyCount, fields, income, mutation, quarter, year]);
+      {
+        onSuccess: (result) => {
+          const next = toFields(result, fieldsRef.current);
+          setFields((current) => (dirtyFields(current, fieldsAtSave) === 0 ? next : current));
+          setSaved(next);
+          setSaveFailed(false);
+          queryClient.setQueryData(getGetBudgetQueryKey(year, quarter), result);
+        },
+      },
+    );
+  }, [allocationErrors, categories, dirtyCount, fields, income, mutation, quarter, queryClient, year]);
 
   useEffect(() => {
     if (incomeError || Object.keys(allocationErrors).length > 0 || dirtyCount === 0 || mutation.isPending || saveFailed) return;
