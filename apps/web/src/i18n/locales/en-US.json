@@ -461,6 +461,7 @@
     "draftCount_one": "{{count}} draft",
     "draftCount_other": "{{count}} drafts",
     "draft": "draft",
+    "categoryWarning": "Category or subcategory missing",
     "today": "Today",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
