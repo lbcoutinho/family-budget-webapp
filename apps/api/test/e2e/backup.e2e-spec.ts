@@ -7,6 +7,7 @@ import { type INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { vi } from 'vitest';
 
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
@@ -14,7 +15,7 @@ import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
-jest.mock('node:child_process', () => ({ spawn: jest.fn() }));
+vi.mock('node:child_process', () => ({ spawn: vi.fn() }));
 
 class FakeChildProcess extends EventEmitter {
   readonly stdout = new PassThrough();

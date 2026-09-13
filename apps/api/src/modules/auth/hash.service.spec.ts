@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { HashService } from './hash.service';
 
 /**
@@ -10,7 +12,7 @@ describe('HashService', () => {
   const password = 'correct horse battery staple';
 
   // argon2 is deliberately slow; the default 5 s leaves no headroom on a loaded CI runner.
-  jest.setTimeout(30_000);
+  vi.setConfig({ testTimeout: 30_000 });
 
   it('returns a hash that is not the password', async () => {
     const hash = await service.hash(password);
