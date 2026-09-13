@@ -14,6 +14,8 @@ export interface CreateCashboxDto {
      * @nullable
      */
   description?: string | null;
+  /** Balance already held, in **cents** (ADR-0005) — never a decimal. */
+  initialBalance?: number;
   /**
      * Goal, in **cents** (ADR-0005) — never a decimal. Null or omitted means no goal; it never enters a balance calculation.
      * @nullable

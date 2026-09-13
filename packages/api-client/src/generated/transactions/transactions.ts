@@ -167,11 +167,13 @@ export const createTransaction = (
 
 
 
-export const getCreateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext> => {
+export const getCreateTransactionMutationKey = () => ['createTransaction'] as const;
 
-const mutationKey = ['createTransaction'];
+export const getCreateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,CreateTransactionMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,CreateTransactionMutationVariables, TContext> => {
+
+const mutationKey = getCreateTransactionMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -181,7 +183,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransaction>>, {data: BodyType<CreateTransactionDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransaction>>, CreateTransactionMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createTransaction(data,)
@@ -197,16 +199,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof createTransaction>>>
     export type CreateTransactionMutationBody = BodyType<CreateTransactionDto>
     export type CreateTransactionMutationError = ErrorType<ApiErrorDto>
+    export type CreateTransactionMutationVariables = {data: BodyType<CreateTransactionDto>}
 
     /**
  * @summary Create a transaction
  */
 export const useCreateTransaction = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,{data: BodyType<CreateTransactionDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransaction>>, TError,CreateTransactionMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTransaction>>,
         TError,
-        {data: BodyType<CreateTransactionDto>},
+        CreateTransactionMutationVariables,
         TContext
       > => {
       return useMutation(getCreateTransactionMutationOptions(options), queryClient);
@@ -324,11 +327,13 @@ export const updateTransaction = (
 
 
 
-export const getUpdateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,{id: string;data: BodyType<UpdateTransactionDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,{id: string;data: BodyType<UpdateTransactionDto>}, TContext> => {
+export const getUpdateTransactionMutationKey = () => ['updateTransaction'] as const;
 
-const mutationKey = ['updateTransaction'];
+export const getUpdateTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,UpdateTransactionMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,UpdateTransactionMutationVariables, TContext> => {
+
+const mutationKey = getUpdateTransactionMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -338,7 +343,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTransaction>>, {id: string;data: BodyType<UpdateTransactionDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTransaction>>, UpdateTransactionMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
           return  updateTransaction(id,data,)
@@ -354,16 +359,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof updateTransaction>>>
     export type UpdateTransactionMutationBody = BodyType<UpdateTransactionDto>
     export type UpdateTransactionMutationError = ErrorType<ApiErrorDto>
+    export type UpdateTransactionMutationVariables = {id: string;data: BodyType<UpdateTransactionDto>}
 
     /**
  * @summary Update a transaction
  */
 export const useUpdateTransaction = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,{id: string;data: BodyType<UpdateTransactionDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTransaction>>, TError,UpdateTransactionMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTransaction>>,
         TError,
-        {id: string;data: BodyType<UpdateTransactionDto>},
+        UpdateTransactionMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateTransactionMutationOptions(options), queryClient);
@@ -386,11 +392,13 @@ export const deleteTransaction = (
 
 
 
-export const getDeleteTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,{id: string}, TContext> => {
+export const getDeleteTransactionMutationKey = () => ['deleteTransaction'] as const;
 
-const mutationKey = ['deleteTransaction'];
+export const getDeleteTransactionMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,DeleteTransactionMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,DeleteTransactionMutationVariables, TContext> => {
+
+const mutationKey = getDeleteTransactionMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -400,7 +408,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTransaction>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTransaction>>, DeleteTransactionMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteTransaction(id,)
@@ -416,16 +424,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTransaction>>>
 
     export type DeleteTransactionMutationError = ErrorType<ApiErrorDto>
+    export type DeleteTransactionMutationVariables = {id: string}
 
     /**
  * @summary Delete a transaction for good
  */
 export const useDeleteTransaction = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransaction>>, TError,DeleteTransactionMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteTransaction>>,
         TError,
-        {id: string},
+        DeleteTransactionMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteTransactionMutationOptions(options), queryClient);

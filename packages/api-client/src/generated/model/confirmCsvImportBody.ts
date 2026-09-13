@@ -10,5 +10,5 @@ export type ConfirmCsvImportBody = {
   modelId: string;
   accountId: string;
   selectedLines: number[];
-  file: Blob;
+  file: Blob | File;
 };

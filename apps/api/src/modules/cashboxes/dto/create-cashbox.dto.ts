@@ -20,6 +20,12 @@ export class CreateCashboxDto {
   @MaxLength(500)
   description?: string | null;
 
+  @ApiProperty({ type: Number, required: false, default: 0, example: 50_000, description: 'Balance already held, in **cents** (ADR-0005) — never a decimal.' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  initialBalance?: number;
+
   @ApiProperty({
     type: Number,
     required: false,

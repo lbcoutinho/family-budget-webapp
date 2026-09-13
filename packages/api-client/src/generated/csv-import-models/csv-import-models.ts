@@ -163,11 +163,13 @@ export const createCsvImportModel = (
 
 
 
-export const getCreateCsvImportModelMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,{data: BodyType<CreateCsvImportModelDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,{data: BodyType<CreateCsvImportModelDto>}, TContext> => {
+export const getCreateCsvImportModelMutationKey = () => ['createCsvImportModel'] as const;
 
-const mutationKey = ['createCsvImportModel'];
+export const getCreateCsvImportModelMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,CreateCsvImportModelMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,CreateCsvImportModelMutationVariables, TContext> => {
+
+const mutationKey = getCreateCsvImportModelMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -177,7 +179,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCsvImportModel>>, {data: BodyType<CreateCsvImportModelDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCsvImportModel>>, CreateCsvImportModelMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createCsvImportModel(data,)
@@ -193,16 +195,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateCsvImportModelMutationResult = NonNullable<Awaited<ReturnType<typeof createCsvImportModel>>>
     export type CreateCsvImportModelMutationBody = BodyType<CreateCsvImportModelDto>
     export type CreateCsvImportModelMutationError = ErrorType<ApiErrorDto>
+    export type CreateCsvImportModelMutationVariables = {data: BodyType<CreateCsvImportModelDto>}
 
     /**
  * @summary Create a CSV import model
  */
 export const useCreateCsvImportModel = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,{data: BodyType<CreateCsvImportModelDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCsvImportModel>>, TError,CreateCsvImportModelMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCsvImportModel>>,
         TError,
-        {data: BodyType<CreateCsvImportModelDto>},
+        CreateCsvImportModelMutationVariables,
         TContext
       > => {
       return useMutation(getCreateCsvImportModelMutationOptions(options), queryClient);
@@ -225,11 +228,13 @@ export const deleteCsvImportModel = (
 
 
 
-export const getDeleteCsvImportModelMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,{id: string}, TContext> => {
+export const getDeleteCsvImportModelMutationKey = () => ['deleteCsvImportModel'] as const;
 
-const mutationKey = ['deleteCsvImportModel'];
+export const getDeleteCsvImportModelMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,DeleteCsvImportModelMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,DeleteCsvImportModelMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCsvImportModelMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -239,7 +244,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCsvImportModel>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCsvImportModel>>, DeleteCsvImportModelMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteCsvImportModel(id,)
@@ -255,16 +260,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteCsvImportModelMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCsvImportModel>>>
 
     export type DeleteCsvImportModelMutationError = ErrorType<ApiErrorDto>
+    export type DeleteCsvImportModelMutationVariables = {id: string}
 
     /**
  * @summary Delete a CSV import model
  */
 export const useDeleteCsvImportModel = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCsvImportModel>>, TError,DeleteCsvImportModelMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCsvImportModel>>,
         TError,
-        {id: string},
+        DeleteCsvImportModelMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteCsvImportModelMutationOptions(options), queryClient);

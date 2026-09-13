@@ -80,12 +80,12 @@ describe('AppLayout', () => {
     await user.click(settings);
 
     expect(within(nav).getByRole('link', { name: 'Geral' })).toHaveAttribute('href', '/settings/general');
-    expect(within(nav).getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/accounts');
-    expect(within(nav).getByRole('link', { name: 'Categorias' })).toHaveAttribute('href', '/categories');
+    expect(within(nav).getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/settings/accounts');
+    expect(within(nav).getByRole('link', { name: 'Categorias' })).toHaveAttribute('href', '/settings/categories');
   });
 
   it('marks the active route and opens the submenu the current route lives in', () => {
-    renderShell('/accounts');
+    renderShell('/settings/accounts');
 
     const active = screen.getByRole('link', { name: 'Contas' });
 

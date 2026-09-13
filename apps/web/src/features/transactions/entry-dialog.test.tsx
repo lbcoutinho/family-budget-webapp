@@ -209,7 +209,7 @@ describe('EntryDialog', () => {
     accounts = [];
     renderDialog();
 
-    expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/accounts');
+    expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/settings/accounts');
   });
 
   it('exposes the account placeholder on "Conta", "De" and "Para", and clears the value when reselected', async () => {

@@ -9,5 +9,5 @@
 export type PreviewCsvImportBody = {
   modelId: string;
   accountId: string;
-  file: Blob;
+  file: Blob | File;
 };

@@ -33,6 +33,7 @@ const cashbox = (overrides: Partial<Cashbox> = {}): Cashbox => ({
   userId,
   name: 'Cofrinho',
   description: null,
+  initialBalance: 0,
   targetAmount: null,
   isActive: true,
   sortOrder: 0,
