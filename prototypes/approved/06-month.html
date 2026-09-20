@@ -340,6 +340,38 @@
         position: sticky;
         top: 74px;
       }
+      /* Contas e caixinhas são leituras de apoio, não cinco decisões separadas.
+         Uma lista com divisores preserva cada saldo e libera a altura do trilho. */
+      .balance-list {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--surface);
+      }
+      .balance-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 14px;
+      }
+      .balance-row + .balance-row {
+        border-top: 1px solid var(--line);
+      }
+      .balance-row .k {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--ink-soft);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .balance-row .v {
+        flex: none;
+        font-size: 14px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
       .filters {
         display: flex;
         flex-wrap: wrap;
@@ -715,21 +747,23 @@
 
             <!-- ===== saldos e fechamento atuais ===== -->
             <aside class="balance-rail" aria-label="Saldos do mês">
-              <div class="stat">
-                <div class="k">Millennium</div>
-                <div class="v num">3.482,15 €</div>
-              </div>
-              <div class="stat">
-                <div class="k">Revolut</div>
-                <div class="v num">412,90 €</div>
-              </div>
-              <div class="stat">
-                <div class="k">Dinheiro</div>
-                <div class="v num out">− 35,00 €</div>
-              </div>
-              <div class="stat">
-                <div class="k">Caixinhas</div>
-                <div class="v num">4.150,00 €</div>
+              <div class="balance-list">
+                <div class="balance-row">
+                  <div class="k">Millennium</div>
+                  <div class="v num">3.482,15 €</div>
+                </div>
+                <div class="balance-row">
+                  <div class="k">Revolut</div>
+                  <div class="v num">412,90 €</div>
+                </div>
+                <div class="balance-row">
+                  <div class="k">Dinheiro</div>
+                  <div class="v num out">− 35,00 €</div>
+                </div>
+                <div class="balance-row">
+                  <div class="k">Caixinhas</div>
+                  <div class="v num">4.150,00 €</div>
+                </div>
               </div>
               <div class="stat total">
                 <div class="k">Total consolidado</div>
@@ -811,6 +845,13 @@
                 <span>
                   “Despesas” não se repete: o resumo acrescenta apenas Orçamento e Saldo. A tabela abre dentro do mesmo cartão, mostra as despesas em vermelho,
                   reaproveita o filtro de categoria e não esconde os lançamentos.
+                </span>
+              </li>
+              <li>
+                <b>Contas e caixinhas formam uma lista compacta; só o total fica em cartão.</b>
+                <span>
+                  Cada saldo continua visível, em linhas separadas por divisores. “Total consolidado” mantém o fundo de tinta porque é a única leitura que
+                  resume o patrimônio todo.
                 </span>
               </li>
             </ol>
