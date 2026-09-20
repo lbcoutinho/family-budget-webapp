@@ -284,7 +284,7 @@ describe('Transactions API (e2e)', () => {
     });
 
     it('answers 404 for an id that does not exist', async () => {
-      await authed('get', '/transactions/6f9619ff-8b86-d011-b42d-00c04fc964ff').expect(404);
+      await authed('get', '/transactions/6f9619ff-8b86-4d11-842d-00c04fc964ff').expect(404);
     });
   });
 
