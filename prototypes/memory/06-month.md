@@ -1,7 +1,10 @@
 # 06 — Month
 
 Status: **approved**, in `approved/`. The base design was approved on 2026-08-02; the inline Budget
-extension from issue #336 was approved on 2026-09-07.
+extension from issue #336 was approved on 2026-09-07; the compact balance list from issue #390 was approved on 2026-09-20.
+
+The account and cashbox balances share one compact, divided surface. Every value remains visible;
+only “Total consolidado” retains the ink card because it is the single consolidated reading.
 
 All six decisions approved as prototyped. Two are worth restating because they were phrased as
 questions or affect other screens:
