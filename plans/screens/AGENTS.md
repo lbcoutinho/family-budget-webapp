@@ -19,7 +19,7 @@ monthly averages, localization) that apply to every screen below.
 
 ## Screens
 
-Thirteen screens plus the design system. There is deliberately **no dashboard** — the monthly tab
+Seventeen numbered screens plus the design system. There is deliberately **no dashboard** — the monthly tab
 is the home screen; `/` redirects to `/month`, which redirects to the current month. A separate
 overview would duplicate the balance panel and the report without adding a decision the user cannot
 already make.
@@ -41,6 +41,7 @@ already make.
 | 13  | [Voice entry](13-voice.md)                    | `/voice`                  |
 | 15  | [CSV transaction import](15-transaction-import.md) | `/transactions/import` |
 | 16  | [Quarterly Budget](16-quarterly-budget.md) | `/budgets/:year/:quarter` |
+| 17  | Investments navigation and setup ([issue #393](https://github.com/lbcoutinho/family-budget-webapp/issues/393)) | `/investments` and `/settings/investments/*` |
 
 Screen 14 (Settings › General, `/settings/general`, M3-T13) is outside the original thirteen; its
 issue (#73) asked for `07-settings-general.html`, but 07 is already the entry-form dialog above —
@@ -54,6 +55,10 @@ separate screen.
 Screen 16 (quarterly Budget, `/budgets/:year/:quarter`, issue #335) adds the planning surface
 specified by parent issue #333. It is separate from reports because it combines editable plan
 inputs with realized results.
+
+Screen 17 adds the Investments entry point and third-level setup screens under Settings › Investments. Its disposable
+prototype is tracked directly by issue #393 while the durable Investments specification remains in
+parent issue #392.
 
 Current per-screen prototype status (what's in `approved/`, what's still under review) lives in the
 table in `prototypes/MEMORY.md` — check there, not here, for "is screen N approved yet." The ticket

@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>17 — Navegação de investimentos (protótipo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script>
+      const shellParams = new URLSearchParams(location.search);
+      window.PROTOTYPE_INVESTMENTS_NAV = true;
+      window.PROTOTYPE_SHELL_ACTIVE = shellParams.get('view') === 'settings' ? `investment-${shellParams.get('setup') || 'institutions'}` : 'investments';
+    </script>
+    <script defer src="../_shared/proto.js"></script>
+    <style>
+      /* Three structures for the same question: where the Investments area
+         lives, and how its secondary registries stay reachable without
+         becoming four more global navigation items. */
+      .review-tools {
+        display: flex;
+        align-items: end;
+        gap: 10px;
+        padding: 10px 12px;
+        margin-bottom: 16px;
+        background: var(--wash);
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+      }
+      .review-tools .field {
+        min-width: 170px;
+      }
+      .review-tools::before {
+        content: 'Controles do protótipo';
+        align-self: center;
+        margin-right: auto;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .content {
+        padding-bottom: 88px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .investment-tabs {
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+      .investment-tabs a {
+        flex: none;
+        padding: 9px 11px;
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        font-size: 14px;
+      }
+      .investment-tabs a[aria-current='page'] {
+        color: var(--ink);
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+      .resource-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 12px;
+      }
+      .resource-head p {
+        max-width: 68ch;
+        margin-top: 3px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .resource-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .setup-menu-wrap {
+        position: relative;
+      }
+      .shortcut-menu {
+        position: absolute;
+        z-index: 35;
+        top: calc(100% + 6px);
+        right: 0;
+        width: 210px;
+        padding: 5px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-md);
+      }
+      .shortcut-menu a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 9px;
+        border-radius: var(--r-sm);
+        color: var(--ink-soft);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .shortcut-menu a:hover {
+        background: var(--wash);
+        color: var(--ink);
+      }
+      .shortcut-menu svg {
+        width: 15px;
+        height: 15px;
+      }
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .breadcrumb strong {
+        color: var(--ink);
+      }
+      .manage-layout {
+        display: grid;
+        grid-template-columns: 196px minmax(0, 1fr);
+        gap: 16px;
+      }
+      .manage-layout > * {
+        min-width: 0;
+      }
+      .local-rail {
+        align-self: start;
+        position: sticky;
+        top: 76px;
+        display: grid;
+        gap: 2px;
+      }
+      .local-rail .rail-label {
+        color: var(--ink-faint);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 13px 9px 5px;
+      }
+      .local-rail a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 9px;
+        border-radius: var(--r-sm);
+        color: var(--ink-soft);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .local-rail a:hover,
+      .local-rail a[aria-current='page'] {
+        background: var(--wash);
+        color: var(--ink);
+      }
+      .local-rail a[aria-current='page'] {
+        font-weight: 600;
+      }
+      .local-rail svg {
+        width: 14px;
+        height: 14px;
+      }
+      .launchpad {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(250px, 0.8fr);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+        margin-bottom: 18px;
+        background: var(--surface);
+      }
+      .launch-group {
+        padding: 15px;
+      }
+      .launch-group + .launch-group {
+        border-left: 1px solid var(--line);
+        background: var(--wash);
+      }
+      .launch-group h2 {
+        margin-bottom: 4px;
+      }
+      .launch-group > p {
+        color: var(--ink-soft);
+        font-size: 14px;
+        margin-bottom: 9px;
+      }
+      .launch-list {
+        display: grid;
+      }
+      .launch-list a {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 4px;
+        border-top: 1px solid var(--line);
+        text-decoration: none;
+      }
+      .launch-list a span {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .launch-list a b {
+        min-width: 112px;
+        font-size: 14px;
+      }
+      .launch-list svg {
+        width: 15px;
+        height: 15px;
+        color: var(--ink-soft);
+      }
+      .acts {
+        display: flex;
+        justify-content: flex-end;
+        gap: 2px;
+      }
+      tr.off td {
+        color: var(--ink-faint);
+      }
+      .screen-note {
+        margin-top: 10px;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .variant-switcher {
+        position: fixed;
+        z-index: 80;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px;
+        border-radius: var(--r);
+        background: var(--ink);
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+      }
+      .variant-switcher[hidden] {
+        display: none;
+      }
+      .variant-switcher button {
+        width: 32px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: transparent;
+        color: #fff;
+        cursor: pointer;
+      }
+      .variant-switcher button:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .variant-switcher svg {
+        width: 15px;
+        height: 15px;
+      }
+      .variant-switcher output {
+        min-width: 190px;
+        padding: 0 8px;
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .dialog-copy {
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+      .decisions {
+        margin-top: 34px;
+        margin-bottom: 58px;
+      }
+      .decisions > p {
+        max-width: 72ch;
+        margin: 6px 0 12px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .decisions ol {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .decisions li {
+        margin: 10px 0;
+        padding-left: 4px;
+      }
+      .decisions li span {
+        display: block;
+        max-width: 78ch;
+        color: var(--ink-soft);
+        font-size: 14px;
+        margin-top: 2px;
+      }
+      @media (max-width: 720px) {
+        .review-tools {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .review-tools::before {
+          align-self: auto;
+          margin: 0 0 2px;
+        }
+        .review-tools .field {
+          min-width: 0;
+        }
+        .resource-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .resource-head .btn {
+          align-self: flex-start;
+        }
+        .resource-actions {
+          justify-content: space-between;
+        }
+        .resource-actions > .btn:last-child {
+          position: fixed;
+          right: 14px;
+          bottom: 14px;
+          z-index: 70;
+          width: 48px;
+          height: 48px;
+          padding: 0;
+          border-radius: 50%;
+          overflow: hidden;
+          color: transparent;
+          box-shadow: var(--shadow-md);
+        }
+        .resource-actions > .btn:last-child svg {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          color: #fff;
+        }
+        .manage-layout {
+          grid-template-columns: 1fr;
+        }
+        .local-rail {
+          position: static;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          overflow: visible;
+          padding-bottom: 5px;
+          border-bottom: 1px solid var(--line);
+        }
+        .local-rail .rail-label {
+          display: block;
+          grid-column: 1 / -1;
+          padding: 7px 2px 3px;
+        }
+        .local-rail a {
+          border: 1px solid var(--line);
+        }
+        .launchpad {
+          grid-template-columns: 1fr;
+        }
+        .launch-group + .launch-group {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .launch-list a {
+          align-items: start;
+          flex-wrap: wrap;
+        }
+        .launch-list a b {
+          min-width: calc(100% - 26px);
+        }
+        .launch-list a span {
+          padding-left: 24px;
+        }
+        .variant-switcher {
+          bottom: 8px;
+          width: calc(100% - 20px);
+          max-width: 360px;
+        }
+        .variant-switcher output {
+          min-width: 0;
+          flex: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div data-proto="17 — Navegação e cadastros de investimentos" data-ticket="#393 · aprovada"></div>
+    <div class="proto-note">
+      <strong>Estrutura aprovada: A — abas.</strong> Os quatro cadastros são telas individuais em Configurações › Investimentos; a Visão geral oferece apenas um
+      atalho por engrenagem.
+    </div>
+
+    <div data-shell="investments">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button>
+            <span class="month" style="min-width: 0">Investimentos</span>
+          </div>
+          <button class="btn sm" disabled title="Será definido no protótipo de operações"><span data-icon="plus"></span> Nova operação</button>
+        </header>
+
+        <div class="content">
+          <div class="review-tools" aria-label="Controles do protótipo">
+            <div class="field">
+              <label for="prototype-resource">Cadastro</label>
+              <select class="select" id="prototype-resource"></select>
+            </div>
+            <div class="field">
+              <label for="prototype-state">Estado</label>
+              <select class="select" id="prototype-state">
+                <option value="populated">Preenchido + inativo</option>
+                <option value="loading">Carregando</option>
+                <option value="empty">Vazio</option>
+                <option value="error">Erro</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="variant-root"></div>
+
+          <section class="decisions">
+            <h2>Decisões aprovadas</h2>
+            <p>Decisões fechadas na revisão do #393.</p>
+            <ol>
+              <li>
+                <b>Investimentos entra no menu principal, logo depois de Orçamento.</b>
+                <span>Fica visível sem transformar os quatro cadastros auxiliares em itens globais.</span>
+              </li>
+              <li>
+                <b>A navegação interna usa a variante A, com abas.</b>
+                <span>Visão geral, Operações, Fluxo mensal e Importar e reconciliar ficam no mesmo nível.</span>
+              </li>
+              <li>
+                <b>Os quatro cadastros ficam em Configurações › Investimentos, no terceiro nível.</b>
+                <span>A Visão geral não incorpora cadastros; a engrenagem abre um menu com Instituições, Instrumentos, Listagens e Contas.</span>
+              </li>
+              <li>
+                <b>Referências históricas trocam exclusão por desativação.</b>
+                <span>Excluir só aparece para um registro sem uso e sempre pede confirmação; o estado inativo permanece consultável.</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="scrim" id="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+      <div class="dialog" style="max-width: 460px">
+        <div class="dialog-head">
+          <h2 id="delete-title">Excluir listagem sem uso?</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dialog-copy">
+          <p><strong>EUNL · Xetra</strong> ainda não aparece em operações nem cotações. Esta ação remove o cadastro e não pode ser desfeita.</p>
+          <div class="callout warn"><span data-icon="info"></span><span>Quando existir histórico, a única opção será desativar.</span></div>
+        </div>
+        <div class="dialog-foot">
+          <button class="btn outline sm" data-close>Cancelar</button>
+          <button class="btn danger sm" data-close>Excluir listagem</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrim" id="record-dialog" role="dialog" aria-modal="true" aria-labelledby="record-title">
+      <div class="dialog" style="max-width: 460px">
+        <div class="dialog-head">
+          <h2 id="record-title">Novo cadastro</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dialog-copy">
+          <label class="field"><span>Nome</span><input class="input" id="record-name" autocomplete="off" /></label>
+          <p class="small muted">Os campos específicos serão definidos no ticket de implementação de cada cadastro.</p>
+        </div>
+        <div class="dialog-foot">
+          <button class="btn outline sm" data-close>Cancelar</button>
+          <button class="btn sm" data-close>Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const resources = {
+          institutions: {
+            label: 'Instituições financeiras',
+            short: 'Instituições',
+            singular: 'instituição',
+            icon: 'building',
+            description: 'Bancos, corretoras e exchanges que mantêm contas ou oferecem listagens.',
+            empty: 'Cadastre o banco, a corretora ou a exchange antes de associar contas e listagens.',
+            columns: ['Instituição', 'Tipo', 'Contas', ''],
+            rows: [
+              { values: ['Banco Invest', 'Banco', '1'], inactive: false },
+              { values: ['DEGIRO', 'Corretora', '1'], inactive: false },
+              { values: ['Kraken', 'Exchange', '1'], inactive: false },
+              { values: ['Coinbase', 'Exchange', '0'], inactive: true },
+            ],
+          },
+          instruments: {
+            label: 'Instrumentos',
+            short: 'Instrumentos',
+            singular: 'instrumento',
+            icon: 'instrument',
+            description: 'Moedas e ativos mantidos nas contas; quantidades continuam exatas em sua unidade nativa.',
+            empty: 'Comece pela moeda ou pelo ativo que deseja manter numa conta de investimento.',
+            columns: ['Instrumento', 'Código', 'Tipo', ''],
+            rows: [
+              { values: ['Euro', 'EUR', 'Moeda fiduciária'], inactive: false },
+              { values: ['Bitcoin', 'BTC', 'Criptomoeda'], inactive: false },
+              { values: ['Vanguard FTSE All-World', 'VWCE', 'ETF'], inactive: false },
+              { values: ['BNB', 'BNB', 'Criptomoeda'], inactive: true },
+            ],
+          },
+          listings: {
+            label: 'Listagens de ativos',
+            short: 'Listagens',
+            singular: 'listagem',
+            icon: 'listing',
+            description: 'O mercado, ticker e moeda em que cada ativo é negociado e cotado.',
+            empty: 'Crie uma listagem para ligar um ativo ao ticker e ao mercado onde é negociado.',
+            columns: ['Ativo', 'Ticker', 'Mercado', 'Cotação', ''],
+            rows: [
+              { values: ['Vanguard FTSE All-World', 'VWCE', 'Xetra', 'EUR'], inactive: false },
+              { values: ['Bitcoin', 'BTC-EUR', 'Kraken', 'EUR'], inactive: false },
+              { values: ['iShares Core MSCI World', 'EUNL', 'Xetra', 'EUR'], inactive: false, deletable: true },
+              { values: ['Ethereum', 'ETH-EUR', 'Coinbase', 'EUR'], inactive: true },
+            ],
+          },
+          accounts: {
+            label: 'Contas de custódia',
+            short: 'Contas',
+            singular: 'conta',
+            icon: 'wallet',
+            description: 'Corretoras, exchanges e carteiras que podem manter vários instrumentos.',
+            empty: 'Crie uma conta de corretora, exchange ou carteira para localizar os instrumentos mantidos.',
+            columns: ['Conta', 'Tipo', 'Instituição', 'Instrumentos', ''],
+            rows: [
+              { values: ['DEGIRO', 'Corretora', 'DEGIRO', 'EUR, VWCE'], inactive: false },
+              { values: ['Kraken', 'Exchange', 'Kraken', 'EUR, BTC'], inactive: false },
+              { values: ['Ledger', 'Carteira', 'Autocustódia', 'BTC'], inactive: false },
+              { values: ['Coinbase antiga', 'Exchange', 'Coinbase', 'EUR, ETH'], inactive: true },
+            ],
+          },
+        };
+
+        const params = new URLSearchParams(location.search);
+        let resourceKey = resources[params.get('setup')] ? params.get('setup') : 'institutions';
+        let state = ['populated', 'loading', 'empty', 'error'].includes(params.get('state')) ? params.get('state') : 'populated';
+        let showInactive = params.get('inactive') === 'true';
+        const view = params.get('view') === 'settings' ? 'settings' : 'overview';
+
+        if (view === 'settings') {
+          document.querySelector('.topbar .month').textContent = 'Configurações';
+          document.querySelector('.topbar > .btn').hidden = true;
+        } else {
+          document.querySelector('.review-tools').hidden = true;
+        }
+        const paramHref = (changes) => {
+          const next = new URLSearchParams(location.search);
+          Object.entries(changes).forEach(([key, value]) => next.set(key, value));
+          return `?${next.toString()}`;
+        };
+
+        const mainLinks = (className = 'investment-tabs') => `
+        <nav class="${className}" aria-label="Seções de investimentos">
+          <a href="#" aria-current="page">Visão geral</a>
+          <a href="#">Operações</a>
+          <a href="#">Fluxo mensal</a>
+          <a href="#">Importar e reconciliar</a>
+        </nav>`;
+
+        const settingsHref = (key) => paramHref({ view: 'settings', setup: key, state: 'populated' });
+
+        const settingsShortcut = () => `<div class="setup-menu-wrap">
+          <button class="btn icon outline" type="button" data-toggle="overview-settings-menu" aria-expanded="false" aria-label="Configurações de investimentos" title="Configurações de investimentos">${icon(
+            'settings',
+          )}</button>
+          <nav class="shortcut-menu" id="overview-settings-menu" hidden aria-label="Configurações de investimentos">
+            ${Object.entries(resources)
+              .map(([key, item]) => `<a href="${settingsHref(key)}">${icon(item.icon)}<span>${item.short}</span></a>`)
+              .join('')}
+          </nav>
+        </div>`;
+
+        const overviewPanel = () => `<section>
+          <div class="resource-head">
+            <div><h1>Visão geral</h1><p>Posições, custo, valor atual e resultado serão definidos no protótipo #394.</p></div>
+            ${settingsShortcut()}
+          </div>
+          <div class="card"><div class="empty">${icon('investments')}<h3>Resumo da carteira</h3><p class="small muted" style="max-width:48ch">Este ticket decide a entrada e a navegação. Os dados da carteira chegam na próxima tela.</p></div></div>
+        </section>`;
+
+        function stateContent(item) {
+          if (state === 'loading') {
+            return `<div class="card" aria-busy="true"><span class="sr-only" role="status">Carregando ${item.short.toLowerCase()}</span><div class="table-wrap"><table class="data freeze"><thead><tr>${item.columns
+              .map((column) => `<th>${column}</th>`)
+              .join('')}</tr></thead><tbody>${[1, 2, 3]
+              .map(
+                (_, row) =>
+                  `<tr>${item.columns
+                    .map(
+                      (__, column) =>
+                        `<td><div class="skeleton" aria-hidden="true" style="width:${column === 0 ? 130 - row * 12 : 72 + row * 5}px"></div></td>`,
+                    )
+                    .join('')}</tr>`,
+              )
+              .join('')}</tbody></table></div></div>`;
+          }
+
+          if (state === 'empty') {
+            return `<div class="card"><div class="empty">${icon(item.icon)}<h3>Nenhum cadastro ainda</h3><p class="small muted" style="max-width:48ch">${
+              item.empty
+            }</p><button class="btn sm" style="margin-top:4px">${icon('plus')} Novo cadastro</button></div></div>`;
+          }
+
+          if (state === 'error') {
+            return `<div class="card"><div class="empty">${icon('alert')}<h3>Não foi possível carregar ${item.short.toLowerCase()}</h3><p class="small muted">Verifique a conexão e tente de novo.</p><button class="btn outline sm" style="margin-top:4px">Tentar de novo</button></div></div>`;
+          }
+
+          const rows = item.rows
+            .map((row) => {
+              const { values, inactive, deletable = false } = row;
+              const name = values[0];
+              return `<tr class="${inactive ? 'off' : ''}" ${inactive && !showInactive ? 'hidden' : ''}>${values
+                .map(
+                  (value, index) =>
+                    `<td class="${item.columns[index] === 'Contas' ? 'num' : ''}">${
+                      index === 0 ? `<b>${value}</b> <span class="badge" data-inactive-label ${inactive ? '' : 'hidden'}>inativo</span>` : value
+                    }</td>`,
+                )
+                .join(
+                  '',
+                )}<td><div class="acts"><button class="btn icon ghost" data-open="record-dialog" data-record-action="edit" data-record-name="${name}" aria-label="Editar ${name}" title="Editar">${icon(
+                'pencil',
+              )}</button><button class="btn icon ghost" data-toggle-record aria-label="${inactive ? 'Reativar' : 'Desativar'} ${name}" title="${
+                inactive ? 'Reativar' : 'Desativar'
+              }">${icon(inactive ? 'check' : 'x')}</button>${
+                deletable
+                  ? `<button class="btn icon ghost" aria-label="Excluir ${name}" title="Excluir" data-open="delete-dialog">${icon('trash')}</button>`
+                  : ''
+              }</div></td></tr>`;
+            })
+            .join('');
+
+          return `<div class="card"><div class="table-wrap"><table class="data freeze"><thead><tr>${item.columns
+            .map((column) => `<th>${column}</th>`)
+            .join(
+              '',
+            )}</tr></thead><tbody>${rows}</tbody></table></div></div><p class="screen-note">Registros inativos ficam disponíveis pelo controle “Mostrar inativos”.</p>`;
+        }
+
+        function resourcePanel() {
+          const item = resources[resourceKey];
+          return `<section><nav class="breadcrumb" aria-label="Caminho"><span>Configurações</span><span>›</span><span>Investimentos</span><span>›</span><strong>${
+            item.short
+          }</strong></nav><div class="resource-head"><div><h1>${item.label}</h1><p>${item.description}</p></div><div class="resource-actions">${
+            state === 'populated'
+              ? `<label class="row small muted" style="cursor:pointer"><button class="switch" type="button" role="switch" data-show-inactive aria-checked="${showInactive}"></button> Mostrar inativos</label>`
+              : ''
+          }<button class="btn sm" data-open="record-dialog" data-record-action="new" ${state === 'loading' || state === 'error' ? 'disabled' : ''}>${icon(
+            'plus',
+          )} Novo cadastro</button></div></div>${stateContent(item)}</section>`;
+        }
+
+        function renderVariant() {
+          const root = document.getElementById('variant-root');
+          if (view === 'settings') {
+            root.innerHTML = resourcePanel();
+          } else {
+            root.innerHTML = `${mainLinks()}${overviewPanel()}`;
+          }
+          const inactiveToggle = root.querySelector('[data-show-inactive]');
+          inactiveToggle?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            showInactive = inactiveToggle.getAttribute('aria-checked') !== 'true';
+            inactiveToggle.setAttribute('aria-checked', String(showInactive));
+            root.querySelectorAll('tr.off').forEach((row) => (row.hidden = !showInactive));
+            const next = new URL(location.href);
+            if (showInactive) next.searchParams.set('inactive', 'true');
+            else next.searchParams.delete('inactive');
+            history.replaceState(null, '', next);
+          });
+        }
+
+        const resourceSelect = document.getElementById('prototype-resource');
+        resourceSelect.innerHTML = Object.entries(resources)
+          .map(([key, item]) => `<option value="${key}" ${key === resourceKey ? 'selected' : ''}>${item.label}</option>`)
+          .join('');
+        document.getElementById('prototype-state').value = state;
+        resourceSelect.addEventListener('change', (event) => (location.href = paramHref({ setup: event.target.value })));
+        document.getElementById('prototype-state').addEventListener('change', (event) => (location.href = paramHref({ state: event.target.value })));
+        renderVariant();
+
+        document.addEventListener('click', (event) => {
+          const recordAction = event.target.closest('[data-record-action]');
+          if (recordAction) {
+            document.getElementById('record-title').textContent =
+              recordAction.dataset.recordAction === 'new' ? `Cadastrar ${resources[resourceKey].singular}` : 'Editar cadastro';
+            document.getElementById('record-name').value = recordAction.dataset.recordName || '';
+          }
+          const toggleRecord = event.target.closest('[data-toggle-record]');
+          if (toggleRecord) {
+            const row = toggleRecord.closest('tr');
+            const inactive = row.classList.toggle('off');
+            row.querySelector('[data-inactive-label]').hidden = !inactive;
+            const name = row.querySelector('b').textContent;
+            toggleRecord.setAttribute('aria-label', `${inactive ? 'Reativar' : 'Desativar'} ${name}`);
+            toggleRecord.title = inactive ? 'Reativar' : 'Desativar';
+            if (inactive && !showInactive) row.hidden = true;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
