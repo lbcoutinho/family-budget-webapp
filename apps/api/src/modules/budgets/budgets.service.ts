@@ -23,7 +23,7 @@ export class BudgetsService {
   async put(userId: string, year: number, quarter: number, dto: PutBudgetDto): Promise<BudgetDto> {
     const allocations = dto.allocations ?? [];
     this.assertUniqueCategories(allocations);
-    await this.assertAllocatableCategories(userId, allocations);
+    await this.assertAllocatableCategories(userId, year, quarter, allocations);
 
     const budget = await this.prisma.$transaction(async (tx) => {
       const { allocations: _allocations, ...budgetData } = dto;
@@ -58,14 +58,23 @@ export class BudgetsService {
     }
   }
 
-  private async assertAllocatableCategories(userId: string, allocations: PutBudgetAllocationDto[]): Promise<void> {
+  private async assertAllocatableCategories(userId: string, year: number, quarter: number, allocations: PutBudgetAllocationDto[]): Promise<void> {
     if (allocations.length === 0) return;
 
     const categories = await this.prisma.category.count({
-      where: { id: { in: allocations.map((allocation) => allocation.categoryId) }, userId, parentId: null, kind: CategoryKind.EXPENSE, isActive: true },
+      where: {
+        id: { in: allocations.map((allocation) => allocation.categoryId) },
+        userId,
+        parentId: null,
+        kind: CategoryKind.EXPENSE,
+        OR: [{ isActive: true }, { budgetAllocations: { some: { budget: { userId, year, quarter } } } }],
+      },
     });
     if (categories !== allocations.length) {
-      throw badRequest('BUDGET_ALLOCATION_CATEGORY_INVALID', 'Budget allocations must reference the user’s active top-level Expense Categories.');
+      throw badRequest(
+        'BUDGET_ALLOCATION_CATEGORY_INVALID',
+        'Budget allocations must reference the user’s active top-level Expense Categories, unless already allocated to this Budget.',
+      );
     }
   }
 }

@@ -27,6 +27,9 @@ const cashboxSchema = z.object({
   targetAmount: z
     .string()
     .refine((value) => value.trim() === '' || parseCurrencyInput(value) !== null, 'cashboxes.form.targetInvalid' satisfies TranslationKey),
+  initialBalance: z
+    .string()
+    .refine((value) => value.trim() === '' || parseCurrencyInput(value) !== null, 'cashboxes.form.initialBalanceInvalid' satisfies TranslationKey),
 });
 
 type CashboxFormValues = z.infer<typeof cashboxSchema>;
@@ -35,6 +38,7 @@ export interface CashboxDialogSubmitValues {
   name: string;
   description: string | null;
   targetAmount: number | null;
+  initialBalance: number;
 }
 
 export interface CashboxDialogProps {
@@ -59,7 +63,7 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
     formState: { errors },
   } = useForm<CashboxFormValues>({
     resolver: zodResolver(cashboxSchema),
-    defaultValues: { name: '', description: '', targetAmount: '' },
+    defaultValues: { name: '', description: '', targetAmount: '', initialBalance: formatCents(0) },
   });
 
   // The form only needs to know the cashbox when the dialog opens, not on every parent render —
@@ -70,6 +74,7 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
         name: cashbox?.name ?? '',
         description: cashbox?.description ?? '',
         targetAmount: cashbox?.targetAmount != null ? formatCents(cashbox.targetAmount) : '',
+        initialBalance: formatCents(cashbox?.initialBalance ?? 0),
       });
     }
   }, [open, cashbox, reset]);
@@ -77,10 +82,11 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
   const submit = handleSubmit((values) => {
     const trimmedTarget = values.targetAmount.trim();
     const targetAmount = trimmedTarget === '' ? null : parseCurrencyInput(trimmedTarget);
+    const initialBalance = values.initialBalance.trim() === '' ? 0 : parseCurrencyInput(values.initialBalance);
 
     // The resolver already rejected anything non-empty that parses to null, so this is
     // unreachable in practice — it exists so the type below is `number | null`, not `number | null`.
-    if (trimmedTarget !== '' && targetAmount === null) {
+    if ((trimmedTarget !== '' && targetAmount === null) || initialBalance === null) {
       return;
     }
 
@@ -88,6 +94,7 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
       name: values.name.trim(),
       description: values.description.trim() === '' ? null : values.description.trim(),
       targetAmount,
+      initialBalance,
     });
   });
 
@@ -112,6 +119,29 @@ export function CashboxDialog({ open, onOpenChange, cashbox, isPending, error, o
             {errors.name && (
               <span id="cashbox-name-error" className="text-xs text-destructive">
                 {t(errors.name.message as TranslationKey)}
+              </span>
+            )}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="cashbox-initial-balance">{t('cashboxes.form.initialBalance')}</Label>
+            <Input
+              id="cashbox-initial-balance"
+              inputMode="decimal"
+              className="text-right tabular-nums"
+              aria-invalid={errors.initialBalance !== undefined}
+              aria-describedby={errors.initialBalance ? 'cashbox-initial-balance-error' : undefined}
+              disabled={isPending}
+              {...register('initialBalance', {
+                onBlur: (event: FocusEvent<HTMLInputElement>) => {
+                  const cents = parseCurrencyInput(event.target.value);
+                  if (cents !== null) setValue('initialBalance', formatCents(cents), { shouldValidate: true });
+                },
+              })}
+            />
+            {errors.initialBalance && (
+              <span id="cashbox-initial-balance-error" className="text-xs text-destructive">
+                {t(errors.initialBalance.message as TranslationKey)}
               </span>
             )}
           </div>

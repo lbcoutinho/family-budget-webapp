@@ -52,9 +52,9 @@ export const routes = [
       { path: 'reports', element: <ReportsPage /> },
       { path: 'voice', element: <RoutePlaceholder titleKey="nav.voice" ticket="M8-T04" /> },
       { path: 'recurrences', element: <RecurrencesPage /> },
-      { path: 'accounts', element: <AccountsPage /> },
-      { path: 'categories', element: <CategoriesPage /> },
       { path: 'settings/general', element: <GeneralSettingsPage /> },
+      { path: 'settings/accounts', element: <AccountsPage /> },
+      { path: 'settings/categories', element: <CategoriesPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },

@@ -1,4 +1,4 @@
-# ADR-0024 — Multi-instrument accounts and investment trades
+# ADR-0025 — Multi-instrument accounts and investment trades
 
 **Status:** Accepted
 **Date:** 2026-09-21

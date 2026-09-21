@@ -412,7 +412,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
                 title={t('transactions.cashboxOperation.noAccounts')}
                 action={
                   <Button asChild size="sm">
-                    <Link to="/accounts">{t('transactions.form.createAccount')}</Link>
+                    <Link to="/settings/accounts">{t('transactions.form.createAccount')}</Link>
                   </Button>
                 }
               />

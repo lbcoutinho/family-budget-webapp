@@ -158,6 +158,28 @@ describe('CategoriesPage', () => {
     });
   });
 
+  it('keeps the create dialog open when selecting a colour', async () => {
+    let creates = 0;
+    server.use(
+      http.get('/api/categories', () => HttpResponse.json([ROOT])),
+      http.post('/api/categories', () => {
+        creates += 1;
+
+        return HttpResponse.json(ROOT);
+      }),
+    );
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova categoria' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Nome'), 'Transportes');
+    await user.click(within(dialog).getByRole('button', { name: 'Cor 2' }));
+
+    expect(dialog).toBeInTheDocument();
+    expect(creates).toBe(0);
+  });
+
   it('cascades the inactive badge onto every subcategory when a root is deactivated', async () => {
     let root = ROOT;
     server.use(
@@ -254,6 +276,21 @@ describe('CategoriesPage', () => {
     const rendaRow = screen.getByText('Renda').closest('tr');
 
     expect(within(rendaRow!).getByRole('button', { name: 'Apagar' })).toBeInTheDocument();
+  });
+
+  it('offers deactivation when deleting a Category used by a Budget is blocked', async () => {
+    server.use(
+      http.get('/api/categories', () => HttpResponse.json([ROOT])),
+      http.delete('/api/categories/:id', () => HttpResponse.json({ statusCode: 409, code: 'RECORD_IN_USE', message: 'in use' }, { status: 409 })),
+    );
+
+    const { user } = renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Apagar' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Apagar' }));
+
+    expect(await screen.findByText('Outros registos ainda usam este. Desative-o em vez de o eliminar.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Desativar' })).toBeInTheDocument();
   });
 
   it('lists roots and subcategories alphabetically, with the automatic "Outros" pinned last', async () => {

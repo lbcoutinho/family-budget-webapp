@@ -1,7 +1,16 @@
-import { CategoryKind, getGetBudgetQueryKey, type BudgetDto, useGetBudget, useListCategories, usePutBudget } from '@family-budget/api-client';
+import {
+  CategoryKind,
+  getGetBudgetQueryKey,
+  type BudgetDto,
+  type YearlyReportDto,
+  useGetBudget,
+  useGetYearlyReport,
+  useListCategories,
+  usePutBudget,
+} from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircleIcon, ChevronLeftIcon, ChevronRightIcon, RotateCcwIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useBeforeUnload, useBlocker, useNavigate, useParams } from 'react-router-dom';
 
@@ -50,15 +59,18 @@ export function BudgetPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const budgetQuery = useGetBudget(year, quarter, { query: { enabled: validPeriod, retry: false } });
+  const reportQuery = useGetYearlyReport({ year, compare: false }, { query: { enabled: validPeriod, retry: false } });
   const categoriesQuery = useListCategories(undefined, { query: { retry: false } });
   const [editing, setEditing] = useState(false);
   const [fields, setFields] = useState<BudgetFields>(EMPTY);
   const [saved, setSaved] = useState<BudgetFields>(EMPTY);
   const [saveFailed, setSaveFailed] = useState(false);
+  const fieldsRef = useRef(fields);
+  const loadedPeriod = useRef<string | undefined>(undefined);
   const income = parseCurrencyInput(fields.income);
   const incomeError = editing && (income === null || income <= 0) ? t('budgets.incomeInvalid') : undefined;
   const activeCategories = useMemo(
-    () => (categoriesQuery.data ?? []).filter((category) => category.parentId === null && category.kind === CategoryKind.EXPENSE),
+    () => (categoriesQuery.data ?? []).filter((category) => category.parentId === null && category.kind === CategoryKind.EXPENSE && category.isActive),
     [categoriesQuery.data],
   );
   const categories = useMemo(() => mergeCategories(activeCategories, budgetQuery.data ?? undefined), [activeCategories, budgetQuery.data]);
@@ -68,15 +80,22 @@ export function BudgetPage() {
   const blocker = useBlocker(shouldBlock);
 
   useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  useEffect(() => {
     if (!budgetQuery.isSuccess) return;
+    const period = `${year}-${quarter}`;
+    if (loadedPeriod.current === period) return;
+    loadedPeriod.current = period;
     const next = toFields(budgetQuery.data ?? undefined);
     // A period change replaces the autosave baseline with that route's server snapshot.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setFields(next);
     setSaved(next);
     setEditing(Boolean(budgetQuery.data));
     setSaveFailed(false);
-  }, [budgetQuery.data, budgetQuery.isSuccess]);
+  }, [budgetQuery.data, budgetQuery.isSuccess, quarter, year]);
 
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
@@ -90,37 +109,42 @@ export function BudgetPage() {
 
   const mutation = usePutBudget({
     mutation: {
-      onSuccess: (result) => {
-        const next = toFields(result);
-        setFields(next);
-        setSaved(next);
-        setSaveFailed(false);
-        queryClient.setQueryData(getGetBudgetQueryKey(year, quarter), result);
-      },
       onError: () => setSaveFailed(true),
     },
   });
 
   const save = useCallback(() => {
     if (income === null || income <= 0 || Object.keys(allocationErrors).length > 0 || dirtyCount === 0) return;
-    mutation.mutate({
-      year,
-      quarter,
-      data: {
-        estimatedQuarterlyIncome: income,
-        note: fields.note.trim() || null,
-        allocations: categories.map((category) => {
-          const allocation = fields.allocations[category.id] ?? EMPTY_ALLOCATION;
-          return {
-            categoryId: category.id,
-            targetPercentage: parsePercentage(allocation.targetPercentage) ?? 0,
-            adjustedMonthlyAmount: parseCurrencyInput(allocation.adjustedMonthlyAmount) ?? 0,
-            note: allocation.note.trim() || null,
-          };
-        }),
+    const fieldsAtSave = fields;
+    mutation.mutate(
+      {
+        year,
+        quarter,
+        data: {
+          estimatedQuarterlyIncome: income,
+          note: fields.note.trim() || null,
+          allocations: categories.map((category) => {
+            const allocation = fields.allocations[category.id] ?? EMPTY_ALLOCATION;
+            return {
+              categoryId: category.id,
+              targetPercentage: parsePercentage(allocation.targetPercentage) ?? 0,
+              adjustedMonthlyAmount: parseCurrencyInput(allocation.adjustedMonthlyAmount) ?? 0,
+              note: allocation.note.trim() || null,
+            };
+          }),
+        },
       },
-    });
-  }, [allocationErrors, categories, dirtyCount, fields, income, mutation, quarter, year]);
+      {
+        onSuccess: (result) => {
+          const next = toFields(result, fieldsRef.current);
+          setFields((current) => (dirtyFields(current, fieldsAtSave) === 0 ? next : current));
+          setSaved(next);
+          setSaveFailed(false);
+          queryClient.setQueryData(getGetBudgetQueryKey(year, quarter), result);
+        },
+      },
+    );
+  }, [allocationErrors, categories, dirtyCount, fields, income, mutation, quarter, queryClient, year]);
 
   useEffect(() => {
     if (incomeError || Object.keys(allocationErrors).length > 0 || dirtyCount === 0 || mutation.isPending || saveFailed) return;
@@ -130,6 +154,10 @@ export function BudgetPage() {
 
   const title = useMemo(() => quarterTitle(year, quarter, i18n.language), [i18n.language, quarter, year]);
   const derived = useMemo(() => deriveTotals(fields, income), [fields, income]);
+  const review = useMemo(
+    () => (reportQuery.data ? deriveQuarterReview(reportQuery.data, quarter, derived.expenses, income) : undefined),
+    [derived.expenses, income, quarter, reportQuery.data],
+  );
   const move = (offset: number) => {
     const index = year * 4 + quarter - 1 + offset;
     void navigate(`/budgets/${Math.floor(index / 4)}/${(index % 4) + 1}`);
@@ -231,22 +259,26 @@ export function BudgetPage() {
               />
             </div>
             <div className="grid items-start gap-3 shell:grid-cols-budget-layout">
-              {categoriesQuery.isPending ? (
-                <LoadingSpinner label={t('budgets.categoriesLoading')} className="py-16" />
-              ) : (
-                <AllocationTable
-                  categories={categories}
-                  fields={fields.allocations}
-                  income={income}
-                  errors={allocationErrors}
-                  onChange={changeAllocation}
-                  onReset={resetAllocation}
-                />
-              )}
+              <div className="min-w-0 space-y-4">
+                {categoriesQuery.isPending ? (
+                  <LoadingSpinner label={t('budgets.categoriesLoading')} className="py-16" />
+                ) : (
+                  <AllocationTable
+                    categories={categories}
+                    fields={fields.allocations}
+                    income={income}
+                    errors={allocationErrors}
+                    onChange={changeAllocation}
+                    onReset={resetAllocation}
+                  />
+                )}
+                <QuarterReview query={reportQuery} review={review} onRetry={() => void reportQuery.refetch()} />
+              </div>
               <QuarterCard
                 fields={fields}
                 incomeError={incomeError}
                 derived={derived}
+                review={review}
                 onIncome={changeIncome}
                 onNote={(value) => {
                   setSaveFailed(false);
@@ -419,12 +451,14 @@ function QuarterCard({
   fields,
   incomeError,
   derived,
+  review,
   onIncome,
   onNote,
 }: {
   fields: BudgetFields;
   incomeError: string | undefined;
   derived: ReturnType<typeof deriveTotals>;
+  review: ReturnType<typeof deriveQuarterReview> | undefined;
   onIncome: (value: string) => void;
   onNote: (value: string) => void;
 }) {
@@ -462,6 +496,14 @@ function QuarterCard({
             </p>
           )}
         </section>
+        {review && (
+          <section className="space-y-2 border-t pt-4">
+            <h3 className="text-sm font-semibold">{t('budgets.realized')}</h3>
+            <SummaryLine label={t('budgets.realizedIncome')} amount={review.income} percentage={null} positive />
+            <SummaryLine label={t('budgets.realizedExpenses')} amount={review.expenses} percentage={null} negative />
+            <SummaryLine label={t('budgets.realizedSurplus')} amount={review.surplus} percentage={null} positive={review.surplus >= 0} />
+          </section>
+        )}
         <section className="space-y-2 border-t pt-4">
           <h3 className="text-sm font-semibold">{t('budgets.quarterNote')}</h3>
           <Label className="sr-only" htmlFor="budget-note">
@@ -478,6 +520,109 @@ function QuarterCard({
         </section>
       </CardContent>
     </Card>
+  );
+}
+
+function QuarterReview({
+  query,
+  review,
+  onRetry,
+}: {
+  query: { isPending: boolean; isError: boolean };
+  review: ReturnType<typeof deriveQuarterReview> | undefined;
+  onRetry: () => void;
+}) {
+  const { t, i18n } = useTranslation();
+
+  if (query.isPending) return <LoadingSpinner label={t('budgets.actualLoading')} className="py-8" />;
+  if (query.isError) {
+    return (
+      <EmptyState
+        icon={AlertCircleIcon}
+        title={t('budgets.actualLoadErrorTitle')}
+        description={t('budgets.actualLoadErrorDescription')}
+        action={
+          <Button variant="outline" onClick={onRetry}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
+  if (!review?.hasActivity) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('budgets.reviewTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{t('budgets.noActualActivity')}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const monthFormatter = new Intl.DateTimeFormat(i18n.language, { month: 'long' });
+  return (
+    <section className="grid gap-4 lg:grid-cols-2" aria-label={t('budgets.reviewTitle')}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('budgets.incomeReview')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SummaryLine label={t('budgets.estimatedIncome')} amount={review.estimatedIncome} percentage={null} />
+          <SummaryLine label={t('budgets.realizedIncome')} amount={review.income} percentage={null} positive />
+          <SummaryLine
+            label={t('budgets.incomeVariance')}
+            amount={review.variance}
+            percentage={review.variancePercentage}
+            positive={review.variance >= 0}
+            negative={review.variance < 0}
+          />
+          <div className="space-y-2 border-t pt-3">
+            <h3 className="text-sm font-semibold">{t('budgets.incomeByMonth')}</h3>
+            {review.months.map((month) => (
+              <SummaryLine
+                key={month.month}
+                label={monthFormatter.format(new Date(2000, month.month - 1, 1))}
+                amount={month.income}
+                percentage={null}
+                positive
+              />
+            ))}
+          </div>
+          <div className="space-y-2 border-t pt-3">
+            <h3 className="text-sm font-semibold">{t('budgets.incomeByCategory')}</h3>
+            {review.incomeCategories.map((category) => (
+              <SummaryLine
+                key={category.categoryId ?? category.name}
+                label={category.name ?? t('reports.uncategorizedCategory')}
+                amount={category.amount}
+                percentage={null}
+                positive
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('budgets.expenseReview')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <SummaryLine label={t('budgets.plannedExpenses')} amount={review.plannedExpenses} percentage={null} negative />
+          <SummaryLine label={t('budgets.realizedExpenses')} amount={review.expenses} percentage={null} negative />
+          <SummaryLine
+            label={t('budgets.remainingBudget')}
+            amount={review.remainingBudget}
+            percentage={null}
+            positive={review.remainingBudget >= 0}
+            negative={review.remainingBudget < 0}
+          />
+          <p className="border-t pt-3 text-xs text-muted-foreground">{t('budgets.remainingBudgetDescription')}</p>
+        </CardContent>
+      </Card>
+    </section>
   );
 }
 
@@ -553,7 +698,7 @@ function mergeCategories(active: (Category & { parentId: string | null })[], bud
   return [...categories.values()];
 }
 
-function toFields(budget: BudgetDto | undefined): BudgetFields {
+function toFields(budget: BudgetDto | undefined, previous?: BudgetFields): BudgetFields {
   if (!budget) return EMPTY;
   return {
     income: currencyInput(budget.estimatedQuarterlyIncome),
@@ -565,7 +710,9 @@ function toFields(budget: BudgetDto | undefined): BudgetFields {
           targetPercentage: String(allocation.targetPercentage),
           adjustedMonthlyAmount: currencyInput(allocation.adjustedMonthlyAmount),
           note: allocation.note ?? '',
-          autoAdjusted: false,
+          autoAdjusted:
+            previous?.allocations[allocation.categoryId]?.autoAdjusted ??
+            allocation.adjustedMonthlyAmount === suggestedMonthlyTarget(budget.estimatedQuarterlyIncome, allocation.targetPercentage),
         },
       ]),
     ),
@@ -642,6 +789,33 @@ function deriveTotals(fields: BudgetFields, income: number | null) {
     expensePercentage: income !== null && income > 0 ? percentageOf(expenses, income) : null,
     availability,
     availabilityPercentage: income !== null && income > 0 ? percentageOf(availability, income) : null,
+  };
+}
+
+function deriveQuarterReview(report: YearlyReportDto, quarter: number, plannedExpenses: number, estimatedIncome: number | null) {
+  const start = (quarter - 1) * 3;
+  const months = report.months.slice(start, start + 3);
+  const income = months.reduce((total, month) => total + month.income, 0);
+  const expenses = months.reduce((total, month) => total + month.expense, 0);
+  const incomeCategories = report.categories
+    .filter((category) => category.kind === CategoryKind.INCOME)
+    .map((category) => ({ ...category, amount: category.monthly.slice(start, start + 3).reduce((total, amount) => total + amount, 0) }))
+    .filter((category) => category.amount > 0);
+  const estimated = estimatedIncome ?? 0;
+  const variance = income - estimated;
+
+  return {
+    months,
+    income,
+    expenses,
+    incomeCategories,
+    estimatedIncome: estimated,
+    plannedExpenses,
+    remainingBudget: plannedExpenses - expenses,
+    surplus: income - expenses,
+    variance,
+    variancePercentage: estimated > 0 ? percentageOf(variance, estimated) : null,
+    hasActivity: income !== 0 || expenses !== 0,
   };
 }
 

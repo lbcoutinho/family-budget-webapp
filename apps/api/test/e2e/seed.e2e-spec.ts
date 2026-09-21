@@ -1,5 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { vi } from 'vitest';
 
 import { seedUser, type SeedCredentials } from '../../prisma/seed';
 import { validate } from '../../src/config/env.validation';
@@ -15,7 +16,7 @@ describe('Database seed (e2e)', () => {
   const credentials: SeedCredentials = { email: 'seed.e2e@family-budget.test', password: 'owner-password' };
   const hashService = new HashService();
 
-  jest.setTimeout(30_000);
+  vi.setConfig({ testTimeout: 30_000 });
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({

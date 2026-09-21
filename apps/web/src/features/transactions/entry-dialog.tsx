@@ -441,7 +441,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
           <div className="grid gap-3">
             <p className="text-sm text-muted-foreground">{t(formKey('transactions.form.noAccounts'))}</p>
             <Button asChild size="sm" className="w-fit">
-              <Link to="/accounts">{t(formKey('transactions.form.createAccount'))}</Link>
+              <Link to="/settings/accounts">{t(formKey('transactions.form.createAccount'))}</Link>
             </Button>
           </div>
         ) : (
@@ -638,7 +638,12 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={activeMutation.isPending}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={activeMutation.isPending}>
+              <Button
+                type="submit"
+                variant={transaction?.status === TransactionStatus.DRAFT ? 'outline' : 'default'}
+                className={!transaction ? 'sm:order-1' : undefined}
+                disabled={activeMutation.isPending}
+              >
                 {activeMutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
                 {t(formKey('transactions.form.save'))}
               </Button>
@@ -648,7 +653,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                 </Button>
               ) : null}
               {transaction?.status === TransactionStatus.DRAFT ? (
-                <Button type="submit" variant="outline" disabled={activeMutation.isPending} data-save-and-confirm="true">
+                <Button type="submit" disabled={activeMutation.isPending} data-save-and-confirm="true">
                   {t(formKey('transactions.form.saveAndConfirm'))}
                 </Button>
               ) : null}

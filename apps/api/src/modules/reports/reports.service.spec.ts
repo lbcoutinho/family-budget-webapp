@@ -64,7 +64,7 @@ describe('ReportsService', () => {
         createdAt: new Date(Date.UTC(2026, 5, 1)),
       };
       accountFindMany.mockResolvedValueOnce([account, futureAccount]).mockResolvedValueOnce([account]);
-      cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Reserve', isActive: true, createdAt: new Date(Date.UTC(2026, 0, 1)) }]);
+      cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Reserve', isActive: true, initialBalance: 100, createdAt: new Date(Date.UTC(2026, 0, 1)) }]);
       jest.mocked(balances.sumByAccount).mockResolvedValue(new Map([[accountId, 200]]));
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map([[cashboxId, 300]]));
       jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
@@ -87,15 +87,15 @@ describe('ReportsService', () => {
       expect(result.snapshot).toEqual({
         cutoffDate: '2026-05-15',
         accounts: [{ accountId, name: 'Current', isActive: true, balance: 1_200 }],
-        cashboxes: [{ cashboxId, name: 'Reserve', isActive: true, balance: 300 }],
+        cashboxes: [{ cashboxId, name: 'Reserve', isActive: true, balance: 400 }],
         totalAccounts: 1_200,
-        totalCashboxes: 300,
-        totalNetWorth: 1_500,
+        totalCashboxes: 400,
+        totalNetWorth: 1_600,
       });
-      expect(result).toMatchObject({ currentAccountingClose: 2_000, futureDatedTransactions: 500, evolution: { hasSufficientHistory: true } });
+      expect(result).toMatchObject({ currentAccountingClose: 2_100, futureDatedTransactions: 500, evolution: { hasSufficientHistory: true } });
       expect(result.evolution.months).toHaveLength(12);
-      expect(result.evolution.months[0]).toMatchObject({ accounts: 1_200, cashboxes: 100, netWorth: 1_300 });
-      expect(result.evolution.months[4]).toEqual({ month: 5, accounts: 1_700, cashboxes: 300, netWorth: 2_000, inProgress: true });
+      expect(result.evolution.months[0]).toMatchObject({ accounts: 1_200, cashboxes: 200, netWorth: 1_400 });
+      expect(result.evolution.months[4]).toEqual({ month: 5, accounts: 1_700, cashboxes: 400, netWorth: 2_100, inProgress: true });
       expect(balances.sumByAccount).toHaveBeenCalledWith(userId, new Date(Date.UTC(2026, 4, 15)));
     });
 
@@ -559,7 +559,9 @@ describe('ReportsService', () => {
 
     it('folds rows from before January into the opening balance, without a second query', async () => {
       const { prisma, cashboxFindMany } = prismaDouble();
-      cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Reserva', isActive: true, targetAmount: null }]);
+      cashboxFindMany.mockResolvedValue([
+        { id: cashboxId, name: 'Reserva', isActive: true, targetAmount: null, initialBalance: 0, createdAt: new Date(Date.UTC(2025, 0, 1)) },
+      ]);
       const { balances } = balancesDouble([
         sourceRow({ cashboxId, type: 'CASHBOX_IN', referenceMonth: new Date(Date.UTC(2025, 10, 1)), amount: 5_000 }),
         sourceRow({ cashboxId, type: 'CASHBOX_IN', referenceMonth: new Date(Date.UTC(2026, 2, 1)), amount: 1_000 }),
@@ -579,8 +581,8 @@ describe('ReportsService', () => {
     it('nets a CASHBOX_TRANSFER to zero across the pair, in transfersOut/transfersIn rather than deposits/withdrawals', async () => {
       const { prisma, cashboxFindMany } = prismaDouble();
       cashboxFindMany.mockResolvedValue([
-        { id: cashboxId, name: 'Reserva', isActive: true, targetAmount: null },
-        { id: otherCashboxId, name: 'Viagem', isActive: true, targetAmount: null },
+        { id: cashboxId, name: 'Reserva', isActive: true, targetAmount: null, initialBalance: 0, createdAt: new Date(Date.UTC(2025, 0, 1)) },
+        { id: otherCashboxId, name: 'Viagem', isActive: true, targetAmount: null, initialBalance: 0, createdAt: new Date(Date.UTC(2025, 0, 1)) },
       ]);
       const { balances } = balancesDouble(
         [sourceRow({ cashboxId, type: 'CASHBOX_TRANSFER', referenceMonth: new Date(Date.UTC(2026, 4, 1)), amount: 2_000 })],
@@ -634,7 +636,9 @@ describe('ReportsService', () => {
 
     it('includes a live cashbox with no movement in the requested year, carrying zeros and its identity', async () => {
       const { prisma, cashboxFindMany } = prismaDouble();
-      cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Emergência', isActive: false, targetAmount: 10_000 }]);
+      cashboxFindMany.mockResolvedValue([
+        { id: cashboxId, name: 'Emergência', isActive: false, targetAmount: 10_000, initialBalance: 0, createdAt: new Date(Date.UTC(2025, 0, 1)) },
+      ]);
       const { balances } = balancesDouble([]);
       const service = new ReportsService(prisma, balances);
 

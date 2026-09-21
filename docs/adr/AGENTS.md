@@ -26,7 +26,7 @@ Project's architectural decisions and the reasoning behind them.
 | [0002](0002-nestjs-prisma-postgresql.md) | NestJS, Prisma and PostgreSQL on the backend | Accepted |
 | [0003](0003-react-vite-tailwind-shadcn.md) | React, Vite, Tailwind and shadcn/ui on the frontend | Accepted |
 | [0004](0004-openapi-contract-with-orval.md) | API contract via OpenAPI and Orval | Accepted |
-| [0005](0005-money-as-integer-cents.md) | Monetary values as integer cents | Accepted (narrowed by [0024](0024-multi-instrument-accounts-and-investment-trades.md)) |
+| [0005](0005-money-as-integer-cents.md) | Monetary values as integer cents | Accepted (narrowed by [0025](0025-multi-instrument-accounts-and-investment-trades.md)) |
 | [0006](0006-userid-on-all-entities.md) | `userId` on every domain entity | Accepted |
 | [0007](0007-cashbox-as-transaction-type.md) | Cashbox as a transaction type, not a category | Accepted |
 | [0008](0008-cashbox-without-funding-trace.md) | Cashbox as a pot, without funding traceability | Accepted |
@@ -45,4 +45,5 @@ Project's architectural decisions and the reasoning behind them.
 | [0021](0021-settlement-date-and-reference-month.md) | Settlement date and reference month | Superseded by [0022](0022-settlement-date-contract.md) |
 | [0022](0022-settlement-date-contract.md) | Settlement date contract | Superseded by [0023](0023-independent-reference-month.md) |
 | [0023](0023-independent-reference-month.md) | Independent reference month | Accepted |
-| [0024](0024-multi-instrument-accounts-and-investment-trades.md) | Multi-instrument accounts and investment trades | Accepted |
+| [0024](0024-budget-category-history.md) | Budget Category history | Accepted |
+| [0025](0025-multi-instrument-accounts-and-investment-trades.md) | Multi-instrument accounts and investment trades | Accepted |

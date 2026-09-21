@@ -167,11 +167,13 @@ export const createCategory = (
 
 
 
-export const getCreateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext> => {
+export const getCreateCategoryMutationKey = () => ['createCategory'] as const;
 
-const mutationKey = ['createCategory'];
+export const getCreateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,CreateCategoryMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,CreateCategoryMutationVariables, TContext> => {
+
+const mutationKey = getCreateCategoryMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -181,7 +183,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCategory>>, {data: BodyType<CreateCategoryDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCategory>>, CreateCategoryMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createCategory(data,)
@@ -197,16 +199,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createCategory>>>
     export type CreateCategoryMutationBody = BodyType<CreateCategoryDto>
     export type CreateCategoryMutationError = ErrorType<ApiErrorDto>
+    export type CreateCategoryMutationVariables = {data: BodyType<CreateCategoryDto>}
 
     /**
  * @summary Create a category
  */
 export const useCreateCategory = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,{data: BodyType<CreateCategoryDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategory>>, TError,CreateCategoryMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCategory>>,
         TError,
-        {data: BodyType<CreateCategoryDto>},
+        CreateCategoryMutationVariables,
         TContext
       > => {
       return useMutation(getCreateCategoryMutationOptions(options), queryClient);
@@ -324,11 +327,13 @@ export const updateCategory = (
 
 
 
-export const getUpdateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext> => {
+export const getUpdateCategoryMutationKey = () => ['updateCategory'] as const;
 
-const mutationKey = ['updateCategory'];
+export const getUpdateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,UpdateCategoryMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,UpdateCategoryMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCategoryMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -338,7 +343,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCategory>>, {id: string;data: BodyType<UpdateCategoryDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCategory>>, UpdateCategoryMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
           return  updateCategory(id,data,)
@@ -354,16 +359,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategory>>>
     export type UpdateCategoryMutationBody = BodyType<UpdateCategoryDto>
     export type UpdateCategoryMutationError = ErrorType<ApiErrorDto>
+    export type UpdateCategoryMutationVariables = {id: string;data: BodyType<UpdateCategoryDto>}
 
     /**
  * @summary Update a category
  */
 export const useUpdateCategory = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,{id: string;data: BodyType<UpdateCategoryDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCategory>>, TError,UpdateCategoryMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCategory>>,
         TError,
-        {id: string;data: BodyType<UpdateCategoryDto>},
+        UpdateCategoryMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateCategoryMutationOptions(options), queryClient);
@@ -386,11 +392,13 @@ export const deleteCategory = (
 
 
 
-export const getDeleteCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext> => {
+export const getDeleteCategoryMutationKey = () => ['deleteCategory'] as const;
 
-const mutationKey = ['deleteCategory'];
+export const getDeleteCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,DeleteCategoryMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,DeleteCategoryMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCategoryMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -400,7 +408,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCategory>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCategory>>, DeleteCategoryMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteCategory(id,)
@@ -416,16 +424,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategory>>>
 
     export type DeleteCategoryMutationError = ErrorType<ApiErrorDto>
+    export type DeleteCategoryMutationVariables = {id: string}
 
     /**
  * @summary Delete a category for good
  */
 export const useDeleteCategory = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,DeleteCategoryMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCategory>>,
         TError,
-        {id: string},
+        DeleteCategoryMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteCategoryMutationOptions(options), queryClient);
@@ -449,11 +458,13 @@ export const activateCategory = (
 
 
 
-export const getActivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext> => {
+export const getActivateCategoryMutationKey = () => ['activateCategory'] as const;
 
-const mutationKey = ['activateCategory'];
+export const getActivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,ActivateCategoryMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,ActivateCategoryMutationVariables, TContext> => {
+
+const mutationKey = getActivateCategoryMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -463,7 +474,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateCategory>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateCategory>>, ActivateCategoryMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  activateCategory(id,)
@@ -479,16 +490,17 @@ const {mutation: mutationOptions} = options ?
     export type ActivateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof activateCategory>>>
 
     export type ActivateCategoryMutationError = ErrorType<ApiErrorDto>
+    export type ActivateCategoryMutationVariables = {id: string}
 
     /**
  * @summary Put a retired category back into use
  */
 export const useActivateCategory = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateCategory>>, TError,ActivateCategoryMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateCategory>>,
         TError,
-        {id: string},
+        ActivateCategoryMutationVariables,
         TContext
       > => {
       return useMutation(getActivateCategoryMutationOptions(options), queryClient);
@@ -512,11 +524,13 @@ export const deactivateCategory = (
 
 
 
-export const getDeactivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext> => {
+export const getDeactivateCategoryMutationKey = () => ['deactivateCategory'] as const;
 
-const mutationKey = ['deactivateCategory'];
+export const getDeactivateCategoryMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,DeactivateCategoryMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,DeactivateCategoryMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateCategoryMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -526,7 +540,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateCategory>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateCategory>>, DeactivateCategoryMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deactivateCategory(id,)
@@ -542,16 +556,17 @@ const {mutation: mutationOptions} = options ?
     export type DeactivateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateCategory>>>
 
     export type DeactivateCategoryMutationError = ErrorType<ApiErrorDto>
+    export type DeactivateCategoryMutationVariables = {id: string}
 
     /**
  * @summary Retire a category, keeping its history
  */
 export const useDeactivateCategory = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateCategory>>, TError,DeactivateCategoryMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateCategory>>,
         TError,
-        {id: string},
+        DeactivateCategoryMutationVariables,
         TContext
       > => {
       return useMutation(getDeactivateCategoryMutationOptions(options), queryClient);

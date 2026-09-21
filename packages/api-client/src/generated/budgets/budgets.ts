@@ -171,11 +171,13 @@ export const putBudget = (
 
 
 
-export const getPutBudgetMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,{year: number;quarter: number;data: BodyType<PutBudgetDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,{year: number;quarter: number;data: BodyType<PutBudgetDto>}, TContext> => {
+export const getPutBudgetMutationKey = () => ['putBudget'] as const;
 
-const mutationKey = ['putBudget'];
+export const getPutBudgetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,PutBudgetMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,PutBudgetMutationVariables, TContext> => {
+
+const mutationKey = getPutBudgetMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -185,7 +187,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putBudget>>, {year: number;quarter: number;data: BodyType<PutBudgetDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putBudget>>, PutBudgetMutationVariables> = (props) => {
           const {year,quarter,data} = props ?? {};
 
           return  putBudget(year,quarter,data,)
@@ -201,16 +203,17 @@ const {mutation: mutationOptions} = options ?
     export type PutBudgetMutationResult = NonNullable<Awaited<ReturnType<typeof putBudget>>>
     export type PutBudgetMutationBody = BodyType<PutBudgetDto>
     export type PutBudgetMutationError = ErrorType<unknown>
+    export type PutBudgetMutationVariables = {year: number;quarter: number;data: BodyType<PutBudgetDto>}
 
     /**
  * @summary Create or replace one quarterly Budget
  */
 export const usePutBudget = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,{year: number;quarter: number;data: BodyType<PutBudgetDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBudget>>, TError,PutBudgetMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putBudget>>,
         TError,
-        {year: number;quarter: number;data: BodyType<PutBudgetDto>},
+        PutBudgetMutationVariables,
         TContext
       > => {
       return useMutation(getPutBudgetMutationOptions(options), queryClient);

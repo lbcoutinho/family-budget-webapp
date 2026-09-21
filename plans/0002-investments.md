@@ -12,7 +12,7 @@ The user currently maintains purchases and sales in spreadsheets with instrument
 
 ## Solution
 
-Add an Investments area based on ADR-0024. An Account becomes a custody location that may hold one or more Instruments. A Transfer continues to fund an Account without counting as an investment. An Investment Trade exchanges one acquired Instrument for one disposed Instrument inside the same Account and may pay its Trade Fee with a third Instrument.
+Add an Investments area based on ADR-0025. An Account becomes a custody location that may hold one or more Instruments. A Transfer continues to fund an Account without counting as an investment. An Investment Trade exchanges one acquired Instrument for one disposed Instrument inside the same Account and may pay its Trade Fee with a third Instrument.
 
 The application derives Instrument Balances, Investment Positions, weighted-average cost, realized and unrealized result, current EUR valuation, and monthly investment flow. It supports manual entry and a fixed normalized CSV import with preview, duplicate protection, reconciliation, and whole-batch rollback. Current market quotes come from EODHD when configured, with manual quotes and visible stale states as fallbacks.
 
@@ -83,7 +83,7 @@ V1 uses tables and totals only. Every Investments screen requires an approved di
 
 ## Implementation Decisions
 
-- ADR-0024 is authoritative: Accounts are custody locations, balances are keyed by Account and Instrument, and the EUR budget ledger remains separate from Investment Trades.
+- ADR-0025 is authoritative: Accounts are custody locations, balances are keyed by Account and Instrument, and the EUR budget ledger remains separate from Investment Trades.
 - Every new domain entity carries `userId`, and every read and mutation is scoped to the authenticated user.
 - Instruments have a type: fiat, stablecoin, cryptocurrency, stock, ETF, or ETC. EUR remains the Base Currency.
 - Financial Institutions minimally store identity, name, kind, active state, and ordering. An Account may omit the relationship for self-custody.

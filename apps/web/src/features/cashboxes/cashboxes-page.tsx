@@ -1,5 +1,6 @@
 import {
   type CashboxDto,
+  getListCashboxBalancesQueryKey,
   getListCashboxesQueryKey,
   useActivateCashbox,
   useCreateCashbox,
@@ -69,7 +70,10 @@ export function CashboxesPage() {
   const isError = cashboxesError || balancesError;
   const balanceByCashboxId = new Map(balances?.map(({ cashboxId, balance }) => [cashboxId, balance]));
 
-  const invalidate = () => void queryClient.invalidateQueries({ queryKey: getListCashboxesQueryKey() });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: getListCashboxesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
+  };
 
   const createCashbox = useCreateCashbox({
     mutation: {

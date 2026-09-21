@@ -168,11 +168,13 @@ export const createAccount = (
 
 
 
-export const getCreateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext> => {
+export const getCreateAccountMutationKey = () => ['createAccount'] as const;
 
-const mutationKey = ['createAccount'];
+export const getCreateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext> => {
+
+const mutationKey = getCreateAccountMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -182,7 +184,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAccount>>, {data: BodyType<CreateAccountDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAccount>>, CreateAccountMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  createAccount(data,)
@@ -198,16 +200,17 @@ const {mutation: mutationOptions} = options ?
     export type CreateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof createAccount>>>
     export type CreateAccountMutationBody = BodyType<CreateAccountDto>
     export type CreateAccountMutationError = ErrorType<ApiErrorDto>
+    export type CreateAccountMutationVariables = {data: BodyType<CreateAccountDto>}
 
     /**
  * @summary Create an account
  */
 export const useCreateAccount = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,{data: BodyType<CreateAccountDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccount>>, TError,CreateAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createAccount>>,
         TError,
-        {data: BodyType<CreateAccountDto>},
+        CreateAccountMutationVariables,
         TContext
       > => {
       return useMutation(getCreateAccountMutationOptions(options), queryClient);
@@ -418,11 +421,13 @@ export const updateAccount = (
 
 
 
-export const getUpdateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext> => {
+export const getUpdateAccountMutationKey = () => ['updateAccount'] as const;
 
-const mutationKey = ['updateAccount'];
+export const getUpdateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAccountMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -432,7 +437,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccount>>, {id: string;data: BodyType<UpdateAccountDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccount>>, UpdateAccountMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
           return  updateAccount(id,data,)
@@ -448,16 +453,17 @@ const {mutation: mutationOptions} = options ?
     export type UpdateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccount>>>
     export type UpdateAccountMutationBody = BodyType<UpdateAccountDto>
     export type UpdateAccountMutationError = ErrorType<ApiErrorDto>
+    export type UpdateAccountMutationVariables = {id: string;data: BodyType<UpdateAccountDto>}
 
     /**
  * @summary Update an account
  */
 export const useUpdateAccount = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{id: string;data: BodyType<UpdateAccountDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,UpdateAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateAccount>>,
         TError,
-        {id: string;data: BodyType<UpdateAccountDto>},
+        UpdateAccountMutationVariables,
         TContext
       > => {
       return useMutation(getUpdateAccountMutationOptions(options), queryClient);
@@ -480,11 +486,13 @@ export const deleteAccount = (
 
 
 
-export const getDeleteAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext> => {
+export const getDeleteAccountMutationKey = () => ['deleteAccount'] as const;
 
-const mutationKey = ['deleteAccount'];
+export const getDeleteAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext> => {
+
+const mutationKey = getDeleteAccountMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -494,7 +502,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccount>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccount>>, DeleteAccountMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deleteAccount(id,)
@@ -510,16 +518,17 @@ const {mutation: mutationOptions} = options ?
     export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
 
     export type DeleteAccountMutationError = ErrorType<ApiErrorDto>
+    export type DeleteAccountMutationVariables = {id: string}
 
     /**
  * @summary Delete an account for good
  */
 export const useDeleteAccount = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,DeleteAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteAccount>>,
         TError,
-        {id: string},
+        DeleteAccountMutationVariables,
         TContext
       > => {
       return useMutation(getDeleteAccountMutationOptions(options), queryClient);
@@ -542,11 +551,13 @@ export const activateAccount = (
 
 
 
-export const getActivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext> => {
+export const getActivateAccountMutationKey = () => ['activateAccount'] as const;
 
-const mutationKey = ['activateAccount'];
+export const getActivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,ActivateAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,ActivateAccountMutationVariables, TContext> => {
+
+const mutationKey = getActivateAccountMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -556,7 +567,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateAccount>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateAccount>>, ActivateAccountMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  activateAccount(id,)
@@ -572,16 +583,17 @@ const {mutation: mutationOptions} = options ?
     export type ActivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof activateAccount>>>
 
     export type ActivateAccountMutationError = ErrorType<ApiErrorDto>
+    export type ActivateAccountMutationVariables = {id: string}
 
     /**
  * @summary Put a retired account back into use
  */
 export const useActivateAccount = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAccount>>, TError,ActivateAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof activateAccount>>,
         TError,
-        {id: string},
+        ActivateAccountMutationVariables,
         TContext
       > => {
       return useMutation(getActivateAccountMutationOptions(options), queryClient);
@@ -604,11 +616,13 @@ export const deactivateAccount = (
 
 
 
-export const getDeactivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext> => {
+export const getDeactivateAccountMutationKey = () => ['deactivateAccount'] as const;
 
-const mutationKey = ['deactivateAccount'];
+export const getDeactivateAccountMutationOptions = <TError = ErrorType<ApiErrorDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,DeactivateAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,DeactivateAccountMutationVariables, TContext> => {
+
+const mutationKey = getDeactivateAccountMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -618,7 +632,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateAccount>>, {id: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateAccount>>, DeactivateAccountMutationVariables> = (props) => {
           const {id} = props ?? {};
 
           return  deactivateAccount(id,)
@@ -634,16 +648,17 @@ const {mutation: mutationOptions} = options ?
     export type DeactivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateAccount>>>
 
     export type DeactivateAccountMutationError = ErrorType<ApiErrorDto>
+    export type DeactivateAccountMutationVariables = {id: string}
 
     /**
  * @summary Retire an account, keeping its history
  */
 export const useDeactivateAccount = <TError = ErrorType<ApiErrorDto>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,{id: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAccount>>, TError,DeactivateAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deactivateAccount>>,
         TError,
-        {id: string},
+        DeactivateAccountMutationVariables,
         TContext
       > => {
       return useMutation(getDeactivateAccountMutationOptions(options), queryClient);

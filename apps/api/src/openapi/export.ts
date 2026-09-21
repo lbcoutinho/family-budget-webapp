@@ -14,7 +14,7 @@ import { buildOpenapiDocument } from './openapi.document';
  * database available. Boot-time env validation still runs, so the standard env vars must be set.
  */
 async function exportOpenapi(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { preview: true, logger: false });
+  const app = await NestFactory.create(AppModule, { preview: true, logger: false, abortOnError: false });
 
   const document = buildOpenapiDocument(app);
   const outputPath = join(process.cwd(), 'openapi.json');

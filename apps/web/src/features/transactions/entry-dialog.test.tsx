@@ -209,7 +209,7 @@ describe('EntryDialog', () => {
     accounts = [];
     renderDialog();
 
-    expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/accounts');
+    expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/settings/accounts');
   });
 
   it('exposes the account placeholder on "Conta", "De" and "Para", and clears the value when reselected', async () => {
@@ -529,6 +529,17 @@ describe('EntryDialog', () => {
     expect(screen.getByText('transactions.form.title')).toBeInTheDocument();
   });
 
+  it('places the primary save action last on desktop while keeping it the default submitter for a new entry', () => {
+    renderDialog();
+
+    const saveAnother = screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' });
+    const save = screen.getByRole('button', { name: 'transactions.form.save' });
+
+    expect(save.compareDocumentPosition(saveAnother) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(save).toHaveAttribute('data-variant', 'default');
+    expect(save).toHaveClass('sm:order-1');
+  });
+
   it('treats Enter as Save after a failed save-and-add request', async () => {
     const onOpenChange = vi.fn();
     const { user } = renderDialog(onOpenChange);
@@ -683,6 +694,17 @@ describe('EntryDialog', () => {
     await user.click(screen.getByRole('button', { name: 'transactions.form.saveAndConfirm' }));
 
     expect(updateMutate).toHaveBeenCalledWith({ id: 'transaction-1', data: { status: 'CONFIRMED' } });
+  });
+
+  it('keeps save secondary and makes save and confirm primary when editing a DRAFT', () => {
+    renderDialog(vi.fn(), makeTransaction({ status: 'DRAFT' }));
+
+    const save = screen.getByRole('button', { name: 'transactions.form.save' });
+    const saveAndConfirm = screen.getByRole('button', { name: 'transactions.form.saveAndConfirm' });
+
+    expect(save).toHaveAttribute('data-variant', 'outline');
+    expect(saveAndConfirm).toHaveAttribute('data-variant', 'default');
+    expect(save.compareDocumentPosition(saveAndConfirm) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('requires an amount before saving and confirming an amountless DRAFT', async () => {

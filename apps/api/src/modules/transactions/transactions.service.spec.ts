@@ -77,13 +77,14 @@ const doubles = (): {
   // `$transaction` doubles for both call shapes the service uses: a callback (create/update/remove)
   // and an array of already-issued promises (findAll's `[findMany, groupBy]`).
   const account = { findMany: jest.fn().mockResolvedValue([]) };
-  const $transaction = jest.fn((arg: ((tx: { transaction: typeof transaction; account: typeof account }) => unknown) | unknown[]) =>
-    Array.isArray(arg) ? Promise.all(arg) : arg({ transaction, account }),
+  const cashbox = { findMany: jest.fn().mockResolvedValue([]) };
+  const $transaction = jest.fn((arg: ((tx: { transaction: typeof transaction; account: typeof account; cashbox: typeof cashbox }) => unknown) | unknown[]) =>
+    Array.isArray(arg) ? Promise.all(arg) : arg({ transaction, account, cashbox }),
   );
   const validate = jest.fn().mockResolvedValue(NO_REFS);
 
   return {
-    prisma: { transaction, account, $transaction } as unknown as PrismaService,
+    prisma: { transaction, account, cashbox, $transaction } as unknown as PrismaService,
     validator: { validate } as unknown as TransactionValidator,
     transaction,
     validate,

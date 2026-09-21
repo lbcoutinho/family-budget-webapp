@@ -46,11 +46,13 @@ export const login = (
 
 
 
-export const getLoginMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginDto>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginDto>}, TContext> => {
+export const getLoginMutationKey = () => ['login'] as const;
 
-const mutationKey = ['login'];
+export const getLoginMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,LoginMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,LoginMutationVariables, TContext> => {
+
+const mutationKey = getLoginMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -60,7 +62,7 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: BodyType<LoginDto>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, LoginMutationVariables> = (props) => {
           const {data} = props ?? {};
 
           return  login(data,)
@@ -76,16 +78,17 @@ const {mutation: mutationOptions} = options ?
     export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
     export type LoginMutationBody = BodyType<LoginDto>
     export type LoginMutationError = ErrorType<void>
+    export type LoginMutationVariables = {data: BodyType<LoginDto>}
 
     /**
  * @summary Log in with email and password
  */
 export const useLogin = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginDto>}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,LoginMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof login>>,
         TError,
-        {data: BodyType<LoginDto>},
+        LoginMutationVariables,
         TContext
       > => {
       return useMutation(getLoginMutationOptions(options), queryClient);
@@ -108,11 +111,13 @@ export const refresh = (
 
 
 
+export const getRefreshMutationKey = () => ['refresh'] as const;
+
 export const getRefreshMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,void, TContext> => {
 
-const mutationKey = ['refresh'];
+const mutationKey = getRefreshMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -138,6 +143,7 @@ const {mutation: mutationOptions} = options ?
     export type RefreshMutationResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
 
     export type RefreshMutationError = ErrorType<void>
+
 
     /**
  * @summary Issue a new access token from the refresh cookie
@@ -170,11 +176,13 @@ export const logout = (
 
 
 
+export const getLogoutMutationKey = () => ['logout'] as const;
+
 export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
 
-const mutationKey = ['logout'];
+const mutationKey = getLogoutMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -200,6 +208,7 @@ const {mutation: mutationOptions} = options ?
     export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 
     export type LogoutMutationError = ErrorType<unknown>
+
 
     /**
  * @summary Clear the refresh cookie

@@ -15,6 +15,7 @@ const row = (overrides: Partial<Cashbox> = {}): Cashbox => ({
   userId,
   name: 'Fundo de emergência',
   description: 'Seis meses de despesas fixas.',
+  initialBalance: 0,
   targetAmount: 500_000,
   isActive: true,
   sortOrder: 0,
@@ -34,7 +35,7 @@ const prismaDouble = (): {
   groupBy: jest.Mock;
 } => {
   const cashbox = {
-    findMany: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -72,6 +73,7 @@ describe('CashboxesService', () => {
           id: cashboxId,
           name: 'Fundo de emergência',
           description: 'Seis meses de despesas fixas.',
+          initialBalance: 0,
           targetAmount: 500_000,
           isActive: true,
           sortOrder: 0,
@@ -120,13 +122,13 @@ describe('CashboxesService', () => {
   });
 
   describe('findBalances', () => {
-    it('reports 0 for a cashbox with no confirmed transactions and includes inactive ones', async () => {
+    it('adds initialBalance to confirmed movements and includes inactive cashboxes', async () => {
       const untouchedId = '44444444-4444-4444-4444-444444444444';
-      cashbox.findMany.mockResolvedValue([row(), row({ id: untouchedId, isActive: false, targetAmount: null })]);
+      cashbox.findMany.mockResolvedValue([row({ initialBalance: 2_000 }), row({ id: untouchedId, isActive: false, targetAmount: null })]);
       sumByCashbox.mockResolvedValue(new Map([[cashboxId, 6_000]]));
 
       await expect(service.findBalances(userId)).resolves.toEqual([
-        { cashboxId, name: 'Fundo de emergência', isActive: true, targetAmount: 500_000, balance: 6_000 },
+        { cashboxId, name: 'Fundo de emergência', isActive: true, targetAmount: 500_000, balance: 8_000 },
         { cashboxId: untouchedId, name: 'Fundo de emergência', isActive: false, targetAmount: null, balance: 0 },
       ]);
       expect(cashbox.findMany).toHaveBeenCalledWith({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] });
@@ -177,6 +179,24 @@ describe('CashboxesService', () => {
 
     await expect(service.update(userId, cashboxId, { targetAmount: null })).resolves.toMatchObject({ targetAmount: null });
     expect(cashbox.update).toHaveBeenCalledWith({ where: { id: cashboxId }, data: { targetAmount: null } });
+  });
+
+  it('updates the initial balance without allowing a negative resulting balance', async () => {
+    cashbox.findUnique.mockResolvedValue(row());
+    cashbox.findMany.mockResolvedValue([row({ initialBalance: 2_000 })]);
+    cashbox.update.mockResolvedValue(row({ initialBalance: 2_000 }));
+
+    await expect(service.update(userId, cashboxId, { initialBalance: 2_000 })).resolves.toMatchObject({ initialBalance: 2_000 });
+    expect(cashbox.update).toHaveBeenCalledWith({ where: { id: cashboxId }, data: { initialBalance: 2_000 } });
+  });
+
+  it('rejects an initial balance edit that leaves the cashbox negative', async () => {
+    cashbox.findUnique.mockResolvedValue(row());
+    cashbox.findMany.mockResolvedValue([row({ initialBalance: 0 })]);
+    cashbox.update.mockResolvedValue(row({ initialBalance: 0 }));
+    groupBy.mockResolvedValue([{ type: 'CASHBOX_OUT', cashboxId, destinationCashboxId: null, _sum: { amount: 1 } }]);
+
+    await expect(service.update(userId, cashboxId, { initialBalance: 0 })).rejects.toMatchObject({ response: { code: 'CASHBOX_INSUFFICIENT_FUNDS' } });
   });
 
   it.each([
