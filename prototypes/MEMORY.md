@@ -42,6 +42,7 @@ this table and that screen's own file, nothing else.
 | 17  | Investments navigation      | **approved**      | [memory/17-investments-navigation.md](memory/17-investments-navigation.md)   |
 | 18  | Investments overview        | **approved**      | [memory/18-investments-overview.md](memory/18-investments-overview.md)       |
 | 19  | Investment operations       | **approved**      | [memory/19-investment-operations.md](memory/19-investment-operations.md)     |
+| 20  | Monthly investment flow     | design review     | [memory/20-monthly-investment-flow.md](memory/20-monthly-investment-flow.md) |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
 type, spacing locked in against `00-design-system.html`) is separate and only 00, 01, 02, 03, 04, 05,
