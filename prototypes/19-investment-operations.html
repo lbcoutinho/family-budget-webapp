@@ -501,20 +501,25 @@
           el.addEventListener('change', (e) => setParam(key, e.target.value));
         }
         const rows = [
-          ['14/07/2026 · 10:32', 'DEGIRO', '5,2451 VWCE', '650,00 EUR', '2,00 EUR', '650,00 €'],
-          ['11/07/2026 · 18:04', 'Kraken', '0,008421 BTC', '500,00 EUR', '0,00004 BNB', '500,00 €'],
-          ['08/07/2026 · 09:15', 'Kraken', '750,00 USDC', '700,00 EUR', '—', '700,00 €'],
-          ['03/07/2026 · 15:47', 'DEGIRO', '320,00 EUR', '2,5813 VWCE', '1,00 EUR', '320,00 €'],
-          ['02/07/2026 · 12:20', 'Kraken', '+ 0,000120 BTC', 'Ajuste de posição', 'Reconciliação', '7,10 €'],
-          ['01/07/2026 · 08:40', 'DEGIRO', '− 12,35 EUR', 'Ajuste de saldo', 'Reconciliação', '—'],
+          ['14/07/2026 · 10:32', 'DEGIRO', '5,2451 VWCE', '650,00 EUR', '2,00 EUR', '650,00 €', 'purchase'],
+          ['11/07/2026 · 18:04', 'Kraken', '0,008421 BTC', '500,00 EUR', '0,00004 BNB', '500,00 €', 'third-fee'],
+          ['08/07/2026 · 09:15', 'Kraken', '750,00 USDC', '700,00 EUR', '—', '700,00 €', 'stablecoin'],
+          ['03/07/2026 · 15:47', 'DEGIRO', '320,00 EUR', '2,5813 VWCE', '1,00 EUR', '320,00 €', 'sale'],
+          ['02/07/2026 · 12:20', 'Kraken', '+ 0,000120 BTC', 'Ajuste de posição', 'Reconciliação', '7,10 €', 'position'],
+          ['01/07/2026 · 08:40', 'DEGIRO', '− 12,35 EUR', 'Ajuste de saldo', 'Reconciliação', '—', 'balance'],
         ];
         const pageHead = `<div class="page-head"><div><h1>Operações</h1><p>Negociações e correções explícitas, em ordem de execução.</p></div></div>`;
         const filters = `<div class="filters"><label class="field search"><span>Buscar</span><input class="input" placeholder="Instrumento, conta ou nota"></label><label class="field"><span>Conta</span><select class="select"><option>Todas as contas</option><option>DEGIRO</option><option>Kraken</option></select></label><label class="field"><span>Período</span><select class="select"><option>Julho de 2026</option><option>Todo o histórico</option></select></label></div>`;
         const empty = (kind, title, copy, action = '') =>
           `<div class="card state-panel"><div class="empty">${icon(kind)}<h3>${title}</h3><p class="small muted" style="max-width:48ch">${copy}</p>${action}</div></div>`;
-        const table = `<div class="card"><div class="table-wrap"><table class="data freeze"><thead><tr><th>Execução</th><th>Conta</th><th>Recebido</th><th>Entregue</th><th>Taxa</th><th class="amount">Valor EUR</th><th></th></tr></thead><tbody>${rows.map((r, i) => `<tr><td class="date"><a href="?view=detail">${r[0]}</a></td><td>${r[1]}</td><td><span class="trade-pair"><span class="asset">${r[2].split(' ').at(-1)}</span><span class="quantity">${r[2]}</span></span></td><td class="quantity">${r[3]}</td><td class="quantity">${r[4]}</td><td class="amount">${r[5]}</td><td><div class="row-actions"><a class="btn icon ghost" href="?view=detail" aria-label="Ver operação" title="Ver">${icon('search')}</a><button class="btn icon ghost" data-open="operation-dialog" data-mode="${i === 1 ? 'third-fee' : 'purchase'}" aria-label="Editar operação" title="Editar">${icon('pencil')}</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
+        const table = `<div class="card"><div class="table-wrap"><table class="data freeze"><thead><tr><th>Execução</th><th>Conta</th><th>Recebido</th><th>Entregue</th><th>Taxa</th><th class="amount">Valor EUR</th><th></th></tr></thead><tbody>${rows.map((r) => `<tr><td class="date"><a href="?view=detail&operation=${r[6]}">${r[0]}</a></td><td>${r[1]}</td><td><span class="trade-pair"><span class="asset">${r[2].split(' ').at(-1)}</span><span class="quantity">${r[2]}</span></span></td><td class="quantity">${r[3]}</td><td class="quantity">${r[4]}</td><td class="amount">${r[5]}</td><td><div class="row-actions"><a class="btn icon ghost" href="?view=detail&operation=${r[6]}" aria-label="Ver operação" title="Ver">${icon('search')}</a><button class="btn icon ghost" data-open="operation-dialog" data-mode="${r[6]}" aria-label="Editar operação" title="Editar">${icon('pencil')}</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
         function render() {
           if (view === 'detail') {
+            if (params.get('operation') === 'position' || params.get('operation') === 'balance') {
+              const position = params.get('operation') === 'position';
+              screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>${position ? 'Ajuste de posição' : 'Ajuste de saldo'}</h1><p>Registrado em 02/07/2026 às 12:20 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="${position ? 'position' : 'balance'}">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>${position ? 'Kraken' : 'DEGIRO'}</dd></div><div><dt>${position ? 'Ativo' : 'Moeda'}</dt><dd>${position ? 'BTC' : 'EUR'}</dd></div><div><dt>Variação</dt><dd class="quantity">${position ? '+ 0,000120 BTC' : '− 12,35 EUR'}</dd></div><div><dt>${position ? 'Custo atribuído' : 'Efeito no orçamento'}</dt><dd>${position ? '7,10 €' : 'Nenhum'}</dd></div><div><dt>Motivo</dt><dd>Diferença identificada na reconciliação com o extrato.</dd></div><div><dt>Atividade mensal</dt><dd>Não contabiliza</dd></div></dl><div class="effect">${icon('info')}<span>${position ? 'Corrige quantidade e custo sem criar compra ou venda.' : 'Corrige o saldo sem criar receita, despesa ou transferência.'}</span></div></section>`;
+              return;
+            }
             screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>BTC recebido por EUR</h1><p>Executada em 11/07/2026 às 18:04 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="third-fee">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>Kraken</dd></div><div><dt>Execução UTC</dt><dd class="date">11/07/2026 · 17:04 UTC</dd></div><div><dt>Recebido</dt><dd class="quantity">0,008421 BTC</dd></div><div><dt>Entregue</dt><dd class="quantity">500,00 EUR</dd></div><div><dt>Taxa</dt><dd class="quantity">0,00004 BNB</dd></div><div><dt>Valor na execução</dt><dd class="amount" style="text-align:left">500,00 €</dd></div><div><dt>Listagem</dt><dd>BTC-EUR · Kraken</dd></div><div><dt>Notas</dt><dd>Compra mensal</dd></div></dl><div class="effect">${icon('info')}<span>A compra aumenta a posição de BTC; a taxa reduz BNB e entra no custo da posição adquirida.</span></div></section>`;
             return;
           }
@@ -612,12 +617,17 @@
           document.getElementById('operation-title').textContent = position ? 'Ajustar posição' : 'Ajustar saldo';
           return `<div class="dialog-grid"><div class="form-main"><div class="field-row">${selectField('Conta', position ? 'Kraken' : 'DEGIRO', ['DEGIRO', 'Kraken', 'Ledger'])}${field('Data e hora', '2026-07-14T10:32', 'datetime-local')}</div><div class="field-row">${selectField(position ? 'Ativo' : 'Moeda', position ? 'BTC' : 'EUR', position ? ['BTC', 'VWCE', 'BNB'] : ['EUR', 'USDC'])}${field(position ? 'Variação da quantidade' : 'Variação do saldo', position ? '0,000120' : '-12,35')}</div>${position ? field('Custo atribuído (EUR)', '7,10') : ''}<label class="field"><span>Motivo</span><textarea class="textarea" rows="3" required>Diferença identificada na reconciliação com o extrato.</textarea></label><div class="effect">${icon('info')}<span>${position ? 'Corrige quantidade e custo da posição. Não conta como compra ou venda e não altera o fluxo mensal.' : 'Corrige o saldo da moeda. Não cria receita, despesa, transferência nem atividade de investimento.'}</span></div></div><aside class="form-side"><h3>Correção auditável</h3><p>Use somente quando o histórico não explica a diferença. O motivo ficará visível no detalhe da operação.</p></aside></div>`;
         }
-        function confirmation() {
+        function confirmation(mode) {
           document.getElementById('operation-title').textContent = 'Confirmar operação';
+          if (mode === 'position' || mode === 'balance') {
+            const position = mode === 'position';
+            return `<div class="form-main"><p>Confira o ajuste e seu efeito antes de salvar.</p><div class="confirm-summary"><div><span>Tipo</span><b>${position ? 'Ajuste de posição' : 'Ajuste de saldo'}</b></div><div><span>Conta</span><b>${position ? 'Kraken' : 'DEGIRO'}</b></div><div><span>${position ? 'Ativo' : 'Moeda'}</span><b>${position ? 'BTC' : 'EUR'}</b></div><div><span>Variação</span><b class="quantity">${position ? '+ 0,000120 BTC' : '− 12,35 EUR'}</b></div><div><span>Motivo</span><b>Diferença na reconciliação</b></div></div><div class="effect">${icon('info')}<span>Este ajuste não cria atividade de investimento nem movimentação do orçamento.</span></div></div>`;
+          }
           return `<div class="form-main"><p>Confira os instrumentos e sinais antes de salvar.</p><div class="confirm-summary"><div><span>Conta</span><b>Kraken</b></div><div><span>Receber</span><b class="quantity">0,008421 BTC</b></div><div><span>Entregar</span><b class="quantity">500,00 EUR</b></div><div><span>Taxa</span><b class="quantity">0,00004 BNB</b></div><div><span>Valor na execução</span><b>500,00 €</b></div></div><div class="effect">${icon('info')}<span>O saldo será validado novamente ao confirmar.</span></div></div>`;
         }
-        let currentMode;
+        let currentMode, pendingMode;
         function openForm(mode) {
+          if (mode !== 'confirmation' && mode !== 'choose') pendingMode = mode;
           currentMode = mode;
           document.getElementById('operation-body').innerHTML =
             mode === 'choose'
@@ -625,7 +635,7 @@
               : mode === 'position' || mode === 'balance'
                 ? adjustmentForm(mode)
                 : mode === 'confirmation'
-                  ? confirmation()
+                  ? confirmation(pendingMode)
                   : tradeForm(mode);
           document.getElementById('save-operation').hidden = mode === 'choose';
           document.getElementById('save-operation').textContent = mode === 'confirmation' ? 'Confirmar e salvar' : 'Revisar operação';
