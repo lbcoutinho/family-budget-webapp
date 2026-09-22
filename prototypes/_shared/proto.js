@@ -22,6 +22,10 @@ const ICONS = {
   tags: '<path d="M3 3h7.2L21 13.8 13.8 21 3 10.2z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
   piggy: '<path d="M3 12.5a6.5 6.5 0 0 1 6.5-6.5h3A6.5 6.5 0 0 1 19 12.5V18h-3.5v-2h-5v2H7v-3a6.4 6.4 0 0 1-4-2.5z"/><path d="M20 11h1.5M13 6V3.5"/>',
   budget: '<path d="M4 5.5h16M4 12h16M4 18.5h16"/><path d="M8 3v5M15 9.5v5M11 16v5"/>',
+  investments: '<path d="M3.5 18.5 9 13l3.5 3.5L21 7"/><path d="M15.5 7H21v5.5"/>',
+  building: '<path d="M4 21V8l8-4 8 4v13M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3M2.5 21h19"/>',
+  instrument: '<circle cx="8" cy="8" r="4.5"/><circle cx="16" cy="16" r="4.5"/><path d="M11.2 11.2l1.6 1.6"/>',
+  listing: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   pencil: '<path d="M4 20h4L20 8l-4-4L4 16z"/>',
   trash: '<path d="M4 6.5h16M9 6.5V4h6v2.5M6.5 6.5l1 14h9l1-14"/>',
@@ -81,6 +85,13 @@ const NAV_SETTINGS = [
   { id: 'categories', label: 'Categorias', icon: 'tags', href: '04-categories.html' },
 ];
 
+const NAV_INVESTMENT_SETTINGS = [
+  { id: 'investment-institutions', label: 'Instituições', icon: 'building', href: '17-investments-navigation.html?view=settings&setup=institutions' },
+  { id: 'investment-instruments', label: 'Instrumentos', icon: 'instrument', href: '17-investments-navigation.html?view=settings&setup=instruments' },
+  { id: 'investment-listings', label: 'Listagens', icon: 'listing', href: '17-investments-navigation.html?view=settings&setup=listings' },
+  { id: 'investment-accounts', label: 'Contas', icon: 'wallet', href: '17-investments-navigation.html?view=settings&setup=accounts' },
+];
+
 const SOON = 'Sem protótipo ainda — chega com as telas restantes';
 
 /* An approved screen lives one folder down, so a link between two screens has
@@ -104,13 +115,16 @@ const APPROVED = new Set([
   '14-settings-general.html',
   '14-settings-general-models.html',
   '15-transaction-import.html',
+  '17-investments-navigation.html',
 ]);
 
 function protoHref(file) {
+  const [path, query] = file.split('?');
   const here = location.pathname.includes('/approved/');
-  const there = APPROVED.has(file);
-  if (here === there) return file;
-  return here ? `../${file}` : `approved/${file}`;
+  const there = APPROVED.has(path);
+  const target = `${path}${query ? `?${query}` : ''}`;
+  if (here === there) return target;
+  return here ? `../${target}` : `approved/${target}`;
 }
 
 function navItem(item, active) {
@@ -122,19 +136,34 @@ function navItem(item, active) {
 }
 
 function buildShell(active) {
-  const settingsOpen = NAV_SETTINGS.some((i) => i.id === active);
+  const investmentsEnabled = window.PROTOTYPE_INVESTMENTS_NAV === true;
+  const primaryNav = investmentsEnabled
+    ? [...NAV.slice(0, 2), { id: 'investments', label: 'Investimentos', icon: 'investments', href: '17-investments-navigation.html' }, ...NAV.slice(2)]
+    : NAV;
+  const investmentSettingsOpen = investmentsEnabled && NAV_INVESTMENT_SETTINGS.some((i) => i.id === active);
+  const settingsOpen = investmentSettingsOpen || NAV_SETTINGS.some((i) => i.id === active);
   return `<aside class="side" id="side">
     <div class="brand">
       <span class="mark"><i style="background:var(--c1)"></i><i style="background:var(--c3)"></i><i style="background:var(--c2)"></i><i style="background:var(--c5)"></i></span>
       Orçamento
     </div>
     <nav class="nav">
-      ${NAV.map((i) => navItem(i, active)).join('')}
+      ${primaryNav.map((i) => navItem(i, active)).join('')}
       <button type="button" aria-expanded="${settingsOpen}" data-toggle="settings-sub">
         ${icon('settings')}<span>Configurações</span>${icon('chevronRight', 'caret')}
       </button>
       <div class="sub" id="settings-sub" ${settingsOpen ? '' : 'hidden'}>
         ${NAV_SETTINGS.map((i) => navItem(i, active)).join('')}
+        ${
+          investmentsEnabled
+            ? `<button type="button" aria-expanded="${investmentSettingsOpen}" data-toggle="investment-settings-sub">
+          ${icon('investments')}<span>Investimentos</span>${icon('chevronRight', 'caret')}
+        </button>
+        <div class="sub" id="investment-settings-sub" ${investmentSettingsOpen ? '' : 'hidden'}>
+          ${NAV_INVESTMENT_SETTINGS.map((i) => navItem(i, active)).join('')}
+        </div>`
+            : ''
+        }
       </div>
     </nav>
     <div class="user">
@@ -165,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('[data-shell]').forEach((el) => {
     el.classList.add('shell');
-    el.insertAdjacentHTML('afterbegin', buildShell(el.dataset.shell));
+    el.insertAdjacentHTML('afterbegin', buildShell(window.PROTOTYPE_SHELL_ACTIVE || el.dataset.shell));
   });
 
   document.querySelectorAll('[data-icon]').forEach((el) => {
