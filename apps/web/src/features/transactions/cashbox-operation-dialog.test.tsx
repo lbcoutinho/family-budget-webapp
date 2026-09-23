@@ -30,8 +30,8 @@ let cashboxes = [
 ];
 let cashboxListParams: unknown;
 let accountBalances = [
-  { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
-  { accountId: 'account-2', name: 'Poupança', balance: 300000 },
+  { accountId: 'account-1', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '2000' },
+  { accountId: 'account-2', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '3000' },
 ];
 let cashboxBalances = [
   { cashboxId: 'cashbox-1', name: 'Férias', balance: 100000 },
@@ -47,7 +47,7 @@ vi.mock('@family-budget/api-client', async (importOriginal) => {
       cashboxListParams = params;
       return { data: cashboxes };
     },
-    useListAccountBalances: () => ({ data: accountBalances }),
+    useListAccountInstrumentBalances: () => ({ data: accountBalances }),
     useListCashboxBalances: () => ({ data: cashboxBalances }),
     useCreateTransaction: (options: unknown) => {
       mutationOptions = options as MutationOptions;
@@ -124,8 +124,8 @@ describe('CashboxOperationDialog', () => {
     ];
     cashboxListParams = undefined;
     accountBalances = [
-      { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
-      { accountId: 'account-2', name: 'Poupança', balance: 300000 },
+      { accountId: 'account-1', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '2000' },
+      { accountId: 'account-2', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '3000' },
     ];
     cashboxBalances = [
       { cashboxId: 'cashbox-1', name: 'Férias', balance: 100000 },

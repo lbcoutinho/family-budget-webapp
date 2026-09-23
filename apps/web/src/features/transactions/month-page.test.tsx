@@ -247,7 +247,7 @@ describe('MonthPage', () => {
       http.get('/api/accounts', () => HttpResponse.json([])),
       http.get('/api/categories', () => HttpResponse.json([])),
       http.get('/api/cashboxes', () => HttpResponse.json([])),
-      http.get('/api/accounts/balances', () => HttpResponse.json([])),
+      http.get('/api/accounts/instrument-balances', () => HttpResponse.json([])),
       http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
     );
   });
@@ -492,7 +492,7 @@ describe('MonthPage', () => {
         if (url.searchParams.get('type') === 'EXPENSE') return HttpResponse.json(page([]));
         return HttpResponse.json(url.searchParams.get('status') === 'DRAFT' ? page(confirmed ? [] : [DRAFT]) : page([CONFIRMED]));
       }),
-      http.get('/api/accounts/balances', () => {
+      http.get('/api/accounts/instrument-balances', () => {
         accountBalanceRequests++;
         return HttpResponse.json(ACCOUNT_BALANCES);
       }),

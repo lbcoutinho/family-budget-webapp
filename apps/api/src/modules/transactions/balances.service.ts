@@ -83,30 +83,41 @@ export class BalancesService {
 
   /** Exact Account quantities. Legacy budget Transactions are EUR movements until their migration completes. */
   async instrumentBalances(userId: string, asOf?: Date): Promise<AccountInstrumentBalance[]> {
-    const [initialBalances, movements, eur] = await Promise.all([
+    return this.instrumentBalancesWithMovements(userId, this.sumByAccount(userId, asOf), asOf);
+  }
+
+  /** Exact Account quantities at an accounting month's close for cash-basis reports. */
+  async instrumentBalancesByReferenceMonth(userId: string, referenceMonth: Date): Promise<AccountInstrumentBalance[]> {
+    return this.instrumentBalancesWithMovements(userId, this.sumByAccountReferenceMonth(userId, referenceMonth), referenceMonth);
+  }
+
+  private async instrumentBalancesWithMovements(userId: string, movements: Promise<Map<string, number>>, asOf?: Date): Promise<AccountInstrumentBalance[]> {
+    const [initialBalances, movementSums, eur] = await Promise.all([
       this.prisma.accountInitialBalance.findMany({
         where: { userId },
-        include: { instrument: { select: { name: true, code: true } } },
+        include: { account: { select: { createdAt: true } }, instrument: { select: { name: true, code: true } } },
         orderBy: [{ accountId: 'asc' }, { instrument: { code: 'asc' } }],
       }),
-      this.sumByAccount(userId, asOf),
+      movements,
       this.prisma.instrument.findFirst({ where: { userId, code: 'EUR' }, select: { id: true, name: true, code: true } }),
     ]);
     const balances = new Map<string, AccountInstrumentBalance>(
-      initialBalances.map((balance) => [
-        `${balance.accountId}:${balance.instrumentId}`,
-        {
-          accountId: balance.accountId,
-          instrumentId: balance.instrumentId,
-          quantity: new Prisma.Decimal(balance.quantity),
-          instrumentName: balance.instrument.name,
-          instrumentCode: balance.instrument.code,
-        },
-      ]),
+      initialBalances
+        .filter((balance) => asOf === undefined || balance.account.createdAt <= asOf)
+        .map((balance) => [
+          `${balance.accountId}:${balance.instrumentId}`,
+          {
+            accountId: balance.accountId,
+            instrumentId: balance.instrumentId,
+            quantity: new Prisma.Decimal(balance.quantity),
+            instrumentName: balance.instrument.name,
+            instrumentCode: balance.instrument.code,
+          },
+        ]),
     );
 
     if (eur) {
-      for (const [accountId, cents] of movements) {
+      for (const [accountId, cents] of movementSums) {
         const key = `${accountId}:${eur.id}`;
         const balance = balances.get(key);
         if (balance) balance.quantity = balance.quantity.add(new Prisma.Decimal(cents).div(100));
