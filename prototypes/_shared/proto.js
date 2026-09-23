@@ -117,6 +117,7 @@ const APPROVED = new Set([
   '15-transaction-import.html',
   '17-investments-navigation.html',
   '18-investments-overview.html',
+  '19-investment-operations.html',
 ]);
 
 function protoHref(file) {
