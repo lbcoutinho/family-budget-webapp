@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
 import { AccountBalanceDto } from './dto/account-balance.dto';
+import { AccountInstrumentBalanceDto } from './dto/account-instrument-balance.dto';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { ListAccountsQueryDto } from './dto/list-accounts-query.dto';
@@ -65,6 +66,10 @@ export class AccountsService {
       initialBalance: account.initialBalance,
       balance: account.initialBalance + (sums.get(account.id) ?? 0),
     }));
+  }
+
+  async findInstrumentBalances(userId: string, asOf?: Date): Promise<AccountInstrumentBalanceDto[]> {
+    return (await this.balances.instrumentBalances(userId, asOf)).map((balance) => ({ ...balance, quantity: balance.quantity.toString() }));
   }
 
   async create(userId: string, dto: CreateAccountDto): Promise<AccountDto> {

@@ -97,7 +97,7 @@
       "name": "Account",
       "type": "Type",
       "institution": "Institution",
-      "balance": "Current balance"
+      "balance": "Instrument balances"
     },
     "inactiveBadge": "inactive",
     "actions": {

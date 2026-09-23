@@ -1,4 +1,4 @@
-import { type AccountDto } from '@family-budget/api-client';
+import { type AccountDto, type AccountInstrumentBalanceDto } from '@family-budget/api-client';
 import { PencilIcon, PowerIcon, PowerOffIcon, Trash2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
 /** "Millennium" → "MI", "Conta Corrente" → "CC". Two letters, no icon set distinguishes a list of banks. */
@@ -19,9 +18,8 @@ function initials(name: string): string {
 
 export interface AccountsTableProps {
   accounts: AccountDto[];
-  /** Balance in cents by account id. A missing entry (the balances query failed) renders as an em
-   * dash, same convention as `StatCard`/`CashboxCard`. */
-  balances: Map<string, number>;
+  /** Native Instrument quantities by account. */
+  balances: Map<string, AccountInstrumentBalanceDto[]>;
   balancesLoading: boolean;
   onEdit: (account: AccountDto) => void;
   onDeactivate: (account: AccountDto) => void;
@@ -103,7 +101,17 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
             <TableCell>{account.kind ?? 'BANK'}</TableCell>
             <TableCell>{account.financialInstitutionName ?? '—'}</TableCell>
             <TableCell className="text-right tabular-nums">
-              {balancesLoading ? <Skeleton className="ml-auto h-4 w-16" /> : balances.has(account.id) ? formatCents(balances.get(account.id)!) : '—'}
+              {balancesLoading ? (
+                <Skeleton className="ml-auto h-4 w-16" />
+              ) : balances.has(account.id) ? (
+                balances.get(account.id)!.map((balance) => (
+                  <div key={balance.instrumentId}>
+                    {balance.quantity} {balance.instrumentCode}
+                  </div>
+                ))
+              ) : (
+                '—'
+              )}
             </TableCell>
             <TableCell>
               <div className="flex justify-end gap-0.5">
