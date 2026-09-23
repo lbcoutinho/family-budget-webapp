@@ -61,6 +61,9 @@ export class InvestmentsService {
   }
   async setInstrumentActive(userId: string, id: string, isActive: boolean): Promise<InstrumentDto> {
     await this.instrument(userId, id);
+    if (!isActive) {
+      await this.prisma.assetListing.updateMany({ where: { userId, OR: [{ instrumentId: id }, { quoteInstrumentId: id }] }, data: { isActive: false } });
+    }
     return toInstrumentDto(await this.prisma.instrument.update({ where: { id }, data: { isActive } }));
   }
   async removeInstrument(userId: string, id: string): Promise<void> {
@@ -82,12 +85,14 @@ export class InvestmentsService {
     return toListingDto(await this.prisma.assetListing.create({ data: { ...dto, userId }, include: listingInclude }));
   }
   async updateListing(userId: string, id: string, dto: UpdateAssetListingDto): Promise<AssetListingDto> {
-    const current = await this.listing(userId, id);
-    await this.assertActiveInstruments(userId, dto.instrumentId ?? current.instrumentId, dto.quoteInstrumentId ?? current.quoteInstrumentId);
+    await this.listing(userId, id);
+    if (dto.instrumentId !== undefined) await this.assertActiveInstruments(userId, dto.instrumentId);
+    if (dto.quoteInstrumentId !== undefined) await this.assertActiveInstruments(userId, dto.quoteInstrumentId);
     return toListingDto(await this.prisma.assetListing.update({ where: { id }, data: dto, include: listingInclude }));
   }
   async setListingActive(userId: string, id: string, isActive: boolean): Promise<AssetListingDto> {
-    await this.listing(userId, id);
+    const listing = await this.listing(userId, id);
+    if (isActive) await this.assertActiveInstruments(userId, listing.instrumentId, listing.quoteInstrumentId);
     return toListingDto(await this.prisma.assetListing.update({ where: { id }, data: { isActive }, include: listingInclude }));
   }
   async removeListing(userId: string, id: string): Promise<void> {

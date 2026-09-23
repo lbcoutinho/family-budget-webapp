@@ -4,7 +4,6 @@ import {
   type LucideIcon,
   MicIcon,
   PiggyBankIcon,
-  LandmarkIcon,
   RepeatIcon,
   SlidersHorizontalIcon,
   TagsIcon,
@@ -28,7 +27,6 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { to: '/month', labelKey: 'nav.month', icon: CalendarIcon },
   { to: '/budgets', labelKey: 'nav.budgets', icon: SlidersHorizontalIcon },
-  { to: '/settings/investments/institutions', labelKey: 'nav.investments', icon: LandmarkIcon },
   { to: '/cashboxes', labelKey: 'nav.cashboxes', icon: PiggyBankIcon },
   { to: '/reports', labelKey: 'nav.reports', icon: ChartColumnIcon },
   { to: '/voice', labelKey: 'nav.voice', icon: MicIcon },
@@ -41,4 +39,5 @@ export const SETTINGS_NAV_ITEMS: NavItem[] = [
   { to: '/settings/general', labelKey: 'nav.settingsGeneral', icon: UserRoundCogIcon },
   { to: '/settings/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
   { to: '/settings/categories', labelKey: 'nav.categories', icon: TagsIcon },
+  { to: '/settings/investments/institutions', labelKey: 'nav.investments', icon: SlidersHorizontalIcon },
 ];
