@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>19 — Operações de investimentos (protótipo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script>
+      window.PROTOTYPE_INVESTMENTS_NAV = true;
+      window.PROTOTYPE_SHELL_ACTIVE = 'investments';
+    </script>
+    <script defer src="../_shared/proto.js"></script>
+    <style>
+      .content {
+        padding-bottom: 88px;
+      }
+      .investment-tabs {
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+      .investment-tabs a {
+        flex: none;
+        padding: 9px 11px;
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        font-size: 14px;
+      }
+      .investment-tabs a[aria-current='page'] {
+        color: var(--ink);
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+      .review-tools,
+      .filters,
+      .page-head,
+      .dialog-grid,
+      .leg,
+      .effect {
+        display: flex;
+        gap: 10px;
+      }
+      .review-tools {
+        align-items: end;
+        padding: 10px 12px;
+        margin-bottom: 16px;
+        background: var(--wash);
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+      }
+      .review-tools:before {
+        content: 'Controles do protótipo';
+        align-self: center;
+        margin-right: auto;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .review-tools .field {
+        min-width: 145px;
+      }
+      .page-head {
+        align-items: start;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .page-head p {
+        max-width: 66ch;
+        margin-top: 3px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .filters {
+        align-items: end;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .filters .field {
+        min-width: 160px;
+      }
+      .filters .search {
+        flex: 1;
+        min-width: 220px;
+      }
+      .trade-pair {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+      .asset {
+        display: inline-grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: var(--wash);
+        font:
+          500 9px ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+      .amount,
+      .date,
+      .quantity {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .amount {
+        text-align: right;
+      }
+      .row-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 2px;
+      }
+      .state-panel {
+        min-height: 250px;
+        display: grid;
+        place-items: center;
+      }
+      .detail {
+        max-width: 760px;
+      }
+      .detail-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .detail-head p {
+        margin-top: 3px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+      .detail-grid > div {
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--line);
+      }
+      .detail-grid > div:nth-child(odd) {
+        border-right: 1px solid var(--line);
+      }
+      .detail-grid > div:nth-last-child(-n + 2) {
+        border-bottom: 0;
+      }
+      .detail-grid dt {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        margin-bottom: 3px;
+      }
+      .detail-grid dd {
+        margin: 0;
+      }
+      .effect {
+        align-items: start;
+        padding: 12px 14px;
+        margin-top: 14px;
+        background: var(--wash);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        font-size: 12.5px;
+      }
+      .effect svg {
+        flex: none;
+        width: 17px;
+        height: 17px;
+      }
+      .dialog.wide {
+        width: min(860px, calc(100% - 32px));
+        max-width: 860px;
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+      }
+      .dialog-body {
+        padding: 16px;
+      }
+      .dialog-grid {
+        align-items: start;
+      }
+      .form-main {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        gap: 14px;
+      }
+      .form-side {
+        width: 230px;
+        padding: 13px;
+        background: var(--wash);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+      }
+      .form-side h3 {
+        font-size: 14px;
+        margin-bottom: 7px;
+      }
+      .form-side p,
+      .form-side li {
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+      .form-side ul {
+        margin: 8px 0 0;
+        padding-left: 17px;
+      }
+      .field-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .leg {
+        align-items: end;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+      }
+      .leg > .field:first-of-type {
+        flex: 1;
+      }
+      .leg .quantity-field {
+        width: 180px;
+      }
+      .leg-label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 92px;
+        padding-bottom: 9px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .leg-label i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--transfer);
+      }
+      .leg.disposed .leg-label i {
+        background: var(--expense);
+      }
+      .leg.fee .leg-label i {
+        background: var(--cashbox);
+      }
+      .optional {
+        color: var(--ink-soft);
+        font-weight: 400;
+      }
+      .form-error {
+        color: var(--expense);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .confirm-summary {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        background: var(--wash);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+      }
+      .confirm-summary div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .decisions {
+        margin: 34px 0 58px;
+      }
+      .decisions > p {
+        max-width: 72ch;
+        margin: 6px 0 12px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .decisions li {
+        margin: 10px 0;
+        padding-left: 4px;
+      }
+      .decisions li span {
+        display: block;
+        max-width: 78ch;
+        color: var(--ink-soft);
+        font-size: 14px;
+        margin-top: 2px;
+      }
+      @media (max-width: 720px) {
+        .review-tools,
+        .page-head,
+        .dialog-grid {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .review-tools:before {
+          align-self: auto;
+          margin: 0;
+        }
+        .review-tools .field,
+        .filters .field,
+        .filters .search {
+          min-width: 0;
+          flex: 1 1 100%;
+        }
+        .topbar > .btn {
+          position: fixed;
+          right: 14px;
+          bottom: 14px;
+          z-index: 70;
+          width: 48px;
+          height: 48px;
+          padding: 0;
+          border-radius: 50%;
+          overflow: hidden;
+          color: transparent;
+          box-shadow: var(--shadow-md);
+        }
+        .topbar > .btn svg {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          color: #fff;
+        }
+        body:has(.scrim[style*='display: grid']) .topbar > .btn {
+          display: none;
+        }
+        .detail-grid,
+        .field-row {
+          grid-template-columns: 1fr;
+        }
+        .detail-grid > div,
+        .detail-grid > div:nth-child(odd),
+        .detail-grid > div:nth-last-child(-n + 2) {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .detail-grid > div:last-child {
+          border-bottom: 0;
+        }
+        .form-side {
+          width: auto;
+        }
+        .leg {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .leg-label {
+          padding-bottom: 0;
+        }
+        .leg .quantity-field {
+          width: auto;
+        }
+        .dialog.wide {
+          width: calc(100% - 16px);
+          max-height: calc(100vh - 16px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *:before,
+        *:after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+  THESIS: One exchange operation, three exact legs; refuses separate purchase, sale, and conversion forms.
+  OWN-WORLD: Approved Cromático shell; colour marks leg meaning while ink chrome stays quiet.
+  STORY: Scan operations, inspect one, then register any exchange or explicit correction with its reporting effect visible.
+  FIRST VIEWPORT: Operations table under persistent investment tabs; one primary “Nova operação” action.
+  FORM: Dense ledger workspace, incumbent extension, seed issue-395-operations.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+  -->
+    <div data-proto="19 — Operações de investimentos" data-ticket="#395 · aprovada"></div>
+    <div class="proto-note"><strong>Estrutura aprovada.</strong> Use os controles para percorrer estados e exemplos; os dados são fictícios.</div>
+    <div data-shell="investments">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Investimentos</span>
+          </div>
+          <button class="btn sm" data-open="operation-dialog" data-mode="choose"><span data-icon="plus"></span> Nova operação</button>
+        </header>
+        <div class="content">
+          <nav class="investment-tabs" aria-label="Seções de investimentos">
+            <a href="18-investments-overview.html">Visão geral</a><a href="#" aria-current="page">Operações</a
+            ><a href="20-monthly-investment-flow.html">Fluxo mensal</a><a href="21-investment-import-reconciliation.html">Importar e reconciliar</a>
+          </nav>
+          <div class="review-tools" aria-label="Controles do protótipo">
+            <label class="field"
+              ><span>Vista</span
+              ><select class="select" id="prototype-view">
+                <option value="list">Lista</option>
+                <option value="detail">Detalhe</option>
+              </select></label
+            >
+            <label class="field"
+              ><span>Estado</span
+              ><select class="select" id="prototype-state">
+                <option value="populated">Preenchido</option>
+                <option value="loading">Carregando</option>
+                <option value="empty">Vazio</option>
+                <option value="error">Erro</option>
+              </select></label
+            >
+            <label class="field"
+              ><span>Formulário</span
+              ><select class="select" id="prototype-form">
+                <option value="closed">Fechado</option>
+                <option value="purchase">Compra</option>
+                <option value="sale">Venda</option>
+                <option value="stablecoin">EUR → stablecoin</option>
+                <option value="third-fee">Taxa em terceiro ativo</option>
+                <option value="position">Ajuste de posição</option>
+                <option value="balance">Ajuste de saldo</option>
+                <option value="validation">Validação</option>
+                <option value="insufficient">Saldo insuficiente</option>
+                <option value="confirmation">Confirmação</option>
+              </select></label
+            >
+          </div>
+          <div id="screen"></div>
+          <section class="decisions">
+            <h2>Decisões aprovadas</h2>
+            <p>Estas escolhas orientam a implementação das operações e dos ajustes.</p>
+            <ol>
+              <li>
+                <b>Uma troca, três pernas.</b
+                ><span>Compra, venda e conversão usam o mesmo formulário: recebido, entregue e taxa opcional, sem selecionar um “tipo de negociação”.</span>
+              </li>
+              <li>
+                <b>A lista descreve a troca, não débito e crédito separados.</b
+                ><span>O par de instrumentos é a informação principal; valor em EUR, conta e taxa ficam visíveis sem abrir o detalhe.</span>
+              </li>
+              <li>
+                <b>Ajustes são operações explícitas no mesmo histórico.</b
+                ><span>“Ajustar posição” e “Ajustar saldo” exigem motivo e explicam que corrigem custódia sem criar compra, venda, receita ou despesa.</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+    <div class="scrim" id="operation-dialog" role="dialog" aria-modal="true" aria-labelledby="operation-title">
+      <div class="dialog wide">
+        <div class="dialog-head">
+          <h2 id="operation-title">Nova operação</h2>
+          <button class="btn icon ghost" data-close aria-label="Fechar"><span data-icon="x"></span></button>
+        </div>
+        <div class="dialog-body" id="operation-body"></div>
+        <div class="dialog-foot">
+          <button class="btn outline sm" data-close>Cancelar</button><button class="btn sm" id="save-operation">Revisar operação</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(location.search),
+          screen = document.getElementById('screen');
+        let view = ['list', 'detail'].includes(params.get('view')) ? params.get('view') : 'list',
+          state = ['populated', 'loading', 'empty', 'error'].includes(params.get('state')) ? params.get('state') : 'populated',
+          form = params.get('form') || 'closed';
+        const setParam = (key, value) => {
+          const next = new URL(location.href);
+          next.searchParams.set(key, value);
+          location.href = next;
+        };
+        for (const [id, key, value] of [
+          ['prototype-view', 'view', view],
+          ['prototype-state', 'state', state],
+          ['prototype-form', 'form', form],
+        ]) {
+          const el = document.getElementById(id);
+          el.value = value;
+          el.addEventListener('change', (e) => setParam(key, e.target.value));
+        }
+        const rows = [
+          ['14/07/2026 · 10:32', 'DEGIRO', '5,2451 VWCE', '650,00 EUR', '2,00 EUR', '650,00 €', 'purchase'],
+          ['11/07/2026 · 18:04', 'Kraken', '0,008421 BTC', '500,00 EUR', '0,00004 BNB', '500,00 €', 'third-fee'],
+          ['08/07/2026 · 09:15', 'Kraken', '750,00 USDC', '700,00 EUR', '—', '700,00 €', 'stablecoin'],
+          ['03/07/2026 · 15:47', 'DEGIRO', '320,00 EUR', '2,5813 VWCE', '1,00 EUR', '320,00 €', 'sale'],
+          ['02/07/2026 · 12:20', 'Kraken', '+ 0,000120 BTC', 'Ajuste de posição', 'Reconciliação', '7,10 €', 'position'],
+          ['01/07/2026 · 08:40', 'DEGIRO', '− 12,35 EUR', 'Ajuste de saldo', 'Reconciliação', '—', 'balance'],
+        ];
+        const pageHead = `<div class="page-head"><div><h1>Operações</h1><p>Negociações e correções explícitas, em ordem de execução.</p></div></div>`;
+        const filters = `<div class="filters"><label class="field search"><span>Buscar</span><input class="input" placeholder="Instrumento, conta ou nota"></label><label class="field"><span>Conta</span><select class="select"><option>Todas as contas</option><option>DEGIRO</option><option>Kraken</option></select></label><label class="field"><span>Período</span><select class="select"><option>Julho de 2026</option><option>Todo o histórico</option></select></label></div>`;
+        const empty = (kind, title, copy, action = '') =>
+          `<div class="card state-panel"><div class="empty">${icon(kind)}<h3>${title}</h3><p class="small muted" style="max-width:48ch">${copy}</p>${action}</div></div>`;
+        const table = `<div class="card"><div class="table-wrap"><table class="data freeze"><thead><tr><th>Execução</th><th>Conta</th><th>Recebido</th><th>Entregue</th><th>Taxa</th><th class="amount">Valor EUR</th><th></th></tr></thead><tbody>${rows.map((r) => `<tr><td class="date"><a href="?view=detail&operation=${r[6]}">${r[0]}</a></td><td>${r[1]}</td><td><span class="trade-pair"><span class="asset">${r[2].split(' ').at(-1)}</span><span class="quantity">${r[2]}</span></span></td><td class="quantity">${r[3]}</td><td class="quantity">${r[4]}</td><td class="amount">${r[5]}</td><td><div class="row-actions"><a class="btn icon ghost" href="?view=detail&operation=${r[6]}" aria-label="Ver operação" title="Ver">${icon('search')}</a><button class="btn icon ghost" data-open="operation-dialog" data-mode="${r[6]}" aria-label="Editar operação" title="Editar">${icon('pencil')}</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
+        function render() {
+          if (view === 'detail') {
+            if (params.get('operation') === 'position' || params.get('operation') === 'balance') {
+              const position = params.get('operation') === 'position';
+              screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>${position ? 'Ajuste de posição' : 'Ajuste de saldo'}</h1><p>Registrado em 02/07/2026 às 12:20 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="${position ? 'position' : 'balance'}">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>${position ? 'Kraken' : 'DEGIRO'}</dd></div><div><dt>${position ? 'Ativo' : 'Moeda'}</dt><dd>${position ? 'BTC' : 'EUR'}</dd></div><div><dt>Variação</dt><dd class="quantity">${position ? '+ 0,000120 BTC' : '− 12,35 EUR'}</dd></div><div><dt>${position ? 'Custo atribuído' : 'Efeito no orçamento'}</dt><dd>${position ? '7,10 €' : 'Nenhum'}</dd></div><div><dt>Motivo</dt><dd>Diferença identificada na reconciliação com o extrato.</dd></div><div><dt>Atividade mensal</dt><dd>Não contabiliza</dd></div></dl><div class="effect">${icon('info')}<span>${position ? 'Corrige quantidade e custo sem criar compra ou venda.' : 'Corrige o saldo sem criar receita, despesa ou transferência.'}</span></div></section>`;
+              return;
+            }
+            screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>BTC recebido por EUR</h1><p>Executada em 11/07/2026 às 18:04 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="third-fee">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>Kraken</dd></div><div><dt>Execução UTC</dt><dd class="date">11/07/2026 · 17:04 UTC</dd></div><div><dt>Recebido</dt><dd class="quantity">0,008421 BTC</dd></div><div><dt>Entregue</dt><dd class="quantity">500,00 EUR</dd></div><div><dt>Taxa</dt><dd class="quantity">0,00004 BNB</dd></div><div><dt>Valor na execução</dt><dd class="amount" style="text-align:left">500,00 €</dd></div><div><dt>Listagem</dt><dd>BTC-EUR · Kraken</dd></div><div><dt>Notas</dt><dd>Compra mensal</dd></div></dl></section>`;
+            return;
+          }
+          if (state === 'loading')
+            screen.innerHTML =
+              pageHead +
+              `<div class="card" aria-busy="true"><span class="sr-only" role="status">Carregando operações</span><div style="padding:16px;display:grid;gap:13px">${[1, 2, 3, 4].map((_, i) => `<div class="skeleton" style="width:${92 - i * 7}%;height:18px"></div>`).join('')}</div></div>`;
+          else if (state === 'empty')
+            screen.innerHTML =
+              pageHead +
+              empty(
+                'investments',
+                'Nenhuma operação ainda',
+                'Registre uma compra, venda ou conversão. Transferências para a conta continuam fora deste histórico.',
+                `<button class="btn sm" data-open="operation-dialog" data-mode="choose">${icon('plus')} Nova operação</button>`,
+              );
+          else if (state === 'error')
+            screen.innerHTML =
+              pageHead +
+              empty(
+                'alert',
+                'Não foi possível carregar as operações',
+                'A carteira não foi alterada. Verifique a conexão e tente de novo.',
+                '<button class="btn outline sm">Tentar de novo</button>',
+              );
+          else screen.innerHTML = pageHead + filters + table;
+        }
+        const examples = {
+          purchase: {
+            title: 'Nova operação',
+            account: 'DEGIRO',
+            received: 'VWCE',
+            receivedQty: '5,2451',
+            disposed: 'EUR',
+            disposedQty: '650,00',
+            fee: 'EUR',
+            feeQty: '2,00',
+            value: '650,00',
+            note: 'Compra mensal',
+          },
+          sale: {
+            title: 'Editar operação',
+            account: 'DEGIRO',
+            received: 'EUR',
+            receivedQty: '320,00',
+            disposed: 'VWCE',
+            disposedQty: '2,5813',
+            fee: 'EUR',
+            feeQty: '1,00',
+            value: '320,00',
+            note: 'Venda parcial',
+          },
+          stablecoin: {
+            title: 'Nova operação',
+            account: 'Kraken',
+            received: 'USDC',
+            receivedQty: '750,00',
+            disposed: 'EUR',
+            disposedQty: '700,00',
+            fee: '',
+            feeQty: '',
+            value: '700,00',
+            note: 'Conversão para saldo de negociação',
+          },
+          'third-fee': {
+            title: 'Editar operação',
+            account: 'Kraken',
+            received: 'BTC',
+            receivedQty: '0,008421',
+            disposed: 'EUR',
+            disposedQty: '500,00',
+            fee: 'BNB',
+            feeQty: '0,00004',
+            value: '500,00',
+            note: 'Compra mensal',
+          },
+        };
+        const field = (label, value, type = 'text') =>
+          `<label class="field"><span>${label}</span><input class="input" type="${type}" value="${value}"></label>`;
+        const selectField = (label, value, options) =>
+          `<label class="field"><span>${label}</span><select class="select">${options.map((x) => `<option ${x === value ? 'selected' : ''}>${x}</option>`).join('')}</select></label>`;
+        function tradeForm(mode) {
+          const x = examples[mode] || examples.purchase,
+            invalid = mode === 'validation',
+            disposed = mode === 'insufficient' ? 'VWCE' : x.disposed;
+          document.getElementById('operation-title').textContent = x.title;
+          return `<div class="dialog-grid"><div class="form-main"><div class="field-row">${selectField('Conta', x.account, ['DEGIRO', 'Kraken', 'Ledger'])}${field('Execução', '2026-07-14T10:32', 'datetime-local')}</div><div class="leg"><div class="leg-label"><i></i>Recebido</div>${selectField('Instrumento', invalid ? 'Selecione' : x.received, ['Selecione', 'VWCE', 'BTC', 'USDC', 'EUR'])}<label class="field quantity-field"><span>Quantidade exata</span><input class="input" value="${invalid ? '' : x.receivedQty}">${mode === 'validation' ? '<span class="form-error">Informe o instrumento e a quantidade recebida.</span>' : ''}</label></div><div class="leg disposed"><div class="leg-label"><i></i>Entregue</div>${selectField('Instrumento', disposed, ['EUR', 'VWCE', 'BTC', 'USDC'])}<label class="field quantity-field"><span>Quantidade exata</span><input class="input" value="${mode === 'insufficient' ? '9,0000' : x.disposedQty}">${mode === 'insufficient' ? '<span class="form-error">Disponível na DEGIRO: 4,1632 VWCE.</span>' : ''}</label></div><div class="leg fee"><div class="leg-label"><i></i>Taxa <span class="optional">opcional</span></div>${selectField('Instrumento', x.fee || 'Sem taxa', ['Sem taxa', 'EUR', 'BNB', 'BTC'])}${field('Quantidade', x.feeQty)}</div><div class="field-row">${selectField('Listagem', x.received === 'VWCE' ? 'VWCE · Xetra' : 'Não se aplica', ['Não se aplica', 'VWCE · Xetra', 'BTC-EUR · Kraken'])}${field('Valor na execução (EUR)', x.value)}</div>${field('Notas', x.note)}</div><aside class="form-side"><h3>Uma troca, três pernas</h3><p>Não escolha compra, venda ou conversão: indique o que entrou, o que saiu e como a taxa foi paga.</p><ul><li>Quantidades aceitam até 18 casas.</li><li>O instante é salvo em UTC.</li><li>O valor EUR preserva o custo histórico.</li></ul></aside></div>`;
+        }
+        function operationChoice() {
+          document.getElementById('operation-title').textContent = 'Nova operação';
+          return `<div class="form-main"><button class="btn outline" data-mode="purchase">Negociação <span class="grow"></span>Compra, venda ou conversão</button><button class="btn outline" data-mode="position">Ajuste de posição <span class="grow"></span>Corrigir quantidade de um ativo</button><button class="btn outline" data-mode="balance">Ajuste de saldo <span class="grow"></span>Corrigir saldo de uma moeda</button></div>`;
+        }
+        function adjustmentForm(mode) {
+          const position = mode === 'position';
+          document.getElementById('operation-title').textContent = position ? 'Ajustar posição' : 'Ajustar saldo';
+          return `<div class="dialog-grid"><div class="form-main"><div class="field-row">${selectField('Conta', position ? 'Kraken' : 'DEGIRO', ['DEGIRO', 'Kraken', 'Ledger'])}${field('Data e hora', '2026-07-14T10:32', 'datetime-local')}</div><div class="field-row">${selectField(position ? 'Ativo' : 'Moeda', position ? 'BTC' : 'EUR', position ? ['BTC', 'VWCE', 'BNB'] : ['EUR', 'USDC'])}${field(position ? 'Variação da quantidade' : 'Variação do saldo', position ? '0,000120' : '-12,35')}</div>${position ? field('Custo atribuído (EUR)', '7,10') : ''}<label class="field"><span>Motivo</span><textarea class="textarea" rows="3" required>Diferença identificada na reconciliação com o extrato.</textarea></label><div class="effect">${icon('info')}<span>${position ? 'Corrige quantidade e custo da posição. Não conta como compra ou venda e não altera o fluxo mensal.' : 'Corrige o saldo da moeda. Não cria receita, despesa, transferência nem atividade de investimento.'}</span></div></div><aside class="form-side"><h3>Correção auditável</h3><p>Use somente quando o histórico não explica a diferença. O motivo ficará visível no detalhe da operação.</p></aside></div>`;
+        }
+        function confirmation(mode) {
+          document.getElementById('operation-title').textContent = 'Confirmar operação';
+          if (mode === 'position' || mode === 'balance') {
+            const position = mode === 'position';
+            return `<div class="form-main"><p>Confira o ajuste e seu efeito antes de salvar.</p><div class="confirm-summary"><div><span>Tipo</span><b>${position ? 'Ajuste de posição' : 'Ajuste de saldo'}</b></div><div><span>Conta</span><b>${position ? 'Kraken' : 'DEGIRO'}</b></div><div><span>${position ? 'Ativo' : 'Moeda'}</span><b>${position ? 'BTC' : 'EUR'}</b></div><div><span>Variação</span><b class="quantity">${position ? '+ 0,000120 BTC' : '− 12,35 EUR'}</b></div><div><span>Motivo</span><b>Diferença na reconciliação</b></div></div><div class="effect">${icon('info')}<span>Este ajuste não cria atividade de investimento nem movimentação do orçamento.</span></div></div>`;
+          }
+          return `<div class="form-main"><p>Confira os instrumentos e sinais antes de salvar.</p><div class="confirm-summary"><div><span>Conta</span><b>Kraken</b></div><div><span>Receber</span><b class="quantity">0,008421 BTC</b></div><div><span>Entregar</span><b class="quantity">500,00 EUR</b></div><div><span>Taxa</span><b class="quantity">0,00004 BNB</b></div><div><span>Valor na execução</span><b>500,00 €</b></div></div><div class="effect">${icon('info')}<span>O saldo será validado novamente ao confirmar.</span></div></div>`;
+        }
+        let currentMode, pendingMode;
+        function openForm(mode) {
+          if (mode !== 'confirmation' && mode !== 'choose') pendingMode = mode;
+          currentMode = mode;
+          document.getElementById('operation-body').innerHTML =
+            mode === 'choose'
+              ? operationChoice()
+              : mode === 'position' || mode === 'balance'
+                ? adjustmentForm(mode)
+                : mode === 'confirmation'
+                  ? confirmation(pendingMode)
+                  : tradeForm(mode);
+          document.getElementById('save-operation').hidden = mode === 'choose';
+          document.getElementById('save-operation').textContent = mode === 'confirmation' ? 'Confirmar e salvar' : 'Revisar operação';
+          document.getElementById('operation-dialog').style.display = 'grid';
+        }
+        document.addEventListener('click', (e) => {
+          const trigger = e.target.closest('[data-mode]');
+          if (trigger) openForm(trigger.dataset.mode);
+        });
+        document.getElementById('save-operation').addEventListener('click', () => {
+          if (currentMode !== 'confirmation') return openForm('confirmation');
+          document.getElementById('operation-dialog').style.display = 'none';
+          screen.insertAdjacentHTML(
+            'afterbegin',
+            `<div class="callout success" role="status">${icon('check')}<span>Operação salva. Saldos e posições foram recalculados.</span></div>`,
+          );
+        });
+        render();
+        if (form !== 'closed') openForm(form);
+      });
+    </script>
+  </body>
+</html>

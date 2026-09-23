@@ -10,12 +10,12 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
+    <link rel="stylesheet" href="../_shared/proto.css" />
     <script>
       window.PROTOTYPE_INVESTMENTS_NAV = true;
       window.PROTOTYPE_SHELL_ACTIVE = 'investments';
     </script>
-    <script defer src="_shared/proto.js"></script>
+    <script defer src="../_shared/proto.js"></script>
     <style>
       .content {
         padding-bottom: 90px;
@@ -531,7 +531,7 @@
   </head>
   <body>
     <!-- Three variants of investment import and reconciliation, switchable via ?variant=A|B|C. -->
-    <div data-proto="21 — Importar e reconciliar investimentos" data-ticket="#397 · em revisão"></div>
+    <div data-proto="21 — Importar e reconciliar investimentos" data-ticket="#397 · aprovada"></div>
     <div class="proto-note"><strong>Pergunta:</strong> qual estrutura torna validação, reconciliação, confirmação atômica e rollback mais verificáveis?</div>
     <div data-shell="investments">
       <main class="main">
@@ -562,8 +562,8 @@
             >
           </div>
           <nav class="investment-tabs" aria-label="Seções de investimentos">
-            <a href="approved/18-investments-overview.html">Visão geral</a><a href="#">Operações</a><a href="#">Fluxo mensal</a
-            ><a href="#" aria-current="page">Importar e reconciliar</a>
+            <a href="18-investments-overview.html">Visão geral</a><a href="19-investment-operations.html">Operações</a
+            ><a href="20-monthly-investment-flow.html">Fluxo mensal</a><a href="#" aria-current="page">Importar e reconciliar</a>
           </nav>
           <div class="page-head">
             <div>
@@ -574,21 +574,22 @@
           </div>
           <div id="variant-root"></div>
           <section class="decisions">
-            <h2>Decisões a aprovar</h2>
+            <h2>Decisões aprovadas</h2>
             <ol>
+              <li><b>Variante A.</b><span>O fluxo guiado por etapas orienta a implementação.</span></li>
+              <li><b>Conferência completa.</b><span>A reconciliação solicita valores reais para todos os saldos e posições calculados.</span></li>
               <li>
-                <b>Estrutura principal: A, B ou C?</b
-                ><span>A guia por etapas; B mantém arquivo e simulação lado a lado; C começa pelo histórico auditável de lotes.</span>
+                <b>Duplicidade por linha.</b
+                ><span
+                  >ID externo repetido bloqueia; conteúdo equivalente com ID novo gera aviso. Não existe fluxo separado para arquivo inteiro repetido.</span
+                >
               </li>
-              <li><b>Quais valores reais pedir?</b><span>Todos os saldos e posições simulados, ou somente os que a pessoa marcar para conferência.</span></li>
+              <li><b>Rollback aprovado.</b><span>Quantidades antes/depois, operações recalculadas e ajustes afetados dão contexto suficiente.</span></li>
               <li>
-                <b>Fingerprint duplicado bloqueia?</b
-                ><span>O ID externo repetido sempre bloqueia; falta decidir se conteúdo equivalente com ID novo bloqueia ou apenas exige confirmação.</span>
+                <b>Arquivo somente na primeira etapa.</b
+                ><span>Na implementação, o seletor do CSV aparece em Arquivo, nunca ao lado da Validação; o protótipo foi mantido como revisado.</span>
               </li>
-              <li>
-                <b>O impacto do rollback basta?</b
-                ><span>Confirme se quantidades antes/depois, operações posteriores recalculadas e ajustes afetados dão contexto suficiente.</span>
-              </li>
+              <li><b>Desktop prioritário.</b><span>A tela estreita precisa apenas de reflow funcional, sem otimização móvel de alta fidelidade.</span></li>
             </ol>
           </section>
         </div>

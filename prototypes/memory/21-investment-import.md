@@ -1,6 +1,6 @@
 # 21 — Investment import and reconciliation
 
-Status: **under review** in `../21-investment-import-reconciliation.html`. Issue #397.
+Status: **approved** in `../approved/21-investment-import-reconciliation.html`. Issue #397.
 
 The prototype compares three structures for the same normalized CSV workflow:
 
@@ -21,8 +21,7 @@ Approved decisions:
 3. The rollback impact preview provides enough context before destructive confirmation.
 4. The normalized-file input appears only in the File step, never beside the Validation step. The
    prototype is intentionally unchanged; implementation must apply this correction.
-
-Open decision:
-
-1. During reconciliation, should the screen ask for real custody values for every calculated
-   Instrument Balance and Investment Position, or let the user select which ones to verify first?
+5. Reconciliation requests real custody values for every calculated Instrument Balance and
+   Investment Position.
+6. The desktop layout is approved. Narrow screens only need functional reflow; this import workflow
+   does not require high-fidelity mobile optimization.

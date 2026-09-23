@@ -42,6 +42,9 @@ already make.
 | 15  | [CSV transaction import](15-transaction-import.md) | `/transactions/import` |
 | 16  | [Quarterly Budget](16-quarterly-budget.md) | `/budgets/:year/:quarter` |
 | 17  | Investments navigation and setup ([issue #393](https://github.com/lbcoutinho/family-budget-webapp/issues/393)) | `/investments` and `/settings/investments/*` |
+| 18  | Investments overview ([issue #394](https://github.com/lbcoutinho/family-budget-webapp/issues/394)) | `/investments` |
+| 19  | Investment operations ([issue #395](https://github.com/lbcoutinho/family-budget-webapp/issues/395)) | `/investments/operations` |
+| 20  | Monthly investment flow ([issue #396](https://github.com/lbcoutinho/family-budget-webapp/issues/396)) | `/investments/flow` |
 
 Screen 14 (Settings › General, `/settings/general`, M3-T13) is outside the original thirteen; its
 issue (#73) asked for `07-settings-general.html`, but 07 is already the entry-form dialog above —
@@ -59,6 +62,13 @@ inputs with realized results.
 Screen 17 adds the Investments entry point and third-level setup screens under Settings › Investments. Its disposable
 prototype is tracked directly by issue #393 while the durable Investments specification remains in
 parent issue #392.
+
+Screen 19 covers the shared Investment Trade form, operation history and explicit Position and
+Balance Adjustments. Its disposable prototype is tracked by issue #395.
+
+Screen 20 adds the annual monthly-flow table and its operation drill-down. Its disposable prototype
+is tracked by issue #396; Investment Funding Transfers remain visible context but never contribute
+to investment flow totals.
 
 Current per-screen prototype status (what's in `approved/`, what's still under review) lives in the
 table in `prototypes/MEMORY.md` — check there, not here, for "is screen N approved yet." The ticket
