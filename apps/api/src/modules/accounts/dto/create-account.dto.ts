@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+
+import { AccountKind } from '../../../generated/prisma/client';
+
+import { CreateAccountInitialBalanceDto } from './create-account-initial-balance.dto';
 
 /** Request body of `POST /api/accounts`. `userId` is never accepted from a client — it comes from the token. */
 export class CreateAccountDto {
@@ -10,6 +14,22 @@ export class CreateAccountDto {
   @IsNotEmpty()
   @MaxLength(80)
   name!: string;
+
+  @ApiProperty({ enum: AccountKind, enumName: 'AccountKind', required: false, default: AccountKind.BANK })
+  @IsOptional()
+  @IsEnum(AccountKind)
+  kind?: AccountKind;
+
+  @ApiProperty({ type: String, format: 'uuid', required: false, nullable: true })
+  @IsOptional()
+  @IsUUID()
+  financialInstitutionId?: string | null;
+
+  @ApiProperty({ type: [CreateAccountInitialBalanceDto], required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateAccountInitialBalanceDto)
+  initialBalances?: CreateAccountInitialBalanceDto[];
 
   @ApiProperty({
     type: Number,

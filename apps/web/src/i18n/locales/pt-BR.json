@@ -95,6 +95,8 @@
     "showInactive": "Mostrar inativas",
     "columns": {
       "name": "Conta",
+      "type": "Tipo",
+      "institution": "Instituição",
       "balance": "Saldo atual"
     },
     "inactiveBadge": "inativa",
@@ -110,8 +112,16 @@
       "nameRequired": "Informe o nome da conta.",
       "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
       "initialBalance": "Saldo inicial",
+      "kind": "Tipo de conta",
+      "institution": "Instituição financeira",
+      "selfCustody": "Autocustódia",
+      "instrumentBalances": "Saldos iniciais por instrumento",
+      "instrument": "Instrumento",
+      "quantity": "Quantidade",
+      "addInstrument": "Adicionar instrumento",
       "initialBalanceInvalid": "Informe um valor válido."
     },
+    "kinds": { "BANK": "Banco", "BROKERAGE": "Corretora", "EXCHANGE": "Exchange", "WALLET": "Carteira", "OTHER": "Outro" },
     "deactivate": {
       "title": "Desativar \"{{name}}\"?",
       "description": "A conta some dos lançamentos novos. O histórico continua exatamente onde está.",

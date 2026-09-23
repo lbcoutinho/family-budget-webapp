@@ -35,6 +35,7 @@ export class AccountsService {
   async findAll(userId: string, query: ListAccountsQueryDto): Promise<AccountDto[]> {
     const rows = await this.prisma.account.findMany({
       where: { userId, ...this.visibility(query) },
+      include: accountInclude,
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
 
@@ -42,7 +43,8 @@ export class AccountsService {
   }
 
   async findOne(userId: string, id: string): Promise<AccountDto> {
-    return toDto(await this.load(userId, id));
+    const account = await this.load(userId, id);
+    return toDto(await this.prisma.account.findUniqueOrThrow({ where: { id: account.id }, include: accountInclude }));
   }
 
   /**
@@ -66,13 +68,49 @@ export class AccountsService {
   }
 
   async create(userId: string, dto: CreateAccountDto): Promise<AccountDto> {
-    return toDto(await this.prisma.account.create({ data: { ...dto, userId } }));
+    await this.assertReferences(userId, dto.financialInstitutionId, dto.initialBalances);
+    const { initialBalances, ...data } = dto;
+    const balances = await this.withLegacyEur(userId, dto.initialBalance, initialBalances ?? []);
+    this.assertUniqueInstruments(balances);
+
+    return toDto(
+      await this.prisma.account.create({
+        data: { ...data, userId, initialBalances: { create: balances.map((balance) => ({ ...balance, userId })) } },
+        include: accountInclude,
+      }),
+    );
   }
 
   async update(userId: string, id: string, dto: UpdateAccountDto): Promise<AccountDto> {
     await this.load(userId, id);
+    await this.assertReferences(userId, dto.financialInstitutionId, dto.initialBalances);
+    const { initialBalances, ...data } = dto;
+    if (initialBalances !== undefined) this.assertUniqueInstruments(initialBalances);
 
-    return toDto(await this.prisma.account.update({ where: { id }, data: dto }));
+    return toDto(
+      await this.prisma.$transaction(async (tx) => {
+        if (initialBalances !== undefined) {
+          await tx.accountInitialBalance.deleteMany({ where: { accountId: id } });
+        }
+        const balances = await this.withLegacyEur(userId, dto.initialBalance, initialBalances ?? [], tx);
+        if (initialBalances === undefined && dto.initialBalance !== undefined) {
+          const instrumentId = balances[0]!.instrumentId;
+          await tx.accountInitialBalance.upsert({
+            where: { accountId_instrumentId: { accountId: id, instrumentId } },
+            create: { userId, accountId: id, instrumentId, quantity: centsToQuantity(dto.initialBalance) },
+            update: { quantity: centsToQuantity(dto.initialBalance) },
+          });
+        }
+        return tx.account.update({
+          where: { id },
+          data: {
+            ...data,
+            ...(initialBalances === undefined ? {} : { initialBalances: { create: balances.map((balance) => ({ ...balance, userId })) } }),
+          },
+          include: accountInclude,
+        });
+      }),
+    );
   }
 
   /** `PATCH /accounts/:id/activate` and `/deactivate`, which is how the UI's toggle is spelled. */
@@ -86,7 +124,7 @@ export class AccountsService {
       }
     }
 
-    return toDto(await this.prisma.account.update({ where: { id }, data: { isActive } }));
+    return toDto(await this.prisma.account.update({ where: { id }, data: { isActive }, include: accountInclude }));
   }
 
   /**
@@ -102,6 +140,50 @@ export class AccountsService {
   /** Read a row and prove it is the caller's, in one step. Every mutation starts here. */
   private async load(userId: string, id: string): Promise<Account> {
     return assertOwnership(await this.prisma.account.findUnique({ where: { id } }), userId);
+  }
+
+  private async assertReferences(
+    userId: string,
+    financialInstitutionId: string | null | undefined,
+    balances: CreateAccountDto['initialBalances'],
+  ): Promise<void> {
+    if (financialInstitutionId !== undefined && financialInstitutionId !== null) {
+      const institution = await this.prisma.financialInstitution.findFirst({ where: { id: financialInstitutionId, userId, isActive: true } });
+      if (!institution) throw conflict('INVESTMENT_REFERENCE_INACTIVE', 'An active financial institution is required.');
+    }
+    if (balances?.length) {
+      const count = await this.prisma.instrument.count({ where: { userId, isActive: true, id: { in: balances.map((balance) => balance.instrumentId) } } });
+      if (count !== new Set(balances.map((balance) => balance.instrumentId)).size) {
+        throw conflict('INVESTMENT_REFERENCE_INACTIVE', 'An active instrument is required.');
+      }
+    }
+  }
+
+  private assertUniqueInstruments(balances: readonly { instrumentId: string }[]): void {
+    if (new Set(balances.map((balance) => balance.instrumentId)).size !== balances.length) {
+      throw conflict('ACCOUNT_INITIAL_BALANCE_DUPLICATE', 'An account has at most one initial balance per instrument.');
+    }
+  }
+
+  private async eurInstrument(userId: string, client: Pick<PrismaService, 'instrument'> = this.prisma): Promise<string> {
+    const existing = await client.instrument.findFirst({ where: { userId, code: 'EUR' } });
+    if (existing) return existing.id;
+    return (await client.instrument.create({ data: { userId, name: 'Euro', code: 'EUR', type: 'FIAT' } })).id;
+  }
+
+  private async withLegacyEur(
+    userId: string,
+    initialBalance: number | undefined,
+    balances: NonNullable<CreateAccountDto['initialBalances']>,
+    client: Pick<PrismaService, 'instrument'> = this.prisma,
+  ): Promise<NonNullable<CreateAccountDto['initialBalances']>> {
+    if (initialBalance === undefined) return balances;
+    const instrumentId = await this.eurInstrument(userId, client);
+    const quantity = centsToQuantity(initialBalance);
+    const existing = balances.findIndex((balance) => balance.instrumentId === instrumentId);
+    return existing < 0
+      ? [...balances, { instrumentId, quantity }]
+      : balances.map((balance, index) => (index === existing ? { ...balance, quantity } : balance));
   }
 
   /**
@@ -120,14 +202,35 @@ export class AccountsService {
 }
 
 /** Prisma row → response body. `Date`s become ISO strings, and `userId` is dropped on the floor. */
-function toDto(account: Account): AccountDto {
+const accountInclude = {
+  financialInstitution: { select: { name: true } },
+  initialBalances: { include: { instrument: { select: { code: true, name: true } } }, orderBy: { instrument: { code: 'asc' } } },
+} as const;
+type AccountRow = Prisma.AccountGetPayload<{ include: typeof accountInclude }>;
+
+function toDto(account: AccountRow): AccountDto {
   return {
     id: account.id,
     name: account.name,
+    kind: account.kind,
+    financialInstitutionId: account.financialInstitutionId,
+    financialInstitutionName: account.financialInstitution?.name ?? null,
+    initialBalances: account.initialBalances.map((balance) => ({
+      instrumentId: balance.instrumentId,
+      quantity: balance.quantity.toString(),
+      instrumentName: balance.instrument.name,
+      instrumentCode: balance.instrument.code,
+    })),
     initialBalance: account.initialBalance,
     isActive: account.isActive,
     sortOrder: account.sortOrder,
     createdAt: account.createdAt.toISOString(),
     updatedAt: account.updatedAt.toISOString(),
   };
+}
+
+function centsToQuantity(cents: number): string {
+  const sign = cents < 0 ? '-' : '';
+  const value = String(Math.abs(cents));
+  return `${sign}${value.slice(0, -2) || '0'}.${value.slice(-2).padStart(2, '0')}`;
 }

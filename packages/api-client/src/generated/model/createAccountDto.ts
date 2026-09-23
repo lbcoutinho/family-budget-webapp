@@ -5,10 +5,16 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { AccountKind } from './accountKind';
+import type { CreateAccountInitialBalanceDto } from './createAccountInitialBalanceDto';
 
 export interface CreateAccountDto {
   /** @maxLength 80 */
   name: string;
+  kind?: AccountKind;
+  /** @nullable */
+  financialInstitutionId?: string | null;
+  initialBalances?: CreateAccountInitialBalanceDto[];
   /** Balance the account already held, in **cents** (ADR-0005) — never a decimal. May be negative. */
   initialBalance?: number;
   isActive?: boolean;

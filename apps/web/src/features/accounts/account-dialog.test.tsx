@@ -1,14 +1,23 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { HttpResponse, http } from 'msw';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AccountDialog } from './account-dialog';
 
+import { server } from '@/test/server';
+
 function renderDialog(onSubmit = vi.fn()) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return {
     user: userEvent.setup(),
     onSubmit,
-    ...render(<AccountDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />),
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <AccountDialog open onOpenChange={() => undefined} isPending={false} error={undefined} onSubmit={onSubmit} />
+      </QueryClientProvider>,
+    ),
   };
 }
 
@@ -20,12 +29,18 @@ async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>, name: str
 }
 
 describe('AccountDialog', () => {
+  beforeEach(() =>
+    server.use(
+      http.get('/api/financial-institutions', () => HttpResponse.json([])),
+      http.get('/api/instruments', () => HttpResponse.json([])),
+    ),
+  );
   it('posts 123456 cents for "1.234,56"', async () => {
     const { user, onSubmit } = renderDialog();
 
     await fillAndSubmit(user, 'Millennium', '1.234,56');
 
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', initialBalance: 123456 });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', initialBalance: 123456, kind: 'BANK', financialInstitutionId: null, initialBalances: [] });
   });
 
   it('posts 123456 cents for "1234.56"', async () => {
@@ -33,7 +48,7 @@ describe('AccountDialog', () => {
 
     await fillAndSubmit(user, 'Millennium', '1234.56');
 
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', initialBalance: 123456 });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', initialBalance: 123456, kind: 'BANK', financialInstitutionId: null, initialBalances: [] });
   });
 
   it('posts 0 for an empty balance', async () => {
@@ -43,7 +58,7 @@ describe('AccountDialog', () => {
     await user.clear(screen.getByLabelText('Saldo inicial'));
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Dinheiro', initialBalance: 0 });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Dinheiro', initialBalance: 0, kind: 'BANK', financialInstitutionId: null, initialBalances: [] });
   });
 
   it('blocks submit on a blank name, without calling onSubmit', async () => {

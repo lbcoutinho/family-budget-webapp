@@ -21,6 +21,8 @@ const account = (overrides: Partial<Account> = {}): Account => ({
   userId,
   name: 'Conta corrente',
   initialBalance: 0,
+  kind: 'BANK',
+  financialInstitutionId: null,
   isActive: true,
   sortOrder: 0,
   createdAt: new Date(),
