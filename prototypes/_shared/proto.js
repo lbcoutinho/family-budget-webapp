@@ -118,6 +118,8 @@ const APPROVED = new Set([
   '17-investments-navigation.html',
   '18-investments-overview.html',
   '19-investment-operations.html',
+  '20-monthly-investment-flow.html',
+  '21-investment-import-reconciliation.html',
 ]);
 
 function protoHref(file) {
