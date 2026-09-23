@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>20 — Fluxo mensal de investimentos (protótipo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script>
+      window.PROTOTYPE_INVESTMENTS_NAV = true;
+      window.PROTOTYPE_SHELL_ACTIVE = 'investments';
+    </script>
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .content {
+        padding-bottom: 70px;
+      }
+      .investment-tabs {
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+      .investment-tabs a {
+        flex: none;
+        padding: 9px 11px;
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+      }
+      .investment-tabs a[aria-current='page'] {
+        color: var(--ink);
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+      .review-tools {
+        display: flex;
+        align-items: end;
+        gap: 10px;
+        padding: 10px 12px;
+        margin-bottom: 16px;
+        background: var(--wash);
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+      }
+      .review-tools::before {
+        content: 'Controles do protótipo';
+        align-self: center;
+        margin-right: auto;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .review-tools .field {
+        min-width: 150px;
+      }
+      .page-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+      .page-head p {
+        max-width: 68ch;
+        margin-top: 4px;
+        color: var(--ink-soft);
+      }
+      .year-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .year-nav strong {
+        min-width: 54px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .funding-note {
+        display: flex;
+        align-items: start;
+        gap: 10px;
+        padding: 11px 13px;
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--transfer-wash);
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .funding-note svg {
+        width: 17px;
+        height: 17px;
+        flex: none;
+        color: var(--transfer);
+      }
+      .funding-note strong {
+        color: var(--ink);
+      }
+      .flow-table {
+        min-width: 850px;
+        width: 100%;
+      }
+      .flow-table th,
+      .flow-table td {
+        white-space: nowrap;
+      }
+      .flow-table th:not(:first-child),
+      .flow-table td:not(:first-child) {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .flow-table tbody tr {
+        cursor: pointer;
+      }
+      .flow-table tbody tr.selected td {
+        background: var(--wash);
+      }
+      .flow-table tbody tr.selected td:first-child {
+        box-shadow: inset 3px 0 var(--ink);
+        font-weight: 600;
+      }
+      .month-button {
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+      }
+      .flow-table .future {
+        color: var(--ink-faint);
+        cursor: default;
+      }
+      .positive {
+        color: var(--income);
+      }
+      .negative {
+        color: var(--expense);
+      }
+      .zero {
+        color: var(--ink-faint);
+      }
+      .table-help {
+        margin: 8px 2px 14px;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .drilldown {
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .drill-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .drill-head p {
+        margin-top: 3px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .operation {
+        display: grid;
+        grid-template-columns: minmax(190px, 1.2fr) minmax(150px, 1fr) repeat(3, minmax(90px, 0.65fr));
+        gap: 12px;
+        align-items: center;
+        padding: 11px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .operation:last-child {
+        border-bottom: 0;
+      }
+      .operation small {
+        display: block;
+        color: var(--ink-soft);
+      }
+      .operation .num {
+        text-align: right;
+      }
+      .operation.funding {
+        background: var(--transfer-wash);
+      }
+      .excluded {
+        display: inline-block;
+        padding: 2px 6px;
+        border: 1px solid color-mix(in srgb, var(--transfer) 35%, transparent);
+        border-radius: 4px;
+        color: var(--transfer);
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .state-panel {
+        min-height: 330px;
+        display: grid;
+        place-items: center;
+        padding: 30px;
+        text-align: center;
+      }
+      .state-panel svg {
+        width: 25px;
+        height: 25px;
+        color: var(--ink-soft);
+      }
+      .state-panel h2 {
+        margin-top: 8px;
+      }
+      .state-panel p {
+        max-width: 48ch;
+        margin: 5px auto 12px;
+        color: var(--ink-soft);
+      }
+      .skeleton-row {
+        height: 18px;
+        margin: 17px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--wash), var(--line), var(--wash));
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
+      .decisions {
+        margin: 32px 0 54px;
+      }
+      .decisions p,
+      .decisions li span {
+        color: var(--ink-soft);
+      }
+      .decisions ol {
+        padding-left: 20px;
+      }
+      .decisions li {
+        margin: 10px 0;
+        padding-left: 4px;
+      }
+      .decisions li span {
+        display: block;
+        max-width: 78ch;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      body.narrow-preview {
+        width: 390px;
+        margin: 0 auto;
+        box-shadow: 0 0 0 1px var(--line);
+      }
+      body.narrow-preview .shell {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .side {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 262px;
+        z-index: 80;
+        transform: translateX(-100%);
+      }
+      body.narrow-preview .burger {
+        display: inline-flex;
+      }
+      body.narrow-preview .content {
+        padding: 16px 14px 70px;
+      }
+      body.narrow-preview .topbar {
+        padding: 10px 14px;
+      }
+      body.narrow-preview .review-tools,
+      body.narrow-preview .page-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      body.narrow-preview .review-tools::before {
+        align-self: auto;
+        margin: 0;
+      }
+      body.narrow-preview .review-tools .field {
+        min-width: 0;
+      }
+      body.narrow-preview .year-nav {
+        justify-content: space-between;
+      }
+      body.narrow-preview .flow-table th:first-child,
+      body.narrow-preview .flow-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: var(--surface);
+        box-shadow: 1px 0 var(--line);
+      }
+      body.narrow-preview .flow-table thead th:first-child {
+        z-index: 3;
+        background: var(--wash);
+      }
+      body.narrow-preview .flow-table tbody tr.selected td:first-child {
+        background: var(--wash);
+      }
+      body.narrow-preview .operation {
+        grid-template-columns: 1fr auto;
+        gap: 5px 10px;
+      }
+      body.narrow-preview .operation > :nth-child(2) {
+        text-align: right;
+      }
+      body.narrow-preview .operation > :nth-child(n + 3) {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        text-align: left;
+      }
+      body.narrow-preview .operation > :nth-child(3)::before {
+        content: 'Compras';
+        color: var(--ink-soft);
+      }
+      body.narrow-preview .operation > :nth-child(4)::before {
+        content: 'Vendas';
+        color: var(--ink-soft);
+      }
+      body.narrow-preview .operation > :nth-child(5)::before {
+        content: 'Taxas';
+        color: var(--ink-soft);
+      }
+      @media (max-width: 720px) {
+        .review-tools,
+        .page-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .review-tools::before {
+          align-self: auto;
+          margin: 0;
+        }
+        .review-tools .field {
+          min-width: 0;
+        }
+        .flow-table th:first-child,
+        .flow-table td:first-child {
+          position: sticky;
+          left: 0;
+          z-index: 2;
+          background: var(--surface);
+          box-shadow: 1px 0 var(--line);
+        }
+        .flow-table thead th:first-child {
+          z-index: 3;
+          background: var(--wash);
+        }
+        .flow-table tbody tr.selected td:first-child {
+          background: var(--wash);
+        }
+        .operation {
+          grid-template-columns: 1fr auto;
+          gap: 5px 10px;
+        }
+        .operation > :nth-child(2) {
+          text-align: right;
+        }
+        .operation > :nth-child(n + 3) {
+          grid-column: 1 / -1;
+          display: flex;
+          justify-content: space-between;
+          text-align: left;
+        }
+        .operation > :nth-child(3)::before {
+          content: 'Compras';
+          color: var(--ink-soft);
+        }
+        .operation > :nth-child(4)::before {
+          content: 'Vendas';
+          color: var(--ink-soft);
+        }
+        .operation > :nth-child(5)::before {
+          content: 'Taxas';
+          color: var(--ink-soft);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: Twelve comparable monthly readings lead directly to the operations that explain one of them; refuse detached summary cards.
+      OWN-WORLD: The approved instrument panel, a hairline annual ledger, frozen month labels, and semantic result colors.
+      STORY: Compare investment activity across the year, select a month, and reconcile every contributor without mistaking funding for a purchase.
+      FIRST VIEWPORT: Investments tabs, year navigation, the funding rule, then the complete annual table with the selected month visibly connected to its operations.
+      FORM: Annual ledger with an inline operation drill-down; seed key issue-396-monthly-flow.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div data-proto="20 — Fluxo mensal de investimentos" data-ticket="#396 · em revisão"></div>
+    <div class="proto-note"><strong>Questão:</strong> como comparar doze meses e chegar às operações sem confundir aporte com compra?</div>
+    <div data-shell="investments">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Investimentos</span>
+          </div>
+          <button class="btn sm" disabled><span data-icon="plus"></span> Nova operação</button>
+        </header>
+        <div class="content">
+          <div class="review-tools" aria-label="Controles do protótipo">
+            <label class="field"
+              ><span>Estado</span
+              ><select class="select" id="prototype-state">
+                <option value="current">Ano atual</option>
+                <option value="positive">Resultado positivo</option>
+                <option value="negative">Resultado negativo</option>
+                <option value="loading">Carregando</option>
+                <option value="empty">Vazio</option>
+                <option value="error">Erro</option>
+              </select></label
+            >
+            <label class="field"
+              ><span>Largura</span
+              ><select class="select" id="prototype-width">
+                <option value="desktop">Desktop</option>
+                <option value="narrow">Tela estreita</option>
+              </select></label
+            >
+          </div>
+          <nav class="investment-tabs" aria-label="Seções de investimentos">
+            <a href="approved/18-investments-overview.html">Visão geral</a><a href="#">Operações</a><a href="#" aria-current="page">Fluxo mensal</a
+            ><a href="#">Importar e reconciliar</a>
+          </nav>
+          <div class="page-head">
+            <div>
+              <h1>Fluxo mensal</h1>
+              <p>Compras, vendas, fluxo líquido, taxas e resultado realizado por mês de execução.</p>
+            </div>
+            <div class="year-nav" aria-label="Ano">
+              <button class="btn icon ghost" aria-label="Ano anterior"><span data-icon="chevronLeft"></span></button><strong>2026</strong
+              ><button class="btn icon ghost" aria-label="Próximo ano" disabled><span data-icon="chevronRight"></span></button>
+            </div>
+          </div>
+          <div class="funding-note">
+            <span data-icon="info"></span>
+            <div>
+              <strong>Aportes não são compras.</strong> Transferir dinheiro para uma corretora ou exchange altera o saldo disponível, mas não entra em compras
+              nem no fluxo líquido de investimentos.
+            </div>
+          </div>
+          <div id="state-root"></div>
+          <section class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <p>Escolhas propostas para desktop e tela estreita.</p>
+            <ol>
+              <li>
+                <b>Uma linha por mês, com as cinco medidas lado a lado.</b
+                ><span>A comparação anual permanece uma tabela; na tela estreita ela rola horizontalmente com o mês congelado.</span>
+              </li>
+              <li>
+                <b>Selecionar um mês abre as operações logo abaixo.</b
+                ><span>Evita trocar de contexto e mantém a relação entre o total escolhido e seus contribuintes.</span>
+              </li>
+              <li>
+                <b>Aportes aparecem no detalhe, marcados como fora do fluxo.</b
+                ><span>O contexto do dinheiro recebido fica visível sem inflar compras, vendas ou fluxo líquido.</span>
+              </li>
+              <li>
+                <b>Fluxo líquido é compras menos vendas líquidas.</b
+                ><span
+                  >Valor positivo indica capital líquido investido; valor negativo indica retirada líquida. Taxas ficam em coluna própria e o resultado
+                  realizado usa verde ou vermelho pelo sinal.</span
+                >
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(location.search);
+        const allowed = ['current', 'positive', 'negative', 'loading', 'empty', 'error'];
+        const state = allowed.includes(params.get('state')) ? params.get('state') : 'current';
+        const narrow = params.get('width') === 'narrow';
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const base = [
+          [86000, 0, 86000, 390, 0],
+          [42000, 18500, 23500, 210, 2650],
+          [0, 0, 0, 0, 0],
+          [125000, 0, 125000, 560, 0],
+          [58000, 94000, -36000, 470, 12300],
+          [73500, 0, 73500, 350, 0],
+          [103250, 46700, 56550, 755, -6240],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+        ];
+        const format = (cents) => `${cents < 0 ? '− ' : ''}${(Math.abs(cents) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} €`;
+        const cls = (value) => (value > 0 ? 'positive' : value < 0 ? 'negative' : 'zero');
+        const data = base.map((row, index) => {
+          if (state === 'positive' && index < 8) return [row[0], row[1], row[2], row[3], Math.abs(row[4] || 1800)];
+          if (state === 'negative' && index < 8) return [row[0], row[1], row[2], row[3], -Math.abs(row[4] || 1800)];
+          return row;
+        });
+        const rows = () =>
+          data
+            .map((values, index) => {
+              const future = state === 'current' && index > 6;
+              return `<tr data-month="${index}" class="${future ? 'future' : index === 6 ? 'selected' : ''}"><td>${future ? `${monthNames[index]} <span class="xs">— futuro</span>` : `<button class="month-button" type="button" aria-expanded="${index === 6}">${monthNames[index]}</button>`}</td>${values.map((value, column) => `<td class="${column === 2 || column === 4 ? cls(value) : value === 0 ? 'zero' : ''}">${future ? '—' : format(value)}</td>`).join('')}</tr>`;
+            })
+            .join('');
+        const table = () => {
+          const totals = data.slice(0, 7).reduce((sum, row) => sum.map((value, index) => value + row[index]), [0, 0, 0, 0, 0]);
+          return `<div class="card"><div class="table-wrap"><table class="data flow-table"><thead><tr><th>Mês</th><th>Compras</th><th>Vendas líquidas</th><th>Fluxo líquido</th><th>Taxas</th><th>Resultado realizado</th></tr></thead><tbody>${rows()}</tbody><tfoot><tr><td>Total até julho</td>${totals.map((value, index) => `<td class="${index === 2 || index === 4 ? cls(value) : ''}">${format(value)}</td>`).join('')}</tr></tfoot></table></div></div><p class="table-help">Selecione um mês para ver as operações que formam os valores.</p><div id="drill-root"></div>`;
+        };
+        const detail = (month) => {
+          const name = monthNames[month];
+          if (month !== 6)
+            return `<section class="drilldown"><div class="drill-head"><div><h2>${name} de 2026</h2><p>Nenhuma operação contribuiu para o fluxo neste mês.</p></div></div></section>`;
+          return `<section class="drilldown" aria-labelledby="drill-title"><div class="drill-head"><div><h2 id="drill-title">Operações de julho</h2><p>4 registros · os valores reconciliam com a linha selecionada.</p></div><button class="btn sm outline" type="button">Ver todas</button></div>
+            <div class="operation"><div><b>Compra · VWCE</b><small>08/07 · DEGIRO · 4,2500 unidades</small></div><div>EUR → VWCE</div><div class="num">632,50 €</div><div class="num zero">0,00 €</div><div class="num">4,90 €</div></div>
+            <div class="operation"><div><b>Venda · BTC</b><small>16/07 · Kraken · 0,0008 BTC</small></div><div>BTC → EUR</div><div class="num zero">0,00 €</div><div class="num">467,00 €</div><div class="num">1,83 €</div></div>
+            <div class="operation"><div><b>Compra · ETH</b><small>24/07 · Kraken · 0,1527 ETH</small></div><div>EUR → ETH</div><div class="num">400,00 €</div><div class="num zero">0,00 €</div><div class="num">0,82 €</div></div>
+            <div class="operation funding"><div><b>Transferência para Kraken</b><small>03/07 · Conta corrente → Kraken</small></div><div><span class="excluded">Fora do fluxo</span></div><div class="num zero">0,00 €</div><div class="num zero">0,00 €</div><div class="num zero">0,00 €</div></div>
+          </section>`;
+        };
+        const root = document.getElementById('state-root');
+        if (state === 'loading')
+          root.innerHTML = `<div class="card" aria-busy="true"><span class="sr-only" role="status">Carregando fluxo mensal</span>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<div class="skeleton-row" style="width:${94 - n * 3}%"></div>`).join('')}</div>`;
+        else if (state === 'empty')
+          root.innerHTML = `<div class="card state-panel"><div>${icon('investments')}<h2>Nenhuma atividade em 2026</h2><p>Compras e vendas aparecerão aqui quando houver operações de investimento neste ano. Aportes, sozinhos, não preenchem esta tabela.</p><button class="btn sm">Nova operação</button></div></div>`;
+        else if (state === 'error')
+          root.innerHTML = `<div class="card state-panel"><div>${icon('alert')}<h2>Não foi possível carregar o fluxo mensal</h2><p>O ano selecionado foi mantido. Verifique a conexão e tente de novo.</p><button class="btn outline sm">Tentar de novo</button></div></div>`;
+        else {
+          root.innerHTML = table();
+          const selectMonth = (row) => {
+            if (row.classList.contains('future')) return;
+            root.querySelectorAll('tbody tr').forEach((item) => {
+              item.classList.toggle('selected', item === row);
+              item.querySelector('.month-button')?.setAttribute('aria-expanded', String(item === row));
+            });
+            document.getElementById('drill-root').innerHTML = detail(Number(row.dataset.month));
+          };
+          root.querySelectorAll('tbody tr').forEach((row) => {
+            row.addEventListener('click', () => selectMonth(row));
+          });
+          document.getElementById('drill-root').innerHTML = detail(6);
+        }
+        const setUrl = (key, value) => {
+          const next = new URLSearchParams(location.search);
+          next.set(key, value);
+          location.search = next;
+        };
+        document.getElementById('prototype-state').value = state;
+        document.getElementById('prototype-width').value = narrow ? 'narrow' : 'desktop';
+        document.body.classList.toggle('narrow-preview', narrow);
+        document.getElementById('prototype-state').addEventListener('change', (event) => setUrl('state', event.target.value));
+        document.getElementById('prototype-width').addEventListener('change', (event) => setUrl('width', event.target.value));
+      });
+    </script>
+  </body>
+</html>
