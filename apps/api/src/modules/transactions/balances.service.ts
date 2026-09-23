@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { type Prisma, type TransactionType } from '../../generated/prisma/client';
+import { Prisma, type TransactionType } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 /**
@@ -50,6 +50,15 @@ export interface CashboxMonthlyDestinationRow {
   _sum: { amount: number | null };
 }
 
+/** Exact quantity held by one Account in one Instrument. */
+export interface AccountInstrumentBalance {
+  accountId: string;
+  instrumentId: string;
+  quantity: Prisma.Decimal;
+  instrumentName: string;
+  instrumentCode: string;
+}
+
 /**
  * The single place `status = CONFIRMED` lives for balance queries (M4-T07, #104). Every account and
  * cashbox balance in the app — including the guard reads inside `TransactionsService` — is meant to
@@ -70,6 +79,50 @@ export class BalancesService {
 
   async sumByCashbox(userId: string, asOf?: Date): Promise<Map<string, number>> {
     return this.sumByCashboxWhere(this.where(userId, asOf));
+  }
+
+  /** Exact Account quantities. Legacy budget Transactions are EUR movements until their migration completes. */
+  async instrumentBalances(userId: string, asOf?: Date): Promise<AccountInstrumentBalance[]> {
+    const [initialBalances, movements, eur] = await Promise.all([
+      this.prisma.accountInitialBalance.findMany({
+        where: { userId },
+        include: { instrument: { select: { name: true, code: true } } },
+        orderBy: [{ accountId: 'asc' }, { instrument: { code: 'asc' } }],
+      }),
+      this.sumByAccount(userId, asOf),
+      this.prisma.instrument.findFirst({ where: { userId, code: 'EUR' }, select: { id: true, name: true, code: true } }),
+    ]);
+    const balances = new Map<string, AccountInstrumentBalance>(
+      initialBalances.map((balance) => [
+        `${balance.accountId}:${balance.instrumentId}`,
+        {
+          accountId: balance.accountId,
+          instrumentId: balance.instrumentId,
+          quantity: new Prisma.Decimal(balance.quantity),
+          instrumentName: balance.instrument.name,
+          instrumentCode: balance.instrument.code,
+        },
+      ]),
+    );
+
+    if (eur) {
+      for (const [accountId, cents] of movements) {
+        const key = `${accountId}:${eur.id}`;
+        const balance = balances.get(key);
+        if (balance) balance.quantity = balance.quantity.add(new Prisma.Decimal(cents).div(100));
+        else {
+          balances.set(key, {
+            accountId,
+            instrumentId: eur.id,
+            quantity: new Prisma.Decimal(cents).div(100),
+            instrumentName: eur.name,
+            instrumentCode: eur.code,
+          });
+        }
+      }
+    }
+
+    return [...balances.values()];
   }
 
   /** Confirmed balance movements through an accounting month's close, never transaction date. */

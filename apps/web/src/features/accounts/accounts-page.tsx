@@ -1,16 +1,17 @@
 import {
   type AccountDto,
+  type AccountInstrumentBalanceDto,
   useActivateAccount,
   useCreateAccount,
   useDeactivateAccount,
   useDeleteAccount,
-  useListAccountBalances,
+  useListAccountInstrumentBalances,
   useListAccounts,
   useUpdateAccount,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { PlusIcon, TriangleAlertIcon, WalletIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountDialog } from './account-dialog';
@@ -54,8 +55,9 @@ export function AccountsPage() {
   const [deleteBlocked, setDeleteBlocked] = useState(false);
 
   const { data: accounts, isPending, isError, refetch } = useListAccounts(showInactive ? { includeInactive: true } : undefined);
-  const balances = useListAccountBalances(undefined, { query: { staleTime: 30_000 } });
-  const balanceByAccountId = useMemo(() => new Map((balances.data ?? []).map((balance) => [balance.accountId, balance.balance])), [balances.data]);
+  const balances = useListAccountInstrumentBalances(undefined, { query: { staleTime: 30_000 } });
+  const balanceByAccountId = new Map<string, AccountInstrumentBalanceDto[]>();
+  for (const balance of balances.data ?? []) balanceByAccountId.set(balance.accountId, [...(balanceByAccountId.get(balance.accountId) ?? []), balance]);
 
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY });
 

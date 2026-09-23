@@ -19,6 +19,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { AccountsService } from './accounts.service';
 import { AccountBalanceDto } from './dto/account-balance.dto';
+import { AccountInstrumentBalanceDto } from './dto/account-instrument-balance.dto';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { ListAccountsQueryDto } from './dto/list-accounts-query.dto';
@@ -58,6 +59,14 @@ export class AccountsController {
   @Get('balances')
   findBalances(@CurrentUser() user: AuthenticatedUser, @Query() query: AsOfQueryDto): Promise<AccountBalanceDto[]> {
     return this.accounts.findBalances(user.id, query.asOf);
+  }
+
+  @ApiOperation({ operationId: 'listAccountInstrumentBalances', summary: "The user's exact Account Instrument quantities" })
+  @ApiQuery({ name: 'asOf', type: String, format: 'date', required: false, description: 'Balance as of the end of this day (YYYY-MM-DD).' })
+  @ApiOkResponse({ type: [AccountInstrumentBalanceDto] })
+  @Get('instrument-balances')
+  findInstrumentBalances(@CurrentUser() user: AuthenticatedUser, @Query() query: AsOfQueryDto): Promise<AccountInstrumentBalanceDto[]> {
+    return this.accounts.findInstrumentBalances(user.id, query.asOf);
   }
 
   @ApiOperation({ operationId: 'getAccount', summary: 'Read one account' })

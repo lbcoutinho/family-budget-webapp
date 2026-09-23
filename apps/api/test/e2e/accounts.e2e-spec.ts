@@ -38,6 +38,7 @@ describe('Accounts API (e2e)', () => {
 
   // Accounts hold a foreign key onto the user with `onDelete: Restrict`, so they come off first.
   const removeFixtures = async (): Promise<void> => {
+    await prisma.transaction.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.financialInstitution.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.instrument.deleteMany({ where: { user: { email: { in: emails } } } });
@@ -200,6 +201,44 @@ describe('Accounts API (e2e)', () => {
       await createAccount({ name: 'Millennium' });
 
       await expect(authed('get', '/accounts', otherToken).expect(200)).resolves.toMatchObject({ body: [] });
+    });
+  });
+
+  describe('Instrument balances', () => {
+    it('returns exact native quantities, adding confirmed legacy Transactions to EUR only', async () => {
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
+      const bitcoin = await prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } });
+      const account = await createAccount({
+        name: 'Kraken',
+        initialBalance: 10_000,
+        initialBalances: [{ instrumentId: bitcoin.id, quantity: '0.010000000000000001' }],
+      });
+      const date = new Date('2026-09-01T00:00:00.000Z');
+      await prisma.transaction.createMany({
+        data: [
+          { userId: user.id, type: 'INCOME', amount: 5_000, date, settlementDate: date, referenceMonth: date, description: 'Deposit', accountId: account.id },
+          { userId: user.id, type: 'EXPENSE', amount: 1_250, date, settlementDate: date, referenceMonth: date, description: 'Expense', accountId: account.id },
+          {
+            userId: user.id,
+            type: 'INCOME',
+            status: 'DRAFT',
+            amount: 9_999,
+            date,
+            settlementDate: date,
+            referenceMonth: date,
+            description: 'Draft',
+            accountId: account.id,
+          },
+        ],
+      });
+      const balances = (await authed('get', '/accounts/instrument-balances?asOf=2026-09-01').expect(200)).body as Record<string, string>[];
+
+      expect(balances).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ accountId: account.id, instrumentId: bitcoin.id, instrumentCode: 'BTC', quantity: '0.010000000000000001' }),
+          expect.objectContaining({ accountId: account.id, instrumentCode: 'EUR', quantity: '137.5' }),
+        ]),
+      );
     });
   });
 

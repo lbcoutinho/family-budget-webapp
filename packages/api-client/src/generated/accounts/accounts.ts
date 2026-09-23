@@ -27,9 +27,11 @@ import type {
 import type {
   AccountBalanceDto,
   AccountDto,
+  AccountInstrumentBalanceDto,
   ApiErrorDto,
   CreateAccountDto,
   ListAccountBalancesParams,
+  ListAccountInstrumentBalancesParams,
   ListAccountsParams,
   UpdateAccountDto
 } from '../model';
@@ -297,6 +299,99 @@ export function useListAccountBalances<TData = Awaited<ReturnType<typeof listAcc
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListAccountBalancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary The user's exact Account Instrument quantities
+ */
+export const listAccountInstrumentBalances = (
+    params?: ListAccountInstrumentBalancesParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<AccountInstrumentBalanceDto[]>(
+      {url: `/accounts/instrument-balances`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getListAccountInstrumentBalancesQueryKey = (params?: ListAccountInstrumentBalancesParams,) => {
+    return [
+    `/accounts/instrument-balances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAccountInstrumentBalancesQueryOptions = <TData = Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError = ErrorType<ApiErrorDto>>(params?: ListAccountInstrumentBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAccountInstrumentBalancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAccountInstrumentBalances>>> = ({ signal }) => listAccountInstrumentBalances(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAccountInstrumentBalancesQueryResult = NonNullable<Awaited<ReturnType<typeof listAccountInstrumentBalances>>>
+export type ListAccountInstrumentBalancesQueryError = ErrorType<ApiErrorDto>
+
+
+export function useListAccountInstrumentBalances<TData = Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params: undefined |  ListAccountInstrumentBalancesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccountInstrumentBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listAccountInstrumentBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccountInstrumentBalances<TData = Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountInstrumentBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAccountInstrumentBalances>>,
+          TError,
+          Awaited<ReturnType<typeof listAccountInstrumentBalances>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAccountInstrumentBalances<TData = Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountInstrumentBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The user's exact Account Instrument quantities
+ */
+
+export function useListAccountInstrumentBalances<TData = Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError = ErrorType<ApiErrorDto>>(
+ params?: ListAccountInstrumentBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAccountInstrumentBalances>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAccountInstrumentBalancesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

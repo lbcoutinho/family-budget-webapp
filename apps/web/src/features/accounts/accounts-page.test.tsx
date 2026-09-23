@@ -1,4 +1,4 @@
-import { type AccountBalanceDto, type AccountDto } from '@family-budget/api-client';
+import { type AccountDto, type AccountInstrumentBalanceDto } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -46,32 +46,32 @@ function renderPage() {
   };
 }
 
-const BALANCES: AccountBalanceDto[] = [{ accountId: 'a1', name: 'Millennium', isActive: true, initialBalance: 348215, balance: 348215 }];
+const BALANCES: AccountInstrumentBalanceDto[] = [{ accountId: 'a1', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '3482.15' }];
 
 describe('AccountsPage', () => {
-  // Every test renders the "Saldo atual" column, which is backed by its own query — most tests
+  // Every test renders the Instrument balance column, which is backed by its own query — most tests
   // don't care about the actual numbers, only that the request doesn't trip
   // `onUnhandledRequest: 'error'`.
   beforeEach(() => {
     server.use(
-      http.get('/api/accounts/balances', () => HttpResponse.json(BALANCES)),
+      http.get('/api/accounts/instrument-balances', () => HttpResponse.json(BALANCES)),
       http.get('/api/financial-institutions', () => HttpResponse.json([])),
     );
   });
 
-  it('shows the current balance from the balances endpoint, formatted, in its own column', async () => {
+  it('shows exact native Instrument balances from the public endpoint', async () => {
     server.use(http.get('/api/accounts', () => HttpResponse.json([ACTIVE])));
 
     renderPage();
 
     expect(await screen.findByText('Millennium')).toBeInTheDocument();
-    expect(screen.getByText(formatCents(348215))).toBeInTheDocument();
+    expect(screen.getByText('3482.15 EUR')).toBeInTheDocument();
   });
 
   it('shows an em dash when an account has no matching balance', async () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([ACTIVE, INACTIVE])),
-      http.get('/api/accounts/balances', () => HttpResponse.json([])),
+      http.get('/api/accounts/instrument-balances', () => HttpResponse.json([])),
     );
 
     renderPage();

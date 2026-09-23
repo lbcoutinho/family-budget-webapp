@@ -9,6 +9,7 @@
 export * from './accountBalanceDto';
 export * from './accountDto';
 export * from './accountInitialBalanceDto';
+export * from './accountInstrumentBalanceDto';
 export * from './accountKind';
 export * from './apiErrorDto';
 export * from './apiErrorDtoCode';
@@ -70,6 +71,7 @@ export * from './installmentTransactionDto';
 export * from './instrumentDto';
 export * from './instrumentType';
 export * from './listAccountBalancesParams';
+export * from './listAccountInstrumentBalancesParams';
 export * from './listAccountsParams';
 export * from './listAssetListingsParams';
 export * from './listCashboxBalancesParams';

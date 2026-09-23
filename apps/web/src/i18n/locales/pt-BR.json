@@ -97,7 +97,7 @@
       "name": "Conta",
       "type": "Tipo",
       "institution": "Instituição",
-      "balance": "Saldo atual"
+      "balance": "Saldos por instrumento"
     },
     "inactiveBadge": "inativa",
     "actions": {
