@@ -5,6 +5,7 @@
   "nav": {
     "month": "Mês",
     "budgets": "Orçamento",
+    "investments": "Investimentos",
     "cashboxes": "Caixinhas",
     "reports": "Relatórios",
     "voice": "Lançar por voz",
@@ -132,6 +133,23 @@
       "title": "Não foi possível carregar as contas",
       "description": "Verifique a conexão e tente de novo."
     }
+  },
+  "investmentSetup": {
+    "error": { "title": "Não foi possível carregar", "description": "Verifique a conexão e tente novamente." },
+    "columns": {
+      "institution": "Instituição",
+      "instrument": "Instrumento",
+      "code": "Código",
+      "type": "Tipo",
+      "precision": "Precisão",
+      "asset": "Ativo",
+      "ticker": "Ticker",
+      "market": "Mercado",
+      "quote": "Cotação"
+    },
+    "institutions": { "title": "Instituições financeiras", "description": "Bancos, corretoras e exchanges que mantêm contas." },
+    "instruments": { "title": "Instrumentos", "description": "Moedas e ativos mantidos nas contas, com precisão de exibição." },
+    "listings": { "title": "Listagens de ativos", "description": "Mercado, ticker e moeda de cotação de cada ativo." }
   },
   "categories": {
     "new": "Nova categoria",

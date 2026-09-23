@@ -1,4 +1,5 @@
 export * from './accounts/accounts';
+export * from './asset-listings/asset-listings';
 export * from './auth/auth';
 export * from './backup/backup';
 export * from './budgets/budgets';
@@ -6,7 +7,9 @@ export * from './cashboxes/cashboxes';
 export * from './categories/categories';
 export * from './csv-import/csv-import';
 export * from './csv-import-models/csv-import-models';
+export * from './financial-institutions/financial-institutions';
 export * from './health/health';
+export * from './instruments/instruments';
 export * from './recurrence-rules/recurrence-rules';
 export * from './reports/reports';
 export * from './transactions/transactions';
