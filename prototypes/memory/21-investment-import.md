@@ -12,9 +12,17 @@ All variants keep preview and impact inspection read-only until an explicit conf
 Adjustments and Balance Adjustments are reviewed separately from CSV corrections and always require
 a reason. Desktop and narrow-screen layouts are selectable from the prototype controls.
 
-Open decisions:
+Approved decisions:
 
-1. Which structure should guide implementation: A, B, or C?
-2. Should reconciliation request every real custody value or only values the user chooses to verify?
-3. Should duplicate fingerprints block confirmation or remain warnings when the external ID is new?
-4. Does the rollback impact preview provide enough context before the destructive confirmation?
+1. Variant A — guided steps — guides implementation.
+2. Duplicate detection is row-level. A repeated external ID blocks the row; equivalent content with
+   a new external ID remains a warning because some repeated lines are possible. Whole-file duplicate
+   handling is not a separate workflow.
+3. The rollback impact preview provides enough context before destructive confirmation.
+4. The normalized-file input appears only in the File step, never beside the Validation step. The
+   prototype is intentionally unchanged; implementation must apply this correction.
+
+Open decision:
+
+1. During reconciliation, should the screen ask for real custody values for every calculated
+   Instrument Balance and Investment Position, or let the user select which ones to verify first?
