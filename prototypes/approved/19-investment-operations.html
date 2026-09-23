@@ -10,12 +10,12 @@
       href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="_shared/proto.css" />
+    <link rel="stylesheet" href="../_shared/proto.css" />
     <script>
       window.PROTOTYPE_INVESTMENTS_NAV = true;
       window.PROTOTYPE_SHELL_ACTIVE = 'investments';
     </script>
-    <script defer src="_shared/proto.js"></script>
+    <script defer src="../_shared/proto.js"></script>
     <style>
       .content {
         padding-bottom: 88px;
@@ -393,8 +393,8 @@
   FORM: Dense ledger workspace, incumbent extension, seed issue-395-operations.
   FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
   -->
-    <div data-proto="19 — Operações de investimentos" data-ticket="#395 · em revisão"></div>
-    <div class="proto-note"><strong>Protótipo em revisão.</strong> Use os controles para percorrer estados e exemplos; os dados são fictícios.</div>
+    <div data-proto="19 — Operações de investimentos" data-ticket="#395 · aprovada"></div>
+    <div class="proto-note"><strong>Estrutura aprovada.</strong> Use os controles para percorrer estados e exemplos; os dados são fictícios.</div>
     <div data-shell="investments">
       <main class="main">
         <header class="topbar">
@@ -405,7 +405,7 @@
         </header>
         <div class="content">
           <nav class="investment-tabs" aria-label="Seções de investimentos">
-            <a href="approved/17-investments-navigation.html">Visão geral</a><a href="#" aria-current="page">Operações</a><a href="#">Fluxo mensal</a
+            <a href="17-investments-navigation.html">Visão geral</a><a href="#" aria-current="page">Operações</a><a href="#">Fluxo mensal</a
             ><a href="#">Importar e reconciliar</a>
           </nav>
           <div class="review-tools" aria-label="Controles do protótipo">
@@ -443,8 +443,8 @@
           </div>
           <div id="screen"></div>
           <section class="decisions">
-            <h2>Decisões a aprovar</h2>
-            <p>Estas escolhas destravam a implementação das operações e dos ajustes.</p>
+            <h2>Decisões aprovadas</h2>
+            <p>Estas escolhas orientam a implementação das operações e dos ajustes.</p>
             <ol>
               <li>
                 <b>Uma troca, três pernas.</b
@@ -457,10 +457,6 @@
               <li>
                 <b>Ajustes são operações explícitas no mesmo histórico.</b
                 ><span>“Ajustar posição” e “Ajustar saldo” exigem motivo e explicam que corrigem custódia sem criar compra, venda, receita ou despesa.</span>
-              </li>
-              <li>
-                <b>Salvar exige uma confirmação resumida.</b
-                ><span>O resumo repete as três pernas e o valor em EUR antes de confirmar, reduzindo erros de sinal ou instrumento.</span>
               </li>
             </ol>
           </section>
@@ -520,7 +516,7 @@
               screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>${position ? 'Ajuste de posição' : 'Ajuste de saldo'}</h1><p>Registrado em 02/07/2026 às 12:20 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="${position ? 'position' : 'balance'}">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>${position ? 'Kraken' : 'DEGIRO'}</dd></div><div><dt>${position ? 'Ativo' : 'Moeda'}</dt><dd>${position ? 'BTC' : 'EUR'}</dd></div><div><dt>Variação</dt><dd class="quantity">${position ? '+ 0,000120 BTC' : '− 12,35 EUR'}</dd></div><div><dt>${position ? 'Custo atribuído' : 'Efeito no orçamento'}</dt><dd>${position ? '7,10 €' : 'Nenhum'}</dd></div><div><dt>Motivo</dt><dd>Diferença identificada na reconciliação com o extrato.</dd></div><div><dt>Atividade mensal</dt><dd>Não contabiliza</dd></div></dl><div class="effect">${icon('info')}<span>${position ? 'Corrige quantidade e custo sem criar compra ou venda.' : 'Corrige o saldo sem criar receita, despesa ou transferência.'}</span></div></section>`;
               return;
             }
-            screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>BTC recebido por EUR</h1><p>Executada em 11/07/2026 às 18:04 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="third-fee">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>Kraken</dd></div><div><dt>Execução UTC</dt><dd class="date">11/07/2026 · 17:04 UTC</dd></div><div><dt>Recebido</dt><dd class="quantity">0,008421 BTC</dd></div><div><dt>Entregue</dt><dd class="quantity">500,00 EUR</dd></div><div><dt>Taxa</dt><dd class="quantity">0,00004 BNB</dd></div><div><dt>Valor na execução</dt><dd class="amount" style="text-align:left">500,00 €</dd></div><div><dt>Listagem</dt><dd>BTC-EUR · Kraken</dd></div><div><dt>Notas</dt><dd>Compra mensal</dd></div></dl><div class="effect">${icon('info')}<span>A compra aumenta a posição de BTC; a taxa reduz BNB e entra no custo da posição adquirida.</span></div></section>`;
+            screen.innerHTML = `<section class="detail"><div class="detail-head"><div><a class="small muted" href="?view=list">‹ Voltar às operações</a><h1>BTC recebido por EUR</h1><p>Executada em 11/07/2026 às 18:04 · horário de Lisboa</p></div><button class="btn outline sm" data-open="operation-dialog" data-mode="third-fee">${icon('pencil')} Editar</button></div><dl class="detail-grid"><div><dt>Conta</dt><dd>Kraken</dd></div><div><dt>Execução UTC</dt><dd class="date">11/07/2026 · 17:04 UTC</dd></div><div><dt>Recebido</dt><dd class="quantity">0,008421 BTC</dd></div><div><dt>Entregue</dt><dd class="quantity">500,00 EUR</dd></div><div><dt>Taxa</dt><dd class="quantity">0,00004 BNB</dd></div><div><dt>Valor na execução</dt><dd class="amount" style="text-align:left">500,00 €</dd></div><div><dt>Listagem</dt><dd>BTC-EUR · Kraken</dd></div><div><dt>Notas</dt><dd>Compra mensal</dd></div></dl></section>`;
             return;
           }
           if (state === 'loading')
