@@ -39,6 +39,8 @@ describe('Accounts API (e2e)', () => {
   // Accounts hold a foreign key onto the user with `onDelete: Restrict`, so they come off first.
   const removeFixtures = async (): Promise<void> => {
     await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.financialInstitution.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.instrument.deleteMany({ where: { user: { email: { in: emails } } } });
   };
 
   beforeAll(async () => {
@@ -81,6 +83,40 @@ describe('Accounts API (e2e)', () => {
   });
 
   describe('create', () => {
+    it('stores exact Instrument initial balances and permits a self-custodied wallet', async () => {
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
+      const [institution, bitcoin] = await Promise.all([
+        prisma.financialInstitution.create({ data: { userId: user.id, name: 'Kraken', kind: 'EXCHANGE' } }),
+        prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } }),
+      ]);
+
+      const exchange = await createAccount({
+        name: 'Kraken spot',
+        kind: 'EXCHANGE',
+        financialInstitutionId: institution.id,
+        initialBalances: [{ instrumentId: bitcoin.id, quantity: '0.010000000000000001' }],
+      });
+      const wallet = await createAccount({ name: 'Ledger', kind: 'WALLET', financialInstitutionId: null });
+
+      expect(exchange).toMatchObject({
+        kind: 'EXCHANGE',
+        financialInstitutionId: institution.id,
+        financialInstitutionName: 'Kraken',
+        initialBalances: [{ instrumentId: bitcoin.id, instrumentCode: 'BTC', quantity: '0.010000000000000001' }],
+      });
+      expect(wallet).toMatchObject({ kind: 'WALLET', financialInstitutionId: null, financialInstitutionName: null, initialBalances: [] });
+
+      await authed('post', '/accounts')
+        .send({
+          name: 'Duplicate BTC',
+          initialBalances: [
+            { instrumentId: bitcoin.id, quantity: '1' },
+            { instrumentId: bitcoin.id, quantity: '2' },
+          ],
+        })
+        .expect(409);
+    });
+
     it('creates an account and hands back the defaults', async () => {
       const created = await createAccount({ name: 'Millennium', initialBalance: 150_000 });
 

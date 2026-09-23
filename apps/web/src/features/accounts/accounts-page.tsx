@@ -183,6 +183,7 @@ export function AccountsPage() {
       </PageContent>
 
       <AccountDialog
+        key={editingAccount === 'new' ? 'new' : (dialogAccount?.id ?? 'closed')}
         open={editingAccount !== null}
         onOpenChange={(open) => {
           if (!open) {

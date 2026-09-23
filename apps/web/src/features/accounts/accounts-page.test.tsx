@@ -53,7 +53,10 @@ describe('AccountsPage', () => {
   // don't care about the actual numbers, only that the request doesn't trip
   // `onUnhandledRequest: 'error'`.
   beforeEach(() => {
-    server.use(http.get('/api/accounts/balances', () => HttpResponse.json(BALANCES)));
+    server.use(
+      http.get('/api/accounts/balances', () => HttpResponse.json(BALANCES)),
+      http.get('/api/financial-institutions', () => HttpResponse.json([])),
+    );
   });
 
   it('shows the current balance from the balances endpoint, formatted, in its own column', async () => {
@@ -74,7 +77,7 @@ describe('AccountsPage', () => {
     renderPage();
 
     expect(await screen.findByText('Millennium')).toBeInTheDocument();
-    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getAllByText('—')).toHaveLength(4);
   });
 
   it('sends no includeInactive and shows only active rows by default', async () => {

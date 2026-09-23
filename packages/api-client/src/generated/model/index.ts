@@ -8,6 +8,8 @@
 
 export * from './accountBalanceDto';
 export * from './accountDto';
+export * from './accountInitialBalanceDto';
+export * from './accountKind';
 export * from './apiErrorDto';
 export * from './apiErrorDtoCode';
 export * from './assetListingDto';
@@ -32,6 +34,7 @@ export * from './categoryDto';
 export * from './categoryKind';
 export * from './confirmCsvImportBody';
 export * from './createAccountDto';
+export * from './createAccountInitialBalanceDto';
 export * from './createAssetListingDto';
 export * from './createCashboxDto';
 export * from './createCategoryDto';

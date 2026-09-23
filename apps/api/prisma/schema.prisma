@@ -56,6 +56,7 @@ model User {
   financialInstitutions FinancialInstitution[]
   instruments     Instrument[]
   assetListings   AssetListing[]
+  accountInitialBalances AccountInitialBalance[]
 
   @@map("users")
 }
@@ -112,6 +113,8 @@ model Account {
   /// Balance the account already held before the first recorded transaction, in **cents**
   /// (ADR-0005) — never a Float. May be negative, e.g. an overdrawn account.
   initialBalance Int      @default(0) @map("initial_balance")
+  kind           AccountKind @default(BANK)
+  financialInstitutionId String? @map("financial_institution_id") @db.Uuid
   isActive       Boolean  @default(true) @map("is_active")
   /// Position in the user's own ordering of the list. Ties broken by `name` at query time.
   sortOrder      Int      @default(0) @map("sort_order")
@@ -120,6 +123,8 @@ model Account {
 
   // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  financialInstitution FinancialInstitution? @relation(fields: [financialInstitutionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  initialBalances AccountInitialBalance[]
 
   // Restrict, not Cascade: an account with transactions cannot be deleted (ADR-0015), only
   // deactivated. Two named relations because a `TRANSFER` references an account on both sides.
@@ -129,7 +134,36 @@ model Account {
 
   @@unique([userId, name])
   @@index([userId, isActive])
+  @@index([financialInstitutionId])
   @@map("accounts")
+}
+
+enum AccountKind {
+  BANK
+  BROKERAGE
+  EXCHANGE
+  WALLET
+  OTHER
+
+  @@map("account_kind")
+}
+
+model AccountInitialBalance {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  accountId    String   @map("account_id") @db.Uuid
+  instrumentId String   @map("instrument_id") @db.Uuid
+  quantity     Decimal  @db.Decimal(36, 18)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  account    Account    @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([accountId, instrumentId])
+  @@index([userId, instrumentId])
+  @@map("account_initial_balances")
 }
 
 enum FinancialInstitutionKind {
@@ -151,6 +185,7 @@ model FinancialInstitution {
   updatedAt DateTime                 @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  accounts Account[]
 
   @@unique([userId, name])
   @@index([userId, isActive])
@@ -181,6 +216,7 @@ model Instrument {
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
   user           User          @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  accountInitialBalances AccountInitialBalance[]
   listings       AssetListing[] @relation("ListedInstrument")
   quotedListings AssetListing[] @relation("QuoteInstrument")
 
@@ -301,7 +337,6 @@ model Cashbox {
 
   // Restrict, not Cascade: deleting a user must never silently take the domain data with it.
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-
   // SetNull, not Restrict: a zero-balance cashbox may be deleted with entries still referencing it
   // (ADR-0019). The `cashboxLabel` / `destinationCashboxLabel` snapshot on `Transaction` is what
   // keeps its name readable in history once this relation goes null.

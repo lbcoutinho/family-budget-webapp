@@ -5,10 +5,18 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
+import type { AccountInitialBalanceDto } from './accountInitialBalanceDto';
+import type { AccountKind } from './accountKind';
 
 export interface AccountDto {
   id: string;
   name: string;
+  kind?: AccountKind;
+  /** @nullable */
+  financialInstitutionId?: string | null;
+  /** @nullable */
+  financialInstitutionName?: string | null;
+  initialBalances?: AccountInitialBalanceDto[];
   /** Balance before the first recorded transaction, in **cents** (ADR-0005). May be negative. */
   initialBalance: number;
   /** Inactive accounts stay readable in history but are kept out of the pickers. */

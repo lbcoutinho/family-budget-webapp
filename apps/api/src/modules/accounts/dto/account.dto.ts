@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { AccountKind } from '../../../generated/prisma/client';
+
+import { AccountInitialBalanceDto } from './account-initial-balance.dto';
+
 /**
  * An account as the API hands it out. Deliberately not the Prisma row: `userId` is the tenancy
  * boundary, not information a client needs, and a column added to the model later cannot leak into
@@ -14,6 +18,18 @@ export class AccountDto {
 
   @ApiProperty({ type: String, example: 'Millennium' })
   name!: string;
+
+  @ApiProperty({ enum: AccountKind, enumName: 'AccountKind', required: false })
+  kind?: AccountKind;
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, required: false })
+  financialInstitutionId?: string | null;
+
+  @ApiProperty({ type: String, nullable: true, required: false })
+  financialInstitutionName?: string | null;
+
+  @ApiProperty({ type: [AccountInitialBalanceDto], required: false })
+  initialBalances?: AccountInitialBalanceDto[];
 
   @ApiProperty({ type: Number, example: 150000, description: 'Balance before the first recorded transaction, in **cents** (ADR-0005). May be negative.' })
   initialBalance!: number;

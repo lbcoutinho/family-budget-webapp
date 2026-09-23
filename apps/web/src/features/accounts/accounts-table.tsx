@@ -37,6 +37,8 @@ export function AccountsTableSkeleton() {
       <TableHeader>
         <TableRow>
           <TableHead>{t('accounts.columns.name')}</TableHead>
+          <TableHead>{t('accounts.columns.type')}</TableHead>
+          <TableHead>{t('accounts.columns.institution')}</TableHead>
           <TableHead className="text-right">{t('accounts.columns.balance')}</TableHead>
           <TableHead />
         </TableRow>
@@ -46,6 +48,12 @@ export function AccountsTableSkeleton() {
           <TableRow key={width}>
             <TableCell>
               <Skeleton className="h-4" style={{ width }} />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-16" />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-20" />
             </TableCell>
             <TableCell>
               <Skeleton className="ml-auto h-4 w-16" />
@@ -67,6 +75,8 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
       <TableHeader>
         <TableRow>
           <TableHead>{t('accounts.columns.name')}</TableHead>
+          <TableHead>{t('accounts.columns.type')}</TableHead>
+          <TableHead>{t('accounts.columns.institution')}</TableHead>
           <TableHead className="text-right">{t('accounts.columns.balance')}</TableHead>
           <TableHead>
             <span className="sr-only">{t('common.actions')}</span>
@@ -90,6 +100,8 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
                 {!account.isActive && <Badge variant="outline">{t('accounts.inactiveBadge')}</Badge>}
               </div>
             </TableCell>
+            <TableCell>{account.kind ?? 'BANK'}</TableCell>
+            <TableCell>{account.financialInstitutionName ?? '—'}</TableCell>
             <TableCell className="text-right tabular-nums">
               {balancesLoading ? <Skeleton className="ml-auto h-4 w-16" /> : balances.has(account.id) ? formatCents(balances.get(account.id)!) : '—'}
             </TableCell>

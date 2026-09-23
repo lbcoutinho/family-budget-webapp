@@ -95,6 +95,8 @@
     "showInactive": "Show inactive",
     "columns": {
       "name": "Account",
+      "type": "Type",
+      "institution": "Institution",
       "balance": "Current balance"
     },
     "inactiveBadge": "inactive",
@@ -110,8 +112,16 @@
       "nameRequired": "Enter the account's name.",
       "nameTooLong": "The name can have at most 80 characters.",
       "initialBalance": "Initial balance",
+      "kind": "Account type",
+      "institution": "Financial institution",
+      "selfCustody": "Self-custody",
+      "instrumentBalances": "Instrument initial balances",
+      "instrument": "Instrument",
+      "quantity": "Quantity",
+      "addInstrument": "Add instrument",
       "initialBalanceInvalid": "Enter a valid amount."
     },
+    "kinds": { "BANK": "Bank", "BROKERAGE": "Brokerage", "EXCHANGE": "Exchange", "WALLET": "Wallet", "OTHER": "Other" },
     "deactivate": {
       "title": "Deactivate \"{{name}}\"?",
       "description": "The account disappears from new transactions. Its history stays exactly where it is.",
