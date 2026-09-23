@@ -116,6 +116,7 @@ const APPROVED = new Set([
   '14-settings-general-models.html',
   '15-transaction-import.html',
   '17-investments-navigation.html',
+  '18-investments-overview.html',
 ]);
 
 function protoHref(file) {
@@ -138,7 +139,7 @@ function navItem(item, active) {
 function buildShell(active) {
   const investmentsEnabled = window.PROTOTYPE_INVESTMENTS_NAV === true;
   const primaryNav = investmentsEnabled
-    ? [...NAV.slice(0, 2), { id: 'investments', label: 'Investimentos', icon: 'investments', href: '17-investments-navigation.html' }, ...NAV.slice(2)]
+    ? [...NAV.slice(0, 2), { id: 'investments', label: 'Investimentos', icon: 'investments', href: '18-investments-overview.html' }, ...NAV.slice(2)]
     : NAV;
   const investmentSettingsOpen = investmentsEnabled && NAV_INVESTMENT_SETTINGS.some((i) => i.id === active);
   const settingsOpen = investmentSettingsOpen || NAV_SETTINGS.some((i) => i.id === active);

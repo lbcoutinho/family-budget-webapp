@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>18 — Visão geral de investimentos (protótipo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../_shared/proto.css" />
+    <script>
+      window.PROTOTYPE_INVESTMENTS_NAV = true;
+      window.PROTOTYPE_SHELL_ACTIVE = 'investments';
+    </script>
+    <script defer src="../_shared/proto.js"></script>
+    <style>
+      .content {
+        padding-bottom: 40px;
+      }
+      .investment-tabs {
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+      .investment-tabs a {
+        flex: none;
+        padding: 9px 11px;
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        font-size: 14px;
+      }
+      .investment-tabs a[aria-current='page'] {
+        color: var(--ink);
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+      .page-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .page-head p {
+        max-width: 65ch;
+        margin-top: 4px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .filter-bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+      }
+      .filter-menu-wrap {
+        position: relative;
+      }
+      .filter-menu {
+        position: absolute;
+        z-index: 40;
+        top: calc(100% + 8px);
+        right: 0;
+        display: grid;
+        width: 310px;
+        gap: 10px;
+        padding: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-sm);
+        box-shadow: var(--shadow-md);
+      }
+      .filter-menu[hidden] {
+        display: none;
+      }
+      .filter-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .filter-row > span {
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+      .filter-row .select {
+        width: 165px;
+      }
+      .filter-menu > .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        margin-bottom: 12px;
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .metric {
+        padding: 13px 15px;
+      }
+      .metric + .metric {
+        border-left: 1px solid var(--line);
+      }
+      .metric span {
+        display: block;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .metric strong {
+        display: block;
+        margin-top: 3px;
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1.5rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .positive {
+        color: var(--income);
+      }
+      .negative {
+        color: var(--expense);
+      }
+      .muted-value {
+        color: var(--ink-soft);
+      }
+      .table-wrap {
+        position: relative;
+      }
+      table.positions {
+        width: 1000px;
+        min-width: 1000px;
+        table-layout: fixed;
+        font-size: 12.5px;
+      }
+      .positions th,
+      .positions td {
+        white-space: nowrap;
+      }
+      table.data.positions th {
+        white-space: normal;
+        font-size: 10.5px;
+        line-height: 1.2;
+      }
+      .positions th:first-child,
+      .positions td:first-child {
+        width: 155px;
+      }
+      .positions th:nth-child(2),
+      .positions td:nth-child(2) {
+        width: 80px;
+      }
+      .positions th:nth-child(3) {
+        width: 105px;
+      }
+      .positions th:nth-child(4) {
+        width: 115px;
+      }
+      .positions th:nth-child(5) {
+        width: 90px;
+      }
+      .positions th:nth-child(6) {
+        width: 150px;
+      }
+      .positions th:nth-child(7) {
+        width: 105px;
+      }
+      .positions th:nth-child(8),
+      .positions th:nth-child(9) {
+        width: 100px;
+      }
+      .positions td.num,
+      .positions th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .positions tr.instrument-row td {
+        background: var(--wash);
+        border-top-color: var(--line-strong);
+      }
+      .positions tr.account-row td:first-child {
+        color: var(--ink-soft);
+      }
+      .child-line {
+        position: relative;
+        display: block;
+        width: 26px;
+        height: 18px;
+        margin-left: 10px;
+        border-bottom: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+        border-radius: 0 0 0 4px;
+      }
+      .child-line::after {
+        content: '';
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--ink-soft);
+      }
+      .instrument {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .instrument-mark {
+        width: 9px;
+        height: 9px;
+        border-radius: 4px;
+        background: var(--ink-soft);
+        flex: none;
+      }
+      .instrument small {
+        display: block;
+        color: var(--ink-soft);
+        font-weight: 400;
+      }
+      .quote {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .quote-state {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--income);
+      }
+      .quote-state.stale {
+        background: var(--cashbox);
+        border: 0;
+      }
+      .quote-state.missing {
+        border: 1px solid var(--expense);
+        background: transparent;
+      }
+      .quote-state.manual {
+        border-radius: 2px;
+        background: var(--transfer);
+      }
+      .state-panel {
+        min-height: 320px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 30px;
+      }
+      .state-panel h2 {
+        margin-top: 9px;
+      }
+      .state-panel p {
+        max-width: 48ch;
+        margin: 5px auto 12px;
+        color: var(--ink-soft);
+      }
+      .state-panel svg {
+        width: 24px;
+        height: 24px;
+        color: var(--ink-soft);
+      }
+      .skeleton-row {
+        height: 17px;
+        margin: 17px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--wash), var(--line), var(--wash));
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 10px 2px 0;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .review-tools {
+        display: flex;
+        gap: 10px;
+        align-items: end;
+        padding: 10px 12px;
+        margin-bottom: 16px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+      }
+      .review-tools::before {
+        content: 'Controles do protótipo';
+        margin-right: auto;
+        align-self: center;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .review-tools .field {
+        min-width: 150px;
+      }
+      .decisions {
+        margin: 32px 0 54px;
+      }
+      .decisions p,
+      .decisions li span {
+        color: var(--ink-soft);
+      }
+      .decisions ol {
+        padding-left: 20px;
+      }
+      .decisions li {
+        margin: 10px 0;
+        padding-left: 4px;
+      }
+      .decisions li span {
+        display: block;
+        max-width: 78ch;
+        font-size: 14px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      @media (max-width: 720px) {
+        .review-tools {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .review-tools::before {
+          align-self: auto;
+          margin: 0;
+        }
+        .review-tools .field {
+          min-width: 0;
+        }
+        .page-head {
+          flex-direction: column;
+        }
+        .filter-menu {
+          position: fixed;
+          top: auto;
+          right: 14px;
+          bottom: 72px;
+          left: 14px;
+          width: auto;
+        }
+        .summary {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .metric:nth-child(3) {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .metric:nth-child(4) {
+          border-top: 1px solid var(--line);
+        }
+        .positions th:first-child,
+        .positions td:first-child {
+          position: sticky;
+          left: 0;
+          z-index: 2;
+          background: var(--surface);
+          box-shadow: 1px 0 var(--line);
+        }
+        .positions thead th:first-child {
+          z-index: 3;
+          background: var(--wash);
+        }
+        .positions tr.instrument-row td:first-child {
+          background: var(--wash);
+        }
+      }
+      body.narrow-preview {
+        width: 390px;
+        margin: 0 auto;
+        box-shadow: 0 0 0 1px var(--line);
+      }
+      body.narrow-preview .shell {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .side {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 262px;
+        z-index: 80;
+        transform: translateX(-100%);
+      }
+      body.narrow-preview .burger {
+        display: inline-flex;
+      }
+      body.narrow-preview .content {
+        padding: 16px 14px 92px;
+      }
+      body.narrow-preview .topbar {
+        padding: 10px 14px;
+      }
+      body.narrow-preview .review-tools,
+      body.narrow-preview .page-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      body.narrow-preview .review-tools::before {
+        align-self: auto;
+        margin: 0;
+      }
+      body.narrow-preview .review-tools .field {
+        min-width: 0;
+      }
+      body.narrow-preview .filter-menu {
+        position: fixed;
+        top: auto;
+        right: auto;
+        bottom: 72px;
+        left: 50%;
+        width: 362px;
+        transform: translateX(-50%);
+      }
+      body.narrow-preview .summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      body.narrow-preview .metric:nth-child(3) {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      body.narrow-preview .metric:nth-child(4) {
+        border-top: 1px solid var(--line);
+      }
+      body.narrow-preview .positions th:first-child,
+      body.narrow-preview .positions td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: var(--surface);
+        box-shadow: 1px 0 var(--line);
+      }
+      body.narrow-preview .positions thead th:first-child {
+        z-index: 3;
+        background: var(--wash);
+      }
+      body.narrow-preview .positions tr.instrument-row td:first-child {
+        background: var(--wash);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: One portfolio, two truths: total exposure and exact custody; avoid dashboard cards that hide reconciliation detail.
+      OWN-WORLD: The approved instrument panel, hairline tables, wash-backed groups, and explicit result/quote status colors.
+      STORY: Filter the portfolio, compare value with remaining cost, then locate each quantity in its custody Account.
+      FIRST VIEWPORT: Navigation, compact filters and totals, then a dense complete position table with quote health visible in-row.
+      FORM: Hierarchical Instrument-to-Account table, selected after comparing three structures in review.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div data-proto="18 — Visão geral de investimentos" data-ticket="#394 · aprovada"></div>
+    <div class="proto-note">
+      <strong>Estrutura aprovada: A — hierarquia por instrumento.</strong> A posição consolidada abre cada grupo; as contas aparecem abaixo.
+    </div>
+
+    <div data-shell="investments">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Investimentos</span>
+          </div>
+          <button class="btn sm" disabled title="Será definido no protótipo de operações"><span data-icon="plus"></span> Nova operação</button>
+        </header>
+        <div class="content">
+          <div class="review-tools" aria-label="Controles do protótipo">
+            <label class="field"
+              ><span>Estado</span
+              ><select class="select" id="prototype-state">
+                <option value="populated">Preenchido</option>
+                <option value="loading">Carregando</option>
+                <option value="empty">Vazio</option>
+                <option value="error">Erro</option>
+              </select></label
+            >
+            <label class="field"
+              ><span>Largura</span
+              ><select class="select" id="prototype-width">
+                <option value="desktop">Desktop</option>
+                <option value="narrow">Tela estreita</option>
+              </select></label
+            >
+          </div>
+
+          <nav class="investment-tabs" aria-label="Seções de investimentos">
+            <a href="#" aria-current="page">Visão geral</a><a href="#">Operações</a><a href="#">Fluxo mensal</a><a href="#">Importar e reconciliar</a>
+          </nav>
+          <div class="page-head">
+            <div>
+              <h1>Visão geral</h1>
+              <p>Posições consolidadas e por conta, com custo das posições abertas, cotação atual e resultado em euros.</p>
+            </div>
+            <button class="btn icon outline" aria-label="Configurações de investimentos" title="Configurações de investimentos">
+              <span data-icon="settings"></span>
+            </button>
+          </div>
+
+          <div id="state-root"></div>
+
+          <section class="decisions">
+            <h2>Decisões aprovadas</h2>
+            <p>Decisões fechadas na revisão do #394.</p>
+            <ol>
+              <li>
+                <b>A tabela usa a variante A.</b
+                ><span>Cada Instrumento abre com a posição consolidada; as contas de custódia aparecem como linhas-filhas.</span>
+              </li>
+              <li>
+                <b>Posições zeradas permanecem visíveis.</b
+                ><span>A linha fica atenuada, mantém o resultado realizado e mostra quantidade, custo e resultado não realizado como zero.</span>
+              </li>
+              <li>
+                <b>A cotação pertence ao Instrumento consolidado.</b
+                ><span>Atual, desatualizada, manual e ausente usam cor, texto e data/origem; todas as contas do mesmo Instrumento compartilham a cotação.</span>
+              </li>
+              <li>
+                <b>Na tela estreita, a tabela rola com Instrumento congelado.</b
+                ><span>Não vira cartões: a relação entre as oito medidas continua comparável horizontalmente.</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(location.search);
+        const state = ['populated', 'loading', 'empty', 'error'].includes(params.get('state')) ? params.get('state') : 'populated';
+        const narrowPreview = params.get('width') === 'narrow';
+        const rows = [
+          {
+            asset: 'Vanguard FTSE All-World',
+            code: 'VWCE',
+            account: 'DEGIRO',
+            quantity: '18,4321',
+            cost: '1.989,44 €',
+            average: '107,93 €',
+            value: '2.325,76 €',
+            realized: '+ 84,20 €',
+            unrealized: '+ 336,32 €',
+          },
+          {
+            asset: 'Bitcoin',
+            code: 'BTC',
+            account: 'Kraken',
+            quantity: '0,0384',
+            cost: '2.104,80 €',
+            average: '54.812,50 €',
+            value: '2.438,40 €',
+            realized: '− 31,10 €',
+            unrealized: '+ 333,60 €',
+          },
+          {
+            asset: 'Bitcoin',
+            code: 'BTC',
+            account: 'Ledger',
+            quantity: '0,0142',
+            cost: '721,40 €',
+            average: '50.802,82 €',
+            value: '901,70 €',
+            realized: '0,00 €',
+            unrealized: '+ 180,30 €',
+          },
+          {
+            asset: 'iShares Core MSCI World',
+            code: 'EUNL',
+            account: 'DEGIRO',
+            quantity: '7,2500',
+            cost: '702,11 €',
+            average: '96,84 €',
+            value: '—',
+            realized: '0,00 €',
+            unrealized: '—',
+          },
+          {
+            asset: 'Ethereum',
+            code: 'ETH',
+            account: 'Kraken',
+            quantity: '1,1800',
+            cost: '3.104,30 €',
+            average: '2.630,76 €',
+            value: '2.855,60 €',
+            realized: '+ 112,00 €',
+            unrealized: '− 248,70 €',
+          },
+          {
+            asset: 'BNB',
+            code: 'BNB',
+            account: 'Kraken',
+            quantity: '0,0000',
+            cost: '0,00 €',
+            average: '—',
+            value: '0,00 €',
+            realized: '− 18,42 €',
+            unrealized: '0,00 €',
+            zero: true,
+          },
+        ];
+        const instruments = {
+          VWCE: { quote: '126,18 €', quoteState: 'Atual · 22/09' },
+          BTC: {
+            quote: '63.500,00 €',
+            quoteState: 'Manual · 22/09',
+            quoteClass: 'manual',
+            quantity: '0,0526',
+            cost: '2.826,20 €',
+            average: '53.730,04 €',
+            value: '3.340,10 €',
+            realized: '− 31,10 €',
+            unrealized: '+ 513,90 €',
+          },
+          EUNL: { quote: '—', quoteState: 'Cotação ausente', quoteClass: 'missing' },
+          ETH: { quote: '2.420,00 €', quoteState: 'Desatualizada · 18/09', quoteClass: 'stale' },
+          BNB: { quote: '—', quoteState: 'Posição encerrada', quoteClass: 'closed' },
+        };
+        const filterMenu = () =>
+          `<div class="filter-bar"><div class="filter-menu-wrap"><button class="btn sm outline" type="button" data-toggle="position-filters" aria-expanded="false" aria-controls="position-filters" aria-haspopup="true">${icon('filter')} Filtros</button><div class="filter-menu" id="position-filters" hidden><label class="filter-row"><span>Tipo de instrumento</span><select class="select"><option>Todos</option><option>ETF</option><option>Criptomoeda</option></select></label><label class="filter-row"><span>Instituição financeira</span><select class="select"><option>Todas</option><option>DEGIRO</option><option>Kraken</option><option>Autocustódia</option></select></label><label class="filter-row"><span>Conta</span><select class="select"><option>Todas</option><option>DEGIRO</option><option>Kraken</option><option>Ledger</option></select></label><button class="btn outline sm" type="button" data-clear-filters>${icon('repeat')} Limpar filtros</button></div></div></div>`;
+        const summary = () =>
+          `<div class="summary"><div class="metric"><span title="Soma das posições que têm cotação disponível">Valor atual (com cotação)</span><strong>8.521,46 €</strong></div><div class="metric"><span title="Custo de aquisição das unidades que ainda estão na carteira">Custo das posições abertas</span><strong>8.622,05 €</strong></div><div class="metric"><span>Resultado realizado</span><strong class="positive">+ 146,68 €</strong></div><div class="metric"><span>Resultado não realizado</span><strong class="positive">+ 601,52 €</strong></div></div>`;
+        const head = () =>
+          `<thead><tr><th>Instrumento</th><th>Conta</th><th class="num">Quantidade nativa</th><th class="num">Custo remanescente</th><th class="num">Preço médio</th><th class="num">Cotação de mercado</th><th class="num">Valor atual EUR</th><th class="num">Realizado</th><th class="num">Não realizado</th></tr></thead>`;
+        const resultClass = (value) => (value.startsWith('+') ? 'positive' : value.startsWith('−') ? 'negative' : '');
+        const accountCells = (row) =>
+          `<td><span class="child-line" aria-hidden="true"></span><span class="sr-only">Posição na conta ${row.account}</span></td><td>${row.account}</td><td class="num">${row.quantity}</td><td class="num">${row.cost}</td><td class="num">${row.average}</td><td><span class="sr-only">Cotação exibida na posição consolidada</span></td><td class="num">${row.value}</td><td class="num ${resultClass(row.realized)}">${row.realized}</td><td class="num ${resultClass(row.unrealized)}">${row.unrealized}</td>`;
+        const groupedRows = () => rows.reduce((groups, row) => ({ ...groups, [row.code]: [...(groups[row.code] || []), row] }), {});
+        const tableRows = () =>
+          Object.entries(groupedRows())
+            .map(([code, items]) => {
+              const first = items[0];
+              const quantity = items
+                .reduce((total, row) => total + Number(row.quantity.replace(',', '.')), 0)
+                .toLocaleString('pt-BR', { minimumFractionDigits: 4 });
+              const position = {
+                ...first,
+                ...instruments[code],
+                quantity: instruments[code].quantity || quantity,
+                account: `${items.length} ${items.length === 1 ? 'conta' : 'contas'}`,
+              };
+              const quoteMarker = position.quoteClass === 'closed' ? '' : `<i class="quote-state ${position.quoteClass || ''}"></i>`;
+              const parent = `<tr class="instrument-row ${items.every((item) => item.zero) ? 'muted-value' : ''}"><td><div class="instrument"><span class="instrument-mark"></span><div><b>${code}</b><small>${first.asset}</small></div></div></td><td>${position.account}</td><td class="num">${position.quantity}</td><td class="num">${position.cost}</td><td class="num">${position.average}</td><td class="num"><span class="quote">${quoteMarker}<span><b>${position.quote}</b><small style="display:block;color:var(--ink-soft)">${position.quoteState}</small></span></span></td><td class="num">${position.value}</td><td class="num ${resultClass(position.realized)}">${position.realized}</td><td class="num ${resultClass(position.unrealized)}">${position.unrealized}</td></tr>`;
+              return `${parent}${items.map((row) => `<tr class="account-row ${row.zero ? 'muted-value' : ''}">${accountCells(row)}</tr>`).join('')}`;
+            })
+            .join('');
+        const legend = () =>
+          `<div class="legend" aria-label="Estados da cotação"><span><i class="quote-state"></i>Atual</span><span><i class="quote-state stale"></i>Desatualizada</span><span><i class="quote-state manual"></i>Manual</span><span><i class="quote-state missing"></i>Ausente</span></div>`;
+        const populated = () =>
+          `${filterMenu()}${summary()}<div class="card"><div class="table-wrap"><table class="data positions freeze">${head()}<tbody>${tableRows()}</tbody></table></div></div>${legend()}`;
+        const statePanel = () => {
+          if (state === 'loading')
+            return `${filterMenu()}<div class="card" aria-busy="true"><span class="sr-only" role="status">Carregando posições</span>${[1, 2, 3, 4, 5, 6].map((n) => `<div class="skeleton-row" style="width:${92 - n * 4}%"></div>`).join('')}</div>`;
+          if (state === 'empty')
+            return `${filterMenu()}<div class="card state-panel"><div>${icon('investments')}<h2>Nenhuma posição ainda</h2><p>Registre uma operação de investimento ou importe seu histórico para começar a acompanhar a carteira.</p><button class="btn sm">Nova operação</button></div></div>`;
+          if (state === 'error')
+            return `${filterMenu()}<div class="card state-panel"><div>${icon('alert')}<h2>Não foi possível carregar as posições</h2><p>Os filtros foram mantidos. Verifique a conexão e tente de novo.</p><button class="btn outline sm">Tentar de novo</button></div></div>`;
+          return populated();
+        };
+        const setUrl = (changes) => {
+          const next = new URLSearchParams(location.search);
+          Object.entries(changes).forEach(([key, value]) => next.set(key, value));
+          location.search = next;
+        };
+        document.getElementById('state-root').innerHTML = statePanel();
+        document.querySelector('[data-clear-filters]')?.addEventListener('click', () => {
+          document.querySelectorAll('#position-filters select').forEach((select) => (select.selectedIndex = 0));
+        });
+        document.getElementById('prototype-state').value = state;
+        document.getElementById('prototype-width').value = narrowPreview ? 'narrow' : 'desktop';
+        document.body.classList.toggle('narrow-preview', narrowPreview);
+        document.getElementById('prototype-state').addEventListener('change', (event) => setUrl({ state: event.target.value }));
+        document.getElementById('prototype-width').addEventListener('change', (event) => setUrl({ width: event.target.value }));
+      });
+    </script>
+  </body>
+</html>

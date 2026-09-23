@@ -40,6 +40,7 @@ this table and that screen's own file, nothing else.
 | 15  | CSV transaction import      | **approved**      | [memory/15-transaction-import.md](memory/15-transaction-import.md)           |
 | 16  | Quarterly Budget            | **approved**      | [memory/16-quarterly-budget.md](memory/16-quarterly-budget.md)               |
 | 17  | Investments navigation      | **approved**      | [memory/17-investments-navigation.md](memory/17-investments-navigation.md)   |
+| 18  | Investments overview        | **approved**      | [memory/18-investments-overview.md](memory/18-investments-overview.md)       |
 | 19  | Investment operations       | **under review**  | [memory/19-investment-operations.md](memory/19-investment-operations.md)     |
 
 "Approved" here means **concept**-approved — structure and behaviour. **Design** approval (colour,
