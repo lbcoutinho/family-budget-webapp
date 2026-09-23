@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>21 — Importar e reconciliar investimentos (protótipo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="_shared/proto.css" />
+    <script>
+      window.PROTOTYPE_INVESTMENTS_NAV = true;
+      window.PROTOTYPE_SHELL_ACTIVE = 'investments';
+    </script>
+    <script defer src="_shared/proto.js"></script>
+    <style>
+      .content {
+        padding-bottom: 90px;
+      }
+      .investment-tabs {
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+      .investment-tabs a {
+        flex: none;
+        padding: 9px 11px;
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        font-size: 14px;
+      }
+      .investment-tabs a[aria-current='page'] {
+        color: var(--ink);
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+      .review-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: end;
+        padding: 10px 12px;
+        margin-bottom: 16px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+      }
+      .review-tools::before {
+        content: 'Controles do protótipo';
+        margin-right: auto;
+        align-self: center;
+        color: var(--ink-soft);
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .review-tools .field {
+        min-width: 150px;
+      }
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: start;
+        margin-bottom: 18px;
+      }
+      .page-head p {
+        max-width: 68ch;
+        color: var(--ink-soft);
+        margin-top: 5px;
+        font-size: 14px;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+      .step {
+        padding: 11px 12px;
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .step:last-child {
+        border: 0;
+      }
+      .step b {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+      }
+      .step.active {
+        box-shadow: inset 0 -3px var(--action);
+      }
+      .step.done::before {
+        content: '✓ ';
+        color: var(--action);
+        font-weight: 700;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.8fr);
+        gap: 14px;
+      }
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+        padding: 15px 16px 10px;
+      }
+      .section-head p {
+        color: var(--ink-soft);
+        font-size: 12.5px;
+        margin-top: 3px;
+      }
+      .upload {
+        display: grid;
+        place-items: center;
+        min-height: 180px;
+        text-align: center;
+        padding: 24px;
+        margin: 0 16px 16px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--r);
+        background: var(--wash);
+      }
+      .upload svg {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 10px;
+      }
+      .format {
+        margin: 0 16px 16px;
+        padding: 12px;
+        background: var(--wash);
+        border-radius: var(--r-sm);
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .format code {
+        color: var(--ink);
+      }
+      .progress-line {
+        height: 6px;
+        background: var(--wash-strong);
+        border-radius: 99px;
+        overflow: hidden;
+        margin: 12px 0 7px;
+      }
+      .progress-line i {
+        display: block;
+        width: 64%;
+        height: 100%;
+        background: var(--action);
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-block: 1px solid var(--line);
+      }
+      .metric {
+        padding: 12px 14px;
+        border-right: 1px solid var(--line);
+      }
+      .metric:last-child {
+        border: 0;
+      }
+      .metric strong {
+        display: block;
+        font-family: 'Familjen Grotesk', sans-serif;
+        font-size: 1.4rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .metric span {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .preview {
+        min-width: 900px;
+        font-size: 12px;
+      }
+      .preview th:first-child,
+      .preview td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--surface);
+        z-index: 2;
+      }
+      .preview thead th:first-child {
+        background: var(--wash);
+      }
+      .preview tr.invalid td {
+        background: #fff7f7;
+      }
+      .preview tr.warning td {
+        background: #fffaf0;
+      }
+      .status {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .status.error {
+        color: var(--expense);
+      }
+      .status.warn {
+        color: #8a5a00;
+      }
+      .status.ok {
+        color: var(--income);
+      }
+      .card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--line);
+      }
+      .quiet {
+        color: var(--ink-soft);
+        font-size: 12.5px;
+      }
+      .truth {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 0 16px 16px;
+      }
+      .truth label {
+        display: grid;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+      .difference {
+        display: grid;
+        grid-template-columns: 1fr repeat(3, minmax(96px, 0.7fr));
+        gap: 8px;
+        align-items: center;
+        padding: 11px 16px;
+        border-top: 1px solid var(--line);
+        font-size: 12.5px;
+      }
+      .difference strong,
+      .difference span {
+        font-variant-numeric: tabular-nums;
+      }
+      .difference .delta {
+        color: var(--expense);
+        font-weight: 600;
+      }
+      .adjustment {
+        margin: 0 16px 12px;
+        padding: 13px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-sm);
+      }
+      .adjustment h3 {
+        font-size: 14px;
+      }
+      .adjustment p {
+        color: var(--ink-soft);
+        font-size: 12px;
+        margin: 4px 0 10px;
+      }
+      .adjustment-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .impact {
+        padding: 14px 16px;
+        border-top: 1px solid var(--line);
+      }
+      .impact-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 9px;
+      }
+      .impact-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12.5px;
+      }
+      .confirm {
+        padding: 14px 16px;
+        background: var(--wash);
+        border-top: 1px solid var(--line);
+      }
+      .confirm label {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 12.5px;
+      }
+      .batch {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 13px 16px;
+        border-top: 1px solid var(--line);
+      }
+      .batch:first-of-type {
+        border-top: 0;
+      }
+      .batch-id {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .batch p {
+        color: var(--ink-soft);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .danger-zone {
+        border-color: #e5b8b8;
+      }
+      .danger-zone .section-head {
+        border-bottom: 1px solid #ecd0d0;
+      }
+      .variant-note {
+        padding: 10px 13px;
+        margin-bottom: 12px;
+        border-left: 3px solid var(--ink);
+        background: var(--wash);
+        font-size: 12.5px;
+      }
+      .variant-b .workspace {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        gap: 14px;
+      }
+      .variant-b .rail {
+        position: sticky;
+        top: 68px;
+        align-self: start;
+      }
+      .variant-c .ledger {
+        display: grid;
+        gap: 12px;
+      }
+      .variant-c .batch-card {
+        display: grid;
+        grid-template-columns: 150px 1fr auto;
+        gap: 16px;
+        align-items: center;
+        padding: 16px;
+      }
+      .decisions {
+        margin: 34px 0 20px;
+      }
+      .decisions ol {
+        padding-left: 20px;
+      }
+      .decisions li {
+        margin: 10px 0;
+        padding-left: 4px;
+      }
+      .decisions li span {
+        display: block;
+        max-width: 78ch;
+        color: var(--ink-soft);
+        font-size: 13px;
+      }
+      .prototype-switcher {
+        position: fixed;
+        z-index: 100;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px;
+        border: 1px solid #fff3;
+        border-radius: 99px;
+        background: var(--ink);
+        color: white;
+        box-shadow: var(--shadow-md);
+      }
+      .prototype-switcher button {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 50%;
+        background: #fff1;
+        color: white;
+        cursor: pointer;
+      }
+      .prototype-switcher strong {
+        min-width: 145px;
+        text-align: center;
+        font-size: 12px;
+      }
+      body.narrow-preview {
+        width: 390px;
+        margin: 0 auto;
+        box-shadow: 0 0 0 1px var(--line);
+      }
+      body.narrow-preview .shell {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .side {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 262px;
+        z-index: 80;
+        transform: translateX(-100%);
+      }
+      body.narrow-preview .burger {
+        display: inline-flex;
+      }
+      body.narrow-preview .content {
+        padding: 16px 14px 100px;
+      }
+      body.narrow-preview .topbar {
+        padding: 10px 14px;
+      }
+      body.narrow-preview .review-tools,
+      body.narrow-preview .page-head,
+      body.narrow-preview .card-foot {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      body.narrow-preview .review-tools::before {
+        margin: 0;
+      }
+      body.narrow-preview .steps {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .step {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      body.narrow-preview .grid-2,
+      body.narrow-preview .variant-b .workspace {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .variant-b .rail {
+        position: static;
+      }
+      body.narrow-preview .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+      body.narrow-preview .metric:nth-child(2) {
+        border-right: 0;
+      }
+      body.narrow-preview .metric:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line);
+      }
+      body.narrow-preview .truth,
+      body.narrow-preview .adjustment-grid {
+        grid-template-columns: 1fr;
+      }
+      body.narrow-preview .difference {
+        grid-template-columns: 1fr 1fr;
+      }
+      body.narrow-preview .variant-c .batch-card {
+        grid-template-columns: 1fr;
+      }
+      @media (max-width: 760px) {
+        .review-tools,
+        .page-head,
+        .card-foot {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .review-tools::before {
+          margin: 0;
+        }
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .step {
+          border: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .grid-2,
+        .variant-b .workspace {
+          grid-template-columns: 1fr;
+        }
+        .variant-b .rail {
+          position: static;
+        }
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        .truth,
+        .adjustment-grid {
+          grid-template-columns: 1fr;
+        }
+        .variant-c .batch-card {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Three variants of investment import and reconciliation, switchable via ?variant=A|B|C. -->
+    <div data-proto="21 — Importar e reconciliar investimentos" data-ticket="#397 · em revisão"></div>
+    <div class="proto-note"><strong>Pergunta:</strong> qual estrutura torna validação, reconciliação, confirmação atômica e rollback mais verificáveis?</div>
+    <div data-shell="investments">
+      <main class="main">
+        <header class="topbar">
+          <div class="row">
+            <button class="btn icon ghost burger" data-burger title="Menu"><span data-icon="menu"></span></button><span class="month">Investimentos</span>
+          </div>
+          <button class="btn sm" id="top-action"><span data-icon="plus"></span> Novo lote</button>
+        </header>
+        <div class="content">
+          <div class="review-tools" aria-label="Controles do protótipo">
+            <label class="field"
+              ><span>Etapa demonstrada</span
+              ><select class="select" id="prototype-stage">
+                <option value="preview">Validação</option>
+                <option value="reconcile">Reconciliação</option>
+                <option value="confirm">Confirmação</option>
+                <option value="batches">Lotes e rollback</option>
+                <option value="loading">Progresso</option>
+              </select></label
+            >
+            <label class="field"
+              ><span>Largura</span
+              ><select class="select" id="prototype-width">
+                <option value="desktop">Desktop</option>
+                <option value="narrow">Tela estreita</option>
+              </select></label
+            >
+          </div>
+          <nav class="investment-tabs" aria-label="Seções de investimentos">
+            <a href="approved/18-investments-overview.html">Visão geral</a><a href="#">Operações</a><a href="#">Fluxo mensal</a
+            ><a href="#" aria-current="page">Importar e reconciliar</a>
+          </nav>
+          <div class="page-head">
+            <div>
+              <h1>Importar e reconciliar</h1>
+              <p>Valide todo o histórico normalizado, simule saldos e posições e compare com a custódia real antes de gravar.</p>
+            </div>
+            <button class="btn outline sm" id="template-action">Baixar modelo e guia</button>
+          </div>
+          <div id="variant-root"></div>
+          <section class="decisions">
+            <h2>Decisões a aprovar</h2>
+            <ol>
+              <li>
+                <b>Estrutura principal: A, B ou C?</b
+                ><span>A guia por etapas; B mantém arquivo e simulação lado a lado; C começa pelo histórico auditável de lotes.</span>
+              </li>
+              <li><b>Quais valores reais pedir?</b><span>Todos os saldos e posições simulados, ou somente os que a pessoa marcar para conferência.</span></li>
+              <li>
+                <b>Fingerprint duplicado bloqueia?</b
+                ><span>O ID externo repetido sempre bloqueia; falta decidir se conteúdo equivalente com ID novo bloqueia ou apenas exige confirmação.</span>
+              </li>
+              <li>
+                <b>O impacto do rollback basta?</b
+                ><span>Confirme se quantidades antes/depois, operações posteriores recalculadas e ajustes afetados dão contexto suficiente.</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+    <div class="prototype-switcher" aria-label="Alternar variante">
+      <button type="button" data-cycle="-1" aria-label="Variante anterior">←</button><strong id="variant-label"></strong
+      ><button type="button" data-cycle="1" aria-label="Próxima variante">→</button>
+    </div>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const names = { A: 'A — etapas guiadas', B: 'B — bancada dividida', C: 'C — livro de lotes' };
+        const params = new URLSearchParams(location.search);
+        const variant = ['A', 'B', 'C'].includes(params.get('variant')) ? params.get('variant') : 'A';
+        const stage = ['preview', 'reconcile', 'confirm', 'batches', 'loading'].includes(params.get('stage')) ? params.get('stage') : 'preview';
+        const narrow = params.get('width') === 'narrow';
+        const setUrl = (changes) => {
+          const next = new URLSearchParams(location.search);
+          Object.entries(changes).forEach(([key, value]) => next.set(key, value));
+          location.search = next;
+        };
+        const steps = (active) =>
+          `<div class="steps"><div class="step ${active !== 'upload' ? 'done' : 'active'}"><b>1. Arquivo</b>CSV normalizado</div><div class="step ${active === 'preview' ? 'active' : active !== 'upload' ? 'done' : ''}"><b>2. Validar</b>Erros e duplicidades</div><div class="step ${active === 'reconcile' ? 'active' : ['confirm', 'batches'].includes(active) ? 'done' : ''}"><b>3. Reconciliar</b>Custódia calculada × real</div><div class="step ${active === 'confirm' ? 'active' : active === 'batches' ? 'done' : ''}"><b>4. Ajustes</b>Revisão explícita</div><div class="step ${active === 'batches' ? 'active' : ''}"><b>5. Confirmar</b>Lote atômico</div></div>`;
+        const upload = () =>
+          `<div class="card"><div class="section-head"><div><h2>Arquivo normalizado</h2><p>Uma linha por operação; horários obrigatoriamente em UTC.</p></div><span class="badge">CSV · máx. 20 MB</span></div><div class="upload">${icon('download')}<div><b>Arraste o CSV ou escolha um arquivo</b><p class="quiet">historico-investimentos.csv</p><button class="btn outline sm" style="margin-top:10px">Escolher arquivo</button></div></div><div class="format"><b>Colunas essenciais</b><br><code>external_id, executed_at_utc, account, acquired_instrument, acquired_quantity, disposed_instrument, disposed_quantity</code><br><br><a href="#">Ver esquema, exemplo, checklist e prompt de normalização</a></div></div>`;
+        const loading = () =>
+          `<div class="card card-body" role="status" aria-live="polite"><b>Simulando 8.742 operações…</b><div class="progress-line"><i></i></div><p class="quiet">5.594 de 8.742 · validando precisão, duplicidades, saldos e posições em ordem cronológica. Nada foi gravado.</p></div>`;
+        const metrics = () =>
+          `<div class="metrics"><div class="metric"><strong>8.742</strong><span>linhas lidas</span></div><div class="metric"><strong class="positive">8.736</strong><span>válidas</span></div><div class="metric"><strong class="negative">2</strong><span>com erro</span></div><div class="metric"><strong>4</strong><span>duplicidades</span></div></div>`;
+        const preview = () =>
+          `<div class="card"><div class="section-head"><div><h2>Prévia sem gravação</h2><p>O arquivo inteiro foi validado e simulado. Corrija os erros antes de avançar.</p></div><span class="badge income">simulação concluída</span></div>${metrics()}<div class="table-wrap"><table class="data preview"><thead><tr><th>Linha</th><th>Execução UTC</th><th>Conta</th><th>Adquirido</th><th>Disposto</th><th>Taxa</th><th>Situação</th></tr></thead><tbody><tr><td class="num">2</td><td class="num">2021-05-14 09:32Z</td><td>Kraken</td><td>0,004200 BTC</td><td>180,00 EUR</td><td>0,000021 BTC</td><td><span class="status ok">✓ válida</span></td></tr><tr class="warning"><td class="num">318</td><td class="num">2022-03-09 14:10Z</td><td>Kraken</td><td>245,800000 USDC</td><td>0,620000 BNB</td><td>0,001000 BNB</td><td><span class="status warn">! possível duplicada</span><br><small>mesmo conteúdo, outro ID</small></td></tr><tr class="invalid"><td class="num">7401</td><td class="num">2025-11-02 01:14</td><td>DEGIRO</td><td>2,000000 VWCE</td><td>253,72 EUR</td><td>1,00 EUR</td><td><span class="status error">× UTC ausente</span></td></tr><tr class="invalid"><td class="num">8110</td><td class="num">2026-04-18 10:22Z</td><td>Kraken</td><td>0,008000 BTC</td><td>620,00 EUR</td><td>—</td><td><span class="status error">× saldo insuficiente</span></td></tr></tbody></table></div><div class="card-foot"><span class="quiet">2 erros bloqueiam o lote. 4 avisos precisam de revisão. Nenhuma operação foi gravada.</span><button class="btn" disabled>Continuar para reconciliação</button></div></div>`;
+        const reconcile = () =>
+          `<div class="stack"><div class="card"><div class="section-head"><div><h2>Custódia calculada × real</h2><p>Informe valores verificados no broker, exchange ou carteira. A comparação não altera o CSV.</p></div><span class="badge">22/09/2026</span></div><div class="truth"><label>Conta<select class="select"><option>Kraken</option></select></label><label>Data da verificação<input class="input" type="date" value="2026-09-22"></label></div><div class="difference"><b>Instrumento</b><b>Calculado</b><b>Real</b><b>Diferença</b></div><div class="difference"><span>BTC · posição</span><span>0,052600</span><input class="input" value="0,051900" aria-label="Quantidade real de BTC"><span class="delta">− 0,000700</span></div><div class="difference"><span>EUR · saldo</span><span>1.245,20</span><input class="input" value="1.230,20" aria-label="Saldo real em EUR"><span class="delta">− 15,00</span></div><div class="difference"><span>ETH · posição</span><span>1,180000</span><input class="input" value="1,180000" aria-label="Quantidade real de ETH"><span>0,000000</span></div></div><div class="card"><div class="section-head"><div><h2>Ajustes explícitos</h2><p>Diferenças nunca corrigem operações importadas silenciosamente.</p></div><span class="badge expense">2 diferenças</span></div><div class="adjustment"><h3>Position Adjustment · BTC − 0,000700</h3><p>Remove unidades ao custo médio atual. Não conta como compra ou venda.</p><div class="adjustment-grid"><label class="field"><span>Tratamento</span><select class="select"><option>Criar ajuste</option><option>Voltar e corrigir o CSV</option><option>Deixar sem reconciliar</option></select></label><label class="field"><span>Motivo obrigatório</span><input class="input" value="Saque antigo para carteira não registrado"></label></div></div><div class="adjustment"><h3>Balance Adjustment · EUR − 15,00</h3><p>Não conta como Receita, Despesa, Transferência ou atividade de investimento.</p><div class="adjustment-grid"><label class="field"><span>Tratamento</span><select class="select"><option>Criar ajuste</option><option>Voltar e corrigir o CSV</option><option>Deixar sem reconciliar</option></select></label><label class="field"><span>Motivo obrigatório</span><input class="input" placeholder="Explique a diferença"></label></div></div><div class="card-foot"><span class="quiet">Um motivo ainda está ausente.</span><button class="btn" disabled>Revisar confirmação</button></div></div></div>`;
+        const confirm = () =>
+          `<div class="grid-2"><div class="card"><div class="section-head"><div><h2>Impacto do lote</h2><p>Uma única confirmação grava operações e ajustes; qualquer falha grava zero itens.</p></div><span class="badge income">pronto</span></div><div class="impact"><b>Serão gravados</b><div class="impact-list"><div class="impact-row"><span>Investment Trades</span><strong>8.736</strong></div><div class="impact-row"><span>Position Adjustments</span><strong>1</strong></div><div class="impact-row"><span>Balance Adjustments</span><strong>1</strong></div><div class="impact-row"><span>Import Batch</span><strong>#IMP-2026-004</strong></div></div></div><div class="impact"><b>Depois da gravação</b><div class="impact-list"><div class="impact-row"><span>BTC · Kraken</span><strong>0,051900</strong></div><div class="impact-row"><span>EUR · Kraken</span><strong>1.230,20</strong></div><div class="impact-row"><span>Operações posteriores recalculadas</span><strong>0</strong></div></div></div></div><div class="card"><div class="section-head"><div><h2>Confirmação atômica</h2><p>O lote inteiro poderá ser revertido depois; operações individuais importadas não.</p></div></div><div class="confirm"><label><input type="checkbox"> <span>Revisei erros, duplicidades, posições, saldos e ajustes. Entendo que a confirmação grava todo o lote de uma vez.</span></label><button class="btn" style="width:100%;margin-top:14px" disabled>Confirmar lote com 8.738 registros</button><p class="quiet" style="margin-top:8px">Falha de banco ou validação tardia: nenhum registro será mantido.</p></div></div></div>`;
+        const batches = () =>
+          `<div class="stack"><div class="card"><div class="section-head"><div><h2>Lotes importados</h2><p>Origem, arquivo e quantidade permanecem auditáveis.</p></div><button class="btn outline sm">Novo lote</button></div><div class="batch"><span class="batch-id">004</span><div><b>historico-investimentos.csv</b><p>Kraken + DEGIRO · 22/09/2026 16:42 · 8.736 operações + 2 ajustes</p></div><button class="btn outline sm" data-show-rollback>Ver impacto do rollback</button></div><div class="batch"><span class="batch-id">003</span><div><b>correcao-degiro.csv</b><p>DEGIRO · 10/08/2026 11:20 · 24 operações</p></div><button class="btn outline sm">Detalhes</button></div></div><div class="card danger-zone" id="rollback"><div class="section-head"><div><h2>Impacto antes do rollback</h2><p>O lote inteiro será removido; nada muda até a confirmação final.</p></div><span class="badge expense">ação destrutiva</span></div><div class="impact"><div class="impact-list"><div class="impact-row"><span>Operações removidas</span><strong>8.736</strong></div><div class="impact-row"><span>Ajustes do lote removidos</span><strong>2</strong></div><div class="impact-row"><span>Operações posteriores recalculadas</span><strong>37</strong></div><div class="impact-row"><span>BTC · Kraken</span><strong>0,051900 → 0,012400</strong></div><div class="impact-row"><span>VWCE · DEGIRO</span><strong>18,4321 → 4,0000</strong></div><div class="impact-row"><span>Lotes posteriores removidos</span><strong>0</strong></div></div></div><div class="confirm"><label><input type="checkbox"> <span>Entendo que o lote #IMP-2026-004 será removido por inteiro e que posições posteriores serão recalculadas.</span></label><label class="field" style="margin-top:12px"><span>Digite IMP-2026-004 para confirmar</span><input class="input" placeholder="IMP-2026-004"></label><button class="btn danger" style="width:100%;margin-top:12px" disabled>Reverter lote inteiro</button></div></div></div>`;
+        const stageView = () =>
+          stage === 'loading' ? loading() : stage === 'reconcile' ? reconcile() : stage === 'confirm' ? confirm() : stage === 'batches' ? batches() : preview();
+        const renderA = () =>
+          `<div class="variant-a"><div class="variant-note"><b>A — etapas guiadas.</b> Uma decisão por vez; indicada para a primeira importação histórica.</div>${steps(stage)}${stage === 'preview' ? `<div class="grid-2"><div>${preview()}</div><div>${upload()}</div></div>` : stageView()}</div>`;
+        const renderB = () =>
+          `<div class="variant-b"><div class="variant-note"><b>B — bancada dividida.</b> Arquivo e checklist permanecem visíveis enquanto a simulação é investigada.</div><div class="workspace"><aside class="rail stack">${upload()}<div class="card card-body"><b>Checklist</b><p class="quiet" style="margin-top:8px">✓ Horários UTC<br>✓ IDs externos presentes<br>✓ Precisão preservada<br>× 2 saldos insuficientes<br>! 4 fingerprints repetidos</p></div></aside><section class="stack">${steps(stage)}${stageView()}</section></div></div>`;
+        const renderC = () =>
+          `<div class="variant-c"><div class="variant-note"><b>C — livro de lotes.</b> Importação e rollback começam como eventos auditáveis; o novo lote abre sobre o histórico.</div><div class="ledger"><div class="card batch-card"><div><span class="badge income">em preparação</span><h2 style="margin-top:7px">#IMP-2026-004</h2></div><div><b>historico-investimentos.csv</b><p class="quiet">Validação ${stage === 'preview' ? 'com 2 erros' : 'concluída'} · simulação sem gravação</p></div><button class="btn sm">Continuar lote</button></div>${stageView()}</div></div>`;
+        document.getElementById('variant-root').innerHTML = variant === 'B' ? renderB() : variant === 'C' ? renderC() : renderA();
+        document.getElementById('variant-label').textContent = names[variant];
+        document.getElementById('prototype-stage').value = stage;
+        document.getElementById('prototype-width').value = narrow ? 'narrow' : 'desktop';
+        document.body.classList.toggle('narrow-preview', narrow);
+        document.getElementById('prototype-stage').addEventListener('change', (event) => setUrl({ stage: event.target.value }));
+        document.getElementById('prototype-width').addEventListener('change', (event) => setUrl({ width: event.target.value }));
+        const cycle = (direction) => {
+          const variants = ['A', 'B', 'C'];
+          setUrl({ variant: variants[(variants.indexOf(variant) + direction + variants.length) % variants.length] });
+        };
+        document.querySelectorAll('[data-cycle]').forEach((button) => button.addEventListener('click', () => cycle(Number(button.dataset.cycle))));
+        document.addEventListener('keydown', (event) => {
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+          if (event.key === 'ArrowLeft') cycle(-1);
+          if (event.key === 'ArrowRight') cycle(1);
+        });
+      });
+    </script>
+  </body>
+</html>
