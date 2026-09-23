@@ -13,6 +13,7 @@ import { CashboxesModule } from './modules/cashboxes/cashboxes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { CsvImportModule } from './modules/csv-import/csv-import.module';
 import { CsvImportModelsModule } from './modules/csv-import-models/csv-import-models.module';
+import { InvestmentsModule } from './modules/investments/investments.module';
 import { RecurrenceModule } from './modules/recurrence/recurrence.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
@@ -53,6 +54,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CsvImportModule,
     RecurrenceModule,
     ReportsModule,
+    InvestmentsModule,
     TransactionsModule,
     UsersModule,
   ],

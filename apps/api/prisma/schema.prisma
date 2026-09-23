@@ -53,6 +53,9 @@ model User {
   recurrenceRules RecurrenceRule[]
   csvImportModels CsvImportModel[]
   budgets         Budget[]
+  financialInstitutions FinancialInstitution[]
+  instruments     Instrument[]
+  assetListings   AssetListing[]
 
   @@map("users")
 }
@@ -127,6 +130,86 @@ model Account {
   @@unique([userId, name])
   @@index([userId, isActive])
   @@map("accounts")
+}
+
+enum FinancialInstitutionKind {
+  BANK
+  BROKER
+  EXCHANGE
+
+  @@map("financial_institution_kind")
+}
+
+model FinancialInstitution {
+  id        String                   @id @default(uuid()) @db.Uuid
+  userId    String                   @map("user_id") @db.Uuid
+  name      String
+  kind      FinancialInstitutionKind
+  isActive  Boolean                  @default(true) @map("is_active")
+  sortOrder Int                      @default(0) @map("sort_order")
+  createdAt DateTime                 @default(now()) @map("created_at")
+  updatedAt DateTime                 @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, isActive])
+  @@map("financial_institutions")
+}
+
+enum InstrumentType {
+  FIAT
+  STABLECOIN
+  CRYPTOCURRENCY
+  STOCK
+  ETF
+  ETC
+
+  @@map("instrument_type")
+}
+
+model Instrument {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @map("user_id") @db.Uuid
+  name             String
+  code             String
+  type             InstrumentType
+  displayPrecision Int            @default(2) @map("display_precision")
+  isActive         Boolean        @default(true) @map("is_active")
+  sortOrder        Int            @default(0) @map("sort_order")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  listings       AssetListing[] @relation("ListedInstrument")
+  quotedListings AssetListing[] @relation("QuoteInstrument")
+
+  @@unique([userId, code])
+  @@index([userId, isActive])
+  @@map("instruments")
+}
+
+model AssetListing {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  instrumentId      String   @map("instrument_id") @db.Uuid
+  quoteInstrumentId String   @map("quote_instrument_id") @db.Uuid
+  market            String
+  ticker            String
+  isin              String?
+  providerSymbol    String?  @map("provider_symbol")
+  isActive          Boolean  @default(true) @map("is_active")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  instrument      Instrument @relation("ListedInstrument", fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  quoteInstrument Instrument @relation("QuoteInstrument", fields: [quoteInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, instrumentId, market, ticker])
+  @@index([userId, isActive])
+  @@map("asset_listings")
 }
 
 /// What a transaction is *for*. Income and expense are the only two sides that need classifying:

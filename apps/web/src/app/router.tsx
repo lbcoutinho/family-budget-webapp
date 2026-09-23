@@ -18,6 +18,11 @@ const GeneralSettingsPage = lazy(() =>
 );
 const CsvImportPage = lazy(() => import('@/features/transactions/csv-import-page').then(({ CsvImportPage }) => ({ default: CsvImportPage })));
 const MonthPage = lazy(() => import('@/features/transactions/month-page').then(({ MonthPage }) => ({ default: MonthPage })));
+const FinancialInstitutionsPage = lazy(() =>
+  import('@/features/investments/investment-setup-pages').then(({ FinancialInstitutionsPage }) => ({ default: FinancialInstitutionsPage })),
+);
+const InstrumentsPage = lazy(() => import('@/features/investments/investment-setup-pages').then(({ InstrumentsPage }) => ({ default: InstrumentsPage })));
+const AssetListingsPage = lazy(() => import('@/features/investments/investment-setup-pages').then(({ AssetListingsPage }) => ({ default: AssetListingsPage })));
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -55,6 +60,9 @@ export const routes = [
       { path: 'settings/general', element: <GeneralSettingsPage /> },
       { path: 'settings/accounts', element: <AccountsPage /> },
       { path: 'settings/categories', element: <CategoriesPage /> },
+      { path: 'settings/investments/institutions', element: <FinancialInstitutionsPage /> },
+      { path: 'settings/investments/instruments', element: <InstrumentsPage /> },
+      { path: 'settings/investments/listings', element: <AssetListingsPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },

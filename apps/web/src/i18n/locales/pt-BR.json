@@ -5,6 +5,7 @@
   "nav": {
     "month": "Mês",
     "budgets": "Orçamento",
+    "investments": "Investimentos",
     "cashboxes": "Caixinhas",
     "reports": "Relatórios",
     "voice": "Lançar por voz",
@@ -131,6 +132,44 @@
     "error": {
       "title": "Não foi possível carregar as contas",
       "description": "Verifique a conexão e tente de novo."
+    }
+  },
+  "investmentSetup": {
+    "error": { "title": "Não foi possível carregar", "description": "Verifique a conexão e tente novamente." },
+    "columns": {
+      "institution": "Instituição",
+      "instrument": "Instrumento",
+      "code": "Código",
+      "type": "Tipo",
+      "precision": "Precisão",
+      "asset": "Ativo",
+      "ticker": "Ticker",
+      "market": "Mercado",
+      "quote": "Cotação"
+    },
+    "institutions": { "title": "Instituições financeiras", "description": "Bancos, corretoras e exchanges que mantêm contas." },
+    "instruments": { "title": "Instrumentos", "description": "Moedas e ativos mantidos nas contas, com precisão de exibição." },
+    "showInactive": "Mostrar inativos",
+    "new": "Novo cadastro",
+    "editTitle": "Editar cadastro",
+    "createTitle": "Cadastrar {{resource}}",
+    "deactivate": "Desativar",
+    "activate": "Reativar",
+    "deactivateTitle": "Desativar {{resource}}?",
+    "deactivateDescription": "O registro não poderá ser escolhido em novas operações.",
+    "fields": { "name": "Nome", "sortOrder": "Ordem", "isin": "ISIN", "providerSymbol": "Símbolo do provedor", "quoteInstrument": "Instrumento de cotação" },
+    "institutionKinds": { "BANK": "Banco", "BROKER": "Corretora", "EXCHANGE": "Exchange" },
+    "instrumentTypes": { "FIAT": "Moeda fiduciária", "STABLECOIN": "Stablecoin", "CRYPTOCURRENCY": "Criptomoeda", "STOCK": "Ação", "ETF": "ETF", "ETC": "ETC" },
+    "listings": { "title": "Listagens de ativos", "description": "Mercado, ticker e moeda de cotação de cada ativo.", "empty": "Nenhuma listagem cadastrada" },
+    "institutions": {
+      "title": "Instituições financeiras",
+      "description": "Bancos, corretoras e exchanges que mantêm contas.",
+      "empty": "Nenhuma instituição cadastrada"
+    },
+    "instruments": {
+      "title": "Instrumentos",
+      "description": "Moedas e ativos mantidos nas contas, com precisão de exibição.",
+      "empty": "Nenhum instrumento cadastrado"
     }
   },
   "categories": {

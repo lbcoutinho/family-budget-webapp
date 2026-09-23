@@ -5,6 +5,7 @@
   "nav": {
     "month": "Month",
     "budgets": "Budget",
+    "investments": "Investments",
     "cashboxes": "Cashboxes",
     "reports": "Reports",
     "voice": "Voice entry",
@@ -132,6 +133,47 @@
       "title": "Could not load the accounts",
       "description": "Check your connection and try again."
     }
+  },
+  "investmentSetup": {
+    "error": { "title": "Could not load", "description": "Check your connection and try again." },
+    "columns": {
+      "institution": "Institution",
+      "instrument": "Instrument",
+      "code": "Code",
+      "type": "Type",
+      "precision": "Precision",
+      "asset": "Asset",
+      "ticker": "Ticker",
+      "market": "Market",
+      "quote": "Quote"
+    },
+    "institutions": { "title": "Financial institutions", "description": "Banks, brokers and exchanges that hold accounts." },
+    "instruments": { "title": "Instruments", "description": "Currencies and assets held in accounts, with display precision." },
+    "showInactive": "Show inactive",
+    "new": "New record",
+    "editTitle": "Edit record",
+    "createTitle": "Create {{resource}}",
+    "deactivate": "Deactivate",
+    "activate": "Reactivate",
+    "deactivateTitle": "Deactivate {{resource}}?",
+    "deactivateDescription": "This record cannot be selected in new operations.",
+    "fields": { "name": "Name", "sortOrder": "Sort order", "isin": "ISIN", "providerSymbol": "Provider symbol", "quoteInstrument": "Quote instrument" },
+    "institutionKinds": { "BANK": "Bank", "BROKER": "Broker", "EXCHANGE": "Exchange" },
+    "instrumentTypes": {
+      "FIAT": "Fiat currency",
+      "STABLECOIN": "Stablecoin",
+      "CRYPTOCURRENCY": "Cryptocurrency",
+      "STOCK": "Stock",
+      "ETF": "ETF",
+      "ETC": "ETC"
+    },
+    "listings": { "title": "Asset listings", "description": "Each asset's market, ticker and quote currency.", "empty": "No asset listings yet" },
+    "institutions": {
+      "title": "Financial institutions",
+      "description": "Banks, brokers and exchanges that hold accounts.",
+      "empty": "No financial institutions yet"
+    },
+    "instruments": { "title": "Instruments", "description": "Currencies and assets held in accounts, with display precision.", "empty": "No instruments yet" }
   },
   "categories": {
     "new": "New category",
