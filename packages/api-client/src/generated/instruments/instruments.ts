@@ -27,6 +27,7 @@ import type {
 import type {
   CreateInstrumentDto,
   InstrumentDto,
+  ListInstrumentsParams,
   UpdateInstrumentDto
 } from '../model';
 
@@ -52,13 +53,14 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export const listInstruments = (
-
+    params?: ListInstrumentsParams,
  signal?: AbortSignal
 ) => {
 
 
       return customInstance<InstrumentDto[]>(
-      {url: `/instruments`, method: 'GET', signal
+      {url: `/instruments`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -66,23 +68,23 @@ export const listInstruments = (
 
 
 
-export const getListInstrumentsQueryKey = () => {
+export const getListInstrumentsQueryKey = (params?: ListInstrumentsParams,) => {
     return [
-    `/instruments`
+    `/instruments`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListInstrumentsQueryOptions = <TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
+export const getListInstrumentsQueryOptions = <TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>(params?: ListInstrumentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListInstrumentsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListInstrumentsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstruments>>> = ({ signal }) => listInstruments(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstruments>>> = ({ signal }) => listInstruments(params, signal);
 
 
 
@@ -96,7 +98,7 @@ export type ListInstrumentsQueryError = ErrorType<unknown>
 
 
 export function useListInstruments<TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>> & Pick<
+ params: undefined |  ListInstrumentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listInstruments>>,
           TError,
@@ -106,7 +108,7 @@ export function useListInstruments<TData = Awaited<ReturnType<typeof listInstrum
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListInstruments<TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>> & Pick<
+ params?: ListInstrumentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listInstruments>>,
           TError,
@@ -116,16 +118,16 @@ export function useListInstruments<TData = Awaited<ReturnType<typeof listInstrum
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListInstruments<TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
+ params?: ListInstrumentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListInstruments<TData = Awaited<ReturnType<typeof listInstruments>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
+ params?: ListInstrumentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstruments>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListInstrumentsQueryOptions(options)
+  const queryOptions = getListInstrumentsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

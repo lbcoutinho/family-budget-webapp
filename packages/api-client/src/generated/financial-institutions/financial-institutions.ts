@@ -27,6 +27,7 @@ import type {
 import type {
   CreateFinancialInstitutionDto,
   FinancialInstitutionDto,
+  ListFinancialInstitutionsParams,
   UpdateFinancialInstitutionDto
 } from '../model';
 
@@ -52,13 +53,14 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export const listFinancialInstitutions = (
-
+    params?: ListFinancialInstitutionsParams,
  signal?: AbortSignal
 ) => {
 
 
       return customInstance<FinancialInstitutionDto[]>(
-      {url: `/financial-institutions`, method: 'GET', signal
+      {url: `/financial-institutions`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -66,23 +68,23 @@ export const listFinancialInstitutions = (
 
 
 
-export const getListFinancialInstitutionsQueryKey = () => {
+export const getListFinancialInstitutionsQueryKey = (params?: ListFinancialInstitutionsParams,) => {
     return [
-    `/financial-institutions`
+    `/financial-institutions`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListFinancialInstitutionsQueryOptions = <TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
+export const getListFinancialInstitutionsQueryOptions = <TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>(params?: ListFinancialInstitutionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListFinancialInstitutionsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListFinancialInstitutionsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinancialInstitutions>>> = ({ signal }) => listFinancialInstitutions(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinancialInstitutions>>> = ({ signal }) => listFinancialInstitutions(params, signal);
 
 
 
@@ -96,7 +98,7 @@ export type ListFinancialInstitutionsQueryError = ErrorType<unknown>
 
 
 export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>> & Pick<
+ params: undefined |  ListFinancialInstitutionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listFinancialInstitutions>>,
           TError,
@@ -106,7 +108,7 @@ export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof l
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>> & Pick<
+ params?: ListFinancialInstitutionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listFinancialInstitutions>>,
           TError,
@@ -116,16 +118,16 @@ export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof l
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
+ params?: ListFinancialInstitutionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListFinancialInstitutions<TData = Awaited<ReturnType<typeof listFinancialInstitutions>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
+ params?: ListFinancialInstitutionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFinancialInstitutions>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListFinancialInstitutionsQueryOptions(options)
+  const queryOptions = getListFinancialInstitutionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

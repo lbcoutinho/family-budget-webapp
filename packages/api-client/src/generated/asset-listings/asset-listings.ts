@@ -27,6 +27,7 @@ import type {
 import type {
   AssetListingDto,
   CreateAssetListingDto,
+  ListAssetListingsParams,
   UpdateAssetListingDto
 } from '../model';
 
@@ -52,13 +53,14 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export const listAssetListings = (
-
+    params?: ListAssetListingsParams,
  signal?: AbortSignal
 ) => {
 
 
       return customInstance<AssetListingDto[]>(
-      {url: `/asset-listings`, method: 'GET', signal
+      {url: `/asset-listings`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -66,23 +68,23 @@ export const listAssetListings = (
 
 
 
-export const getListAssetListingsQueryKey = () => {
+export const getListAssetListingsQueryKey = (params?: ListAssetListingsParams,) => {
     return [
-    `/asset-listings`
+    `/asset-listings`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAssetListingsQueryOptions = <TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
+export const getListAssetListingsQueryOptions = <TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>(params?: ListAssetListingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAssetListingsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAssetListingsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssetListings>>> = ({ signal }) => listAssetListings(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssetListings>>> = ({ signal }) => listAssetListings(params, signal);
 
 
 
@@ -96,7 +98,7 @@ export type ListAssetListingsQueryError = ErrorType<unknown>
 
 
 export function useListAssetListings<TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>> & Pick<
+ params: undefined |  ListAssetListingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAssetListings>>,
           TError,
@@ -106,7 +108,7 @@ export function useListAssetListings<TData = Awaited<ReturnType<typeof listAsset
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAssetListings<TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>> & Pick<
+ params?: ListAssetListingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAssetListings>>,
           TError,
@@ -116,16 +118,16 @@ export function useListAssetListings<TData = Awaited<ReturnType<typeof listAsset
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAssetListings<TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
+ params?: ListAssetListingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListAssetListings<TData = Awaited<ReturnType<typeof listAssetListings>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
+ params?: ListAssetListingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetListings>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAssetListingsQueryOptions(options)
+  const queryOptions = getListAssetListingsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

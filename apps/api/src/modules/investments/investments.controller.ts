@@ -25,6 +25,7 @@ class InvestmentSetupController {
 @Controller('financial-institutions')
 export class FinancialInstitutionsController extends InvestmentSetupController {
   @ApiOperation({ operationId: 'listFinancialInstitutions' })
+  @ApiQuery({ name: 'includeInactive', type: Boolean, required: false })
   @ApiOkResponse({ type: [FinancialInstitutionDto] })
   @Get()
   list(@CurrentUser() user: AuthenticatedUser, @Query() query: ListInvestmentSetupQueryDto) {
@@ -73,6 +74,7 @@ export class FinancialInstitutionsController extends InvestmentSetupController {
 @Controller('instruments')
 export class InstrumentsController extends InvestmentSetupController {
   @ApiOperation({ operationId: 'listInstruments' })
+  @ApiQuery({ name: 'includeInactive', type: Boolean, required: false })
   @ApiOkResponse({ type: [InstrumentDto] })
   @Get()
   list(@CurrentUser() user: AuthenticatedUser, @Query() query: ListInvestmentSetupQueryDto) {
@@ -121,6 +123,7 @@ export class InstrumentsController extends InvestmentSetupController {
 @Controller('asset-listings')
 export class AssetListingsController extends InvestmentSetupController {
   @ApiOperation({ operationId: 'listAssetListings' })
+  @ApiQuery({ name: 'includeInactive', type: Boolean, required: false })
   @ApiOkResponse({ type: [AssetListingDto] })
   @Get()
   list(@CurrentUser() user: AuthenticatedUser, @Query() query: ListInvestmentSetupQueryDto) {
