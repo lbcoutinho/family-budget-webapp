@@ -157,7 +157,7 @@
     "activate": "Reactivate",
     "deactivateTitle": "Deactivate {{resource}}?",
     "deactivateDescription": "This record cannot be selected in new operations.",
-    "fields": { "name": "Name", "isin": "ISIN", "providerSymbol": "Provider symbol", "quoteInstrument": "Quote instrument" },
+    "fields": { "name": "Name", "sortOrder": "Sort order", "isin": "ISIN", "providerSymbol": "Provider symbol", "quoteInstrument": "Quote instrument" },
     "institutionKinds": { "BANK": "Bank", "BROKER": "Broker", "EXCHANGE": "Exchange" },
     "instrumentTypes": {
       "FIAT": "Fiat currency",

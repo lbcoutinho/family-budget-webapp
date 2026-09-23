@@ -157,7 +157,7 @@
     "activate": "Reativar",
     "deactivateTitle": "Desativar {{resource}}?",
     "deactivateDescription": "O registro não poderá ser escolhido em novas operações.",
-    "fields": { "name": "Nome", "isin": "ISIN", "providerSymbol": "Símbolo do provedor", "quoteInstrument": "Instrumento de cotação" },
+    "fields": { "name": "Nome", "sortOrder": "Ordem", "isin": "ISIN", "providerSymbol": "Símbolo do provedor", "quoteInstrument": "Instrumento de cotação" },
     "institutionKinds": { "BANK": "Banco", "BROKER": "Corretora", "EXCHANGE": "Exchange" },
     "instrumentTypes": { "FIAT": "Moeda fiduciária", "STABLECOIN": "Stablecoin", "CRYPTOCURRENCY": "Criptomoeda", "STOCK": "Ação", "ETF": "ETF", "ETC": "ETC" },
     "listings": { "title": "Listagens de ativos", "description": "Mercado, ticker e moeda de cotação de cada ativo.", "empty": "Nenhuma listagem cadastrada" },

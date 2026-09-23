@@ -20,6 +20,12 @@ describe('Investment setup API (e2e)', () => {
   const emails = ['investment-setup.e2e@family-budget.test', 'investment-setup.e2e.other@family-budget.test'];
   const call = (method: 'get' | 'post' | 'patch', path: string, as = token): request.Test =>
     request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
+  const clearSetup = async () => {
+    const where = { user: { email: { in: emails } } };
+    await prisma.assetListing.deleteMany({ where });
+    await prisma.instrument.deleteMany({ where });
+    await prisma.financialInstitution.deleteMany({ where });
+  };
 
   beforeAll(async () => {
     app = (await Test.createTestingModule({ imports: [AppModule] }).compile()).createNestApplication();
@@ -38,12 +44,11 @@ describe('Investment setup API (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await prisma.assetListing.deleteMany({ where: { user: { email: { in: emails } } } });
-    await prisma.instrument.deleteMany({ where: { user: { email: { in: emails } } } });
-    await prisma.financialInstitution.deleteMany({ where: { user: { email: { in: emails } } } });
+    await clearSetup();
   });
 
   afterAll(async () => {
+    await clearSetup();
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await app.close();
   });
@@ -67,10 +72,11 @@ describe('Investment setup API (e2e)', () => {
     await call('post', '/asset-listings').send({ instrumentId: etf.id, quoteInstrumentId: eur.id, market: 'LSE', ticker: 'VWRP' }).expect(201);
     await call('patch', `/instruments/${etf.id}/deactivate`).expect(200);
 
-    await expect(call('get', '/asset-listings').expect(200)).resolves.toMatchObject({
+    await expect(call('get', '/asset-listings').expect(200)).resolves.toMatchObject({ body: [] });
+    await expect(call('get', '/asset-listings?includeInactive=true').expect(200)).resolves.toMatchObject({
       body: [
-        { market: 'LSE', ticker: 'VWRP' },
-        { market: 'Xetra', ticker: 'VWCE' },
+        { market: 'LSE', ticker: 'VWRP', isActive: false },
+        { market: 'Xetra', ticker: 'VWCE', isActive: false },
       ],
     });
     await call('post', '/asset-listings').send({ instrumentId: etf.id, quoteInstrumentId: eur.id, market: 'Euronext', ticker: 'VWCE' }).expect(400);

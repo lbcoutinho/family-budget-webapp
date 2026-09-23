@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PlusIcon, TriangleAlertIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
@@ -31,8 +32,10 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { apiErrorMessage } from '@/lib/api-error';
 
 interface Resource<T, V> {
   title: string;
@@ -43,12 +46,13 @@ interface Resource<T, V> {
   isPending: boolean;
   isError: boolean;
   refetch: () => void;
+  canCreate?: boolean;
   values: () => V;
   fields: (values: V, setValues: (values: V) => void) => ReactNode;
   toValues: (item: T) => V;
   cells: (item: T) => ReactNode;
-  create: (values: V) => void;
-  update: (id: string, values: V) => void;
+  create: (values: V) => Promise<unknown>;
+  update: (id: string, values: V) => Promise<unknown>;
   activate: (id: string) => void;
   deactivate: (id: string) => void;
 }
@@ -80,7 +84,7 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
               <Switch checked={showInactive} onCheckedChange={setShowInactive} aria-label={t('investmentSetup.showInactive')} />
               {t('investmentSetup.showInactive')}
             </label>
-            <Button size="sm" onClick={() => open('new')}>
+            <Button size="sm" disabled={resource.canCreate === false} onClick={() => open('new')}>
               <PlusIcon />
               {t('investmentSetup.new')}
             </Button>
@@ -105,7 +109,7 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
               title={resource.empty}
               description={resource.description}
               action={
-                <Button onClick={() => open('new')}>
+                <Button disabled={resource.canCreate === false} onClick={() => open('new')}>
                   <PlusIcon />
                   {t('investmentSetup.new')}
                 </Button>
@@ -158,11 +162,17 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
               {t('common.cancel')}
             </Button>
             <Button
-              onClick={() => {
-                if (editing === 'new') resource.create(values);
-                else if (editing) resource.update(editing.id, values);
-                setEditing(null);
-              }}
+              onClick={() =>
+                void (async () => {
+                  try {
+                    if (editing === 'new') await resource.create(values);
+                    else if (editing) await resource.update(editing.id, values);
+                    setEditing(null);
+                  } catch (error) {
+                    toast.error(apiErrorMessage(error, t));
+                  }
+                })()
+              }
             >
               {t('common.save')}
             </Button>
@@ -201,7 +211,7 @@ export function FinancialInstitutionsPage() {
   const activate = useActivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   const deactivate = useDeactivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   return (
-    <Registry<FinancialInstitutionDto, { name: string; kind: FinancialInstitutionDto['kind'] }>
+    <Registry<FinancialInstitutionDto, { name: string; kind: FinancialInstitutionDto['kind']; sortOrder: string }>
       resource={{
         title: t('investmentSetup.institutions.title'),
         description: t('investmentSetup.institutions.description'),
@@ -211,8 +221,8 @@ export function FinancialInstitutionsPage() {
         isPending: query.isPending,
         isError: query.isError,
         refetch: () => void query.refetch(),
-        values: () => ({ name: '', kind: 'BANK' }),
-        toValues: (item) => ({ name: item.name, kind: item.kind }),
+        values: () => ({ name: '', kind: 'BANK', sortOrder: '0' }),
+        toValues: (item) => ({ name: item.name, kind: item.kind, sortOrder: String(item.sortOrder) }),
         cells: (item) => (
           <>
             <TableCell>{item.name}</TableCell>
@@ -224,23 +234,24 @@ export function FinancialInstitutionsPage() {
             {textField('name', t('investmentSetup.fields.name'), values.name, (name) => setValues({ ...values, name }))}
             <div className="grid gap-2">
               <Label htmlFor="kind">{t('investmentSetup.columns.type')}</Label>
-              <select
-                id="kind"
-                className="h-9 rounded-md border border-input bg-transparent px-3"
-                value={values.kind}
-                onChange={(event) => setValues({ ...values, kind: event.target.value as FinancialInstitutionDto['kind'] })}
-              >
-                {(['BANK', 'BROKER', 'EXCHANGE'] as const).map((kind) => (
-                  <option key={kind} value={kind}>
-                    {t(`investmentSetup.institutionKinds.${kind}`)}
-                  </option>
-                ))}
-              </select>
+              <Select value={values.kind} onValueChange={(kind) => setValues({ ...values, kind: kind as FinancialInstitutionDto['kind'] })}>
+                <SelectTrigger id="kind" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['BANK', 'BROKER', 'EXCHANGE'] as const).map((kind) => (
+                    <SelectItem key={kind} value={kind}>
+                      {t(`investmentSetup.institutionKinds.${kind}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            {textField('sortOrder', t('investmentSetup.fields.sortOrder'), values.sortOrder, (sortOrder) => setValues({ ...values, sortOrder }))}
           </div>
         ),
-        create: (values) => create.mutate({ data: values }),
-        update: (id, values) => update.mutate({ id, data: values }),
+        create: (values) => create.mutateAsync({ data: { ...values, sortOrder: Number(values.sortOrder) } }),
+        update: (id, values) => update.mutateAsync({ id, data: { ...values, sortOrder: Number(values.sortOrder) } }),
         activate: (id) => activate.mutate({ id }),
         deactivate: (id) => deactivate.mutate({ id }),
       }}
@@ -289,26 +300,26 @@ export function InstrumentsPage() {
             {textField('code', t('investmentSetup.columns.code'), values.code, (code) => setValues({ ...values, code }))}
             <div className="grid gap-2">
               <Label htmlFor="type">{t('investmentSetup.columns.type')}</Label>
-              <select
-                id="type"
-                className="h-9 rounded-md border border-input bg-transparent px-3"
-                value={values.type}
-                onChange={(event) => setValues({ ...values, type: event.target.value as InstrumentDto['type'] })}
-              >
-                {(['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'] as const).map((type) => (
-                  <option key={type} value={type}>
-                    {t(`investmentSetup.instrumentTypes.${type}`)}
-                  </option>
-                ))}
-              </select>
+              <Select value={values.type} onValueChange={(type) => setValues({ ...values, type: type as InstrumentDto['type'] })}>
+                <SelectTrigger id="type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'] as const).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {t(`investmentSetup.instrumentTypes.${type}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {textField('precision', t('investmentSetup.columns.precision'), values.displayPrecision, (displayPrecision) =>
               setValues({ ...values, displayPrecision }),
             )}
           </div>
         ),
-        create: (values) => create.mutate({ data: { ...values, displayPrecision: Number(values.displayPrecision) } }),
-        update: (id, values) => update.mutate({ id, data: { ...values, displayPrecision: Number(values.displayPrecision) } }),
+        create: (values) => create.mutateAsync({ data: { ...values, displayPrecision: Number(values.displayPrecision) } }),
+        update: (id, values) => update.mutateAsync({ id, data: { ...values, displayPrecision: Number(values.displayPrecision) } }),
         activate: (id) => activate.mutate({ id }),
         deactivate: (id) => deactivate.mutate({ id }),
       }}
@@ -320,13 +331,14 @@ export function AssetListingsPage() {
   const { t } = useTranslation();
   const client = useQueryClient();
   const query = useListAssetListings({ includeInactive: true });
-  const instruments = useListInstruments();
+  const instruments = useListInstruments({ includeInactive: true });
   const invalidate = () => void client.invalidateQueries({ queryKey: ['/asset-listings'] });
   const create = useCreateAssetListing({ mutation: { onSuccess: invalidate } });
   const update = useUpdateAssetListing({ mutation: { onSuccess: invalidate } });
   const activate = useActivateAssetListing({ mutation: { onSuccess: invalidate } });
   const deactivate = useDeactivateAssetListing({ mutation: { onSuccess: invalidate } });
   const options = instruments.data ?? [];
+  const activeOptions = options.filter((instrument) => instrument.isActive);
   return (
     <Registry<AssetListingDto, { instrumentId: string; quoteInstrumentId: string; market: string; ticker: string; isin: string; providerSymbol: string }>
       resource={{
@@ -346,7 +358,15 @@ export function AssetListingsPage() {
           void query.refetch();
           void instruments.refetch();
         },
-        values: () => ({ instrumentId: options[0]?.id ?? '', quoteInstrumentId: options[0]?.id ?? '', market: '', ticker: '', isin: '', providerSymbol: '' }),
+        canCreate: activeOptions.length > 0,
+        values: () => ({
+          instrumentId: activeOptions[0]?.id ?? '',
+          quoteInstrumentId: activeOptions[0]?.id ?? '',
+          market: '',
+          ticker: '',
+          isin: '',
+          providerSymbol: '',
+        }),
         toValues: (item) => ({
           instrumentId: item.instrumentId,
           quoteInstrumentId: item.quoteInstrumentId,
@@ -367,33 +387,37 @@ export function AssetListingsPage() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="instrumentId">{t('investmentSetup.columns.asset')}</Label>
-              <select
-                id="instrumentId"
-                className="h-9 rounded-md border border-input bg-transparent px-3"
-                value={values.instrumentId}
-                onChange={(event) => setValues({ ...values, instrumentId: event.target.value })}
-              >
-                {options.map((instrument) => (
-                  <option key={instrument.id} value={instrument.id}>
-                    {instrument.name}
-                  </option>
-                ))}
-              </select>
+              <Select value={values.instrumentId} onValueChange={(instrumentId) => setValues({ ...values, instrumentId })}>
+                <SelectTrigger id="instrumentId" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {options
+                    .filter((instrument) => instrument.isActive || instrument.id === values.instrumentId)
+                    .map((instrument) => (
+                      <SelectItem key={instrument.id} value={instrument.id}>
+                        {instrument.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="quoteInstrumentId">{t('investmentSetup.fields.quoteInstrument')}</Label>
-              <select
-                id="quoteInstrumentId"
-                className="h-9 rounded-md border border-input bg-transparent px-3"
-                value={values.quoteInstrumentId}
-                onChange={(event) => setValues({ ...values, quoteInstrumentId: event.target.value })}
-              >
-                {options.map((instrument) => (
-                  <option key={instrument.id} value={instrument.id}>
-                    {instrument.code}
-                  </option>
-                ))}
-              </select>
+              <Select value={values.quoteInstrumentId} onValueChange={(quoteInstrumentId) => setValues({ ...values, quoteInstrumentId })}>
+                <SelectTrigger id="quoteInstrumentId" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {options
+                    .filter((instrument) => instrument.isActive || instrument.id === values.quoteInstrumentId)
+                    .map((instrument) => (
+                      <SelectItem key={instrument.id} value={instrument.id}>
+                        {instrument.code}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             {textField('market', t('investmentSetup.columns.market'), values.market, (market) => setValues({ ...values, market }))}
             {textField('ticker', t('investmentSetup.columns.ticker'), values.ticker, (ticker) => setValues({ ...values, ticker }))}
@@ -403,8 +427,8 @@ export function AssetListingsPage() {
             )}
           </div>
         ),
-        create: (values) => create.mutate({ data: values }),
-        update: (id, values) => update.mutate({ id, data: values }),
+        create: (values) => create.mutateAsync({ data: values }),
+        update: (id, values) => update.mutateAsync({ id, data: values }),
         activate: (id) => activate.mutate({ id }),
         deactivate: (id) => deactivate.mutate({ id }),
       }}
