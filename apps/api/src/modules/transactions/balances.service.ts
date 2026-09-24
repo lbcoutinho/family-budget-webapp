@@ -88,7 +88,11 @@ export class BalancesService {
 
   /** Exact Account quantities at an accounting month's close for cash-basis reports. */
   async instrumentBalancesByReferenceMonth(userId: string, referenceMonth: Date): Promise<AccountInstrumentBalance[]> {
-    return this.instrumentBalancesWithMovements(userId, this.sumByAccountReferenceMonth(userId, referenceMonth), referenceMonth);
+    return this.instrumentBalancesWithMovements(
+      userId,
+      this.sumByAccountReferenceMonth(userId, referenceMonth),
+      new Date(Date.UTC(referenceMonth.getUTCFullYear(), referenceMonth.getUTCMonth() + 1, 0)),
+    );
   }
 
   private async instrumentBalancesWithMovements(userId: string, movements: Promise<Map<string, number>>, asOf?: Date): Promise<AccountInstrumentBalance[]> {

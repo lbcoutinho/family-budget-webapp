@@ -89,6 +89,11 @@ describe('Balances API (e2e)', () => {
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
     userId = user.id;
+    const eur = await prisma.instrument.upsert({
+      where: { userId_code: { userId, code: 'EUR' } },
+      create: { userId, name: 'Euro', code: 'EUR', type: 'FIAT' },
+      update: {},
+    });
 
     const [account, otherAccount, inactiveAccount, cashbox, otherCashbox, inactiveCashbox] = await Promise.all([
       prisma.account.create({ data: { userId, name: 'Millennium', initialBalance: 1_000 }, select: { id: true } }),
@@ -104,6 +109,13 @@ describe('Balances API (e2e)', () => {
     cashboxId = cashbox.id;
     otherCashboxId = otherCashbox.id;
     inactiveCashboxId = inactiveCashbox.id;
+    await prisma.accountInitialBalance.createMany({
+      data: [
+        { userId, accountId, instrumentId: eur.id, quantity: '10' },
+        { userId, accountId: otherAccountId, instrumentId: eur.id, quantity: '0' },
+        { userId, accountId: inactiveAccountId, instrumentId: eur.id, quantity: '5' },
+      ],
+    });
     await prisma.account.updateMany({ where: { userId }, data: { createdAt: new Date('2026-01-15') } });
   });
 
@@ -252,6 +264,8 @@ describe('Balances API (e2e)', () => {
         prisma.account.create({ data: { userId, name: 'Late', initialBalance: 700, createdAt: new Date('2026-04-15') } }),
         prisma.account.create({ data: { userId, name: 'Retired zero', isActive: false, createdAt: new Date('2026-01-15') } }),
       ]);
+      const eur = await prisma.instrument.findFirstOrThrow({ where: { userId, code: 'EUR' } });
+      await prisma.accountInitialBalance.create({ data: { userId, accountId: late.id, instrumentId: eur.id, quantity: '7' } });
       const march = (await authed('get', '/reports/monthly-balance?year=2026&month=3').expect(200)).body as {
         accountBalance: number;
         accounts: { accountId: string }[];
