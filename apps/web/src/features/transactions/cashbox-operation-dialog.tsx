@@ -1,6 +1,6 @@
 import {
   getGetMonthlyBalanceQueryKey,
-  getListAccountBalancesQueryKey,
+  getListAccountInstrumentBalancesQueryKey,
   getListCashboxBalancesQueryKey,
   getListTransactionsQueryKey,
   type CreateTransactionDto,
@@ -10,7 +10,7 @@ import {
   TransactionStatus,
   useCreateTransaction,
   useUpdateTransaction,
-  useListAccountBalances,
+  useListAccountInstrumentBalances,
   useListAccounts,
   useListCashboxBalances,
   useListCashboxes,
@@ -148,6 +148,19 @@ function availableBalanceFromError(error: unknown): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
+/** Instrument quantities are strings; cashbox operations only consume the EUR budget quantity. */
+export function eurQuantityToCents(quantity: string): number | undefined {
+  const parts = /^(-?)(\d+)(?:\.(\d+))?$/.exec(quantity);
+  if (!parts) return undefined;
+  const sign = parts[1] === '-' ? -1 : 1;
+  const euros = parts[2]!;
+  const fraction = parts[3] ?? '';
+  if (/[1-9]/.test(fraction.slice(2))) return undefined;
+
+  const cents = BigInt(euros) * 100n + BigInt(fraction.padEnd(2, '0').slice(0, 2));
+  return cents <= BigInt(Number.MAX_SAFE_INTEGER) ? sign * Number(cents) : undefined;
+}
+
 export interface CashboxOperationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -163,7 +176,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const destinationCashboxRef = useRef<HTMLSelectElement>(null);
   const { data: accounts = [] } = useListAccounts(transaction?.accountId ? { includeId: transaction.accountId } : undefined);
   const { data: cashboxes = [] } = useListCashboxes(transaction ? { includeInactive: true } : undefined);
-  const { data: accountBalances = [] } = useListAccountBalances();
+  const { data: accountBalances = [] } = useListAccountInstrumentBalances();
   const { data: cashboxBalances = [] } = useListCashboxBalances();
   const [balanceWarning, setBalanceWarning] = useState<number>();
   const [submissionError, setSubmissionError] = useState<string>();
@@ -172,12 +185,19 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
   const activeCashboxes = cashboxes.filter(
     (cashbox) => cashbox.isActive || cashbox.id === transaction?.cashboxId || cashbox.id === transaction?.destinationCashboxId,
   );
-  const accountBalanceById = new Map(accountBalances.map((balance) => [balance.accountId, balance]));
+  const accountBalanceById = new Map(
+    accountBalances
+      .filter((balance) => balance.instrumentCode === 'EUR')
+      .flatMap((balance) => {
+        const cents = eurQuantityToCents(balance.quantity);
+        return cents === undefined ? [] : [[balance.accountId, cents] as const];
+      }),
+  );
   const cashboxBalanceById = new Map(cashboxBalances.map((balance) => [balance.cashboxId, balance]));
   const accountOptions = activeAccounts.map((account) => ({
     id: account.id,
     name: account.isActive ? account.name : `${account.name} (${t('categories.badge.inactive')})`,
-    balance: accountBalanceById.get(account.id)?.balance,
+    balance: accountBalanceById.get(account.id),
   }));
   const cashboxOptions = activeCashboxes.map((cashbox) => ({
     id: cashbox.id,
@@ -223,7 +243,7 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
-    void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListAccountInstrumentBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
