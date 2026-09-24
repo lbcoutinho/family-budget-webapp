@@ -199,6 +199,8 @@
       "account": "Account",
       "received": "Received",
       "delivered": "Delivered",
+      "fee": "Fee paid",
+      "feeValue": "EUR fee value",
       "executionTime": "Execution time (UTC)",
       "executionValue": "EUR value",
       "listing": "Listing",

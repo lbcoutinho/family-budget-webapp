@@ -29,6 +29,9 @@ interface TradeValues {
   acquiredQuantity: string;
   disposedInstrumentId: string;
   disposedQuantity: string;
+  feeInstrumentId: string;
+  feeQuantity: string;
+  feeValue: string;
   assetListingId: string;
   executedAt: string;
   executionValue: string;
@@ -41,6 +44,9 @@ const emptyTrade = (): TradeValues => ({
   acquiredQuantity: '',
   disposedInstrumentId: '',
   disposedQuantity: '',
+  feeInstrumentId: '',
+  feeQuantity: '',
+  feeValue: '',
   assetListingId: 'none',
   executedAt: new Date().toISOString().slice(0, 16),
   executionValue: '',
@@ -71,7 +77,8 @@ export function InvestmentTradesPage() {
 
   const submit = () => {
     const executionValue = parseCurrencyInput(values.executionValue);
-    if (executionValue === null) return;
+    const feeValue = parseCurrencyInput(values.feeValue);
+    if (executionValue === null || (values.feeValue && feeValue === null)) return;
     create.mutate({
       data: {
         accountId: values.accountId,
@@ -79,6 +86,9 @@ export function InvestmentTradesPage() {
         acquiredQuantity: values.acquiredQuantity,
         disposedInstrumentId: values.disposedInstrumentId,
         disposedQuantity: values.disposedQuantity,
+        ...(values.feeInstrumentId && values.feeQuantity && feeValue !== null
+          ? { feeInstrumentId: values.feeInstrumentId, feeQuantity: values.feeQuantity, feeValue }
+          : {}),
         ...(values.assetListingId === 'none' ? {} : { assetListingId: values.assetListingId }),
         executedAt: `${values.executedAt}:00.000Z`,
         executionValue,
@@ -201,6 +211,19 @@ export function InvestmentTradesPage() {
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
+              <InstrumentLeg
+                id="fee"
+                label={t('investmentTrades.fields.fee')}
+                instrumentId={values.feeInstrumentId}
+                quantity={values.feeQuantity}
+                instruments={instruments.data ?? []}
+                onChange={(field, value) => setValues({ ...values, [field]: value })}
+              />
+              <Field label={t('investmentTrades.fields.feeValue')}>
+                <Input inputMode="decimal" value={values.feeValue} onChange={(event) => setValues({ ...values, feeValue: event.target.value })} />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t('investmentTrades.fields.executionTime')}>
                 <Input type="datetime-local" value={values.executedAt} onChange={(event) => setValues({ ...values, executedAt: event.target.value })} />
               </Field>
@@ -265,6 +288,8 @@ export function InvestmentTradesPage() {
               <Detail label={t('investmentTrades.fields.account')} value={detail.accountName} />
               <Detail label={t('investmentTrades.fields.received')} value={`${detail.acquiredQuantity} ${detail.acquiredInstrumentCode}`} />
               <Detail label={t('investmentTrades.fields.delivered')} value={`${detail.disposedQuantity} ${detail.disposedInstrumentCode}`} />
+              {detail.feeInstrumentCode && <Detail label={t('investmentTrades.fields.fee')} value={`${detail.feeQuantity} ${detail.feeInstrumentCode}`} />}
+              {detail.feeValue != null && <Detail label={t('investmentTrades.fields.feeValue')} value={formatCents(detail.feeValue)} />}
               <Detail
                 label={t('investmentTrades.details.executionPrice')}
                 value={`${detail.executionPrice} ${detail.disposedInstrumentCode}/${detail.acquiredInstrumentCode}`}
@@ -305,15 +330,15 @@ function InstrumentLeg({
   instruments,
   onChange,
 }: {
-  id: 'acquired' | 'disposed';
+  id: 'acquired' | 'disposed' | 'fee';
   label: string;
   instrumentId: string;
   quantity: string;
   instruments: { id: string; code: string }[];
   onChange: (field: keyof TradeValues, value: string) => void;
 }) {
-  const instrumentField = id === 'acquired' ? 'acquiredInstrumentId' : 'disposedInstrumentId';
-  const quantityField = id === 'acquired' ? 'acquiredQuantity' : 'disposedQuantity';
+  const instrumentField = id === 'acquired' ? 'acquiredInstrumentId' : id === 'disposed' ? 'disposedInstrumentId' : 'feeInstrumentId';
+  const quantityField = id === 'acquired' ? 'acquiredQuantity' : id === 'disposed' ? 'disposedQuantity' : 'feeQuantity';
   return (
     <div className="grid gap-1.5 rounded-md border p-3">
       <Label>{label}</Label>

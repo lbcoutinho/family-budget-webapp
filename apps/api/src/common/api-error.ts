@@ -103,6 +103,10 @@ export class ApiErrorDto {
   /** Present when the business rule needs the account's current balance, in integer cents. */
   @ApiPropertyOptional({ type: Number, description: 'Current account balance in integer cents.' })
   balance?: number;
+  @ApiPropertyOptional({ type: String, description: 'Instrument that lacks available quantity.' })
+  instrumentCode?: string;
+  @ApiPropertyOptional({ type: String, description: 'Available exact quantity of the insufficient instrument.' })
+  availableQuantity?: string;
 }
 
 // The status lives in the body as well as on the response: `HttpException` hands an object payload
@@ -110,8 +114,11 @@ export class ApiErrorDto {
 export const badRequest = (code: ErrorCode, message: string): BadRequestException =>
   new BadRequestException({ statusCode: HttpStatus.BAD_REQUEST, code, message } satisfies ApiErrorDto);
 
-export const conflict = (code: ErrorCode, message: string, details: Pick<ApiErrorDto, 'balance'> = {}): ConflictException =>
-  new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
+export const conflict = (
+  code: ErrorCode,
+  message: string,
+  details: Pick<ApiErrorDto, 'balance' | 'instrumentCode' | 'availableQuantity'> = {},
+): ConflictException => new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
 
 export const notFound = (code: ErrorCode, message: string): NotFoundException =>
   new NotFoundException({ statusCode: HttpStatus.NOT_FOUND, code, message } satisfies ApiErrorDto);

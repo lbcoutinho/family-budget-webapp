@@ -125,14 +125,26 @@ export class InvestmentsService {
       if (isInvestmentAsset(trade.acquiredInstrument.type)) {
         const position = positionFor(positions, trade.account, trade.acquiredInstrument);
         position.quantity = position.quantity.add(trade.acquiredQuantity);
-        position.remainingCost = position.remainingCost.add(trade.executionValue);
+        position.remainingCost = position.remainingCost.add(trade.executionValue).add(trade.feeValue ?? 0);
       }
       if (isInvestmentAsset(trade.disposedInstrument.type)) {
         const position = positionFor(positions, trade.account, trade.disposedInstrument);
         const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(trade.disposedQuantity).div(position.quantity);
         position.quantity = position.quantity.sub(trade.disposedQuantity);
         position.remainingCost = position.remainingCost.sub(removedCost);
-        position.realizedResult = position.realizedResult.add(trade.executionValue).sub(removedCost);
+        position.realizedResult = position.realizedResult
+          .add(trade.executionValue)
+          .sub(trade.feeInstrumentId === trade.disposedInstrumentId ? (trade.feeValue ?? 0) : 0)
+          .sub(removedCost);
+      }
+      if (trade.feeInstrument && trade.feeQuantity && isInvestmentAsset(trade.feeInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.feeInstrument);
+        const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(trade.feeQuantity).div(position.quantity);
+        position.quantity = position.quantity.sub(trade.feeQuantity);
+        position.remainingCost = position.remainingCost.sub(removedCost);
+        position.realizedResult = position.realizedResult
+          .add(trade.feeInstrumentId === trade.disposedInstrumentId ? 0 : (trade.feeValue ?? 0))
+          .sub(removedCost);
       }
     }
 
@@ -151,13 +163,18 @@ export class InvestmentsService {
       throw badRequest('INVESTMENT_TRADE_SAME_INSTRUMENT', 'A trade must acquire and dispose different instruments.');
     }
 
-    const [account, acquired, disposed, listing] = await Promise.all([
+    const hasFee = dto.feeInstrumentId !== undefined || dto.feeQuantity !== undefined || dto.feeValue !== undefined;
+    if (hasFee && (dto.feeInstrumentId === undefined || dto.feeQuantity === undefined || dto.feeValue === undefined)) {
+      throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'A trade fee requires its instrument, quantity, and EUR value.');
+    }
+    const [account, acquired, disposed, fee, listing] = await Promise.all([
       this.prisma.account.findFirst({ where: { id: dto.accountId, userId, isActive: true } }),
       this.prisma.instrument.findFirst({ where: { id: dto.acquiredInstrumentId, userId, isActive: true } }),
       this.prisma.instrument.findFirst({ where: { id: dto.disposedInstrumentId, userId, isActive: true } }),
+      dto.feeInstrumentId === undefined ? undefined : this.prisma.instrument.findFirst({ where: { id: dto.feeInstrumentId, userId, isActive: true } }),
       dto.assetListingId === undefined ? undefined : this.prisma.assetListing.findFirst({ where: { id: dto.assetListingId, userId, isActive: true } }),
     ]);
-    if (!account || !acquired || !disposed || (dto.assetListingId !== undefined && !listing)) {
+    if (!account || !acquired || !disposed || (dto.feeInstrumentId !== undefined && !fee) || (dto.assetListingId !== undefined && !listing)) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instruments are required.');
     }
     if (listing && listing.instrumentId !== dto.acquiredInstrumentId) {
@@ -166,23 +183,37 @@ export class InvestmentsService {
 
     const acquiredQuantity = new Prisma.Decimal(dto.acquiredQuantity);
     const disposedQuantity = new Prisma.Decimal(dto.disposedQuantity);
-    if (!acquiredQuantity.gt(0) || !disposedQuantity.gt(0)) {
+    const feeQuantity = dto.feeQuantity === undefined ? undefined : new Prisma.Decimal(dto.feeQuantity);
+    if (!acquiredQuantity.gt(0) || !disposedQuantity.gt(0) || (feeQuantity && !feeQuantity.gt(0))) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'Trade quantities must be positive.');
     }
     return toTradeDto(
       await this.prisma.$transaction(async (tx) => {
         if (account.kind !== 'BANK') {
-          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${disposed.id}`}))`;
-          const held =
-            (await this.balances.instrumentBalances(userId, undefined, tx)).find(
-              (balance) => balance.accountId === account.id && balance.instrumentId === disposed.id,
-            )?.quantity ?? new Prisma.Decimal(0);
-          if (held.lessThan(disposedQuantity)) {
-            throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', 'The trade would leave an instrument balance negative.');
+          const movements = new Map<string, Prisma.Decimal>([
+            [acquired.id, acquiredQuantity],
+            [disposed.id, disposedQuantity.negated()],
+          ]);
+          if (fee && feeQuantity) movements.set(fee.id, (movements.get(fee.id) ?? new Prisma.Decimal(0)).sub(feeQuantity));
+          for (const [instrumentId, movement] of movements) {
+            if (movement.isNegative()) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${instrumentId}`}))`;
+          }
+          const balances = await this.balances.instrumentBalances(userId, undefined, tx);
+          for (const [instrumentId, movement] of movements) {
+            if (!movement.isNegative()) continue;
+            const held =
+              balances.find((balance) => balance.accountId === account.id && balance.instrumentId === instrumentId)?.quantity ?? new Prisma.Decimal(0);
+            if (held.add(movement).isNegative()) {
+              const instrument = instrumentId === disposed.id ? disposed : fee!;
+              throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', `Insufficient ${instrument.code}: ${held.toString()} available.`, {
+                instrumentCode: instrument.code,
+                availableQuantity: held.toString(),
+              });
+            }
           }
         }
         return tx.investmentTrade.create({
-          data: { ...dto, userId, acquiredQuantity, disposedQuantity, executedAt: new Date(dto.executedAt) },
+          data: { ...dto, userId, acquiredQuantity, disposedQuantity, feeQuantity, executedAt: new Date(dto.executedAt) },
           include: tradeInclude,
         });
       }),
@@ -208,12 +239,14 @@ const tradeInclude = {
   account: { select: { name: true } },
   acquiredInstrument: { select: { name: true, code: true, displayPrecision: true } },
   disposedInstrument: { select: { name: true, code: true, displayPrecision: true } },
+  feeInstrument: { select: { name: true, code: true, displayPrecision: true } },
   assetListing: { select: { market: true, ticker: true } },
 } as const;
 const positionTradeInclude = {
   account: { select: { id: true, name: true } },
   acquiredInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
   disposedInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+  feeInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
 } as const;
 type TradeRow = InvestmentTrade & Prisma.InvestmentTradeGetPayload<{ include: typeof tradeInclude }>;
 const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
@@ -230,6 +263,12 @@ const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
   disposedInstrumentCode: trade.disposedInstrument.code,
   disposedDisplayPrecision: trade.disposedInstrument.displayPrecision,
   disposedQuantity: trade.disposedQuantity.toString(),
+  feeInstrumentId: trade.feeInstrumentId,
+  feeInstrumentName: trade.feeInstrument?.name ?? null,
+  feeInstrumentCode: trade.feeInstrument?.code ?? null,
+  feeDisplayPrecision: trade.feeInstrument?.displayPrecision ?? null,
+  feeQuantity: trade.feeQuantity?.toString() ?? null,
+  feeValue: trade.feeValue,
   assetListingId: trade.assetListingId,
   assetListing: trade.assetListing ? `${trade.assetListing.ticker} · ${trade.assetListing.market}` : null,
   executedAt: trade.executedAt.toISOString(),

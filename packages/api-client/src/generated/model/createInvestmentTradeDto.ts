@@ -14,6 +14,11 @@ export interface CreateInvestmentTradeDto {
   disposedInstrumentId: string;
   /** Exact delivered quantity. */
   disposedQuantity: string;
+  feeInstrumentId?: string;
+  /** Exact fee quantity. */
+  feeQuantity?: string;
+  /** EUR fee value at execution, in integer cents. */
+  feeValue?: number;
   assetListingId?: string;
   /** UTC execution instant. */
   executedAt: string;

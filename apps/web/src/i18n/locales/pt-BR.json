@@ -196,6 +196,8 @@
       "account": "Conta",
       "received": "Recebido",
       "delivered": "Entregue",
+      "fee": "Taxa paga",
+      "feeValue": "Valor EUR da taxa",
       "executionTime": "Horário de execução (UTC)",
       "executionValue": "Valor EUR",
       "listing": "Listagem",

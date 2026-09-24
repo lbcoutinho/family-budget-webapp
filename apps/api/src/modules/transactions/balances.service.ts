@@ -116,6 +116,7 @@ export class BalancesService {
         include: {
           acquiredInstrument: { select: { name: true, code: true } },
           disposedInstrument: { select: { name: true, code: true } },
+          feeInstrument: { select: { name: true, code: true } },
         },
       }),
     ]);
@@ -160,6 +161,9 @@ export class BalancesService {
         new Prisma.Decimal(trade.disposedQuantity).negated(),
         trade.disposedInstrument,
       );
+      if (trade.feeInstrumentId && trade.feeQuantity && trade.feeInstrument) {
+        applyInstrumentMovement(balances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity).negated(), trade.feeInstrument);
+      }
     }
 
     return [...balances.values()];
