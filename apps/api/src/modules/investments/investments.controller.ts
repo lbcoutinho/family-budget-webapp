@@ -9,11 +9,13 @@ import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
+import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
+import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
@@ -187,6 +189,18 @@ export class InvestmentTradesController extends InvestmentSetupController {
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInvestmentTradeDto) {
     return this.investments.createTrade(user.id, dto);
+  }
+}
+
+@ApiTags('market-quotes')
+@Controller('market-quotes')
+export class MarketQuotesController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'createMarketQuote' })
+  @ApiBody({ type: CreateMarketQuoteDto })
+  @ApiCreatedResponse({ type: MarketQuoteDto })
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateMarketQuoteDto) {
+    return this.investments.createMarketQuote(user.id, dto);
   }
 }
 

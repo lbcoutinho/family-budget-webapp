@@ -211,6 +211,10 @@
   },
   "investmentOverview": {
     "title": "Visão geral",
+    "recordQuote": "Registar cotação",
+    "quoteListing": "Listing",
+    "quotePrice": "Preço ({{instrument}})",
+    "quoteDate": "Data de mercado",
     "sections": "Seções de investimentos",
     "description": "Posições consolidadas e por conta, com custo das posições abertas e resultado em euros.",
     "filters": "Filtros",

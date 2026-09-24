@@ -8,12 +8,20 @@ import {
   InstrumentsController,
   InvestmentPositionsController,
   InvestmentTradesController,
+  MarketQuotesController,
 } from './investments.controller';
 import { InvestmentsService } from './investments.service';
 
 @Module({
   imports: [TransactionsModule],
-  controllers: [FinancialInstitutionsController, InstrumentsController, AssetListingsController, InvestmentTradesController, InvestmentPositionsController],
+  controllers: [
+    FinancialInstitutionsController,
+    InstrumentsController,
+    AssetListingsController,
+    InvestmentTradesController,
+    MarketQuotesController,
+    InvestmentPositionsController,
+  ],
   providers: [InvestmentsService],
 })
 export class InvestmentsModule {}

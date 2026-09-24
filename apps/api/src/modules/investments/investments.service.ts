@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common';
 
 import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
-import { InstrumentType, Prisma, type AssetListing, type FinancialInstitution, type Instrument, type InvestmentTrade } from '../../generated/prisma/client';
+import {
+  InstrumentType,
+  Prisma,
+  type AssetListing,
+  type FinancialInstitution,
+  type Instrument,
+  type InvestmentTrade,
+  type MarketQuote,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
@@ -11,11 +19,13 @@ import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
+import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
+import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
@@ -155,7 +165,30 @@ export class InvestmentsService {
       total.remainingCost = total.remainingCost.add(position.remainingCost);
       total.realizedResult = total.realizedResult.add(position.realizedResult);
     }
-    return [...consolidated.values(), ...positions.values()].map(toPositionDto);
+    const quotes = await this.prisma.marketQuote.findMany({
+      where: { userId },
+      include: { assetListing: { select: { instrumentId: true } }, quoteInstrument: { select: { id: true, code: true } } },
+      orderBy: [{ marketDate: 'desc' }, { synchronizedAt: 'desc' }],
+    });
+    const quoteByInstrument = new Map<string, QuoteRow>();
+    for (const quote of quotes) quoteByInstrument.set(quote.assetListing.instrumentId, quoteByInstrument.get(quote.assetListing.instrumentId) ?? quote);
+    const eurId = (await this.prisma.instrument.findFirst({ where: { userId, code: 'EUR', type: 'FIAT' }, select: { id: true } }))?.id;
+
+    return [...consolidated.values(), ...positions.values()].map((position) => toPositionDto(position, valuationFor(position, quoteByInstrument, eurId)));
+  }
+
+  async createMarketQuote(userId: string, dto: CreateMarketQuoteDto): Promise<MarketQuoteDto> {
+    const listing = await this.prisma.assetListing.findFirst({ where: { id: dto.assetListingId, userId, isActive: true } });
+    if (!listing) throw badRequest('MARKET_QUOTE_LISTING_INACTIVE', 'An active asset listing is required.');
+    const price = new Prisma.Decimal(dto.price);
+    if (!price.gt(0)) throw badRequest('MARKET_QUOTE_PRICE_INVALID', 'The market quote price must be positive.');
+    const quote = await this.prisma.marketQuote.upsert({
+      where: { assetListingId: listing.id },
+      create: { userId, assetListingId: listing.id, quoteInstrumentId: listing.quoteInstrumentId, price, marketDate: new Date(dto.marketDate) },
+      update: { quoteInstrumentId: listing.quoteInstrumentId, price, marketDate: new Date(dto.marketDate), synchronizedAt: new Date(), source: 'MANUAL' },
+      include: { quoteInstrument: { select: { code: true } } },
+    });
+    return toMarketQuoteDto(quote);
   }
 
   async createTrade(userId: string, dto: CreateInvestmentTradeDto): Promise<InvestmentTradeDto> {
@@ -321,6 +354,12 @@ interface Position {
   realizedResult: Prisma.Decimal;
 }
 
+type QuoteRow = MarketQuote & { assetListing: { instrumentId: string }; quoteInstrument: { id: string; code: string } };
+interface Valuation {
+  quote: QuoteRow | null;
+  currentValue: number | null;
+}
+
 function isInvestmentAsset(type: InstrumentType): boolean {
   return type !== 'FIAT' && type !== 'STABLECOIN';
 }
@@ -340,7 +379,15 @@ function positionFor(positions: Map<string, Position>, account: PositionAccount 
   return position;
 }
 
-function toPositionDto(position: Position): InvestmentPositionDto {
+function valuationFor(position: Position, quotes: Map<string, QuoteRow>, eurId: string | undefined): Valuation {
+  const quote = quotes.get(position.instrument.id) ?? null;
+  if (!quote || !eurId) return { quote, currentValue: null };
+  const conversionQuote = quotes.get(quote.quoteInstrument.id);
+  const rate = quote.quoteInstrument.id === eurId ? new Prisma.Decimal(1) : conversionQuote?.quoteInstrument.id === eurId ? conversionQuote.price : null;
+  return { quote, currentValue: rate === null ? null : position.quantity.mul(quote.price).mul(rate).mul(100).toDecimalPlaces(0).toNumber() };
+}
+
+function toPositionDto(position: Position, valuation: Valuation): InvestmentPositionDto {
   return {
     accountId: position.account?.id ?? null,
     accountName: position.account?.name ?? null,
@@ -353,5 +400,25 @@ function toPositionDto(position: Position): InvestmentPositionDto {
     remainingCost: position.remainingCost.toDecimalPlaces(0).toNumber(),
     weightedAverageCost: position.quantity.isZero() ? '0.000000000000' : position.remainingCost.div(100).div(position.quantity).toFixed(12),
     realizedResult: position.realizedResult.toDecimalPlaces(0).toNumber(),
+    quotePrice: valuation.quote?.price.toString() ?? null,
+    quoteInstrumentCode: valuation.quote?.quoteInstrument.code ?? null,
+    quoteMarketDate: valuation.quote?.marketDate.toISOString().slice(0, 10) ?? null,
+    quoteStatus:
+      valuation.quote === null ? 'MISSING' : valuation.quote.marketDate.toISOString().slice(0, 10) < new Date().toISOString().slice(0, 10) ? 'STALE' : 'MANUAL',
+    currentValue: valuation.currentValue,
+    unrealizedResult: valuation.currentValue === null ? null : valuation.currentValue - position.remainingCost.toDecimalPlaces(0).toNumber(),
+  };
+}
+
+function toMarketQuoteDto(quote: MarketQuote & { quoteInstrument: { code: string } }): MarketQuoteDto {
+  return {
+    id: quote.id,
+    assetListingId: quote.assetListingId,
+    quoteInstrumentId: quote.quoteInstrumentId,
+    quoteInstrumentCode: quote.quoteInstrument.code,
+    price: quote.price.toString(),
+    marketDate: quote.marketDate.toISOString().slice(0, 10),
+    source: 'MANUAL',
+    status: 'VALID',
   };
 }

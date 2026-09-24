@@ -22,6 +22,12 @@ const positions: InvestmentPositionDto[] = [
     remainingCost: 275000,
     weightedAverageCost: '183.333333333333',
     realizedResult: 150000,
+    quotePrice: '200',
+    quoteInstrumentCode: 'EUR',
+    quoteMarketDate: '2026-09-24',
+    quoteStatus: 'MANUAL',
+    currentValue: 300000,
+    unrealizedResult: 25000,
   },
   {
     accountId: 'broker',
@@ -35,6 +41,12 @@ const positions: InvestmentPositionDto[] = [
     remainingCost: 275000,
     weightedAverageCost: '183.333333333333',
     realizedResult: 150000,
+    quotePrice: '200',
+    quoteInstrumentCode: 'EUR',
+    quoteMarketDate: '2026-09-24',
+    quoteStatus: 'MANUAL',
+    currentValue: 300000,
+    unrealizedResult: 25000,
   },
 ];
 const accounts: AccountDto[] = [
@@ -64,6 +76,7 @@ describe('InvestmentsOverviewPage', () => {
     server.use(
       http.get('/api/investment-positions', () => HttpResponse.json(positions)),
       http.get('/api/accounts', () => HttpResponse.json(accounts)),
+      http.get('/api/asset-listings', () => HttpResponse.json([])),
     );
 
     renderPage();
@@ -73,5 +86,6 @@ describe('InvestmentsOverviewPage', () => {
     expect(screen.getByText('Broker')).toBeInTheDocument();
     expect(screen.getAllByText('2.750,00 €')).toHaveLength(3);
     expect(screen.getAllByText('1.500,00 €')).toHaveLength(3);
+    expect(screen.getAllByText('3.000,00 €')).toHaveLength(3);
   });
 });

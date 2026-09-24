@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { InstrumentType } from './instrumentType';
+import type { InvestmentPositionDtoQuoteStatus } from './investmentPositionDtoQuoteStatus';
 
 export interface InvestmentPositionDto {
   /** @nullable */
@@ -25,4 +26,24 @@ export interface InvestmentPositionDto {
   weightedAverageCost: string;
   /** Realized EUR result, in integer cents. */
   realizedResult: number;
+  /**
+     * Latest market price in its quote instrument.
+     * @nullable
+     */
+  quotePrice?: string | null;
+  /** @nullable */
+  quoteInstrumentCode?: string | null;
+  /** @nullable */
+  quoteMarketDate?: string | null;
+  quoteStatus: InvestmentPositionDtoQuoteStatus;
+  /**
+     * Current EUR value, in integer cents.
+     * @nullable
+     */
+  currentValue?: number | null;
+  /**
+     * Current EUR result, in integer cents.
+     * @nullable
+     */
+  unrealizedResult?: number | null;
 }
