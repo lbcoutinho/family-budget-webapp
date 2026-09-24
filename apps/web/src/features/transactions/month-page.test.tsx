@@ -494,7 +494,7 @@ describe('MonthPage', () => {
       }),
       http.get('/api/accounts/instrument-balances', () => {
         accountBalanceRequests++;
-        return HttpResponse.json(ACCOUNT_BALANCES);
+        return HttpResponse.json([]);
       }),
       http.get('/api/cashboxes/balances', () => {
         cashboxBalanceRequests++;

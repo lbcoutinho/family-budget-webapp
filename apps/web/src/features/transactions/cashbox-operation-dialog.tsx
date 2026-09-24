@@ -148,6 +148,19 @@ function availableBalanceFromError(error: unknown): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
+/** Instrument quantities are strings; cashbox operations only consume the EUR budget quantity. */
+export function eurQuantityToCents(quantity: string): number | undefined {
+  const parts = /^(-?)(\d+)(?:\.(\d+))?$/.exec(quantity);
+  if (!parts) return undefined;
+  const sign = parts[1] === '-' ? -1 : 1;
+  const euros = parts[2]!;
+  const fraction = parts[3] ?? '';
+  if (/[1-9]/.test(fraction.slice(2))) return undefined;
+
+  const cents = BigInt(euros) * 100n + BigInt(fraction.padEnd(2, '0').slice(0, 2));
+  return cents <= BigInt(Number.MAX_SAFE_INTEGER) ? sign * Number(cents) : undefined;
+}
+
 export interface CashboxOperationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -173,7 +186,12 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
     (cashbox) => cashbox.isActive || cashbox.id === transaction?.cashboxId || cashbox.id === transaction?.destinationCashboxId,
   );
   const accountBalanceById = new Map(
-    accountBalances.filter((balance) => balance.instrumentCode === 'EUR').map((balance) => [balance.accountId, parseCurrencyInput(balance.quantity) ?? 0]),
+    accountBalances
+      .filter((balance) => balance.instrumentCode === 'EUR')
+      .flatMap((balance) => {
+        const cents = eurQuantityToCents(balance.quantity);
+        return cents === undefined ? [] : [[balance.accountId, cents] as const];
+      }),
   );
   const cashboxBalanceById = new Map(cashboxBalances.map((balance) => [balance.cashboxId, balance]));
   const accountOptions = activeAccounts.map((account) => ({

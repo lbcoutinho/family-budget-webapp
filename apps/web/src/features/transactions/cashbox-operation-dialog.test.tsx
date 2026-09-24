@@ -1,11 +1,11 @@
-import { getGetMonthlyBalanceQueryKey } from '@family-budget/api-client';
+import { getGetMonthlyBalanceQueryKey, getListAccountInstrumentBalancesQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CashboxOperationDialog, cashboxOperationPayload } from './cashbox-operation-dialog';
+import { CashboxOperationDialog, cashboxOperationPayload, eurQuantityToCents } from './cashbox-operation-dialog';
 
 import type * as ApiClient from '@family-budget/api-client';
 
@@ -108,6 +108,19 @@ describe('cashbox operation payloads', () => {
   });
 });
 
+describe('eurQuantityToCents', () => {
+  it.each([
+    ['2000', 200000],
+    ['-0.01', -1],
+    ['0.0100', 1],
+    ['0.001', undefined],
+    ['1.2.3', undefined],
+    ['90071992547409.92', undefined],
+  ])('converts %s only when it is an exact safe cent value', (quantity, expected) => {
+    expect(eurQuantityToCents(quantity)).toBe(expected);
+  });
+});
+
 describe('CashboxOperationDialog', () => {
   beforeEach(() => {
     mutate.mockClear();
@@ -140,6 +153,7 @@ describe('CashboxOperationDialog', () => {
     act(() => mutationOptions?.mutation.onSettled());
 
     expect(invalidate).toHaveBeenCalledWith({ queryKey: getGetMonthlyBalanceQueryKey() });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: getListAccountInstrumentBalancesQueryKey() });
   });
 
   it('submits a deposit without forbidden fields', async () => {

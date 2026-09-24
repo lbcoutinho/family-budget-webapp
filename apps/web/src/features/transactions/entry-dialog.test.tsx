@@ -1,4 +1,4 @@
-import { getGetMonthlyBalanceQueryKey, getListTransactionsQueryKey } from '@family-budget/api-client';
+import { getGetMonthlyBalanceQueryKey, getListAccountInstrumentBalancesQueryKey, getListTransactionsQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -203,6 +203,7 @@ describe('EntryDialog', () => {
     act(() => mutationOptions?.mutation.onSettled());
 
     expect(invalidate).toHaveBeenCalledWith({ queryKey: getGetMonthlyBalanceQueryKey() });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: getListAccountInstrumentBalancesQueryKey() });
   });
 
   it('links to Accounts when none exist', () => {
