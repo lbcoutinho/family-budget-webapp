@@ -8,8 +8,10 @@ import { AssetListingDto } from './dto/asset-listing.dto';
 import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
+import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
@@ -165,5 +167,24 @@ export class AssetListingsController extends InvestmentSetupController {
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.investments.removeListing(user.id, id);
+  }
+}
+
+@ApiTags('investment-trades')
+@Controller('investment-trades')
+export class InvestmentTradesController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'listInvestmentTrades' })
+  @ApiOkResponse({ type: [InvestmentTradeDto] })
+  @Get()
+  list(@CurrentUser() user: AuthenticatedUser) {
+    return this.investments.listTrades(user.id);
+  }
+
+  @ApiOperation({ operationId: 'createInvestmentTrade' })
+  @ApiBody({ type: CreateInvestmentTradeDto })
+  @ApiCreatedResponse({ type: InvestmentTradeDto })
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInvestmentTradeDto) {
+    return this.investments.createTrade(user.id, dto);
   }
 }

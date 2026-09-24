@@ -1,7 +1,13 @@
 import { Module } from '@nestjs/common';
 
-import { AssetListingsController, FinancialInstitutionsController, InstrumentsController } from './investments.controller';
+import { TransactionsModule } from '../transactions/transactions.module';
+
+import { AssetListingsController, FinancialInstitutionsController, InstrumentsController, InvestmentTradesController } from './investments.controller';
 import { InvestmentsService } from './investments.service';
 
-@Module({ controllers: [FinancialInstitutionsController, InstrumentsController, AssetListingsController], providers: [InvestmentsService] })
+@Module({
+  imports: [TransactionsModule],
+  controllers: [FinancialInstitutionsController, InstrumentsController, AssetListingsController, InvestmentTradesController],
+  providers: [InvestmentsService],
+})
 export class InvestmentsModule {}

@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 
-import { badRequest } from '../../common/api-error';
+import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
-import { type AssetListing, type FinancialInstitution, type Instrument } from '../../generated/prisma/client';
+import { Prisma, type AssetListing, type FinancialInstitution, type Instrument, type InvestmentTrade } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BalancesService } from '../transactions/balances.service';
 
 import { AssetListingDto } from './dto/asset-listing.dto';
 import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
+import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
@@ -18,7 +21,10 @@ import { UpdateInstrumentDto } from './dto/update-instrument.dto';
 
 @Injectable()
 export class InvestmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly balances: BalancesService,
+  ) {}
 
   async listInstitutions(userId: string, query: ListInvestmentSetupQueryDto): Promise<FinancialInstitutionDto[]> {
     return (
@@ -100,6 +106,55 @@ export class InvestmentsService {
     await this.prisma.assetListing.delete({ where: { id } });
   }
 
+  async listTrades(userId: string): Promise<InvestmentTradeDto[]> {
+    return (
+      await this.prisma.investmentTrade.findMany({ where: { userId }, include: tradeInclude, orderBy: [{ executedAt: 'desc' }, { createdAt: 'desc' }] })
+    ).map(toTradeDto);
+  }
+
+  async createTrade(userId: string, dto: CreateInvestmentTradeDto): Promise<InvestmentTradeDto> {
+    if (dto.acquiredInstrumentId === dto.disposedInstrumentId) {
+      throw badRequest('INVESTMENT_TRADE_SAME_INSTRUMENT', 'A trade must acquire and dispose different instruments.');
+    }
+
+    const [account, acquired, disposed, listing] = await Promise.all([
+      this.prisma.account.findFirst({ where: { id: dto.accountId, userId, isActive: true } }),
+      this.prisma.instrument.findFirst({ where: { id: dto.acquiredInstrumentId, userId, isActive: true } }),
+      this.prisma.instrument.findFirst({ where: { id: dto.disposedInstrumentId, userId, isActive: true } }),
+      dto.assetListingId === undefined ? undefined : this.prisma.assetListing.findFirst({ where: { id: dto.assetListingId, userId, isActive: true } }),
+    ]);
+    if (!account || !acquired || !disposed || (dto.assetListingId !== undefined && !listing)) {
+      throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instruments are required.');
+    }
+    if (listing && listing.instrumentId !== dto.acquiredInstrumentId) {
+      throw badRequest('INVESTMENT_TRADE_LISTING_MISMATCH', 'The listing must belong to the acquired instrument.');
+    }
+
+    const acquiredQuantity = new Prisma.Decimal(dto.acquiredQuantity);
+    const disposedQuantity = new Prisma.Decimal(dto.disposedQuantity);
+    if (!acquiredQuantity.gt(0) || !disposedQuantity.gt(0)) {
+      throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'Trade quantities must be positive.');
+    }
+    return toTradeDto(
+      await this.prisma.$transaction(async (tx) => {
+        if (account.kind !== 'BANK') {
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${disposed.id}`}))`;
+          const held =
+            (await this.balances.instrumentBalances(userId, undefined, tx)).find(
+              (balance) => balance.accountId === account.id && balance.instrumentId === disposed.id,
+            )?.quantity ?? new Prisma.Decimal(0);
+          if (held.lessThan(disposedQuantity)) {
+            throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', 'The trade would leave an instrument balance negative.');
+          }
+        }
+        return tx.investmentTrade.create({
+          data: { ...dto, userId, acquiredQuantity, disposedQuantity, executedAt: new Date(dto.executedAt) },
+          include: tradeInclude,
+        });
+      }),
+    );
+  }
+
   private async assertActiveInstruments(userId: string, ...ids: string[]): Promise<void> {
     const active = await this.prisma.instrument.count({ where: { userId, isActive: true, id: { in: ids } } });
     if (active !== new Set(ids).size) throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active instrument is required.');
@@ -114,6 +169,37 @@ export class InvestmentsService {
     return assertOwnership(await this.prisma.assetListing.findUnique({ where: { id } }), userId);
   }
 }
+
+const tradeInclude = {
+  account: { select: { name: true } },
+  acquiredInstrument: { select: { name: true, code: true, displayPrecision: true } },
+  disposedInstrument: { select: { name: true, code: true, displayPrecision: true } },
+  assetListing: { select: { market: true, ticker: true } },
+} as const;
+type TradeRow = InvestmentTrade & Prisma.InvestmentTradeGetPayload<{ include: typeof tradeInclude }>;
+const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
+  id: trade.id,
+  accountId: trade.accountId,
+  accountName: trade.account.name,
+  acquiredInstrumentId: trade.acquiredInstrumentId,
+  acquiredInstrumentName: trade.acquiredInstrument.name,
+  acquiredInstrumentCode: trade.acquiredInstrument.code,
+  acquiredDisplayPrecision: trade.acquiredInstrument.displayPrecision,
+  acquiredQuantity: trade.acquiredQuantity.toString(),
+  disposedInstrumentId: trade.disposedInstrumentId,
+  disposedInstrumentName: trade.disposedInstrument.name,
+  disposedInstrumentCode: trade.disposedInstrument.code,
+  disposedDisplayPrecision: trade.disposedInstrument.displayPrecision,
+  disposedQuantity: trade.disposedQuantity.toString(),
+  assetListingId: trade.assetListingId,
+  assetListing: trade.assetListing ? `${trade.assetListing.ticker} · ${trade.assetListing.market}` : null,
+  executedAt: trade.executedAt.toISOString(),
+  executionValue: trade.executionValue,
+  executionPrice: new Prisma.Decimal(trade.disposedQuantity).div(trade.acquiredQuantity).toFixed(12),
+  notes: trade.notes,
+  createdAt: trade.createdAt.toISOString(),
+  updatedAt: trade.updatedAt.toISOString(),
+});
 
 const listingInclude = { instrument: { select: { name: true } }, quoteInstrument: { select: { code: true } } } as const;
 const toInstitutionDto = (row: FinancialInstitution): FinancialInstitutionDto => ({

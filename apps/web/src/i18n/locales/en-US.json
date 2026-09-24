@@ -88,7 +88,11 @@
     "CSV_IMPORT_HEADER_LINE_MISSING": "The configured header line was not found in the file.",
     "CSV_IMPORT_NO_TRANSACTION_ROWS": "The CSV file has no entries to import.",
     "CSV_IMPORT_MAPPED_HEADER_MISSING": "The file does not contain one of the columns configured in the CSV model.",
-    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file."
+    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file.",
+    "INVESTMENT_REFERENCE_INACTIVE": "Choose active accounts and instruments.",
+    "INVESTMENT_TRADE_SAME_INSTRUMENT": "The received and delivered instruments must be different.",
+    "INVESTMENT_TRADE_LISTING_MISMATCH": "The listing must belong to the received instrument.",
+    "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "There is not enough of the delivered instrument in this account."
   },
   "accounts": {
     "new": "New account",
@@ -184,6 +188,27 @@
       "empty": "No financial institutions yet"
     },
     "instruments": { "title": "Instruments", "description": "Currencies and assets held in accounts, with display precision.", "empty": "No instruments yet" }
+  },
+  "investmentTrades": {
+    "title": "Operations",
+    "description": "Trades are exchanges inside one account. They never become budget transactions.",
+    "new": "New trade",
+    "view": "View {{trade}} trade",
+    "columns": { "execution": "Execution", "account": "Account", "received": "Received", "delivered": "Delivered", "value": "EUR value" },
+    "fields": {
+      "account": "Account",
+      "received": "Received",
+      "delivered": "Delivered",
+      "executionTime": "Execution time (UTC)",
+      "executionValue": "EUR value",
+      "listing": "Listing",
+      "noListing": "No listing",
+      "notes": "Notes",
+      "choose": "Choose"
+    },
+    "details": { "title": "Trade details", "executionPrice": "Execution price" },
+    "empty": { "title": "No trades yet", "description": "Record an exchange to update the instrument balances in this account." },
+    "error": { "title": "Could not load trades", "description": "Check your connection and try again." }
   },
   "categories": {
     "new": "New category",
