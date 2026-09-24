@@ -73,8 +73,8 @@ export interface AccountInstrumentBalance {
 export class BalancesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async sumByAccount(userId: string, asOf?: Date): Promise<Map<string, number>> {
-    return this.sumByAccountWhere(this.where(userId, asOf));
+  async sumByAccount(userId: string, asOf?: Date, client?: Prisma.TransactionClient): Promise<Map<string, number>> {
+    return this.sumByAccountWhere(this.where(userId, asOf), client);
   }
 
   async sumByCashbox(userId: string, asOf?: Date): Promise<Map<string, number>> {
@@ -82,15 +82,24 @@ export class BalancesService {
   }
 
   /** Exact Account quantities. Legacy budget Transactions are EUR movements until their migration completes. */
-  async instrumentBalances(userId: string, asOf?: Date): Promise<AccountInstrumentBalance[]> {
-    const [initialBalances, movements, eur] = await Promise.all([
-      this.prisma.accountInitialBalance.findMany({
+  async instrumentBalances(userId: string, asOf?: Date, client?: Prisma.TransactionClient): Promise<AccountInstrumentBalance[]> {
+    const tradeAsOf = asOf === undefined ? new Date() : endOfUtcDay(asOf);
+    const prisma = client ?? this.prisma;
+    const [initialBalances, movements, eur, trades] = await Promise.all([
+      prisma.accountInitialBalance.findMany({
         where: { userId },
         include: { instrument: { select: { name: true, code: true } } },
         orderBy: [{ accountId: 'asc' }, { instrument: { code: 'asc' } }],
       }),
-      this.sumByAccount(userId, asOf),
-      this.prisma.instrument.findFirst({ where: { userId, code: 'EUR' }, select: { id: true, name: true, code: true } }),
+      this.sumByAccount(userId, asOf, client),
+      prisma.instrument.findFirst({ where: { userId, code: 'EUR' }, select: { id: true, name: true, code: true } }),
+      prisma.investmentTrade.findMany({
+        where: { userId, executedAt: { lte: tradeAsOf } },
+        include: {
+          acquiredInstrument: { select: { name: true, code: true } },
+          disposedInstrument: { select: { name: true, code: true } },
+        },
+      }),
     ]);
     const balances = new Map<string, AccountInstrumentBalance>(
       initialBalances.map((balance) => [
@@ -120,6 +129,17 @@ export class BalancesService {
           });
         }
       }
+    }
+
+    for (const trade of trades) {
+      applyInstrumentMovement(balances, trade.accountId, trade.acquiredInstrumentId, trade.acquiredQuantity, trade.acquiredInstrument);
+      applyInstrumentMovement(
+        balances,
+        trade.accountId,
+        trade.disposedInstrumentId,
+        new Prisma.Decimal(trade.disposedQuantity).negated(),
+        trade.disposedInstrument,
+      );
     }
 
     return [...balances.values()];
@@ -211,7 +231,14 @@ export class BalancesService {
     return { userId, status: 'CONFIRMED', settlementDate: { lte: asOf ?? new Date() } };
   }
 
-  private async sumByAccountWhere(where: Prisma.TransactionWhereInput): Promise<Map<string, number>> {
+  private async sumByAccountWhere(where: Prisma.TransactionWhereInput, client?: Prisma.TransactionClient): Promise<Map<string, number>> {
+    if (client) {
+      const [bySource, byDestination] = await Promise.all([
+        client.transaction.groupBy({ by: ['accountId', 'type'], _sum: { amount: true }, where: { ...where, accountId: { not: null } } }),
+        client.transaction.groupBy({ by: ['destinationAccountId'], _sum: { amount: true }, where: { ...where, type: 'TRANSFER' } }),
+      ]);
+      return accountBalances(bySource, byDestination);
+    }
     const [bySource, byDestination] = await this.prisma.$transaction((tx) =>
       Promise.all([
         tx.transaction.groupBy({ by: ['accountId', 'type'], _sum: { amount: true }, where: { ...where, accountId: { not: null } } }),
@@ -232,6 +259,23 @@ export class BalancesService {
 
     return cashboxBalances(bySource, byDestination);
   }
+}
+
+function endOfUtcDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+}
+
+function applyInstrumentMovement(
+  balances: Map<string, AccountInstrumentBalance>,
+  accountId: string,
+  instrumentId: string,
+  quantity: Prisma.Decimal,
+  instrument: { name: string; code: string },
+): void {
+  const key = `${accountId}:${instrumentId}`;
+  const balance = balances.get(key);
+  if (balance) balance.quantity = balance.quantity.add(quantity);
+  else balances.set(key, { accountId, instrumentId, quantity: new Prisma.Decimal(quantity), instrumentName: instrument.name, instrumentCode: instrument.code });
 }
 
 function accountBalances(

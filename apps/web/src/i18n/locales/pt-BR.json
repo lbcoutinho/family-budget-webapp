@@ -88,7 +88,11 @@
     "CSV_IMPORT_HEADER_LINE_MISSING": "A linha de cabeçalho configurada não foi encontrada no arquivo.",
     "CSV_IMPORT_NO_TRANSACTION_ROWS": "O arquivo CSV não contém lançamentos para importar.",
     "CSV_IMPORT_MAPPED_HEADER_MISSING": "O arquivo não contém uma das colunas configuradas no modelo CSV.",
-    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo."
+    "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo.",
+    "INVESTMENT_REFERENCE_INACTIVE": "Escolha contas e instrumentos ativos.",
+    "INVESTMENT_TRADE_SAME_INSTRUMENT": "Os instrumentos recebido e entregue precisam ser diferentes.",
+    "INVESTMENT_TRADE_LISTING_MISMATCH": "A listagem precisa pertencer ao instrumento recebido.",
+    "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "Não há saldo suficiente do instrumento entregue nesta conta."
   },
   "accounts": {
     "new": "Nova conta",
@@ -181,6 +185,27 @@
       "description": "Moedas e ativos mantidos nas contas, com precisão de exibição.",
       "empty": "Nenhum instrumento cadastrado"
     }
+  },
+  "investmentTrades": {
+    "title": "Operações",
+    "description": "Negociações são trocas dentro de uma conta. Elas nunca viram lançamentos do orçamento.",
+    "new": "Nova negociação",
+    "view": "Ver negociação de {{trade}}",
+    "columns": { "execution": "Execução", "account": "Conta", "received": "Recebido", "delivered": "Entregue", "value": "Valor EUR" },
+    "fields": {
+      "account": "Conta",
+      "received": "Recebido",
+      "delivered": "Entregue",
+      "executionTime": "Horário de execução (UTC)",
+      "executionValue": "Valor EUR",
+      "listing": "Listagem",
+      "noListing": "Sem listagem",
+      "notes": "Notas",
+      "choose": "Escolha"
+    },
+    "details": { "title": "Detalhes da negociação", "executionPrice": "Preço de execução" },
+    "empty": { "title": "Nenhuma negociação ainda", "description": "Registre uma troca para atualizar os saldos por instrumento desta conta." },
+    "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." }
   },
   "categories": {
     "new": "Nova categoria",

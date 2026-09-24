@@ -39,5 +39,5 @@ export const SETTINGS_NAV_ITEMS: NavItem[] = [
   { to: '/settings/general', labelKey: 'nav.settingsGeneral', icon: UserRoundCogIcon },
   { to: '/settings/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
   { to: '/settings/categories', labelKey: 'nav.categories', icon: TagsIcon },
-  { to: '/settings/investments/institutions', labelKey: 'nav.investments', icon: SlidersHorizontalIcon },
+  { to: '/investments', labelKey: 'nav.investments', icon: SlidersHorizontalIcon },
 ];

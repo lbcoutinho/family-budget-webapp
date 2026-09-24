@@ -57,6 +57,7 @@ model User {
   instruments     Instrument[]
   assetListings   AssetListing[]
   accountInitialBalances AccountInitialBalance[]
+  investmentTrades       InvestmentTrade[]
 
   @@map("users")
 }
@@ -131,6 +132,7 @@ model Account {
   transactions            Transaction[]    @relation("TransactionAccount")
   destinationTransactions Transaction[]    @relation("TransactionDestinationAccount")
   recurrenceRules         RecurrenceRule[]
+  investmentTrades        InvestmentTrade[]
 
   @@unique([userId, name])
   @@index([userId, isActive])
@@ -219,6 +221,8 @@ model Instrument {
   accountInitialBalances AccountInitialBalance[]
   listings       AssetListing[] @relation("ListedInstrument")
   quotedListings AssetListing[] @relation("QuoteInstrument")
+  acquiredTrades InvestmentTrade[] @relation("AcquiredInstrument")
+  disposedTrades InvestmentTrade[] @relation("DisposedInstrument")
 
   @@unique([userId, code])
   @@index([userId, isActive])
@@ -242,10 +246,42 @@ model AssetListing {
   user            User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   instrument      Instrument @relation("ListedInstrument", fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   quoteInstrument Instrument @relation("QuoteInstrument", fields: [quoteInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  investmentTrades InvestmentTrade[]
 
   @@unique([userId, instrumentId, market, ticker])
   @@index([userId, isActive])
   @@map("asset_listings")
+}
+
+/// An exchange of two exact Instrument quantities within one Account. It is deliberately separate
+/// from the EUR budget Transaction ledger (ADR-0025).
+model InvestmentTrade {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @map("user_id") @db.Uuid
+  accountId            String   @map("account_id") @db.Uuid
+  acquiredInstrumentId String   @map("acquired_instrument_id") @db.Uuid
+  acquiredQuantity     Decimal  @map("acquired_quantity") @db.Decimal(36, 18)
+  disposedInstrumentId String   @map("disposed_instrument_id") @db.Uuid
+  disposedQuantity     Decimal  @map("disposed_quantity") @db.Decimal(36, 18)
+  assetListingId       String?  @map("asset_listing_id") @db.Uuid
+  executedAt           DateTime @map("executed_at") @db.Timestamptz(3)
+  executionValue       Int      @map("execution_value")
+  notes                String?
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  account            Account       @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  acquiredInstrument Instrument    @relation("AcquiredInstrument", fields: [acquiredInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  disposedInstrument Instrument    @relation("DisposedInstrument", fields: [disposedInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assetListing       AssetListing? @relation(fields: [assetListingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, executedAt])
+  @@index([accountId, executedAt])
+  @@index([acquiredInstrumentId])
+  @@index([disposedInstrumentId])
+  @@index([assetListingId])
+  @@map("investment_trades")
 }
 
 /// What a transaction is *for*. Income and expense are the only two sides that need classifying:
