@@ -11,6 +11,7 @@ import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
@@ -186,5 +187,16 @@ export class InvestmentTradesController extends InvestmentSetupController {
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInvestmentTradeDto) {
     return this.investments.createTrade(user.id, dto);
+  }
+}
+
+@ApiTags('investment-positions')
+@Controller('investment-positions')
+export class InvestmentPositionsController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'listInvestmentPositions' })
+  @ApiOkResponse({ type: [InvestmentPositionDto] })
+  @Get()
+  list(@CurrentUser() user: AuthenticatedUser) {
+    return this.investments.listPositions(user.id);
   }
 }

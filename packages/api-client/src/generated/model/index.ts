@@ -71,6 +71,7 @@ export * from './installmentPlanDto';
 export * from './installmentTransactionDto';
 export * from './instrumentDto';
 export * from './instrumentType';
+export * from './investmentPositionDto';
 export * from './investmentTradeDto';
 export * from './listAccountBalancesParams';
 export * from './listAccountInstrumentBalancesParams';

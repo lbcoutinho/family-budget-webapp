@@ -210,6 +210,38 @@
     "empty": { "title": "No trades yet", "description": "Record an exchange to update the instrument balances in this account." },
     "error": { "title": "Could not load trades", "description": "Check your connection and try again." }
   },
+  "investmentOverview": {
+    "title": "Overview",
+    "sections": "Investment sections",
+    "description": "Consolidated and per-account positions, with open-position cost and results in euros.",
+    "filters": "Filters",
+    "clearFilters": "Clear filters",
+    "type": "Instrument type",
+    "institution": "Financial institution",
+    "account": "Account",
+    "consolidated": "Consolidated",
+    "quoteStates": "Quote states",
+    "quoteCurrent": "Current",
+    "quoteStale": "Stale",
+    "quoteManual": "Manual",
+    "quoteMissing": "Unavailable",
+    "quoteClosed": "Position closed",
+    "quoteShared": "Quote shown on the consolidated position",
+    "columns": {
+      "instrument": "Instrument",
+      "account": "Account",
+      "quantity": "Quantity",
+      "remainingCost": "Remaining cost",
+      "average": "Avg. cost",
+      "quote": "Market quote",
+      "currentValue": "Current value",
+      "realized": "Realized result",
+      "unrealized": "Unrealized result"
+    },
+    "metrics": { "remainingCost": "Remaining cost", "realized": "Realized result", "currentValue": "Current value", "unrealized": "Unrealized result" },
+    "empty": { "title": "No investment positions", "description": "Record a trade that acquires an investment asset to see it here." },
+    "error": { "title": "Could not load positions", "description": "Check your connection and try again." }
+  },
   "categories": {
     "new": "New category",
     "search": "Search categories…",

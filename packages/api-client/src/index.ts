@@ -17,6 +17,7 @@ export * from './generated/health/health';
 export * from './generated/financial-institutions/financial-institutions';
 export * from './generated/instruments/instruments';
 export * from './generated/investment-trades/investment-trades';
+export * from './generated/investment-positions/investment-positions';
 export * from './generated/asset-listings/asset-listings';
 export * from './generated/recurrence-rules/recurrence-rules';
 export * from './generated/reports/reports';

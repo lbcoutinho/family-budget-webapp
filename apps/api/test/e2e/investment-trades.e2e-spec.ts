@@ -84,4 +84,133 @@ describe('Investment trades API (e2e)', () => {
       ]),
     );
   });
+
+  it('calculates remaining cost, weighted average, and realized result per account and consolidated', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const etf = (await call('post', '/instruments').send({ name: 'World ETF', code: 'VWCE', type: 'ETF', displayPrecision: 4 }).expect(201)).body as {
+      id: string;
+    };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Broker', kind: 'BROKERAGE', initialBalances: [{ instrumentId: eur.id, quantity: '6000' }] })
+        .expect(201)
+    ).body as { id: string };
+    const trade = (
+      acquiredInstrumentId: string,
+      acquiredQuantity: string,
+      disposedInstrumentId: string,
+      disposedQuantity: string,
+      executionValue: number,
+      executedAt: string,
+    ) =>
+      call('post', '/investment-trades')
+        .send({ accountId: account.id, acquiredInstrumentId, acquiredQuantity, disposedInstrumentId, disposedQuantity, executionValue, executedAt })
+        .expect(201);
+
+    await trade(etf.id, '10', eur.id, '1000', 100000, '2026-01-01T00:00:00.000Z');
+    await trade(etf.id, '10', eur.id, '2000', 200000, '2026-02-01T00:00:00.000Z');
+    await trade(eur.id, '3750', etf.id, '15', 375000, '2026-03-01T00:00:00.000Z');
+
+    const afterSale = (await call('get', '/investment-positions').expect(200)).body as Position[];
+    expect(afterSale).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountId: account.id,
+          instrumentId: etf.id,
+          quantity: '5',
+          remainingCost: 75000,
+          weightedAverageCost: '150.000000000000',
+          realizedResult: 150000,
+        }),
+        expect.objectContaining({
+          accountId: null,
+          instrumentId: etf.id,
+          quantity: '5',
+          remainingCost: 75000,
+          weightedAverageCost: '150.000000000000',
+          realizedResult: 150000,
+        }),
+      ]),
+    );
+
+    await trade(etf.id, '10', eur.id, '2000', 200000, '2026-04-01T00:00:00.000Z');
+
+    const positions = (await call('get', '/investment-positions').expect(200)).body as Position[];
+    expect(positions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountId: account.id,
+          instrumentId: etf.id,
+          quantity: '15',
+          remainingCost: 275000,
+          weightedAverageCost: '183.333333333333',
+          realizedResult: 150000,
+        }),
+        expect.objectContaining({
+          accountId: null,
+          instrumentId: etf.id,
+          quantity: '15',
+          remainingCost: 275000,
+          weightedAverageCost: '183.333333333333',
+          realizedResult: 150000,
+        }),
+      ]),
+    );
+  });
+
+  it('keeps the weighted average after a partial sale with fractional-cent cost', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const etf = (await call('post', '/instruments').send({ name: 'Small ETF', code: 'SMALL', type: 'ETF' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Fractional Broker', kind: 'BROKERAGE', initialBalances: [{ instrumentId: eur.id, quantity: '2' }] })
+        .expect(201)
+    ).body as { id: string };
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: etf.id,
+        acquiredQuantity: '3',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '1',
+        executionValue: 100,
+        executedAt: '2026-01-01T00:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: eur.id,
+        acquiredQuantity: '0.34',
+        disposedInstrumentId: etf.id,
+        disposedQuantity: '1',
+        executionValue: 34,
+        executedAt: '2026-02-01T00:00:00.000Z',
+      })
+      .expect(201);
+
+    const positions = (await call('get', '/investment-positions').expect(200)).body as Position[];
+    expect(positions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountId: account.id,
+          instrumentId: etf.id,
+          quantity: '2',
+          remainingCost: 67,
+          weightedAverageCost: '0.333333333333',
+          realizedResult: 1,
+        }),
+      ]),
+    );
+  });
 });
+
+interface Position {
+  accountId: string | null;
+  instrumentId: string;
+  quantity: string;
+  remainingCost: number;
+  weightedAverageCost: string;
+  realizedResult: number;
+}
