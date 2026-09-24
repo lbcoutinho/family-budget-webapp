@@ -1,11 +1,11 @@
-import { getGetMonthlyBalanceQueryKey } from '@family-budget/api-client';
+import { getGetMonthlyBalanceQueryKey, getListAccountInstrumentBalancesQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CashboxOperationDialog, cashboxOperationPayload } from './cashbox-operation-dialog';
+import { CashboxOperationDialog, cashboxOperationPayload, eurQuantityToCents } from './cashbox-operation-dialog';
 
 import type * as ApiClient from '@family-budget/api-client';
 
@@ -30,8 +30,8 @@ let cashboxes = [
 ];
 let cashboxListParams: unknown;
 let accountBalances = [
-  { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
-  { accountId: 'account-2', name: 'Poupança', balance: 300000 },
+  { accountId: 'account-1', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '2000' },
+  { accountId: 'account-2', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '3000' },
 ];
 let cashboxBalances = [
   { cashboxId: 'cashbox-1', name: 'Férias', balance: 100000 },
@@ -47,7 +47,7 @@ vi.mock('@family-budget/api-client', async (importOriginal) => {
       cashboxListParams = params;
       return { data: cashboxes };
     },
-    useListAccountBalances: () => ({ data: accountBalances }),
+    useListAccountInstrumentBalances: () => ({ data: accountBalances }),
     useListCashboxBalances: () => ({ data: cashboxBalances }),
     useCreateTransaction: (options: unknown) => {
       mutationOptions = options as MutationOptions;
@@ -108,6 +108,19 @@ describe('cashbox operation payloads', () => {
   });
 });
 
+describe('eurQuantityToCents', () => {
+  it.each([
+    ['2000', 200000],
+    ['-0.01', -1],
+    ['0.0100', 1],
+    ['0.001', undefined],
+    ['1.2.3', undefined],
+    ['90071992547409.92', undefined],
+  ])('converts %s only when it is an exact safe cent value', (quantity, expected) => {
+    expect(eurQuantityToCents(quantity)).toBe(expected);
+  });
+});
+
 describe('CashboxOperationDialog', () => {
   beforeEach(() => {
     mutate.mockClear();
@@ -124,8 +137,8 @@ describe('CashboxOperationDialog', () => {
     ];
     cashboxListParams = undefined;
     accountBalances = [
-      { accountId: 'account-1', name: 'Conta principal', balance: 200000 },
-      { accountId: 'account-2', name: 'Poupança', balance: 300000 },
+      { accountId: 'account-1', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '2000' },
+      { accountId: 'account-2', instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '3000' },
     ];
     cashboxBalances = [
       { cashboxId: 'cashbox-1', name: 'Férias', balance: 100000 },
@@ -140,6 +153,7 @@ describe('CashboxOperationDialog', () => {
     act(() => mutationOptions?.mutation.onSettled());
 
     expect(invalidate).toHaveBeenCalledWith({ queryKey: getGetMonthlyBalanceQueryKey() });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: getListAccountInstrumentBalancesQueryKey() });
   });
 
   it('submits a deposit without forbidden fields', async () => {

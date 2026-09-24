@@ -1,5 +1,5 @@
 import {
-  getListAccountBalancesQueryKey,
+  getListAccountInstrumentBalancesQueryKey,
   getListCashboxBalancesQueryKey,
   getGetMonthlyBalanceQueryKey,
   getListTransactionsQueryOptions,
@@ -433,7 +433,7 @@ function MonthLedger({ referenceMonth }: { referenceMonth: Date }) {
 
   const invalidateTransactions = () => {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
-    void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+    void queryClient.invalidateQueries({ queryKey: getListAccountInstrumentBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getGetMonthlyBalanceQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
