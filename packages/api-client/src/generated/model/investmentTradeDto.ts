@@ -20,6 +20,13 @@ export interface InvestmentTradeDto {
   disposedInstrumentCode: string;
   disposedDisplayPrecision: number;
   disposedQuantity: string;
+  feeInstrumentId?: string;
+  feeInstrumentName?: string;
+  feeInstrumentCode?: string;
+  feeDisplayPrecision?: number;
+  feeQuantity?: string;
+  /** EUR fee value at execution, in integer cents. */
+  feeValue?: number;
   assetListingId?: string;
   assetListing?: string;
   executedAt: string;

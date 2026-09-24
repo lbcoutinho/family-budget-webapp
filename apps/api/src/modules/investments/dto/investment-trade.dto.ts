@@ -14,6 +14,12 @@ export class InvestmentTradeDto {
   @ApiProperty({ type: String }) disposedInstrumentCode!: string;
   @ApiProperty({ type: Number }) disposedDisplayPrecision!: number;
   @ApiProperty({ type: String }) disposedQuantity!: string;
+  @ApiPropertyOptional({ type: String, format: 'uuid' }) feeInstrumentId!: string | null;
+  @ApiPropertyOptional({ type: String }) feeInstrumentName!: string | null;
+  @ApiPropertyOptional({ type: String }) feeInstrumentCode!: string | null;
+  @ApiPropertyOptional({ type: Number }) feeDisplayPrecision!: number | null;
+  @ApiPropertyOptional({ type: String }) feeQuantity!: string | null;
+  @ApiPropertyOptional({ type: Number, description: 'EUR fee value at execution, in integer cents.' }) feeValue!: number | null;
   @ApiPropertyOptional({ type: String, format: 'uuid' }) assetListingId!: string | null;
   @ApiPropertyOptional({ type: String }) assetListing!: string | null;
   @ApiProperty({ type: String, format: 'date-time' }) executedAt!: string;

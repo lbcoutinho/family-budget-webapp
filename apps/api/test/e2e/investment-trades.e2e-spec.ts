@@ -204,6 +204,74 @@ describe('Investment trades API (e2e)', () => {
       ]),
     );
   });
+
+  it('charges a third-instrument fee to its balance and position, and names insufficient fee funds', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const bnb = (await call('post', '/instruments').send({ name: 'BNB', code: 'BNB', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Exchange', kind: 'EXCHANGE', initialBalances: [{ instrumentId: eur.id, quantity: '2000' }] })
+        .expect(201)
+    ).body as { id: string };
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: bnb.id,
+        acquiredQuantity: '1',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '100',
+        executionValue: 10000,
+        executedAt: '2026-01-01T00:00:00.000Z',
+      })
+      .expect(201);
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: btc.id,
+        acquiredQuantity: '0.02',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '1000',
+        feeInstrumentId: bnb.id,
+        feeQuantity: '0.1',
+        feeValue: 2000,
+        executionValue: 100000,
+        executedAt: '2026-02-01T00:00:00.000Z',
+      })
+      .expect(201)
+      .expect(({ body }: { body: unknown }) => expect(body).toMatchObject({ feeInstrumentId: bnb.id, feeQuantity: '0.1', feeValue: 2000 }));
+
+    const balances = (await call('get', '/accounts/instrument-balances').expect(200)).body as { instrumentId: string; quantity: string }[];
+    expect(balances).toEqual(expect.arrayContaining([expect.objectContaining({ instrumentId: bnb.id, quantity: '0.9' })]));
+
+    const positions = (await call('get', '/investment-positions').expect(200)).body as Position[];
+    expect(positions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ instrumentId: btc.id, quantity: '0.02', remainingCost: 102000 }),
+        expect.objectContaining({ instrumentId: bnb.id, quantity: '0.9', remainingCost: 9000, realizedResult: 1000 }),
+      ]),
+    );
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: btc.id,
+        acquiredQuantity: '0.01',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '1',
+        feeInstrumentId: bnb.id,
+        feeQuantity: '1',
+        feeValue: 100,
+        executionValue: 100,
+        executedAt: '2026-03-01T00:00:00.000Z',
+      })
+      .expect(409)
+      .expect(({ body }: { body: { code: string; instrumentCode: string; availableQuantity: string } }) =>
+        expect(body).toMatchObject({ code: 'INVESTMENT_TRADE_INSUFFICIENT_FUNDS', instrumentCode: 'BNB', availableQuantity: '0.9' }),
+      );
+  });
 });
 
 interface Position {

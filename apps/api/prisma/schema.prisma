@@ -223,6 +223,7 @@ model Instrument {
   quotedListings AssetListing[] @relation("QuoteInstrument")
   acquiredTrades InvestmentTrade[] @relation("AcquiredInstrument")
   disposedTrades InvestmentTrade[] @relation("DisposedInstrument")
+  feeTrades      InvestmentTrade[] @relation("FeeInstrument")
 
   @@unique([userId, code])
   @@index([userId, isActive])
@@ -263,6 +264,9 @@ model InvestmentTrade {
   acquiredQuantity     Decimal  @map("acquired_quantity") @db.Decimal(36, 18)
   disposedInstrumentId String   @map("disposed_instrument_id") @db.Uuid
   disposedQuantity     Decimal  @map("disposed_quantity") @db.Decimal(36, 18)
+  feeInstrumentId      String?  @map("fee_instrument_id") @db.Uuid
+  feeQuantity          Decimal? @map("fee_quantity") @db.Decimal(36, 18)
+  feeValue             Int?     @map("fee_value")
   assetListingId       String?  @map("asset_listing_id") @db.Uuid
   executedAt           DateTime @map("executed_at") @db.Timestamptz(3)
   executionValue       Int      @map("execution_value")
@@ -274,12 +278,14 @@ model InvestmentTrade {
   account            Account       @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   acquiredInstrument Instrument    @relation("AcquiredInstrument", fields: [acquiredInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   disposedInstrument Instrument    @relation("DisposedInstrument", fields: [disposedInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  feeInstrument      Instrument?   @relation("FeeInstrument", fields: [feeInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   assetListing       AssetListing? @relation(fields: [assetListingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([userId, executedAt])
   @@index([accountId, executedAt])
   @@index([acquiredInstrumentId])
   @@index([disposedInstrumentId])
+  @@index([feeInstrumentId])
   @@index([assetListingId])
   @@map("investment_trades")
 }
