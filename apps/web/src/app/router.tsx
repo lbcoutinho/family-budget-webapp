@@ -23,6 +23,9 @@ const FinancialInstitutionsPage = lazy(() =>
 );
 const InstrumentsPage = lazy(() => import('@/features/investments/investment-setup-pages').then(({ InstrumentsPage }) => ({ default: InstrumentsPage })));
 const AssetListingsPage = lazy(() => import('@/features/investments/investment-setup-pages').then(({ AssetListingsPage }) => ({ default: AssetListingsPage })));
+const InvestmentTradesPage = lazy(() =>
+  import('@/features/investments/investment-trades-page').then(({ InvestmentTradesPage }) => ({ default: InvestmentTradesPage })),
+);
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -64,6 +67,8 @@ export const routes = [
       { path: 'settings/investments/instruments', element: <InstrumentsPage /> },
       { path: 'settings/investments/listings', element: <AssetListingsPage /> },
       { path: 'settings/investments/accounts', element: <AccountsPage /> },
+      { path: 'investments', element: <Navigate to="/investments/operations" replace /> },
+      { path: 'investments/operations', element: <InvestmentTradesPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },
