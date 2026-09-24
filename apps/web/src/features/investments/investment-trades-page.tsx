@@ -163,7 +163,7 @@ export function InvestmentTradesPage() {
       </PageContent>
 
       <Dialog open={open} onOpenChange={(next) => !create.isPending && setOpen(next)}>
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t('investmentTrades.new')}</DialogTitle>
           </DialogHeader>
