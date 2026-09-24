@@ -123,6 +123,7 @@ describe('Balances API (e2e)', () => {
     await removeFixtures();
     await prisma.account.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.cashbox.deleteMany({ where: { user: { email: { in: emails } } } });
+    await prisma.instrument.deleteMany({ where: { user: { email: { in: emails } } } });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await app.close();
   });
