@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { type Prisma } from '../../generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { BalancesService, CASHBOX_SIGN } from '../transactions/balances.service';
+import { type AccountInstrumentBalance, BalancesService, CASHBOX_SIGN } from '../transactions/balances.service';
 import { startOfMonthUtc } from '../transactions/reference-month';
 
 import { BalancesReportDto } from './dto/balances-report.dto';
@@ -15,6 +15,15 @@ import { averageWindow, distributePercentages, monthsEndingAt, rollingAverage } 
 type IncomeOrExpense = 'INCOME' | 'EXPENSE';
 type CategoryLookup = Map<string, { name: string; color: string | null }>;
 type CashboxLookup = Map<string, { name: string }>;
+
+/** Budget reports stay cash-based: only the EUR Instrument contributes to their cent totals. */
+function eurBalancesInCents(balances: AccountInstrumentBalance[]): Map<string, number> {
+  return new Map(
+    balances
+      .filter((balance) => balance.instrumentCode === 'EUR')
+      .map((balance) => [balance.accountId, balance.quantity.mul(100).toDecimalPlaces(0, Prisma.Decimal.ROUND_HALF_UP).toNumber()]),
+  );
+}
 
 /** Grouped row shapes, named so the fold-in helpers below don't repeat Prisma's inferred types. */
 interface WindowRow {
@@ -149,19 +158,21 @@ export class ReportsService {
     const referenceMonth = new Date(Date.UTC(year, month - 1, 1));
     const previousMonth = new Date(Date.UTC(year, month - 2, 1));
     const nextMonth = new Date(Date.UTC(year, month, 1));
-    const [accounts, cashboxes, previousSums, closingSums, cashboxSums] = await Promise.all([
+    const [accounts, cashboxes, previousBalances, closingBalances, cashboxSums] = await Promise.all([
       this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
       this.prisma.cashbox.findMany({ where: { userId } }),
-      this.balances.sumByAccountReferenceMonth(userId, previousMonth),
-      this.balances.sumByAccountReferenceMonth(userId, referenceMonth),
+      this.balances.instrumentBalancesByReferenceMonth(userId, previousMonth),
+      this.balances.instrumentBalancesByReferenceMonth(userId, referenceMonth),
       this.balances.sumByCashboxReferenceMonth(userId, referenceMonth),
     ]);
+    const previousSums = eurBalancesInCents(previousBalances);
+    const closingSums = eurBalancesInCents(closingBalances);
     const accountBalances = accounts
       .filter((account) => account.createdAt < nextMonth || closingSums.has(account.id))
-      .map((account) => ({ ...account, balance: (account.createdAt < nextMonth ? account.initialBalance : 0) + (closingSums.get(account.id) ?? 0) }));
+      .map((account) => ({ ...account, balance: closingSums.get(account.id) ?? 0 }));
     const visibleAccounts = accountBalances.filter((account) => account.isActive || account.balance !== 0);
     const previousAccountBalance = accounts.reduce(
-      (total, account) => total + (account.createdAt < referenceMonth ? account.initialBalance : 0) + (previousSums.get(account.id) ?? 0),
+      (total, account) => total + (account.createdAt < referenceMonth ? (previousSums.get(account.id) ?? 0) : 0),
       0,
     );
     const accountBalance = accountBalances.reduce((total, account) => total + account.balance, 0);
@@ -184,22 +195,23 @@ export class ReportsService {
   async getBalances(userId: string, year: number, now: Date = new Date()): Promise<BalancesReportDto> {
     const cutoff = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const currentMonth = startOfMonthUtc(now);
-    const [accounts, cashboxes, accountSums, cashboxSums, accountMovements, cashboxMovements, currentClose] = await Promise.all([
+    const [accounts, cashboxes, accountBalances, cashboxSums, accountMovements, cashboxMovements, currentClose] = await Promise.all([
       this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
       this.prisma.cashbox.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
-      this.balances.sumByAccount(userId, cutoff),
+      this.balances.instrumentBalances(userId, cutoff),
       this.balances.sumByCashbox(userId, cutoff),
       this.balances.accountMovementsByReferenceMonth(userId, year),
       this.balances.cashboxMovementsByReferenceMonth(userId, year),
       this.getMonthlyBalance(userId, now.getUTCFullYear(), now.getUTCMonth() + 1),
     ]);
+    const accountSums = eurBalancesInCents(accountBalances);
     const snapshotAccounts = accounts
       .filter((account) => account.createdAt <= cutoff)
       .map((account) => ({
         accountId: account.id,
         name: account.name,
         isActive: account.isActive,
-        balance: account.initialBalance + (accountSums.get(account.id) ?? 0),
+        balance: accountSums.get(account.id) ?? 0,
       }));
     const totalAccounts = snapshotAccounts.reduce((total, account) => total + account.balance, 0);
     const snapshotCashboxes = cashboxes

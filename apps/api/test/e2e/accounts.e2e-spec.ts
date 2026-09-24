@@ -208,12 +208,13 @@ describe('Accounts API (e2e)', () => {
     it('returns exact native quantities, adding confirmed legacy Transactions to EUR only', async () => {
       const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
       const bitcoin = await prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } });
+      const date = new Date('2026-09-01T00:00:00.000Z');
       const account = await createAccount({
         name: 'Kraken',
         initialBalance: 10_000,
         initialBalances: [{ instrumentId: bitcoin.id, quantity: '0.010000000000000001' }],
       });
-      const date = new Date('2026-09-01T00:00:00.000Z');
+      await prisma.account.update({ where: { id: account.id }, data: { createdAt: date } });
       await prisma.transaction.createMany({
         data: [
           { userId: user.id, type: 'INCOME', amount: 5_000, date, settlementDate: date, referenceMonth: date, description: 'Deposit', accountId: account.id },

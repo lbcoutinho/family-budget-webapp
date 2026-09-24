@@ -1,3 +1,4 @@
+import { Prisma } from '../../generated/prisma/client';
 import { type PrismaService } from '../../prisma/prisma.service';
 import { type BalancesService } from '../transactions/balances.service';
 
@@ -7,6 +8,8 @@ import { ReportsService } from './reports.service';
 const balancesStub = (): BalancesService =>
   ({
     monthlyByCashbox: jest.fn().mockRejectedValue(new Error('monthlyByCashbox not stubbed')),
+    instrumentBalances: jest.fn().mockRejectedValue(new Error('instrumentBalances not stubbed')),
+    instrumentBalancesByReferenceMonth: jest.fn().mockRejectedValue(new Error('instrumentBalancesByReferenceMonth not stubbed')),
     sumByAccount: jest.fn().mockRejectedValue(new Error('sumByAccount not stubbed')),
     sumByCashbox: jest.fn().mockRejectedValue(new Error('sumByCashbox not stubbed')),
     accountMovementsByReferenceMonth: jest.fn().mockRejectedValue(new Error('accountMovementsByReferenceMonth not stubbed')),
@@ -24,6 +27,13 @@ const cashboxId = '66666666-6666-6666-6666-666666666666';
 const otherCashboxId = '77777777-7777-7777-7777-777777777777';
 
 const row = (amount: number, count = 1) => ({ _sum: { amount }, _count: { _all: count } });
+const eurBalance = (accountId: string, cents: number) => ({
+  accountId,
+  instrumentId: 'eur',
+  quantity: new Prisma.Decimal(cents).div(100),
+  instrumentName: 'Euro',
+  instrumentCode: 'EUR',
+});
 
 /** `$transaction` runs the callback against the same `groupBy` double, `Promise.all`-style — same convention as `BalancesService`'s spec. */
 const prismaDouble = (): { prisma: PrismaService; groupBy: jest.Mock; accountFindMany: jest.Mock; categoryFindMany: jest.Mock; cashboxFindMany: jest.Mock } => {
@@ -65,7 +75,12 @@ describe('ReportsService', () => {
       };
       accountFindMany.mockResolvedValueOnce([account, futureAccount]).mockResolvedValueOnce([account]);
       cashboxFindMany.mockResolvedValue([{ id: cashboxId, name: 'Reserve', isActive: true, initialBalance: 100, createdAt: new Date(Date.UTC(2026, 0, 1)) }]);
-      jest.mocked(balances.sumByAccount).mockResolvedValue(new Map([[accountId, 200]]));
+      jest
+        .mocked(balances.instrumentBalances)
+        .mockResolvedValue([
+          eurBalance(accountId, 1_200),
+          { ...eurBalance(accountId, 900_000), instrumentId: 'bitcoin', instrumentName: 'Bitcoin', instrumentCode: 'BTC' },
+        ]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map([[cashboxId, 300]]));
       jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
         new Map([
@@ -79,7 +94,7 @@ describe('ReportsService', () => {
           [new Date(Date.UTC(2026, 4, 1)).getTime(), new Map([[cashboxId, 200]])],
         ]),
       );
-      jest.mocked(balances.sumByAccountReferenceMonth).mockResolvedValue(new Map([[accountId, 700]]));
+      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([eurBalance(accountId, 1_700)]);
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map([[cashboxId, 300]]));
 
       const result = await service.getBalances(userId, 2026, now);
@@ -96,7 +111,7 @@ describe('ReportsService', () => {
       expect(result.evolution.months).toHaveLength(12);
       expect(result.evolution.months[0]).toMatchObject({ accounts: 1_200, cashboxes: 200, netWorth: 1_400 });
       expect(result.evolution.months[4]).toEqual({ month: 5, accounts: 1_700, cashboxes: 400, netWorth: 2_100, inProgress: true });
-      expect(balances.sumByAccount).toHaveBeenCalledWith(userId, new Date(Date.UTC(2026, 4, 15)));
+      expect(balances.instrumentBalances).toHaveBeenCalledWith(userId, new Date(Date.UTC(2026, 4, 15)));
     });
 
     it('marks a year before every account as insufficient history without removing the snapshot', async () => {
@@ -111,11 +126,11 @@ describe('ReportsService', () => {
         createdAt: new Date(Date.UTC(2026, 0, 1)),
       };
       accountFindMany.mockResolvedValue([account]);
-      jest.mocked(balances.sumByAccount).mockResolvedValue(new Map());
+      jest.mocked(balances.instrumentBalances).mockResolvedValue([eurBalance(account.id, 1_000)]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map());
       jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(new Map());
       jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(new Map());
-      jest.mocked(balances.sumByAccountReferenceMonth).mockResolvedValue(new Map());
+      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([]);
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map());
 
       const result = await service.getBalances(userId, 2020, new Date(Date.UTC(2026, 4, 15)));
@@ -132,7 +147,7 @@ describe('ReportsService', () => {
       const accountId = '88888888-8888-8888-8888-888888888888';
       const account = { id: accountId, name: 'Current', isActive: true, initialBalance: 0, createdAt: new Date(Date.UTC(2026, 7, 28)) };
       accountFindMany.mockResolvedValue([account]);
-      jest.mocked(balances.sumByAccount).mockResolvedValue(new Map([[accountId, 300_000]]));
+      jest.mocked(balances.instrumentBalances).mockResolvedValue([eurBalance(accountId, 300_000)]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map());
       jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
         new Map([
@@ -142,7 +157,7 @@ describe('ReportsService', () => {
         ]),
       );
       jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(new Map());
-      jest.mocked(balances.sumByAccountReferenceMonth).mockResolvedValue(new Map([[accountId, 300_000]]));
+      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([eurBalance(accountId, 300_000)]);
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map());
 
       const result = await service.getBalances(userId, 2026, new Date(Date.UTC(2026, 7, 28)));

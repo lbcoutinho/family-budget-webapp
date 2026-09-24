@@ -247,7 +247,6 @@ describe('MonthPage', () => {
       http.get('/api/accounts', () => HttpResponse.json([])),
       http.get('/api/categories', () => HttpResponse.json([])),
       http.get('/api/cashboxes', () => HttpResponse.json([])),
-      http.get('/api/accounts/balances', () => HttpResponse.json([])),
       http.get('/api/accounts/instrument-balances', () => HttpResponse.json([])),
       http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
     );

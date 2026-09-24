@@ -83,15 +83,33 @@ export class BalancesService {
 
   /** Exact Account quantities. Legacy budget Transactions are EUR movements until their migration completes. */
   async instrumentBalances(userId: string, asOf?: Date, client?: Prisma.TransactionClient): Promise<AccountInstrumentBalance[]> {
+    return this.instrumentBalancesWithMovements(userId, this.sumByAccount(userId, asOf, client), asOf, client);
+  }
+
+  /** Exact Account quantities at an accounting month's close for cash-basis reports. */
+  async instrumentBalancesByReferenceMonth(userId: string, referenceMonth: Date): Promise<AccountInstrumentBalance[]> {
+    return this.instrumentBalancesWithMovements(
+      userId,
+      this.sumByAccountReferenceMonth(userId, referenceMonth),
+      new Date(Date.UTC(referenceMonth.getUTCFullYear(), referenceMonth.getUTCMonth() + 1, 0)),
+    );
+  }
+
+  private async instrumentBalancesWithMovements(
+    userId: string,
+    movementSums: Promise<Map<string, number>>,
+    asOf?: Date,
+    client?: Prisma.TransactionClient,
+  ): Promise<AccountInstrumentBalance[]> {
     const tradeAsOf = asOf === undefined ? new Date() : endOfUtcDay(asOf);
     const prisma = client ?? this.prisma;
     const [initialBalances, movements, eur, trades] = await Promise.all([
       prisma.accountInitialBalance.findMany({
         where: { userId },
-        include: { instrument: { select: { name: true, code: true } } },
+        include: { account: { select: { createdAt: true } }, instrument: { select: { name: true, code: true } } },
         orderBy: [{ accountId: 'asc' }, { instrument: { code: 'asc' } }],
       }),
-      this.sumByAccount(userId, asOf, client),
+      movementSums,
       prisma.instrument.findFirst({ where: { userId, code: 'EUR' }, select: { id: true, name: true, code: true } }),
       prisma.investmentTrade.findMany({
         where: { userId, executedAt: { lte: tradeAsOf } },
@@ -102,16 +120,18 @@ export class BalancesService {
       }),
     ]);
     const balances = new Map<string, AccountInstrumentBalance>(
-      initialBalances.map((balance) => [
-        `${balance.accountId}:${balance.instrumentId}`,
-        {
-          accountId: balance.accountId,
-          instrumentId: balance.instrumentId,
-          quantity: new Prisma.Decimal(balance.quantity),
-          instrumentName: balance.instrument.name,
-          instrumentCode: balance.instrument.code,
-        },
-      ]),
+      initialBalances
+        .filter((balance) => asOf === undefined || balance.account.createdAt <= tradeAsOf)
+        .map((balance) => [
+          `${balance.accountId}:${balance.instrumentId}`,
+          {
+            accountId: balance.accountId,
+            instrumentId: balance.instrumentId,
+            quantity: new Prisma.Decimal(balance.quantity),
+            instrumentName: balance.instrument.name,
+            instrumentCode: balance.instrument.code,
+          },
+        ]),
     );
 
     if (eur) {
