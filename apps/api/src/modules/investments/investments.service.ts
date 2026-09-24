@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
-import { Prisma, type AssetListing, type FinancialInstitution, type Instrument, type InvestmentTrade } from '../../generated/prisma/client';
+import { InstrumentType, Prisma, type AssetListing, type FinancialInstitution, type Instrument, type InvestmentTrade } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
@@ -13,6 +13,7 @@ import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
@@ -112,6 +113,39 @@ export class InvestmentsService {
     ).map(toTradeDto);
   }
 
+  async listPositions(userId: string): Promise<InvestmentPositionDto[]> {
+    const trades = await this.prisma.investmentTrade.findMany({
+      where: { userId },
+      include: positionTradeInclude,
+      orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
+    const positions = new Map<string, Position>();
+
+    for (const trade of trades) {
+      if (isInvestmentAsset(trade.acquiredInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.acquiredInstrument);
+        position.quantity = position.quantity.add(trade.acquiredQuantity);
+        position.remainingCost = position.remainingCost.add(trade.executionValue);
+      }
+      if (isInvestmentAsset(trade.disposedInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.disposedInstrument);
+        const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(trade.disposedQuantity).div(position.quantity);
+        position.quantity = position.quantity.sub(trade.disposedQuantity);
+        position.remainingCost = position.remainingCost.sub(removedCost);
+        position.realizedResult = position.realizedResult.add(trade.executionValue).sub(removedCost);
+      }
+    }
+
+    const consolidated = new Map<string, Position>();
+    for (const position of positions.values()) {
+      const total = positionFor(consolidated, null, position.instrument);
+      total.quantity = total.quantity.add(position.quantity);
+      total.remainingCost = total.remainingCost.add(position.remainingCost);
+      total.realizedResult = total.realizedResult.add(position.realizedResult);
+    }
+    return [...consolidated.values(), ...positions.values()].map(toPositionDto);
+  }
+
   async createTrade(userId: string, dto: CreateInvestmentTradeDto): Promise<InvestmentTradeDto> {
     if (dto.acquiredInstrumentId === dto.disposedInstrumentId) {
       throw badRequest('INVESTMENT_TRADE_SAME_INSTRUMENT', 'A trade must acquire and dispose different instruments.');
@@ -176,6 +210,11 @@ const tradeInclude = {
   disposedInstrument: { select: { name: true, code: true, displayPrecision: true } },
   assetListing: { select: { market: true, ticker: true } },
 } as const;
+const positionTradeInclude = {
+  account: { select: { id: true, name: true } },
+  acquiredInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+  disposedInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+} as const;
 type TradeRow = InvestmentTrade & Prisma.InvestmentTradeGetPayload<{ include: typeof tradeInclude }>;
 const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
   id: trade.id,
@@ -223,3 +262,57 @@ const toListingDto = (row: AssetListing & { instrument: { name: string }; quoteI
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
+
+interface PositionInstrument {
+  id: string;
+  name: string;
+  code: string;
+  type: InstrumentType;
+  displayPrecision: number;
+}
+interface PositionAccount {
+  id: string;
+  name: string;
+}
+interface Position {
+  account: PositionAccount | null;
+  instrument: PositionInstrument;
+  quantity: Prisma.Decimal;
+  remainingCost: Prisma.Decimal;
+  realizedResult: Prisma.Decimal;
+}
+
+function isInvestmentAsset(type: InstrumentType): boolean {
+  return type !== 'FIAT' && type !== 'STABLECOIN';
+}
+
+function positionFor(positions: Map<string, Position>, account: PositionAccount | null, instrument: PositionInstrument): Position {
+  const key = `${account?.id ?? 'consolidated'}:${instrument.id}`;
+  const existing = positions.get(key);
+  if (existing) return existing;
+  const position: Position = {
+    account,
+    instrument,
+    quantity: new Prisma.Decimal(0),
+    remainingCost: new Prisma.Decimal(0),
+    realizedResult: new Prisma.Decimal(0),
+  };
+  positions.set(key, position);
+  return position;
+}
+
+function toPositionDto(position: Position): InvestmentPositionDto {
+  return {
+    accountId: position.account?.id ?? null,
+    accountName: position.account?.name ?? null,
+    instrumentId: position.instrument.id,
+    instrumentName: position.instrument.name,
+    instrumentCode: position.instrument.code,
+    instrumentType: position.instrument.type,
+    displayPrecision: position.instrument.displayPrecision,
+    quantity: position.quantity.toString(),
+    remainingCost: position.remainingCost.toDecimalPlaces(0).toNumber(),
+    weightedAverageCost: position.quantity.isZero() ? '0.000000000000' : position.remainingCost.div(100).div(position.quantity).toFixed(12),
+    realizedResult: position.realizedResult.toDecimalPlaces(0).toNumber(),
+  };
+}

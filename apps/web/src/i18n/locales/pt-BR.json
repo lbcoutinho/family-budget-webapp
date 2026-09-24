@@ -207,6 +207,38 @@
     "empty": { "title": "Nenhuma negociação ainda", "description": "Registre uma troca para atualizar os saldos por instrumento desta conta." },
     "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." }
   },
+  "investmentOverview": {
+    "title": "Visão geral",
+    "sections": "Seções de investimentos",
+    "description": "Posições consolidadas e por conta, com custo das posições abertas e resultado em euros.",
+    "filters": "Filtros",
+    "clearFilters": "Limpar filtros",
+    "type": "Tipo de instrumento",
+    "institution": "Instituição financeira",
+    "account": "Conta",
+    "consolidated": "Consolidado",
+    "quoteStates": "Estados da cotação",
+    "quoteCurrent": "Atual",
+    "quoteStale": "Desatualizada",
+    "quoteManual": "Manual",
+    "quoteMissing": "Indisponível",
+    "quoteClosed": "Posição encerrada",
+    "quoteShared": "Cotação exibida na posição consolidada",
+    "columns": {
+      "instrument": "Instrumento",
+      "account": "Conta",
+      "quantity": "Quantidade",
+      "remainingCost": "Custo restante",
+      "average": "Custo médio",
+      "quote": "Cotação",
+      "currentValue": "Valor atual",
+      "realized": "Resultado realizado",
+      "unrealized": "Resultado não realizado"
+    },
+    "metrics": { "remainingCost": "Custo restante", "realized": "Resultado realizado", "currentValue": "Valor atual", "unrealized": "Resultado não realizado" },
+    "empty": { "title": "Nenhuma posição de investimento", "description": "Registre uma negociação que receba um ativo para vê-lo aqui." },
+    "error": { "title": "Não foi possível carregar as posições", "description": "Verifique a conexão e tente novamente." }
+  },
   "categories": {
     "new": "Nova categoria",
     "search": "Buscar categoria…",

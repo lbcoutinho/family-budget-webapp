@@ -10,6 +10,7 @@ export * from './csv-import-models/csv-import-models';
 export * from './financial-institutions/financial-institutions';
 export * from './health/health';
 export * from './instruments/instruments';
+export * from './investment-positions/investment-positions';
 export * from './investment-trades/investment-trades';
 export * from './recurrence-rules/recurrence-rules';
 export * from './reports/reports';
