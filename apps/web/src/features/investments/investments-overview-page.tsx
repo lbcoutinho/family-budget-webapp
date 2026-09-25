@@ -314,18 +314,22 @@ function PositionRow({ position, parent = false, locale, t }: { position: Invest
 
 function QuoteStatus({ position, t }: { position: InvestmentPositionDto; t: TFunction }) {
   if (position.quantity === '0') return <span className="text-muted-foreground">{t('investmentOverview.quoteClosed')}</span>;
-  if (position.quoteStatus === 'MISSING')
+  if (position.quoteStatus === 'MISSING' || position.quoteStatus === 'ERROR')
     return (
       <span className="inline-flex items-center gap-1.5 text-destructive">
         <i aria-hidden className="size-2 rounded-full border border-destructive" />
-        {t('investmentOverview.quoteMissing')}
+        {position.quoteStatus === 'ERROR' ? t('investmentOverview.quoteError') : t('investmentOverview.quoteMissing')}
       </span>
     );
   return (
     <span className={cn('inline-flex items-center gap-1.5', position.quoteStatus === 'STALE' ? 'text-amber-600' : 'text-blue-600')}>
       <i aria-hidden className="size-2 rounded-full bg-current" />
-      {position.quoteStatus === 'STALE' ? t('investmentOverview.quoteStale') : t('investmentOverview.quoteManual')}: {position.quotePrice}{' '}
-      {position.quoteInstrumentCode} · {position.quoteMarketDate}
+      {position.quoteStatus === 'STALE'
+        ? t('investmentOverview.quoteStale')
+        : position.quoteStatus === 'PROVIDER'
+          ? t('investmentOverview.quoteProvider')
+          : t('investmentOverview.quoteManual')}
+      : {position.quotePrice} {position.quoteInstrumentCode} · {position.quoteMarketDate}
     </span>
   );
 }

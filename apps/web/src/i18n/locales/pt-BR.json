@@ -225,7 +225,9 @@
     "quoteCurrent": "Atual",
     "quoteStale": "Desatualizada",
     "quoteManual": "Manual",
+    "quoteProvider": "Provedor",
     "quoteMissing": "Indisponível",
+    "quoteError": "Erro do provedor",
     "quoteClosed": "Posição encerrada",
     "quoteShared": "Cotação exibida na posição consolidada",
     "columns": {

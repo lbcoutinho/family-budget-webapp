@@ -202,6 +202,13 @@ export class MarketQuotesController extends InvestmentSetupController {
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateMarketQuoteDto) {
     return this.investments.createMarketQuote(user.id, dto);
   }
+
+  @ApiOperation({ operationId: 'retryMarketQuoteSynchronization' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('synchronize')
+  async synchronize(@CurrentUser() user: AuthenticatedUser): Promise<void> {
+    await this.investments.synchronizeQuotes(user.id, true);
+  }
 }
 
 @ApiTags('investment-positions')

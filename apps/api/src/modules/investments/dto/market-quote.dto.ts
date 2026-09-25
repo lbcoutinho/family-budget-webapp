@@ -7,6 +7,6 @@ export class MarketQuoteDto {
   @ApiProperty({ type: String }) quoteInstrumentCode!: string;
   @ApiProperty({ type: String }) price!: string;
   @ApiProperty({ type: String, format: 'date' }) marketDate!: string;
-  @ApiProperty({ enum: ['MANUAL'] }) source!: 'MANUAL';
-  @ApiProperty({ enum: ['VALID'] }) status!: 'VALID';
+  @ApiProperty({ enum: ['MANUAL', 'EODHD'] }) source!: 'MANUAL' | 'EODHD';
+  @ApiProperty({ enum: ['VALID', 'ERROR'] }) status!: 'VALID' | 'ERROR';
 }

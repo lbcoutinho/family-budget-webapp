@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
@@ -29,12 +29,14 @@ import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
+import { MARKET_QUOTE_PROVIDER, type MarketQuoteProvider } from './eodhd-quote.provider';
 
 @Injectable()
 export class InvestmentsService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly balances: BalancesService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(BalancesService) private readonly balances: BalancesService,
+    @Inject(MARKET_QUOTE_PROVIDER) private readonly quoteProvider: MarketQuoteProvider,
   ) {}
 
   async listInstitutions(userId: string, query: ListInvestmentSetupQueryDto): Promise<FinancialInstitutionDto[]> {
@@ -165,16 +167,22 @@ export class InvestmentsService {
       total.remainingCost = total.remainingCost.add(position.remainingCost);
       total.realizedResult = total.realizedResult.add(position.realizedResult);
     }
-    const quotes = await this.prisma.marketQuote.findMany({
-      where: { userId },
-      include: { assetListing: { select: { instrumentId: true } }, quoteInstrument: { select: { id: true, code: true } } },
-      orderBy: [{ marketDate: 'desc' }, { synchronizedAt: 'desc' }],
-    });
+    const [quotes, synchronizations] = await Promise.all([
+      this.prisma.marketQuote.findMany({
+        where: { userId },
+        include: { assetListing: { select: { instrumentId: true } }, quoteInstrument: { select: { id: true, code: true } } },
+        orderBy: [{ marketDate: 'desc' }, { synchronizedAt: 'desc' }],
+      }),
+      this.prisma.marketQuoteSync.findMany({ where: { userId }, select: { status: true, assetListing: { select: { instrumentId: true } } } }),
+    ]);
     const quoteByInstrument = new Map<string, QuoteRow>();
     for (const quote of quotes) quoteByInstrument.set(quote.assetListing.instrumentId, quoteByInstrument.get(quote.assetListing.instrumentId) ?? quote);
     const eurId = (await this.prisma.instrument.findFirst({ where: { userId, code: 'EUR', type: 'FIAT' }, select: { id: true } }))?.id;
 
-    return [...consolidated.values(), ...positions.values()].map((position) => toPositionDto(position, valuationFor(position, quoteByInstrument, eurId)));
+    const syncByInstrument = new Map(synchronizations.map((sync) => [sync.assetListing.instrumentId, sync.status]));
+    return [...consolidated.values(), ...positions.values()].map((position) =>
+      toPositionDto(position, valuationFor(position, quoteByInstrument, eurId), syncByInstrument),
+    );
   }
 
   async createMarketQuote(userId: string, dto: CreateMarketQuoteDto): Promise<MarketQuoteDto> {
@@ -185,10 +193,76 @@ export class InvestmentsService {
     const quote = await this.prisma.marketQuote.upsert({
       where: { assetListingId: listing.id },
       create: { userId, assetListingId: listing.id, quoteInstrumentId: listing.quoteInstrumentId, price, marketDate: new Date(dto.marketDate) },
-      update: { quoteInstrumentId: listing.quoteInstrumentId, price, marketDate: new Date(dto.marketDate), synchronizedAt: new Date(), source: 'MANUAL' },
+      update: {
+        quoteInstrumentId: listing.quoteInstrumentId,
+        price,
+        marketDate: new Date(dto.marketDate),
+        synchronizedAt: new Date(),
+        source: 'MANUAL',
+        status: 'VALID',
+      },
       include: { quoteInstrument: { select: { code: true } } },
     });
     return toMarketQuoteDto(quote);
+  }
+
+  async synchronizeQuotes(userId: string, retry = false, now = new Date()): Promise<void> {
+    if (!this.quoteProvider.isConfigured()) return;
+
+    const today = new Date(now);
+    today.setUTCHours(0, 0, 0, 0);
+    const [listings, synchronizations] = await Promise.all([
+      this.prisma.assetListing.findMany({ where: { userId, isActive: true, providerSymbol: { not: null } } }),
+      this.prisma.marketQuoteSync.findMany({ where: { userId, attemptedAt: { gte: today } } }),
+    ]);
+    const synchronizationByListing = new Map(synchronizations.map((sync) => [sync.assetListingId, sync]));
+    const callsUsed = synchronizations.reduce((total, sync) => total + sync.attemptCount, 0);
+    const candidates = listings.filter((listing) => {
+      const sync = synchronizationByListing.get(listing.id);
+      return sync === undefined || (retry && sync.status !== 'SUCCESS');
+    });
+
+    for (const listing of candidates.slice(0, Math.max(0, 20 - callsUsed))) {
+      let status: 'SUCCESS' | 'FAILED' | 'UNSUPPORTED' = 'FAILED';
+      try {
+        const quote = await this.quoteProvider.quote(listing.providerSymbol!);
+        if (quote) {
+          await this.prisma.marketQuote.upsert({
+            where: { assetListingId: listing.id },
+            create: {
+              userId,
+              assetListingId: listing.id,
+              quoteInstrumentId: listing.quoteInstrumentId,
+              price: new Prisma.Decimal(quote.price),
+              marketDate: quote.marketDate,
+              synchronizedAt: now,
+              source: 'EODHD',
+              status: 'VALID',
+            },
+            update: {
+              quoteInstrumentId: listing.quoteInstrumentId,
+              price: new Prisma.Decimal(quote.price),
+              marketDate: quote.marketDate,
+              synchronizedAt: now,
+              source: 'EODHD',
+              status: 'VALID',
+            },
+          });
+          status = 'SUCCESS';
+        } else {
+          status = 'UNSUPPORTED';
+        }
+      } catch {
+        await this.prisma.marketQuote.updateMany({ where: { assetListingId: listing.id, source: 'EODHD' }, data: { status: 'ERROR' } });
+      }
+      const prior = synchronizationByListing.get(listing.id);
+      const attemptCount = prior && prior.attemptedAt >= today ? prior.attemptCount + 1 : 1;
+      await this.prisma.marketQuoteSync.upsert({
+        where: { assetListingId: listing.id },
+        create: { userId, assetListingId: listing.id, status, attemptCount, attemptedAt: now },
+        update: { status, attemptCount, attemptedAt: now },
+      });
+    }
   }
 
   async createTrade(userId: string, dto: CreateInvestmentTradeDto): Promise<InvestmentTradeDto> {
@@ -387,7 +461,7 @@ function valuationFor(position: Position, quotes: Map<string, QuoteRow>, eurId: 
   return { quote, currentValue: rate === null ? null : position.quantity.mul(quote.price).mul(rate).mul(100).toDecimalPlaces(0).toNumber() };
 }
 
-function toPositionDto(position: Position, valuation: Valuation): InvestmentPositionDto {
+function toPositionDto(position: Position, valuation: Valuation, syncByListing: Map<string, string>): InvestmentPositionDto {
   return {
     accountId: position.account?.id ?? null,
     accountName: position.account?.name ?? null,
@@ -404,7 +478,15 @@ function toPositionDto(position: Position, valuation: Valuation): InvestmentPosi
     quoteInstrumentCode: valuation.quote?.quoteInstrument.code ?? null,
     quoteMarketDate: valuation.quote?.marketDate.toISOString().slice(0, 10) ?? null,
     quoteStatus:
-      valuation.quote === null ? 'MISSING' : valuation.quote.marketDate.toISOString().slice(0, 10) < new Date().toISOString().slice(0, 10) ? 'STALE' : 'MANUAL',
+      valuation.quote?.status === 'ERROR' || (valuation.quote === null && syncByListing.get(position.instrument.id) !== undefined)
+        ? 'ERROR'
+        : valuation.quote === null
+          ? 'MISSING'
+          : valuation.quote.marketDate.toISOString().slice(0, 10) < new Date().toISOString().slice(0, 10)
+            ? 'STALE'
+            : valuation.quote.source === 'EODHD'
+              ? 'PROVIDER'
+              : 'MANUAL',
     currentValue: valuation.currentValue,
     unrealizedResult: valuation.currentValue === null ? null : valuation.currentValue - position.remainingCost.toDecimalPlaces(0).toNumber(),
   };
@@ -418,7 +500,7 @@ function toMarketQuoteDto(quote: MarketQuote & { quoteInstrument: { code: string
     quoteInstrumentCode: quote.quoteInstrument.code,
     price: quote.price.toString(),
     marketDate: quote.marketDate.toISOString().slice(0, 10),
-    source: 'MANUAL',
-    status: 'VALID',
+    source: quote.source,
+    status: quote.status,
   };
 }

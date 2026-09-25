@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { plainToInstance, Transform, Type } from 'class-transformer';
-import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsString, Max, Min, validateSync } from 'class-validator';
+import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
 
 /**
  * Allowed values for {@link EnvironmentVariables.NODE_ENV}.
@@ -55,6 +55,11 @@ export class EnvironmentVariables {
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsEmail()
   ADMIN_EMAIL!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  EODHD_API_KEY?: string;
 }
 
 /**

@@ -228,7 +228,9 @@
     "quoteCurrent": "Current",
     "quoteStale": "Stale",
     "quoteManual": "Manual",
+    "quoteProvider": "Provider",
     "quoteMissing": "Unavailable",
+    "quoteError": "Provider error",
     "quoteClosed": "Position closed",
     "quoteShared": "Quote shown on the consolidated position",
     "columns": {

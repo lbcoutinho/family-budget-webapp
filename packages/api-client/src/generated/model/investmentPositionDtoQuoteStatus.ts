@@ -11,6 +11,8 @@ export type InvestmentPositionDtoQuoteStatus = typeof InvestmentPositionDtoQuote
 
 export const InvestmentPositionDtoQuoteStatus = {
   MANUAL: 'MANUAL',
+  PROVIDER: 'PROVIDER',
   STALE: 'STALE',
   MISSING: 'MISSING',
+  ERROR: 'ERROR',
 } as const;
