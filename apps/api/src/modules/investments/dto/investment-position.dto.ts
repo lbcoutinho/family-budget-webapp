@@ -14,4 +14,10 @@ export class InvestmentPositionDto {
   @ApiProperty({ type: Number, description: 'Remaining EUR cost, in integer cents.' }) remainingCost!: number;
   @ApiProperty({ type: String, description: 'Remaining EUR cost per unit, to 12 decimal places.' }) weightedAverageCost!: string;
   @ApiProperty({ type: Number, description: 'Realized EUR result, in integer cents.' }) realizedResult!: number;
+  @ApiPropertyOptional({ type: String, nullable: true, description: 'Latest market price in its quote instrument.' }) quotePrice!: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) quoteInstrumentCode!: string | null;
+  @ApiPropertyOptional({ type: String, format: 'date', nullable: true }) quoteMarketDate!: string | null;
+  @ApiProperty({ enum: ['MANUAL', 'STALE', 'MISSING'] }) quoteStatus!: 'MANUAL' | 'STALE' | 'MISSING';
+  @ApiPropertyOptional({ type: Number, nullable: true, description: 'Current EUR value, in integer cents.' }) currentValue!: number | null;
+  @ApiPropertyOptional({ type: Number, nullable: true, description: 'Current EUR result, in integer cents.' }) unrealizedResult!: number | null;
 }

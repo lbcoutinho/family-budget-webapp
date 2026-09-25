@@ -56,6 +56,7 @@ model User {
   financialInstitutions FinancialInstitution[]
   instruments     Instrument[]
   assetListings   AssetListing[]
+  marketQuotes    MarketQuote[]
   accountInitialBalances AccountInitialBalance[]
   investmentTrades       InvestmentTrade[]
 
@@ -221,6 +222,7 @@ model Instrument {
   accountInitialBalances AccountInitialBalance[]
   listings       AssetListing[] @relation("ListedInstrument")
   quotedListings AssetListing[] @relation("QuoteInstrument")
+  marketQuotes   MarketQuote[]  @relation("MarketQuoteInstrument")
   acquiredTrades InvestmentTrade[] @relation("AcquiredInstrument")
   disposedTrades InvestmentTrade[] @relation("DisposedInstrument")
   feeTrades      InvestmentTrade[] @relation("FeeInstrument")
@@ -248,10 +250,45 @@ model AssetListing {
   instrument      Instrument @relation("ListedInstrument", fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   quoteInstrument Instrument @relation("QuoteInstrument", fields: [quoteInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   investmentTrades InvestmentTrade[]
+  marketQuote      MarketQuote?
 
   @@unique([userId, instrumentId, market, ticker])
   @@index([userId, isActive])
   @@map("asset_listings")
+}
+
+enum MarketQuoteSource {
+  MANUAL
+
+  @@map("market_quote_source")
+}
+
+enum MarketQuoteStatus {
+  VALID
+
+  @@map("market_quote_status")
+}
+
+/// The latest valid price for one listing. Historical cost remains on InvestmentTrade;
+/// replacing this row only changes current valuation.
+model MarketQuote {
+  id                String            @id @default(uuid()) @db.Uuid
+  userId            String            @map("user_id") @db.Uuid
+  assetListingId    String            @unique @map("asset_listing_id") @db.Uuid
+  quoteInstrumentId String            @map("quote_instrument_id") @db.Uuid
+  price             Decimal           @db.Decimal(36, 12)
+  marketDate        DateTime          @map("market_date") @db.Date
+  synchronizedAt    DateTime          @default(now()) @map("synchronized_at") @db.Timestamptz(3)
+  source            MarketQuoteSource @default(MANUAL)
+  status            MarketQuoteStatus @default(VALID)
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assetListing    AssetListing @relation(fields: [assetListingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  quoteInstrument Instrument   @relation("MarketQuoteInstrument", fields: [quoteInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, marketDate])
+  @@index([quoteInstrumentId])
+  @@map("market_quotes")
 }
 
 /// An exchange of two exact Instrument quantities within one Account. It is deliberately separate

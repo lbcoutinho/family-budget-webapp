@@ -12,6 +12,7 @@ export * from './health/health';
 export * from './instruments/instruments';
 export * from './investment-positions/investment-positions';
 export * from './investment-trades/investment-trades';
+export * from './market-quotes/market-quotes';
 export * from './recurrence-rules/recurrence-rules';
 export * from './reports/reports';
 export * from './transactions/transactions';

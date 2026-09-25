@@ -34,6 +34,7 @@ describe('Investment trades API (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.investmentTrade.deleteMany({ where: { userId } });
+    await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
     await prisma.assetListing.deleteMany({ where: { userId } });
@@ -42,8 +43,10 @@ describe('Investment trades API (e2e)', () => {
 
   afterAll(async () => {
     await prisma.investmentTrade.deleteMany({ where: { userId } });
+    await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
+    await prisma.assetListing.deleteMany({ where: { userId } });
     await prisma.instrument.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await app.close();
@@ -271,6 +274,60 @@ describe('Investment trades API (e2e)', () => {
       .expect(({ body }: { body: { code: string; instrumentCode: string; availableQuantity: string } }) =>
         expect(body).toMatchObject({ code: 'INVESTMENT_TRADE_INSUFFICIENT_FUNDS', instrumentCode: 'BNB', availableQuantity: '0.9' }),
       );
+  });
+
+  it('values consolidated and account positions from a manual EUR quote without changing cost', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const etf = (await call('post', '/instruments').send({ name: 'World ETF', code: 'VWCE', type: 'ETF' }).expect(201)).body as { id: string };
+    const listing = (
+      await call('post', '/asset-listings').send({ instrumentId: etf.id, quoteInstrumentId: eur.id, market: 'XETRA', ticker: 'VWCE' }).expect(201)
+    ).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Broker', kind: 'BROKERAGE', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .expect(201)
+    ).body as { id: string };
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: etf.id,
+        acquiredQuantity: '10',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '1000',
+        executionValue: 100000,
+        executedAt: '2026-01-01T00:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/market-quotes')
+      .send({ assetListingId: listing.id, price: '125', marketDate: new Date().toISOString().slice(0, 10) })
+      .expect(201);
+
+    const positions = (await call('get', '/investment-positions').expect(200)).body as (Position & {
+      currentValue: number;
+      unrealizedResult: number;
+      quoteStatus: string;
+    })[];
+    expect(positions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountId: account.id,
+          instrumentId: etf.id,
+          remainingCost: 100000,
+          currentValue: 125000,
+          unrealizedResult: 25000,
+          quoteStatus: 'MANUAL',
+        }),
+        expect.objectContaining({
+          accountId: null,
+          instrumentId: etf.id,
+          remainingCost: 100000,
+          currentValue: 125000,
+          unrealizedResult: 25000,
+          quoteStatus: 'MANUAL',
+        }),
+      ]),
+    );
   });
 });
 

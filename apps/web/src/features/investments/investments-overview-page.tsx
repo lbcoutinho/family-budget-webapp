@@ -1,16 +1,30 @@
-import { type AccountDto, type InvestmentPositionDto, useListAccounts, useListInvestmentPositions } from '@family-budget/api-client';
+import {
+  type AccountDto,
+  type AssetListingDto,
+  type InvestmentPositionDto,
+  useCreateMarketQuote,
+  useListAccounts,
+  useListAssetListings,
+  useListInvestmentPositions,
+} from '@family-budget/api-client';
+import { useQueryClient } from '@tanstack/react-query';
 import { type TFunction } from 'i18next';
 import { SlidersHorizontalIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +34,10 @@ export function InvestmentsOverviewPage() {
   const { t, i18n } = useTranslation();
   const positions = useListInvestmentPositions();
   const accounts = useListAccounts({ includeInactive: true });
+  const listings = useListAssetListings();
+  const queryClient = useQueryClient();
+  const createQuote = useCreateMarketQuote({ mutation: { onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['/investment-positions'] }) } });
+  const [quoteOpen, setQuoteOpen] = useState(false);
   const [type, setType] = useState(all);
   const [institution, setInstitution] = useState(all);
   const [account, setAccount] = useState(all);
@@ -32,10 +50,21 @@ export function InvestmentsOverviewPage() {
     .filter((group) => group.accounts.length > 0);
   const remainingCost = filtered.reduce((sum, position) => sum + position.remainingCost, 0);
   const realizedResult = filtered.reduce((sum, position) => sum + position.realizedResult, 0);
+  const currentValue = filtered.every((position) => position.currentValue != null) ? filtered.reduce((sum, position) => sum + position.currentValue!, 0) : null;
+  const unrealizedResult = filtered.every((position) => position.unrealizedResult != null)
+    ? filtered.reduce((sum, position) => sum + position.unrealizedResult!, 0)
+    : null;
 
   return (
     <>
-      <PageHeader title={t('investmentOverview.title')} />
+      <PageHeader
+        title={t('investmentOverview.title')}
+        actions={
+          <Button size="sm" onClick={() => setQuoteOpen(true)}>
+            {t('investmentOverview.recordQuote')}
+          </Button>
+        }
+      />
       <PageContent className="space-y-4">
         <nav className="flex gap-1 overflow-x-auto border-b" aria-label={t('investmentOverview.sections')}>
           <NavLink to="/investments/overview" className="border-b-2 border-foreground px-3 py-2 text-sm font-medium">
@@ -76,10 +105,14 @@ export function InvestmentsOverviewPage() {
           </details>
         </div>
         <section className="grid grid-cols-2 overflow-hidden rounded-lg border sm:grid-cols-4">
-          <Metric label={t('investmentOverview.metrics.currentValue')} value="—" />
+          <Metric label={t('investmentOverview.metrics.currentValue')} value={currentValue == null ? '—' : formatCents(currentValue)} />
           <Metric label={t('investmentOverview.metrics.remainingCost')} value={formatCents(remainingCost)} />
           <Metric label={t('investmentOverview.metrics.realized')} value={formatCents(realizedResult)} tone={realizedResult} />
-          <Metric label={t('investmentOverview.metrics.unrealized')} value="—" />
+          <Metric
+            label={t('investmentOverview.metrics.unrealized')}
+            value={unrealizedResult == null ? '—' : formatCents(unrealizedResult)}
+            tone={unrealizedResult ?? undefined}
+          />
         </section>
         <Card className="py-0">
           {positions.isPending && <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>}
@@ -125,7 +158,76 @@ export function InvestmentsOverviewPage() {
           <QuoteLegend className="border border-destructive" label={t('investmentOverview.quoteMissing')} />
         </div>
       </PageContent>
+      <QuoteDialog open={quoteOpen} onOpenChange={setQuoteOpen} listings={listings.data ?? []} onCreate={(data) => createQuote.mutateAsync({ data })} />
     </>
+  );
+}
+
+function QuoteDialog({
+  open,
+  onOpenChange,
+  listings,
+  onCreate,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  listings: AssetListingDto[];
+  onCreate: (data: { assetListingId: string; price: string; marketDate: string }) => Promise<unknown>;
+}) {
+  const { t } = useTranslation();
+  const [assetListingId, setAssetListingId] = useState('');
+  const [price, setPrice] = useState('');
+  const [marketDate, setMarketDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const activeListings = listings.filter((listing) => listing.isActive);
+  const selected = activeListings.find((listing) => listing.id === assetListingId) ?? activeListings[0];
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('investmentOverview.recordQuote')}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <label className="grid gap-2 text-sm">
+            <span>{t('investmentOverview.quoteListing')}</span>
+            <Select value={selected?.id ?? ''} onValueChange={setAssetListingId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {activeListings.map((listing) => (
+                  <SelectItem key={listing.id} value={listing.id}>
+                    {listing.instrumentName} · {listing.ticker} ({listing.quoteInstrumentCode})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <div className="grid gap-2">
+            <Label htmlFor="quote-price">{t('investmentOverview.quotePrice', { instrument: selected?.quoteInstrumentCode ?? '—' })}</Label>
+            <Input id="quote-price" inputMode="decimal" value={price} onChange={(event) => setPrice(event.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="quote-date">{t('investmentOverview.quoteDate')}</Label>
+            <Input id="quote-date" type="date" value={marketDate} onChange={(event) => setMarketDate(event.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            disabled={!selected || !price || !marketDate}
+            onClick={() =>
+              void onCreate({ assetListingId: selected!.id, price, marketDate })
+                .then(() => onOpenChange(false))
+                .catch((error: unknown) => toast.error(apiErrorMessage(error, t)))
+            }
+          >
+            {t('common.save')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -191,25 +293,39 @@ function PositionRow({ position, parent = false, locale, t }: { position: Invest
       </TableCell>
       <TableCell className="text-right tabular-nums">{formatCents(position.remainingCost)}</TableCell>
       <TableCell className="text-right tabular-nums">{formatDecimal(position.weightedAverageCost, locale)} €</TableCell>
-      <TableCell>
-        {parent ? <QuoteStatus closed={position.quantity === '0'} t={t} /> : <span className="sr-only">{t('investmentOverview.quoteShared')}</span>}
-      </TableCell>
-      <TableCell className="text-right tabular-nums">—</TableCell>
+      <TableCell>{parent ? <QuoteStatus position={position} t={t} /> : <span className="sr-only">{t('investmentOverview.quoteShared')}</span>}</TableCell>
+      <TableCell className="text-right tabular-nums">{position.currentValue == null ? '—' : formatCents(position.currentValue)}</TableCell>
       <TableCell className={cn('text-right tabular-nums', position.realizedResult > 0 ? 'text-income' : position.realizedResult < 0 && 'text-destructive')}>
         {formatCents(position.realizedResult)}
       </TableCell>
-      <TableCell className="text-right tabular-nums">—</TableCell>
+      <TableCell
+        className={cn(
+          'text-right tabular-nums',
+          position.unrealizedResult && position.unrealizedResult > 0
+            ? 'text-income'
+            : position.unrealizedResult && position.unrealizedResult < 0 && 'text-destructive',
+        )}
+      >
+        {position.unrealizedResult == null ? '—' : formatCents(position.unrealizedResult)}
+      </TableCell>
     </TableRow>
   );
 }
 
-function QuoteStatus({ closed, t }: { closed: boolean; t: TFunction }) {
-  return closed ? (
-    <span className="text-muted-foreground">{t('investmentOverview.quoteClosed')}</span>
-  ) : (
-    <span className="inline-flex items-center gap-1.5 text-destructive">
-      <i aria-hidden className="size-2 rounded-full border border-destructive" />
-      {t('investmentOverview.quoteMissing')}
+function QuoteStatus({ position, t }: { position: InvestmentPositionDto; t: TFunction }) {
+  if (position.quantity === '0') return <span className="text-muted-foreground">{t('investmentOverview.quoteClosed')}</span>;
+  if (position.quoteStatus === 'MISSING')
+    return (
+      <span className="inline-flex items-center gap-1.5 text-destructive">
+        <i aria-hidden className="size-2 rounded-full border border-destructive" />
+        {t('investmentOverview.quoteMissing')}
+      </span>
+    );
+  return (
+    <span className={cn('inline-flex items-center gap-1.5', position.quoteStatus === 'STALE' ? 'text-amber-600' : 'text-blue-600')}>
+      <i aria-hidden className="size-2 rounded-full bg-current" />
+      {position.quoteStatus === 'STALE' ? t('investmentOverview.quoteStale') : t('investmentOverview.quoteManual')}: {position.quotePrice}{' '}
+      {position.quoteInstrumentCode} · {position.quoteMarketDate}
     </span>
   );
 }
