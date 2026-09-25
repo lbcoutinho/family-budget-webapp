@@ -32,6 +32,7 @@ describe('Database seed (e2e)', () => {
 
     await prisma.transaction.deleteMany({ where: owner });
     await prisma.account.deleteMany({ where: owner });
+    await prisma.instrument.deleteMany({ where: owner });
     await prisma.cashbox.deleteMany({ where: owner });
     await prisma.category.deleteMany({ where: { ...owner, parentId: { not: null } } });
     await prisma.category.deleteMany({ where: owner });
