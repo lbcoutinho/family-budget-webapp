@@ -34,6 +34,7 @@ describe('Investment trades API (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.investmentTrade.deleteMany({ where: { userId } });
+    await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
     await prisma.assetListing.deleteMany({ where: { userId } });
@@ -42,8 +43,10 @@ describe('Investment trades API (e2e)', () => {
 
   afterAll(async () => {
     await prisma.investmentTrade.deleteMany({ where: { userId } });
+    await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
+    await prisma.assetListing.deleteMany({ where: { userId } });
     await prisma.instrument.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await app.close();
