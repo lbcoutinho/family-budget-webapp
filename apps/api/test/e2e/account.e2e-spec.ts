@@ -57,10 +57,10 @@ describe('Account model (e2e)', () => {
   });
 
   it('creates an account with the defaults the master-data pattern relies on', async () => {
-    const created = await prisma.account.create({ data: { userId, name: 'Millennium', initialBalance: 150_000 } });
+    const created = await prisma.account.create({ data: { userId, name: 'Millennium' } });
 
     expect(created.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-    expect(created).toMatchObject({ isActive: true, sortOrder: 0, initialBalance: 150_000 });
+    expect(created).toMatchObject({ isActive: true, sortOrder: 0 });
     expect(created.createdAt).toBeInstanceOf(Date);
     expect(created.updatedAt).toBeInstanceOf(Date);
 
@@ -90,15 +90,5 @@ describe('Account model (e2e)', () => {
     // P2003 — foreign key constraint. `onDelete: Restrict` is what keeps domain data from
     // disappearing with the user row.
     await expect(prisma.user.delete({ where: { id: userId } })).rejects.toMatchObject({ code: 'P2003' });
-  });
-
-  it('stores an integer number of cents, negative balances included', async () => {
-    await prisma.account.create({ data: { userId, name: 'Millennium', initialBalance: -4_250 } });
-
-    const rows = await prisma.$queryRaw<{ initial_balance: number; is_active: boolean; sort_order: number }[]>`
-      SELECT initial_balance, is_active, sort_order FROM accounts WHERE user_id = ${userId}::uuid
-    `;
-
-    expect(rows).toEqual([{ initial_balance: -4_250, is_active: true, sort_order: 0 }]);
   });
 });

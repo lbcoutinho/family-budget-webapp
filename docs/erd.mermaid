@@ -31,9 +31,16 @@ erDiagram
     uuid id PK
     uuid userId FK
     string name
-    int initialBalance
     boolean isActive
     int sortOrder
+  }
+
+  ACCOUNT_INITIAL_BALANCE {
+    uuid id PK
+    uuid userId FK
+    uuid accountId FK
+    uuid instrumentId FK
+    decimal quantity
   }
 
   CATEGORY {

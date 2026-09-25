@@ -12,7 +12,6 @@ const balancesStub = (): BalancesService =>
     instrumentBalancesByReferenceMonth: jest.fn().mockRejectedValue(new Error('instrumentBalancesByReferenceMonth not stubbed')),
     sumByAccount: jest.fn().mockRejectedValue(new Error('sumByAccount not stubbed')),
     sumByCashbox: jest.fn().mockRejectedValue(new Error('sumByCashbox not stubbed')),
-    accountMovementsByReferenceMonth: jest.fn().mockRejectedValue(new Error('accountMovementsByReferenceMonth not stubbed')),
     cashboxMovementsByReferenceMonth: jest.fn().mockRejectedValue(new Error('cashboxMovementsByReferenceMonth not stubbed')),
     sumByAccountReferenceMonth: jest.fn().mockRejectedValue(new Error('sumByAccountReferenceMonth not stubbed')),
     sumByCashboxReferenceMonth: jest.fn().mockRejectedValue(new Error('sumByCashboxReferenceMonth not stubbed')),
@@ -65,12 +64,11 @@ describe('ReportsService', () => {
       const accountId = '88888888-8888-8888-8888-888888888888';
       const cashboxId = '99999999-9999-9999-9999-999999999999';
       const now = new Date(Date.UTC(2026, 4, 15));
-      const account = { id: accountId, name: 'Current', isActive: true, initialBalance: 1_000, createdAt: new Date(Date.UTC(2026, 0, 1)) };
+      const account = { id: accountId, name: 'Current', isActive: true, createdAt: new Date(Date.UTC(2026, 0, 1)) };
       const futureAccount = {
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         name: 'Future',
         isActive: true,
-        initialBalance: 50_000,
         createdAt: new Date(Date.UTC(2026, 5, 1)),
       };
       accountFindMany.mockResolvedValueOnce([account, futureAccount]).mockResolvedValueOnce([account]);
@@ -82,19 +80,15 @@ describe('ReportsService', () => {
           { ...eurBalance(accountId, 900_000), instrumentId: 'bitcoin', instrumentName: 'Bitcoin', instrumentCode: 'BTC' },
         ]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map([[cashboxId, 300]]));
-      jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
-        new Map([
-          [new Date(Date.UTC(2025, 11, 1)).getTime(), new Map([[accountId, 200]])],
-          [new Date(Date.UTC(2026, 4, 1)).getTime(), new Map([[accountId, 500]])],
-        ]),
-      );
       jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(
         new Map([
           [new Date(Date.UTC(2025, 11, 1)).getTime(), new Map([[cashboxId, 100]])],
           [new Date(Date.UTC(2026, 4, 1)).getTime(), new Map([[cashboxId, 200]])],
         ]),
       );
-      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([eurBalance(accountId, 1_700)]);
+      jest
+        .mocked(balances.instrumentBalancesByReferenceMonth)
+        .mockImplementation((_userId, month) => Promise.resolve([eurBalance(accountId, month.getUTCMonth() < 4 ? 1_200 : 1_700)]));
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map([[cashboxId, 300]]));
 
       const result = await service.getBalances(userId, 2026, now);
@@ -122,13 +116,11 @@ describe('ReportsService', () => {
         id: '88888888-8888-8888-8888-888888888888',
         name: 'Current',
         isActive: true,
-        initialBalance: 1_000,
         createdAt: new Date(Date.UTC(2026, 0, 1)),
       };
       accountFindMany.mockResolvedValue([account]);
       jest.mocked(balances.instrumentBalances).mockResolvedValue([eurBalance(account.id, 1_000)]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map());
-      jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(new Map());
       jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(new Map());
       jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([]);
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map());
@@ -145,19 +137,15 @@ describe('ReportsService', () => {
       const balances = balancesStub();
       const service = new ReportsService(prisma, balances);
       const accountId = '88888888-8888-8888-8888-888888888888';
-      const account = { id: accountId, name: 'Current', isActive: true, initialBalance: 0, createdAt: new Date(Date.UTC(2026, 7, 28)) };
+      const account = { id: accountId, name: 'Current', isActive: true, createdAt: new Date(Date.UTC(2026, 7, 28)) };
       accountFindMany.mockResolvedValue([account]);
       jest.mocked(balances.instrumentBalances).mockResolvedValue([eurBalance(accountId, 300_000)]);
       jest.mocked(balances.sumByCashbox).mockResolvedValue(new Map());
-      jest.mocked(balances.accountMovementsByReferenceMonth).mockResolvedValue(
-        new Map([
-          [new Date(Date.UTC(2026, 5, 1)).getTime(), new Map([[accountId, 50_000]])],
-          [new Date(Date.UTC(2026, 6, 1)).getTime(), new Map([[accountId, 100_000]])],
-          [new Date(Date.UTC(2026, 7, 1)).getTime(), new Map([[accountId, 150_000]])],
-        ]),
-      );
       jest.mocked(balances.cashboxMovementsByReferenceMonth).mockResolvedValue(new Map());
-      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockResolvedValue([eurBalance(accountId, 300_000)]);
+      jest.mocked(balances.instrumentBalancesByReferenceMonth).mockImplementation((_userId, month) => {
+        const cents = month.getUTCMonth() < 5 ? 0 : month.getUTCMonth() === 5 ? 50_000 : month.getUTCMonth() === 6 ? 150_000 : 300_000;
+        return Promise.resolve([eurBalance(accountId, cents)]);
+      });
       jest.mocked(balances.sumByCashboxReferenceMonth).mockResolvedValue(new Map());
 
       const result = await service.getBalances(userId, 2026, new Date(Date.UTC(2026, 7, 28)));

@@ -89,7 +89,7 @@ describe('Installments API (e2e)', () => {
     await removeFixtures();
 
     const [account, category] = await Promise.all([
-      prisma.account.create({ data: { userId, name: 'Conta', initialBalance: 0 }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Conta' }, select: { id: true } }),
       prisma.category.create({ data: { userId, name: 'Casa', kind: 'EXPENSE' }, select: { id: true } }),
     ]);
     accountId = account.id;
@@ -183,18 +183,9 @@ describe('Installments API (e2e)', () => {
       expect(leapYearPlan.installments.map((i) => i.settlementDate)).toEqual(['2028-01-31', '2028-02-29']);
     });
 
-    it('produces DRAFT installments when autoConfirm is false, and they are excluded from balances', async () => {
-      const balanceOf = async (): Promise<number> => {
-        const balances = (await authed('get', '/accounts/balances').expect(200)).body as { accountId: string; balance: number }[];
-        return balances.find((b) => b.accountId === accountId)!.balance;
-      };
-
-      const before = await balanceOf();
-
+    it('produces DRAFT installments when autoConfirm is false', async () => {
       const plan = await createPlan(validBody({ autoConfirm: false }));
       expect(plan.installments.every((i) => i.status === 'DRAFT')).toBe(true);
-
-      expect(await balanceOf()).toBe(before);
     });
 
     it('leaves no rule and no transaction when a request fails', async () => {

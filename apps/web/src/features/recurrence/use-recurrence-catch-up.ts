@@ -1,4 +1,9 @@
-import { getListAccountBalancesQueryKey, getListCashboxBalancesQueryKey, getListTransactionsQueryKey, useCatchUpRecurrences } from '@family-budget/api-client';
+import {
+  getListAccountInstrumentBalancesQueryKey,
+  getListCashboxBalancesQueryKey,
+  getListTransactionsQueryKey,
+  useCatchUpRecurrences,
+} from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +41,7 @@ export function useRecurrenceCatchUp(): void {
         if (result.created > 0) {
           toast.success(t('recurrence.catchUp.created', { count: result.created }));
           void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
-          void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getListAccountInstrumentBalancesQueryKey() });
           void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
           void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
         }

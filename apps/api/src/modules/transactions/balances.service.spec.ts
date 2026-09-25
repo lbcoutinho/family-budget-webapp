@@ -106,20 +106,6 @@ describe('BalancesService', () => {
   });
 
   describe('movements by reference month', () => {
-    it('keeps account transfers neutral in a monthly consolidated total', async () => {
-      const { prisma, groupBy } = prismaDouble();
-      const service = new BalancesService(prisma);
-      const month = new Date(Date.UTC(2026, 4, 1));
-
-      groupBy
-        .mockResolvedValueOnce([{ ...row(500), accountId, type: 'TRANSFER', referenceMonth: month }])
-        .mockResolvedValueOnce([{ ...row(500), destinationAccountId: otherAccountId, referenceMonth: month }]);
-
-      const movements = await service.accountMovementsByReferenceMonth(userId, 2026);
-
-      expect([...(movements.get(month.getTime()) ?? new Map<string, number>()).values()].reduce((total, amount) => total + amount, 0)).toBe(0);
-    });
-
     it('keeps cashbox transfers neutral in a monthly consolidated total', async () => {
       const { prisma, groupBy } = prismaDouble();
       const service = new BalancesService(prisma);

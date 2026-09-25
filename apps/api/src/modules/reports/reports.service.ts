@@ -195,12 +195,11 @@ export class ReportsService {
   async getBalances(userId: string, year: number, now: Date = new Date()): Promise<BalancesReportDto> {
     const cutoff = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const currentMonth = startOfMonthUtc(now);
-    const [accounts, cashboxes, accountBalances, cashboxSums, accountMovements, cashboxMovements, currentClose] = await Promise.all([
+    const [accounts, cashboxes, accountBalances, cashboxSums, cashboxMovements, currentClose] = await Promise.all([
       this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
       this.prisma.cashbox.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
       this.balances.instrumentBalances(userId, cutoff),
       this.balances.sumByCashbox(userId, cutoff),
-      this.balances.accountMovementsByReferenceMonth(userId, year),
       this.balances.cashboxMovementsByReferenceMonth(userId, year),
       this.getMonthlyBalance(userId, now.getUTCFullYear(), now.getUTCMonth() + 1),
     ]);
@@ -224,7 +223,7 @@ export class ReportsService {
       }))
       .filter((cashbox) => cashbox.isActive || cashbox.balance !== 0);
     const totalCashboxes = snapshotCashboxes.reduce((total, cashbox) => total + cashbox.balance, 0);
-    const months = this.balanceEvolution(year, accounts, cashboxes, accountMovements, cashboxMovements, currentMonth);
+    const months = await this.balanceEvolution(userId, year, cashboxes, cashboxMovements, currentMonth);
     const currentAccountingClose = currentClose.netWorth;
 
     return {
@@ -243,44 +242,38 @@ export class ReportsService {
     };
   }
 
-  private balanceEvolution(
+  private async balanceEvolution(
+    userId: string,
     year: number,
-    accounts: { id: string; initialBalance: number; createdAt: Date }[],
     cashboxes: { initialBalance: number; createdAt: Date }[],
-    accountMovements: Map<number, Map<string, number>>,
     cashboxMovements: Map<number, Map<string, number>>,
     currentMonth: Date,
-  ): BalancesReportDto['evolution']['months'] {
-    const accountSums = new Map<string, number>();
+  ): Promise<BalancesReportDto['evolution']['months']> {
     let cashboxMovementsTotal = 0;
     const janOfYear = new Date(Date.UTC(year, 0, 1)).getTime();
-    for (const [time, movements] of accountMovements) {
-      if (time >= janOfYear) continue;
-      for (const [accountId, amount] of movements) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
-    }
     for (const [time, movements] of cashboxMovements) {
       if (time < janOfYear) for (const amount of movements.values()) cashboxMovementsTotal += amount;
     }
-    return Array.from({ length: 12 }, (_, index) => {
+    const months: BalancesReportDto['evolution']['months'] = [];
+    for (let index = 0; index < 12; index += 1) {
       const month = new Date(Date.UTC(year, index, 1));
-      for (const [accountId, amount] of accountMovements.get(month.getTime()) ?? []) accountSums.set(accountId, (accountSums.get(accountId) ?? 0) + amount);
       for (const amount of cashboxMovements.get(month.getTime())?.values() ?? []) cashboxMovementsTotal += amount;
       const cashboxesTotal =
         cashboxMovementsTotal +
         cashboxes.reduce((total, cashbox) => total + (cashbox.createdAt < new Date(Date.UTC(year, index + 1, 1)) ? cashbox.initialBalance : 0), 0);
-      const accountsTotal = accounts.reduce(
-        (total, account) =>
-          total + (account.createdAt < new Date(Date.UTC(year, index + 1, 1)) ? account.initialBalance : 0) + (accountSums.get(account.id) ?? 0),
+      const accountsTotal = [...eurBalancesInCents(await this.balances.instrumentBalancesByReferenceMonth(userId, month)).values()].reduce(
+        (total, balance) => total + balance,
         0,
       );
-      return {
+      months.push({
         month: index + 1,
         accounts: accountsTotal,
         cashboxes: cashboxesTotal,
         netWorth: accountsTotal + cashboxesTotal,
         inProgress: month.getTime() === currentMonth.getTime(),
-      };
-    });
+      });
+    }
+    return months;
   }
 
   /**

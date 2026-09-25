@@ -61,11 +61,6 @@ export interface TransactionListItemDto {
      * @nullable
      */
   installmentTotal: number | null;
-  /**
-     * Source account balance in cents after this confirmed transaction in the complete chronological ledger. Null for drafts and cashbox transfers.
-     * @nullable
-     */
-  accountBalanceAfter: number | null;
   /** @nullable */
   account: ListRelationRefDto | null;
   /** @nullable */

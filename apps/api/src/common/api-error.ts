@@ -101,10 +101,6 @@ export class ApiErrorDto {
 
   @ApiProperty({ type: String, description: 'English, for logs and debugging. Clients render the `code`, never this.' })
   message!: string;
-
-  /** Present when the business rule needs the account's current balance, in integer cents. */
-  @ApiPropertyOptional({ type: Number, description: 'Current account balance in integer cents.' })
-  balance?: number;
   @ApiPropertyOptional({ type: String, description: 'Instrument that lacks available quantity.' })
   instrumentCode?: string;
   @ApiPropertyOptional({ type: String, description: 'Available exact quantity of the insufficient instrument.' })
@@ -116,11 +112,8 @@ export class ApiErrorDto {
 export const badRequest = (code: ErrorCode, message: string): BadRequestException =>
   new BadRequestException({ statusCode: HttpStatus.BAD_REQUEST, code, message } satisfies ApiErrorDto);
 
-export const conflict = (
-  code: ErrorCode,
-  message: string,
-  details: Pick<ApiErrorDto, 'balance' | 'instrumentCode' | 'availableQuantity'> = {},
-): ConflictException => new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
+export const conflict = (code: ErrorCode, message: string, details: Pick<ApiErrorDto, 'instrumentCode' | 'availableQuantity'> = {}): ConflictException =>
+  new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
 
 export const notFound = (code: ErrorCode, message: string): NotFoundException =>
   new NotFoundException({ statusCode: HttpStatus.NOT_FOUND, code, message } satisfies ApiErrorDto);

@@ -96,8 +96,8 @@ describe('Reports API (e2e)', () => {
     userId = user.id;
 
     const [account, otherAccount, cashbox, otherCashbox, incomeCategory, expenseCategory] = await Promise.all([
-      prisma.account.create({ data: { userId, name: 'Millennium', initialBalance: 1_000 }, select: { id: true } }),
-      prisma.account.create({ data: { userId, name: 'Poupança', initialBalance: 0 }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Millennium' }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Poupança' }, select: { id: true } }),
       prisma.cashbox.create({ data: { userId, name: 'Carro' }, select: { id: true } }),
       prisma.cashbox.create({ data: { userId, name: 'Férias' }, select: { id: true } }),
       prisma.category.create({ data: { userId, name: 'Salário', kind: CategoryKind.INCOME }, select: { id: true } }),

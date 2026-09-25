@@ -93,7 +93,7 @@ describe('Recurrence rules API (e2e)', () => {
     await removeFixtures();
 
     const [account, category] = await Promise.all([
-      prisma.account.create({ data: { userId, name: 'Conta', initialBalance: 0 }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Conta' }, select: { id: true } }),
       prisma.category.create({ data: { userId, name: 'Casa', kind: 'EXPENSE' }, select: { id: true } }),
     ]);
     accountId = account.id;
@@ -163,7 +163,7 @@ describe('Recurrence rules API (e2e)', () => {
     });
 
     it('rejects an inactive account with 400', async () => {
-      const inactiveAccount = await prisma.account.create({ data: { userId, name: 'Retired', initialBalance: 0, isActive: false }, select: { id: true } });
+      const inactiveAccount = await prisma.account.create({ data: { userId, name: 'Retired', isActive: false }, select: { id: true } });
 
       await authed('post', '/recurrence-rules')
         .send(validBody({ accountId: inactiveAccount.id }))
@@ -184,7 +184,7 @@ describe('Recurrence rules API (e2e)', () => {
 
     it('rejects a foreign accountId with 404', async () => {
       const foreignAccount = await prisma.account.create({
-        data: { userId: (await prisma.user.findUniqueOrThrow({ where: { email: emails[1]! }, select: { id: true } })).id, name: 'Not mine', initialBalance: 0 },
+        data: { userId: (await prisma.user.findUniqueOrThrow({ where: { email: emails[1]! }, select: { id: true } })).id, name: 'Not mine' },
         select: { id: true },
       });
 

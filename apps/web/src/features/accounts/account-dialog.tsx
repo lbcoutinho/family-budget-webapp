@@ -1,7 +1,7 @@
 import { type AccountDto, type AccountKind, useListFinancialInstitutions, useListInstruments } from '@family-budget/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
-import { useEffect, useState, type FocusEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
@@ -13,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
-import { formatCents, parseCurrencyInput } from '@/lib/money';
 
 // Module-level, like `login-page.tsx`'s schema: `t` does not exist here, so messages are keys.
 const accountSchema = z.object({
@@ -22,11 +21,6 @@ const accountSchema = z.object({
     .trim()
     .min(1, 'accounts.form.nameRequired' satisfies TranslationKey)
     .max(80, 'accounts.form.nameTooLong' satisfies TranslationKey),
-  // Blank is a legitimate zero (an account can open with nothing in it), not an error — only
-  // something that fails to parse at all is.
-  initialBalance: z
-    .string()
-    .refine((value) => value.trim() === '' || parseCurrencyInput(value) !== null, 'accounts.form.initialBalanceInvalid' satisfies TranslationKey),
   kind: z.enum(['BANK', 'BROKERAGE', 'EXCHANGE', 'WALLET', 'OTHER']),
   financialInstitutionId: z.string(),
 });
@@ -42,7 +36,6 @@ export interface AccountDialogProps {
   error: unknown;
   onSubmit: (values: {
     name: string;
-    initialBalance: number;
     kind: AccountKind;
     financialInstitutionId: string | null;
     initialBalances: { instrumentId: string; quantity: string }[];
@@ -67,7 +60,7 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
     formState: { errors },
   } = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { name: '', initialBalance: formatCents(0), kind: 'BANK', financialInstitutionId: 'none' },
+    defaultValues: { name: '', kind: 'BANK', financialInstitutionId: 'none' },
   });
   const kind = useWatch({ control, name: 'kind' });
   const financialInstitutionId = useWatch({ control, name: 'financialInstitutionId' });
@@ -78,7 +71,6 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
     if (open) {
       reset({
         name: account?.name ?? '',
-        initialBalance: formatCents(account?.initialBalance ?? 0),
         kind: account?.kind ?? 'BANK',
         financialInstitutionId: account?.financialInstitutionId ?? 'none',
       });
@@ -86,17 +78,8 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
   }, [open, account, reset]);
 
   const submit = handleSubmit((values) => {
-    const cents = values.initialBalance.trim() === '' ? 0 : parseCurrencyInput(values.initialBalance);
-
-    // The resolver already rejected anything else that parses to null, so this is unreachable in
-    // practice — it exists so the type below is `number`, not `number | null`.
-    if (cents === null) {
-      return;
-    }
-
     onSubmit({
       name: values.name.trim(),
-      initialBalance: cents,
       kind: values.kind,
       financialInstitutionId: values.financialInstitutionId === 'none' ? null : values.financialInstitutionId,
       initialBalances: initialBalances.filter((balance) => balance.instrumentId && balance.quantity.trim()),
@@ -203,34 +186,6 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="account-initial-balance">{t('accounts.form.initialBalance')}</Label>
-            <Input
-              id="account-initial-balance"
-              inputMode="decimal"
-              className="text-right tabular-nums"
-              aria-invalid={errors.initialBalance !== undefined}
-              aria-describedby={errors.initialBalance ? 'account-initial-balance-error' : undefined}
-              disabled={isPending}
-              {...register('initialBalance', {
-                // The whole "mask": re-format from the parsed cents once the user leaves the field,
-                // so `1234.56` becomes `1.234,56` without a masking library watching every keystroke.
-                onBlur: (event: FocusEvent<HTMLInputElement>) => {
-                  const cents = parseCurrencyInput(event.target.value);
-
-                  if (cents !== null) {
-                    setValue('initialBalance', formatCents(cents), { shouldValidate: true });
-                  }
-                },
-              })}
-            />
-            {errors.initialBalance ? (
-              <span id="account-initial-balance-error" className="text-xs text-destructive">
-                {t(errors.initialBalance.message as TranslationKey)}
-              </span>
-            ) : null}
           </div>
 
           {error !== undefined && error !== null && (

@@ -90,11 +90,11 @@ export async function seedUser(prisma: PrismaClient, credentials: SeedCredential
 
 /**
  * The sample accounts a development user starts with (M3-T01). Same names the prototypes use, so the
- * screens are read against the data they were drawn with. `initialBalance` is in cents.
+ * screens are read against the data they were drawn with. Initial EUR quantities are exact strings.
  */
 const SAMPLE_ACCOUNTS = [
-  { name: 'Millennium', initialBalance: 150_000, sortOrder: 1 },
-  { name: 'Revolut', initialBalance: 28_340, sortOrder: 2 },
+  { name: 'Millennium', initialBalance: '1500', sortOrder: 1 },
+  { name: 'Revolut', initialBalance: '283.4', sortOrder: 2 },
 ] as const;
 
 /**
@@ -102,10 +102,20 @@ const SAMPLE_ACCOUNTS = [
  * `update: {}` so a second run never resets a balance the user has since edited.
  */
 export async function seedAccounts(prisma: PrismaClient, userId: string): Promise<void> {
+  const eur = await prisma.instrument.upsert({
+    where: { userId_code: { userId, code: 'EUR' } },
+    create: { userId, name: 'Euro', code: 'EUR', type: 'FIAT' },
+    update: {},
+  });
   for (const account of SAMPLE_ACCOUNTS) {
     await prisma.account.upsert({
       where: { userId_name: { userId, name: account.name } },
-      create: { userId, ...account },
+      create: {
+        userId,
+        name: account.name,
+        sortOrder: account.sortOrder,
+        initialBalances: { create: { userId, instrumentId: eur.id, quantity: account.initialBalance } },
+      },
       update: {},
     });
   }

@@ -17,8 +17,6 @@ export interface AccountDto {
   /** @nullable */
   financialInstitutionName?: string | null;
   initialBalances?: AccountInitialBalanceDto[];
-  /** Balance before the first recorded transaction, in **cents** (ADR-0005). May be negative. */
-  initialBalance: number;
   /** Inactive accounts stay readable in history but are kept out of the pickers. */
   isActive: boolean;
   /** Position in the user's own ordering. Ties are broken by name. */

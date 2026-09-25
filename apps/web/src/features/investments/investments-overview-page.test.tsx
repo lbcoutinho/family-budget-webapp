@@ -53,7 +53,6 @@ const accounts: AccountDto[] = [
   {
     id: 'broker',
     name: 'Broker',
-    initialBalance: 0,
     isActive: true,
     sortOrder: 0,
     createdAt: '2026-01-01T00:00:00.000Z',

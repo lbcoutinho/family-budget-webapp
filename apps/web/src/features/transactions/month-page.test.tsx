@@ -1,5 +1,4 @@
 import {
-  type AccountBalanceDto,
   type BudgetDto,
   type CashboxBalanceDto,
   type MonthlyBalanceDto,
@@ -64,7 +63,6 @@ const CONFIRMED: TransactionListItemDto = {
   recurrenceRuleId: null,
   installmentNumber: null,
   installmentTotal: null,
-  accountBalanceAfter: 224870,
   account: { id: 'account-1', name: 'Millennium' },
   category: { id: 'category-1', name: 'Food', color: '#ef6c00' },
   subcategory: null,
@@ -76,7 +74,6 @@ const DRAFT: TransactionListItemDto = {
   status: TransactionStatus.DRAFT,
   description: 'Voice draft',
   isCreditCard: false,
-  accountBalanceAfter: null,
 };
 const RECURRING: TransactionListItemDto = { ...CONFIRMED, id: 'recurring-1', source: 'RECURRING', description: 'Rent' };
 const CASHBOX_TRANSFER: TransactionListItemDto = {
@@ -93,7 +90,6 @@ const CASHBOX_TRANSFER: TransactionListItemDto = {
   destinationCashboxLabel: 'Home repairs',
   account: null,
   category: null,
-  accountBalanceAfter: null,
 };
 const TRANSFER: TransactionListItemDto = {
   ...CONFIRMED,
@@ -111,7 +107,7 @@ function page(items: TransactionListItemDto[], overrides: Partial<TransactionLis
   return { items, total: items.length, incomeTotal: 0, expenseTotal: 12345, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null, ...overrides };
 }
 
-const ACCOUNT_BALANCES: AccountBalanceDto[] = [{ accountId: 'account-1', name: 'Millennium', isActive: true, initialBalance: 0, balance: 348215 }];
+const ACCOUNT_BALANCES = [{ accountId: 'account-1', name: 'Millennium', isActive: true, balance: 348215 }];
 const CASHBOX_BALANCES: CashboxBalanceDto[] = [{ cashboxId: 'cashbox-1', name: 'Holiday fund', isActive: true, targetAmount: null, balance: 415000 }];
 const MONTHLY_BALANCE: MonthlyBalanceDto = {
   year: 2026,
@@ -455,28 +451,6 @@ describe('MonthPage', () => {
     renderPage();
 
     expect(await screen.findAllByLabelText('Categoria ou subcategoria ausente')).toHaveLength(2);
-  });
-
-  it('shows a bare account balance with an accessible effective or projected label, and omits it when absent', async () => {
-    const future = {
-      ...CONFIRMED,
-      id: 'future',
-      description: 'Future income',
-      type: TransactionType.INCOME,
-      settlementDate: '2099-01-01',
-      accountBalanceAfter: 300000,
-    };
-    server.use(
-      http.get('/api/transactions', ({ request }) =>
-        HttpResponse.json(new URL(request.url).searchParams.get('status') === 'DRAFT' ? page([DRAFT]) : page([CONFIRMED, future, CASHBOX_TRANSFER])),
-      ),
-    );
-
-    renderPage();
-
-    expect(await screen.findByLabelText(`Saldo da conta após o lançamento: ${formatCents(224870)}`)).toHaveTextContent(formatCents(224870));
-    expect(screen.getByLabelText(`Saldo projetado da conta após o lançamento: ${formatCents(300000)}`)).toHaveTextContent(formatCents(300000));
-    expect(screen.queryByText('Saldo indisponível')).not.toBeInTheDocument();
   });
 
   it('confirms only draft rows, refreshes entries and balances, and removes the draft', async () => {

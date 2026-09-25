@@ -6,7 +6,6 @@ import { type Account, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
-import { AccountBalanceDto } from './dto/account-balance.dto';
 import { AccountInstrumentBalanceDto } from './dto/account-instrument-balance.dto';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -44,28 +43,8 @@ export class AccountsService {
   }
 
   async findOne(userId: string, id: string): Promise<AccountDto> {
-    const account = await this.load(userId, id);
-    return toDto(await this.prisma.account.findUniqueOrThrow({ where: { id: account.id }, include: accountInclude }));
-  }
-
-  /**
-   * `GET /accounts/balances` (M4-T07, #104). Every account, active or not — a retired account can
-   * still hold money, and hiding it would make the totals not add up. An account absent from the
-   * aggregated map (no confirmed transactions yet) reports its `initialBalance` unchanged.
-   */
-  async findBalances(userId: string, asOf?: Date): Promise<AccountBalanceDto[]> {
-    const [rows, sums] = await Promise.all([
-      this.prisma.account.findMany({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
-      this.balances.sumByAccount(userId, asOf),
-    ]);
-
-    return rows.map((account) => ({
-      accountId: account.id,
-      name: account.name,
-      isActive: account.isActive,
-      initialBalance: account.initialBalance,
-      balance: account.initialBalance + (sums.get(account.id) ?? 0),
-    }));
+    await this.load(userId, id);
+    return toDto(await this.prisma.account.findUniqueOrThrow({ where: { id }, include: accountInclude }));
   }
 
   async findInstrumentBalances(userId: string, asOf?: Date): Promise<AccountInstrumentBalanceDto[]> {
@@ -74,13 +53,12 @@ export class AccountsService {
 
   async create(userId: string, dto: CreateAccountDto): Promise<AccountDto> {
     await this.assertReferences(userId, dto.financialInstitutionId, dto.initialBalances);
-    const { initialBalances, ...data } = dto;
-    const balances = await this.withLegacyEur(userId, dto.initialBalance, initialBalances ?? []);
-    this.assertUniqueInstruments(balances);
+    const { initialBalances = [], ...data } = dto;
+    this.assertUniqueInstruments(initialBalances);
 
     return toDto(
       await this.prisma.account.create({
-        data: { ...data, userId, initialBalances: { create: balances.map((balance) => ({ ...balance, userId })) } },
+        data: { ...data, userId, initialBalances: { create: initialBalances.map((balance) => ({ ...balance, userId })) } },
         include: accountInclude,
       }),
     );
@@ -97,20 +75,11 @@ export class AccountsService {
         if (initialBalances !== undefined) {
           await tx.accountInitialBalance.deleteMany({ where: { accountId: id } });
         }
-        const balances = await this.withLegacyEur(userId, dto.initialBalance, initialBalances ?? [], tx);
-        if (initialBalances === undefined && dto.initialBalance !== undefined) {
-          const instrumentId = balances[0]!.instrumentId;
-          await tx.accountInitialBalance.upsert({
-            where: { accountId_instrumentId: { accountId: id, instrumentId } },
-            create: { userId, accountId: id, instrumentId, quantity: centsToQuantity(dto.initialBalance) },
-            update: { quantity: centsToQuantity(dto.initialBalance) },
-          });
-        }
         return tx.account.update({
           where: { id },
           data: {
             ...data,
-            ...(initialBalances === undefined ? {} : { initialBalances: { create: balances.map((balance) => ({ ...balance, userId })) } }),
+            ...(initialBalances === undefined ? {} : { initialBalances: { create: initialBalances.map((balance) => ({ ...balance, userId })) } }),
           },
           include: accountInclude,
         });
@@ -120,12 +89,12 @@ export class AccountsService {
 
   /** `PATCH /accounts/:id/activate` and `/deactivate`, which is how the UI's toggle is spelled. */
   async setActive(userId: string, id: string, isActive: boolean): Promise<AccountDto> {
-    const account = await this.load(userId, id);
+    await this.load(userId, id);
 
     if (!isActive) {
-      const balance = account.initialBalance + ((await this.balances.sumByAccount(userId)).get(id) ?? 0);
-      if (balance !== 0) {
-        throw conflict('ACCOUNT_NOT_EMPTY', `Account still holds ${balance} cents — zero it before deactivating.`, { balance });
+      const balances = await this.balances.instrumentBalances(userId);
+      if (balances.some((balance) => balance.accountId === id && !balance.quantity.isZero())) {
+        throw conflict('ACCOUNT_NOT_EMPTY', 'Account still holds Instrument Balances — zero them before deactivating.');
       }
     }
 
@@ -170,27 +139,6 @@ export class AccountsService {
     }
   }
 
-  private async eurInstrument(userId: string, client: Pick<PrismaService, 'instrument'> = this.prisma): Promise<string> {
-    const existing = await client.instrument.findFirst({ where: { userId, code: 'EUR' } });
-    if (existing) return existing.id;
-    return (await client.instrument.create({ data: { userId, name: 'Euro', code: 'EUR', type: 'FIAT' } })).id;
-  }
-
-  private async withLegacyEur(
-    userId: string,
-    initialBalance: number | undefined,
-    balances: NonNullable<CreateAccountDto['initialBalances']>,
-    client: Pick<PrismaService, 'instrument'> = this.prisma,
-  ): Promise<NonNullable<CreateAccountDto['initialBalances']>> {
-    if (initialBalance === undefined) return balances;
-    const instrumentId = await this.eurInstrument(userId, client);
-    const quantity = centsToQuantity(initialBalance);
-    const existing = balances.findIndex((balance) => balance.instrumentId === instrumentId);
-    return existing < 0
-      ? [...balances, { instrumentId, quantity }]
-      : balances.map((balance, index) => (index === existing ? { ...balance, quantity } : balance));
-  }
-
   /**
    * `includeInactive` opens the list up completely; `includeId` opens it for exactly one row, which
    * is what an edit form for an older transaction needs so the account it already points at stays
@@ -226,16 +174,9 @@ function toDto(account: AccountRow): AccountDto {
       instrumentName: balance.instrument.name,
       instrumentCode: balance.instrument.code,
     })),
-    initialBalance: account.initialBalance,
     isActive: account.isActive,
     sortOrder: account.sortOrder,
     createdAt: account.createdAt.toISOString(),
     updatedAt: account.updatedAt.toISOString(),
   };
-}
-
-function centsToQuantity(cents: number): string {
-  const sign = cents < 0 ? '-' : '';
-  const value = String(Math.abs(cents));
-  return `${sign}${value.slice(0, -2) || '0'}.${value.slice(-2).padStart(2, '0')}`;
 }

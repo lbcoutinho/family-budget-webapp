@@ -118,10 +118,11 @@ describe('Accounts API (e2e)', () => {
         .expect(409);
     });
 
-    it('creates an account and hands back the defaults', async () => {
-      const created = await createAccount({ name: 'Millennium', initialBalance: 150_000 });
+    it('creates an account with Instrument Balances only', async () => {
+      const created = await createAccount({ name: 'Millennium' });
 
-      expect(created).toMatchObject({ name: 'Millennium', initialBalance: 150_000, isActive: true, sortOrder: 0 });
+      expect(created).toMatchObject({ name: 'Millennium', initialBalances: [], isActive: true, sortOrder: 0 });
+      expect(created).not.toHaveProperty('initialBalance');
       expect(created.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       // The tenancy column is never part of the response body.
       expect(created).not.toHaveProperty('userId');
@@ -141,8 +142,8 @@ describe('Accounts API (e2e)', () => {
 
     it.each([
       ['an empty name', { name: '   ' }],
-      ['a missing name', { initialBalance: 10 }],
-      ['a fractional balance', { name: 'Millennium', initialBalance: 10.5 }],
+      ['a missing name', {}],
+      ['the removed scalar initial balance', { name: 'Millennium', initialBalance: 10 }],
       ['a field that does not exist', { name: 'Millennium', userId: 'someone-else' }],
     ])('rejects %s with 400', async (_case, body) => {
       await authed('post', '/accounts').send(body).expect(400);
@@ -207,12 +208,17 @@ describe('Accounts API (e2e)', () => {
   describe('Instrument balances', () => {
     it('returns exact native quantities, adding confirmed legacy Transactions to EUR only', async () => {
       const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
-      const bitcoin = await prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } });
+      const [eur, bitcoin] = await Promise.all([
+        prisma.instrument.create({ data: { userId: user.id, name: 'Euro', code: 'EUR', type: 'FIAT' } }),
+        prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } }),
+      ]);
       const date = new Date('2026-09-01T00:00:00.000Z');
       const account = await createAccount({
         name: 'Kraken',
-        initialBalance: 10_000,
-        initialBalances: [{ instrumentId: bitcoin.id, quantity: '0.010000000000000001' }],
+        initialBalances: [
+          { instrumentId: eur.id, quantity: '100' },
+          { instrumentId: bitcoin.id, quantity: '0.010000000000000001' },
+        ],
       });
       await prisma.account.update({ where: { id: account.id }, data: { createdAt: date } });
       await prisma.transaction.createMany({
@@ -251,11 +257,12 @@ describe('Accounts API (e2e)', () => {
     });
 
     it('applies a partial update', async () => {
-      const created = await createAccount({ name: 'Millennium', initialBalance: 150_000 });
+      const created = await createAccount({ name: 'Millennium' });
 
       const updated = (await authed('patch', `/accounts/${created.id}`).send({ name: 'Millennium BCP' }).expect(200)).body as AccountDto;
 
-      expect(updated).toMatchObject({ name: 'Millennium BCP', initialBalance: 150_000 });
+      expect(updated).toMatchObject({ name: 'Millennium BCP' });
+      expect(updated).not.toHaveProperty('initialBalance');
     });
 
     it('rejects renaming onto a name the user already uses', async () => {

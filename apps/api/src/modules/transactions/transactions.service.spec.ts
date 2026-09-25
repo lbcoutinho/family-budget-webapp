@@ -342,7 +342,7 @@ describe('TransactionsService', () => {
       expect(result.nextCursor).toBeNull();
     });
 
-    it('returns balances from the complete chronological ledger for transfers and cashbox operations, independent of the requested sort', async () => {
+    it('does not expose a scalar balance alongside the transaction list', async () => {
       doubled.transaction.findMany
         .mockResolvedValueOnce([
           row({ id: 'income', type: 'INCOME', amount: 100_000, accountId }),
@@ -362,25 +362,9 @@ describe('TransactionsService', () => {
           row({ id: 'cashbox-out', type: 'CASHBOX_OUT', amount: 2_000, accountId }),
           row({ id: 'cashbox-transfer', type: 'CASHBOX_TRANSFER', amount: 1_000, accountId: null }),
         ]);
-      (doubled.prisma as unknown as { account: { findMany: jest.Mock } }).account.findMany.mockResolvedValue([
-        { id: accountId, initialBalance: 10_000 },
-        { id: destinationAccountId, initialBalance: 0 },
-      ]);
-
       const result = await service.findAll(userId, listQuery({ sort: TransactionSort.AMOUNT_HIGHEST }));
 
-      expect(result.items.map(({ id, accountBalanceAfter }) => ({ id, accountBalanceAfter }))).toEqual([
-        { id: 'income', accountBalanceAfter: 110_000 },
-        { id: 'expense', accountBalanceAfter: 60_000 },
-        { id: 'transfer', accountBalanceAfter: 50_000 },
-        { id: 'destination-expense', accountBalanceAfter: 8_000 },
-        { id: 'cashbox-in', accountBalanceAfter: 45_000 },
-        { id: 'cashbox-out', accountBalanceAfter: 47_000 },
-        { id: 'cashbox-transfer', accountBalanceAfter: null },
-      ]);
-      expect(doubled.transaction.findMany).toHaveBeenLastCalledWith(
-        expect.objectContaining({ where: { userId, status: 'CONFIRMED' }, orderBy: [{ settlementDate: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] }),
-      );
+      expect(result.items).not.toHaveProperty('0.accountBalanceAfter');
     });
 
     it('derives total/incomeTotal/expenseTotal/cashboxInTotal/cashboxOutTotal from the groupBy result, defaulting an absent type to 0', async () => {

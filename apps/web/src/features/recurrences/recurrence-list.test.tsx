@@ -9,7 +9,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 const ACCOUNT: AccountDto = {
   id: 'acc-1',
   name: 'Millennium',
-  initialBalance: 0,
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',

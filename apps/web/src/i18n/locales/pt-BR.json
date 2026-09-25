@@ -115,15 +115,13 @@
       "namePlaceholder": "Millennium",
       "nameRequired": "Informe o nome da conta.",
       "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
-      "initialBalance": "Saldo inicial",
       "kind": "Tipo de conta",
       "institution": "Instituição financeira",
       "selfCustody": "Autocustódia",
       "instrumentBalances": "Saldos iniciais por instrumento",
       "instrument": "Instrumento",
       "quantity": "Quantidade",
-      "addInstrument": "Adicionar instrumento",
-      "initialBalanceInvalid": "Informe um valor válido."
+      "addInstrument": "Adicionar instrumento"
     },
     "kinds": { "BANK": "Banco", "BROKERAGE": "Corretora", "EXCHANGE": "Exchange", "WALLET": "Carteira", "OTHER": "Outro" },
     "deactivate": {
@@ -585,8 +583,6 @@
     "recurringInstallment": "Lançamento recorrente, parcela {{index}} de {{total}}",
     "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "compra em {{date}}",
-    "accountBalanceAfter": "Saldo da conta após o lançamento: {{amount}}",
-    "projectedAccountBalanceAfter": "Saldo projetado da conta após o lançamento: {{amount}}",
     "dailyExpense": {
       "title": "Despesas dia a dia",
       "caption": "altura = quanto saiu · cada cor = uma categoria daquele dia",

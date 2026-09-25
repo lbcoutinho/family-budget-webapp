@@ -299,7 +299,6 @@ function EntryMeta({
 }
 
 function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
-  const { t } = useTranslation();
   const neutral = entry.type === TransactionType.TRANSFER || entry.type === TransactionType.CASHBOX_TRANSFER;
   const amount = neutral ? entry.amount : transactionAmount(entry);
   const tone =
@@ -311,21 +310,7 @@ function EntryAmount({ entry }: { entry: TransactionListItemDto }) {
           ? 'text-transfer'
           : 'text-cashbox';
 
-  return (
-    <span className={`num block whitespace-nowrap text-sm font-medium ${tone}`}>
-      {formatCents(amount, { sign: !neutral })}
-      {entry.accountBalanceAfter !== null ? (
-        <small
-          aria-label={t(localDate(entry.settlementDate) > new Date() ? 'transactions.projectedAccountBalanceAfter' : 'transactions.accountBalanceAfter', {
-            amount: formatCents(entry.accountBalanceAfter),
-          })}
-          className="mt-0.5 block text-report-caption font-normal text-muted-foreground"
-        >
-          {formatCents(entry.accountBalanceAfter)}
-        </small>
-      ) : null}
-    </span>
-  );
+  return <span className={`num block whitespace-nowrap text-sm font-medium ${tone}`}>{formatCents(amount, { sign: !neutral })}</span>;
 }
 
 function EntriesSkeleton() {

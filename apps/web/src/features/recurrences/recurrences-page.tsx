@@ -1,6 +1,6 @@
 import {
   type RecurrenceRuleDto,
-  getListAccountBalancesQueryKey,
+  getListAccountInstrumentBalancesQueryKey,
   getListCashboxBalancesQueryKey,
   getGetRecurrenceRuleQueryKey,
   getListRecurrenceRulesQueryKey,
@@ -118,7 +118,7 @@ export function RecurrencesPage() {
           invalidate();
           void queryClient.invalidateQueries({ queryKey: getGetRecurrenceRuleQueryKey(rule.id) });
           void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
-          void queryClient.invalidateQueries({ queryKey: getListAccountBalancesQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getListAccountInstrumentBalancesQueryKey() });
           void queryClient.invalidateQueries({ queryKey: getListCashboxBalancesQueryKey() });
           void queryClient.invalidateQueries({ queryKey: getDailyExpensesQueryKey() });
           if (result.created > 0) {

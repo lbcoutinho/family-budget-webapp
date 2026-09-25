@@ -20,7 +20,6 @@ const account = (overrides: Partial<Account> = {}): Account => ({
   id: accountId,
   userId,
   name: 'Conta corrente',
-  initialBalance: 0,
   kind: 'BANK',
   financialInstitutionId: null,
   isActive: true,

@@ -98,7 +98,7 @@ describe('Cashboxes API (e2e)', () => {
   // transactions below need is recreated right after.
   beforeEach(async () => {
     await removeFixtures();
-    accountId = (await prisma.account.create({ data: { userId, name: 'Conta', initialBalance: 0 }, select: { id: true } })).id;
+    accountId = (await prisma.account.create({ data: { userId, name: 'Conta' }, select: { id: true } })).id;
   });
 
   afterAll(async () => {
