@@ -295,7 +295,6 @@ export function CashboxOperationDialog({ open, onOpenChange, transaction }: Cash
             recurrenceRuleId: null,
             installmentNumber: null,
             installmentTotal: null,
-            accountBalanceAfter: null,
             account: accounts.find((account) => account.id === data.accountId) ?? null,
             category: null,
             subcategory: null,

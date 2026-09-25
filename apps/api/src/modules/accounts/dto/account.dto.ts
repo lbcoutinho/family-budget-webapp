@@ -31,9 +31,6 @@ export class AccountDto {
   @ApiProperty({ type: [AccountInitialBalanceDto], required: false })
   initialBalances?: AccountInitialBalanceDto[];
 
-  @ApiProperty({ type: Number, example: 150000, description: 'Balance before the first recorded transaction, in **cents** (ADR-0005). May be negative.' })
-  initialBalance!: number;
-
   @ApiProperty({ type: Boolean, example: true, description: 'Inactive accounts stay readable in history but are kept out of the pickers.' })
   isActive!: boolean;
 

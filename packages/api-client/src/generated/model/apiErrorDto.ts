@@ -13,8 +13,6 @@ export interface ApiErrorDto {
   code: ApiErrorDtoCode;
   /** English, for logs and debugging. Clients render the `code`, never this. */
   message: string;
-  /** Current account balance in integer cents. */
-  balance?: number;
   /** Instrument that lacks available quantity. */
   instrumentCode?: string;
   /** Available exact quantity of the insufficient instrument. */

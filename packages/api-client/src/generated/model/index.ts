@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export * from './accountBalanceDto';
 export * from './accountDto';
 export * from './accountInitialBalanceDto';
 export * from './accountInstrumentBalanceDto';
@@ -73,7 +72,6 @@ export * from './instrumentDto';
 export * from './instrumentType';
 export * from './investmentPositionDto';
 export * from './investmentTradeDto';
-export * from './listAccountBalancesParams';
 export * from './listAccountInstrumentBalancesParams';
 export * from './listAccountsParams';
 export * from './listAssetListingsParams';

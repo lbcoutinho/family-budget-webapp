@@ -141,7 +141,6 @@ describe('ReportsPage — yearly view', () => {
       http.get('/api/accounts', () => HttpResponse.json([])),
       http.get('/api/categories', () => HttpResponse.json([])),
       http.get('/api/cashboxes', () => HttpResponse.json([])),
-      http.get('/api/accounts/balances', () => HttpResponse.json([])),
       http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
       http.get('/api/transactions', () =>
         HttpResponse.json({ items: [], total: 0, incomeTotal: 0, expenseTotal: 0, cashboxInTotal: 0, cashboxOutTotal: 0, nextCursor: null }),

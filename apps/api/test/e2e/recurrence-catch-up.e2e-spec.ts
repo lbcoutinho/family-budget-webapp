@@ -73,7 +73,7 @@ describe('Recurrence catch-up (e2e)', () => {
     await removeFixtures();
 
     const [account, category] = await Promise.all([
-      prisma.account.create({ data: { userId, name: 'Conta', initialBalance: 0 }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Conta' }, select: { id: true } }),
       prisma.category.create({ data: { userId, name: 'Casa', kind: 'EXPENSE' }, select: { id: true } }),
     ]);
     accountId = account.id;

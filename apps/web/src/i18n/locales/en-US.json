@@ -115,15 +115,13 @@
       "namePlaceholder": "Millennium",
       "nameRequired": "Enter the account's name.",
       "nameTooLong": "The name can have at most 80 characters.",
-      "initialBalance": "Initial balance",
       "kind": "Account type",
       "institution": "Financial institution",
       "selfCustody": "Self-custody",
       "instrumentBalances": "Instrument initial balances",
       "instrument": "Instrument",
       "quantity": "Quantity",
-      "addInstrument": "Add instrument",
-      "initialBalanceInvalid": "Enter a valid amount."
+      "addInstrument": "Add instrument"
     },
     "kinds": { "BANK": "Bank", "BROKERAGE": "Brokerage", "EXCHANGE": "Exchange", "WALLET": "Wallet", "OTHER": "Other" },
     "deactivate": {
@@ -584,8 +582,6 @@
     "recurringInstallment": "Recurring entry, installment {{index}} of {{total}}",
     "installmentOf": "{{index}}/{{total}}",
     "purchaseOn": "purchased on {{date}}",
-    "accountBalanceAfter": "Account balance after transaction: {{amount}}",
-    "projectedAccountBalanceAfter": "Projected account balance after transaction: {{amount}}",
     "dailyExpense": {
       "title": "Daily expenses",
       "caption": "height = amount spent · each colour = a category from that day",

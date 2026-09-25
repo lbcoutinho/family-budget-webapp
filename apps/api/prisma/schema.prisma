@@ -111,9 +111,6 @@ model Account {
   /// Owner. Every domain entity carries it (ADR-0006), and every query filters by it.
   userId         String   @map("user_id") @db.Uuid
   name           String
-  /// Balance the account already held before the first recorded transaction, in **cents**
-  /// (ADR-0005) — never a Float. May be negative, e.g. an overdrawn account.
-  initialBalance Int      @default(0) @map("initial_balance")
   kind           AccountKind @default(BANK)
   financialInstitutionId String? @map("financial_institution_id") @db.Uuid
   isActive       Boolean  @default(true) @map("is_active")

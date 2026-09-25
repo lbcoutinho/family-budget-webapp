@@ -21,15 +21,6 @@ class ListCategoryRefDto extends ListRelationRefDto {
  * `cashbox` likewise stays collapsed since `cashboxLabel` is already the ADR-0019 snapshot.
  */
 export class TransactionListItemDto extends TransactionDto {
-  @ApiProperty({
-    type: Number,
-    nullable: true,
-    example: 110_000,
-    description:
-      'Source account balance in cents after this confirmed transaction in the complete chronological ledger. Null for drafts and cashbox transfers.',
-  })
-  accountBalanceAfter!: number | null;
-
   @ApiProperty({ type: ListRelationRefDto, nullable: true })
   account!: ListRelationRefDto | null;
 

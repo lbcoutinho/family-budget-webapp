@@ -185,7 +185,6 @@ describe('ReportsPage — monthly view', () => {
       http.get('/api/accounts', () => HttpResponse.json([])),
       http.get('/api/categories', () => HttpResponse.json([])),
       http.get('/api/cashboxes', () => HttpResponse.json([])),
-      http.get('/api/accounts/balances', () => HttpResponse.json([])),
       http.get('/api/cashboxes/balances', () => HttpResponse.json([])),
       http.get('/api/transactions', ({ request }) => {
         requests.push(new URL(request.url));

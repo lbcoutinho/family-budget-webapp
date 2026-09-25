@@ -8,13 +8,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { AccountsPage } from './accounts-page';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { formatCents } from '@/lib/money';
 import { server } from '@/test/server';
 
 const ACTIVE: AccountDto = {
   id: 'a1',
   name: 'Millennium',
-  initialBalance: 348215,
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -24,7 +22,6 @@ const ACTIVE: AccountDto = {
 const INACTIVE: AccountDto = {
   id: 'a2',
   name: 'Activobank',
-  initialBalance: 0,
   isActive: false,
   sortOrder: 1,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -122,8 +119,8 @@ describe('AccountsPage', () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json(accounts)),
       http.post('/api/accounts', async ({ request }) => {
-        const body = (await request.json()) as { name: string; initialBalance: number };
-        const created = { ...ACTIVE, id: 'a3', name: body.name, initialBalance: body.initialBalance };
+        const body = (await request.json()) as { name: string };
+        const created = { ...ACTIVE, id: 'a3', name: body.name };
         accounts = [...accounts, created];
 
         return HttpResponse.json(created);
@@ -146,8 +143,8 @@ describe('AccountsPage', () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([current])),
       http.patch('/api/accounts/:id', async ({ request }) => {
-        const body = (await request.json()) as { name: string; initialBalance: number };
-        current = { ...current, name: body.name, initialBalance: body.initialBalance };
+        const body = (await request.json()) as { name: string };
+        current = { ...current, name: body.name };
 
         return HttpResponse.json(current);
       }),
@@ -189,11 +186,11 @@ describe('AccountsPage', () => {
     });
   });
 
-  it('shows the formatted balance and keeps the account active when deactivation is blocked', async () => {
+  it('shows the API error and keeps the account active when deactivation is blocked', async () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([ACTIVE])),
       http.patch('/api/accounts/:id/deactivate', () =>
-        HttpResponse.json({ statusCode: 409, code: 'ACCOUNT_NOT_EMPTY', message: 'Account still holds 348215 cents.', balance: 348215 }, { status: 409 }),
+        HttpResponse.json({ statusCode: 409, code: 'ACCOUNT_NOT_EMPTY', message: 'Account still holds Instrument Balances.' }, { status: 409 }),
       ),
     );
 
@@ -204,7 +201,7 @@ describe('AccountsPage', () => {
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Desativar' }));
 
-    expect(await within(dialog).findByText(`O saldo da conta é ${formatCents(348215)}. Zere a conta antes de desativá-la.`)).toBeInTheDocument();
+    expect(await within(dialog).findByText('A conta ainda tem saldo. Zere-a antes de desativar.')).toBeInTheDocument();
     expect(screen.getByText('Millennium')).toBeInTheDocument();
   });
 

@@ -16,7 +16,6 @@ const row = (overrides: Partial<Account> = {}): AccountRow => ({
   id: accountId,
   userId,
   name: 'Millennium',
-  initialBalance: 150_000,
   kind: 'BANK',
   financialInstitutionId: null,
   isActive: true,
@@ -53,14 +52,14 @@ const prismaDouble = (): {
 describe('AccountsService', () => {
   let service: AccountsService;
   let account: ReturnType<typeof prismaDouble>['account'];
-  let sumByAccount: jest.Mock;
+  let instrumentBalances: jest.Mock;
 
   beforeEach(() => {
     const double = prismaDouble();
 
     account = double.account;
-    sumByAccount = jest.fn().mockResolvedValue(new Map<string, number>());
-    service = new AccountsService(double.prisma, { sumByAccount } as unknown as BalancesService);
+    instrumentBalances = jest.fn().mockResolvedValue([]);
+    service = new AccountsService(double.prisma, { instrumentBalances } as unknown as BalancesService);
   });
 
   describe('findAll', () => {
@@ -71,7 +70,6 @@ describe('AccountsService', () => {
         expect.objectContaining({
           id: accountId,
           name: 'Millennium',
-          initialBalance: 150_000,
           isActive: true,
           sortOrder: 0,
           createdAt: '2026-07-01T10:00:00.000Z',
@@ -114,29 +112,6 @@ describe('AccountsService', () => {
     });
   });
 
-  describe('findBalances', () => {
-    it('adds initialBalance to the aggregated sum, including inactive accounts and accounts with no transactions', async () => {
-      const untouchedId = '44444444-4444-4444-4444-444444444444';
-      account.findMany.mockResolvedValue([row(), row({ id: untouchedId, isActive: false, initialBalance: 0 })]);
-      sumByAccount.mockResolvedValue(new Map([[accountId, 32_400]]));
-
-      await expect(service.findBalances(userId)).resolves.toEqual([
-        { accountId, name: 'Millennium', isActive: true, initialBalance: 150_000, balance: 182_400 },
-        { accountId: untouchedId, name: 'Millennium', isActive: false, initialBalance: 0, balance: 0 },
-      ]);
-      expect(account.findMany).toHaveBeenCalledWith({ where: { userId }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] });
-    });
-
-    it('passes asOf through to the aggregation', async () => {
-      const asOf = new Date('2026-08-31T00:00:00.000Z');
-      account.findMany.mockResolvedValue([]);
-
-      await service.findBalances(userId, asOf);
-
-      expect(sumByAccount).toHaveBeenCalledWith(userId, asOf);
-    });
-  });
-
   describe('ownership', () => {
     it.each([
       ['findOne', () => service.findOne(userId, accountId)],
@@ -161,7 +136,7 @@ describe('AccountsService', () => {
   it('creates with the userId from the token, never from the body', async () => {
     account.create.mockResolvedValue(row());
 
-    await service.create(userId, { name: 'Millennium', initialBalance: 150_000 });
+    await service.create(userId, { name: 'Millennium' });
 
     expect(account.create).toHaveBeenCalled();
   });
@@ -179,16 +154,16 @@ describe('AccountsService', () => {
     account.update.mockResolvedValue(row({ isActive: true }));
 
     await expect(service.setActive(userId, accountId, true)).resolves.toMatchObject({ isActive: true });
-    expect(sumByAccount).not.toHaveBeenCalled();
+    expect(instrumentBalances).not.toHaveBeenCalled();
     expect(account.update).toHaveBeenCalled();
   });
 
   it('deactivates an account with a zero confirmed balance', async () => {
-    account.findUnique.mockResolvedValue(row({ initialBalance: 0 }));
-    account.update.mockResolvedValue(row({ initialBalance: 0, isActive: false }));
+    account.findUnique.mockResolvedValue(row());
+    account.update.mockResolvedValue(row({ isActive: false }));
 
     await expect(service.setActive(userId, accountId, false)).resolves.toMatchObject({ isActive: false });
-    expect(sumByAccount).toHaveBeenCalledWith(userId);
+    expect(instrumentBalances).toHaveBeenCalledWith(userId);
     expect(account.update).toHaveBeenCalled();
   });
 
@@ -196,11 +171,11 @@ describe('AccountsService', () => {
     ['positive', 1_000],
     ['negative', -1_000],
   ])('refuses to deactivate an account with a %s confirmed balance', async (_name, balance) => {
-    account.findUnique.mockResolvedValue(row({ initialBalance: 0 }));
-    sumByAccount.mockResolvedValue(new Map([[accountId, balance]]));
+    account.findUnique.mockResolvedValue(row());
+    instrumentBalances.mockResolvedValue([{ accountId, quantity: { isZero: () => balance === 0 } }]);
 
     await expect(service.setActive(userId, accountId, false)).rejects.toMatchObject({
-      response: { code: 'ACCOUNT_NOT_EMPTY', balance },
+      response: { code: 'ACCOUNT_NOT_EMPTY' },
     });
     expect(account.update).not.toHaveBeenCalled();
   });

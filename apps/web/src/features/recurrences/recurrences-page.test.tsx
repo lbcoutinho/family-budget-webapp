@@ -2,7 +2,7 @@ import {
   type AccountDto,
   type CategoryDto,
   type RecurrenceRuleDto,
-  getListAccountBalancesQueryKey,
+  getListAccountInstrumentBalancesQueryKey,
   getListCashboxBalancesQueryKey,
   getListTransactionsQueryKey,
 } from '@family-budget/api-client';
@@ -22,7 +22,6 @@ import { server } from '@/test/server';
 const ACCOUNT: AccountDto = {
   id: 'acc-1',
   name: 'Millennium',
-  initialBalance: 0,
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -177,7 +176,7 @@ describe('RecurrencesPage', () => {
     expect(await screen.findByText('3 lançamentos criados')).toBeInTheDocument();
     await waitFor(() => {
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListTransactionsQueryKey() });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListAccountBalancesQueryKey() });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListAccountInstrumentBalancesQueryKey() });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getListCashboxBalancesQueryKey() });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: getDailyExpensesQueryKey() });
     });

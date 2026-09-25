@@ -13,7 +13,6 @@ import { server } from '@/test/server';
 const ACCOUNT: AccountDto = {
   id: 'acc-1',
   name: 'Revolut',
-  initialBalance: 0,
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',

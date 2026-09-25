@@ -179,27 +179,6 @@ export class BalancesService {
     return this.sumByCashboxWhere({ userId, status: 'CONFIRMED', referenceMonth: { lte: referenceMonth } });
   }
 
-  /** Confirmed account movements by accounting month through December of `year`. */
-  async accountMovementsByReferenceMonth(userId: string, year: number): Promise<Map<number, Map<string, number>>> {
-    const where: Prisma.TransactionWhereInput = { userId, status: 'CONFIRMED', referenceMonth: { lte: new Date(Date.UTC(year, 11, 1)) } };
-    const [source, destination] = await this.prisma.$transaction((tx) =>
-      Promise.all([
-        tx.transaction.groupBy({
-          by: ['accountId', 'type', 'referenceMonth'],
-          _sum: { amount: true },
-          where: { ...where, accountId: { not: null } },
-        }),
-        tx.transaction.groupBy({
-          by: ['destinationAccountId', 'referenceMonth'],
-          _sum: { amount: true },
-          where: { ...where, type: 'TRANSFER' },
-        }),
-      ]),
-    );
-
-    return movementsByMonth(source, destination, 'accountId', 'destinationAccountId', ACCOUNT_SIGN);
-  }
-
   /** Confirmed cashbox movements by accounting month through December of `year`. */
   async cashboxMovementsByReferenceMonth(userId: string, year: number): Promise<Map<number, Map<string, number>>> {
     const where: Prisma.TransactionWhereInput = { userId, status: 'CONFIRMED', referenceMonth: { lte: new Date(Date.UTC(year, 11, 1)) } };

@@ -15,8 +15,6 @@ export interface UpdateAccountDto {
   /** @nullable */
   financialInstitutionId?: string | null;
   initialBalances?: CreateAccountInitialBalanceDto[];
-  /** Balance the account already held, in **cents** (ADR-0005) — never a decimal. May be negative. */
-  initialBalance?: number;
   isActive?: boolean;
   /** Position in the user's own ordering of the list. */
   sortOrder?: number;

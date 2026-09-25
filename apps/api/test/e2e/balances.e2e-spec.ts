@@ -7,14 +7,13 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
 import { type Prisma, type TransactionType } from '../../src/generated/prisma/client';
-import { type AccountBalanceDto } from '../../src/modules/accounts/dto/account-balance.dto';
 import { type SessionDto } from '../../src/modules/auth/dto/session.dto';
 import { HashService } from '../../src/modules/auth/hash.service';
 import { type CashboxBalanceDto } from '../../src/modules/cashboxes/dto/cashbox-balance.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /**
- * `GET /accounts/balances` and `GET /cashboxes/balances` (M4-T07, #104), over the real request
+ * `GET /cashboxes/balances` (M4-T07, #104), over the real request
  * pipeline and a real database. Fixtures are seeded through Prisma directly rather than through the
  * transaction endpoint — the point of this suite is the aggregation, not the write path, and
  * `CASHBOX_TRANSFER`/`TRANSFER` seeded this way don't need the create-side validation to pass.
@@ -27,7 +26,6 @@ describe('Balances API (e2e)', () => {
   let prisma: PrismaService;
 
   let token: string;
-  let otherToken: string;
   let userId: string;
   let accountId: string;
   let otherAccountId: string;
@@ -74,12 +72,9 @@ describe('Balances API (e2e)', () => {
       await prisma.user.upsert({ where: { email }, create: { email, name: 'Balances E2E', passwordHash }, update: { passwordHash } });
     }
 
-    const [session, otherSession] = await Promise.all(
-      emails.map(async (email) => (await request(server).post('/api/auth/login').send({ email, password }).expect(200)).body as SessionDto),
-    );
+    const session = (await request(server).post('/api/auth/login').send({ email: emails[0], password }).expect(200)).body as SessionDto;
 
-    token = session!.accessToken;
-    otherToken = otherSession!.accessToken;
+    token = session.accessToken;
   });
 
   beforeEach(async () => {
@@ -96,9 +91,9 @@ describe('Balances API (e2e)', () => {
     });
 
     const [account, otherAccount, inactiveAccount, cashbox, otherCashbox, inactiveCashbox] = await Promise.all([
-      prisma.account.create({ data: { userId, name: 'Millennium', initialBalance: 1_000 }, select: { id: true } }),
-      prisma.account.create({ data: { userId, name: 'Poupança', initialBalance: 0 }, select: { id: true } }),
-      prisma.account.create({ data: { userId, name: 'Encerrada', isActive: false, initialBalance: 500 }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Millennium' }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Poupança' }, select: { id: true } }),
+      prisma.account.create({ data: { userId, name: 'Encerrada', isActive: false }, select: { id: true } }),
       prisma.cashbox.create({ data: { userId, name: 'Carro' }, select: { id: true } }),
       prisma.cashbox.create({ data: { userId, name: 'Férias' }, select: { id: true } }),
       prisma.cashbox.create({ data: { userId, name: 'Aposentado', isActive: false }, select: { id: true } }),
@@ -129,83 +124,7 @@ describe('Balances API (e2e)', () => {
   });
 
   it('answers 401 without a token', async () => {
-    await request(server).get('/api/accounts/balances').expect(401);
     await request(server).get('/api/cashboxes/balances').expect(401);
-  });
-
-  describe('accounts', () => {
-    it('sums every one of the 6 transaction types to an exact cents figure', async () => {
-      await Promise.all([
-        seed({ type: 'INCOME', amount: 10_000, accountId }),
-        seed({ type: 'EXPENSE', amount: 3_000, accountId }),
-        seed({ type: 'CASHBOX_IN', amount: 1_000, accountId, cashboxId }),
-        seed({ type: 'CASHBOX_OUT', amount: 400, accountId, cashboxId }),
-        seed({ type: 'CASHBOX_TRANSFER', amount: 200, cashboxId, destinationCashboxId: otherCashboxId }),
-        seed({ type: 'TRANSFER', amount: 2_000, accountId, destinationAccountId: otherAccountId }),
-      ]);
-
-      const body = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
-
-      // initialBalance(1_000) + INCOME(10_000) - EXPENSE(3_000) - CASHBOX_IN(1_000) + CASHBOX_OUT(400) - TRANSFER-source(2_000)
-      expect(body.find((a) => a.accountId === accountId)).toMatchObject({ initialBalance: 1_000, balance: 5_400 });
-      // initialBalance(0) + TRANSFER-destination(2_000)
-      expect(body.find((a) => a.accountId === otherAccountId)).toMatchObject({ initialBalance: 0, balance: 2_000 });
-    });
-
-    it('excludes a DRAFT transaction from the balance', async () => {
-      await seed({ type: 'INCOME', amount: 1_000_000, accountId, status: 'DRAFT', source: 'VOICE' });
-
-      const body = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
-
-      expect(body.find((a) => a.accountId === accountId)).toMatchObject({ balance: 1_000 });
-    });
-
-    it('reports initialBalance for an account with no confirmed transactions', async () => {
-      const body = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
-
-      expect(body.find((a) => a.accountId === otherAccountId)).toMatchObject({ balance: 0 });
-    });
-
-    it('lists an inactive account, flagged accordingly', async () => {
-      const body = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
-
-      expect(body.find((a) => a.accountId === inactiveAccountId)).toMatchObject({ isActive: false, balance: 500 });
-    });
-
-    it('applies ?asOf as an inclusive upper bound on settlement date', async () => {
-      await Promise.all([
-        seed({ type: 'INCOME', amount: 1_000, accountId, date: new Date('2026-03-20') }),
-        seed({ type: 'INCOME', amount: 2_000, accountId, date: new Date('2026-03-10') }),
-      ]);
-
-      const before = (await authed('get', '/accounts/balances?asOf=2026-03-15').expect(200)).body as AccountBalanceDto[];
-      expect(before.find((a) => a.accountId === accountId)).toMatchObject({ balance: 3_000 });
-
-      const onTheDay = (await authed('get', '/accounts/balances?asOf=2026-03-10').expect(200)).body as AccountBalanceDto[];
-      expect(onTheDay.find((a) => a.accountId === accountId)).toMatchObject({ balance: 3_000 });
-    });
-
-    it('excludes a future confirmed settlement from the current balance', async () => {
-      await seed({ type: 'EXPENSE', amount: 1_000, accountId, date: new Date('2099-01-01') });
-
-      const current = (await authed('get', '/accounts/balances').expect(200)).body as AccountBalanceDto[];
-      const future = (await authed('get', '/accounts/balances?asOf=2099-01-01').expect(200)).body as AccountBalanceDto[];
-
-      expect(current.find((a) => a.accountId === accountId)).toMatchObject({ balance: 1_000 });
-      expect(future.find((a) => a.accountId === accountId)).toMatchObject({ balance: 0 });
-    });
-
-    it('answers 400 for a malformed asOf', async () => {
-      await authed('get', '/accounts/balances?asOf=not-a-date').expect(400);
-    });
-
-    it("never lets another user's transactions leak into the caller's balance", async () => {
-      await seed({ type: 'INCOME', amount: 999_999, accountId });
-
-      const otherBody = (await authed('get', '/accounts/balances', otherToken).expect(200)).body as AccountBalanceDto[];
-
-      expect(otherBody.some((a) => a.accountId === accountId)).toBe(false);
-    });
   });
 
   describe('cashboxes', () => {
@@ -262,7 +181,7 @@ describe('Balances API (e2e)', () => {
 
     it('starts initial balances in their creation month and excludes zero-balance inactive accounts', async () => {
       const [late, retired] = await Promise.all([
-        prisma.account.create({ data: { userId, name: 'Late', initialBalance: 700, createdAt: new Date('2026-04-15') } }),
+        prisma.account.create({ data: { userId, name: 'Late', createdAt: new Date('2026-04-15') } }),
         prisma.account.create({ data: { userId, name: 'Retired zero', isActive: false, createdAt: new Date('2026-01-15') } }),
       ]);
       const eur = await prisma.instrument.findFirstOrThrow({ where: { userId, code: 'EUR' } });

@@ -31,17 +31,6 @@ export class CreateAccountDto {
   @Type(() => CreateAccountInitialBalanceDto)
   initialBalances?: CreateAccountInitialBalanceDto[];
 
-  @ApiProperty({
-    type: Number,
-    required: false,
-    default: 0,
-    example: 150000,
-    description: 'Balance the account already held, in **cents** (ADR-0005) — never a decimal. May be negative.',
-  })
-  @IsOptional()
-  @IsInt()
-  initialBalance?: number;
-
   @ApiProperty({ type: Boolean, required: false, default: true })
   @IsOptional()
   @IsBoolean()
