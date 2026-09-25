@@ -12,7 +12,7 @@ import {
   type MarketQuote,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { BalancesService } from '../transactions/balances.service';
+import { BalancesService, type AccountInstrumentBalance } from '../transactions/balances.service';
 
 import { AssetListingDto } from './dto/asset-listing.dto';
 import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
@@ -23,12 +23,14 @@ import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
+import { InvestmentTradeRemovalPreviewDto } from './dto/investment-trade-removal-preview.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
+import { UpdateInvestmentTradeDto } from './dto/update-investment-trade.dto';
 import { MARKET_QUOTE_PROVIDER, type MarketQuoteProvider } from './eodhd-quote.provider';
 
 @Injectable()
@@ -125,9 +127,9 @@ export class InvestmentsService {
     ).map(toTradeDto);
   }
 
-  async listPositions(userId: string): Promise<InvestmentPositionDto[]> {
+  async listPositions(userId: string, excludedTradeId?: string): Promise<InvestmentPositionDto[]> {
     const trades = await this.prisma.investmentTrade.findMany({
-      where: { userId },
+      where: { userId, ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}) },
       include: positionTradeInclude,
       orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
     });
@@ -266,6 +268,109 @@ export class InvestmentsService {
   }
 
   async createTrade(userId: string, dto: CreateInvestmentTradeDto): Promise<InvestmentTradeDto> {
+    const { account, acquired, disposed, fee, acquiredQuantity, disposedQuantity, feeQuantity } = await this.tradeInput(userId, dto);
+    return toTradeDto(
+      await this.prisma.$transaction(async (tx) => {
+        if (account.kind !== 'BANK') {
+          const movements = new Map<string, Prisma.Decimal>([
+            [acquired.id, acquiredQuantity],
+            [disposed.id, disposedQuantity.negated()],
+          ]);
+          if (fee && feeQuantity) movements.set(fee.id, (movements.get(fee.id) ?? new Prisma.Decimal(0)).sub(feeQuantity));
+          for (const [instrumentId, movement] of movements) {
+            if (movement.isNegative()) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${instrumentId}`}))`;
+          }
+          const balances = await this.balances.instrumentBalances(userId, undefined, tx);
+          for (const [instrumentId, movement] of movements) {
+            if (!movement.isNegative()) continue;
+            const held =
+              balances.find((balance) => balance.accountId === account.id && balance.instrumentId === instrumentId)?.quantity ?? new Prisma.Decimal(0);
+            if (held.add(movement).isNegative()) {
+              const instrument = instrumentId === disposed.id ? disposed : fee!;
+              throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', `Insufficient ${instrument.code}: ${held.toString()} available.`, {
+                instrumentCode: instrument.code,
+                availableQuantity: held.toString(),
+              });
+            }
+          }
+        }
+        const trade = await tx.investmentTrade.create({
+          data: { ...dto, userId, acquiredQuantity, disposedQuantity, feeQuantity, executedAt: new Date(dto.executedAt) },
+          include: tradeInclude,
+        });
+        await this.assertChronologicalBalances(userId, tx);
+        return trade;
+      }),
+    );
+  }
+
+  async previewTradeRemoval(userId: string, id: string): Promise<InvestmentTradeRemovalPreviewDto> {
+    const trade = await this.manualTrade(userId, id);
+    const trades = await this.prisma.investmentTrade.findMany({
+      where: { userId },
+      include: tradeInclude,
+      orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
+    const index = trades.findIndex((trade) => trade.id === id);
+    const balances = await this.balances.instrumentBalances(userId);
+    const projectedBalances = new Map<string, AccountInstrumentBalance>(
+      balances.map((balance) => [`${balance.accountId}:${balance.instrumentId}`, { ...balance, quantity: new Prisma.Decimal(balance.quantity) }]),
+    );
+    changeBalanceRow(projectedBalances, trade.accountId, trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity).negated());
+    changeBalanceRow(projectedBalances, trade.accountId, trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity));
+    if (trade.feeInstrumentId && trade.feeQuantity)
+      changeBalanceRow(projectedBalances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity));
+    const affectedInstruments = new Set([trade.acquiredInstrumentId, trade.disposedInstrumentId, trade.feeInstrumentId]);
+    return {
+      laterTrades: trades.slice(index + 1).map(toTradeDto),
+      projectedPositions: await this.listPositions(userId, id),
+      projectedBalances: [...projectedBalances.values()]
+        .filter((balance) => balance.accountId === trade.accountId && affectedInstruments.has(balance.instrumentId))
+        .map((balance) => ({ ...balance, quantity: balance.quantity.toString() })),
+    };
+  }
+
+  async updateTrade(userId: string, id: string, dto: UpdateInvestmentTradeDto): Promise<InvestmentTradeDto> {
+    const input = await this.tradeInput(userId, {
+      ...dto,
+      feeInstrumentId: dto.feeInstrumentId ?? undefined,
+      feeQuantity: dto.feeQuantity ?? undefined,
+      feeValue: dto.feeValue ?? undefined,
+      assetListingId: dto.assetListingId ?? undefined,
+      notes: dto.notes ?? undefined,
+    });
+    return toTradeDto(
+      await this.prisma.$transaction(async (tx) => {
+        await this.manualTrade(userId, id, tx);
+        const trade = await tx.investmentTrade.update({
+          where: { id },
+          data: {
+            ...dto,
+            acquiredQuantity: input.acquiredQuantity,
+            disposedQuantity: input.disposedQuantity,
+            feeInstrumentId: dto.feeInstrumentId ?? null,
+            feeQuantity: input.feeQuantity ?? null,
+            feeValue: dto.feeValue ?? null,
+            assetListingId: dto.assetListingId ?? null,
+            notes: dto.notes ?? null,
+            executedAt: new Date(dto.executedAt),
+          },
+        });
+        await this.assertChronologicalBalances(userId, tx);
+        return tx.investmentTrade.findUniqueOrThrow({ where: { id: trade.id }, include: tradeInclude });
+      }),
+    );
+  }
+
+  async removeTrade(userId: string, id: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await this.manualTrade(userId, id, tx);
+      await tx.investmentTrade.delete({ where: { id } });
+      await this.assertChronologicalBalances(userId, tx);
+    });
+  }
+
+  private async tradeInput(userId: string, dto: CreateInvestmentTradeDto) {
     if (dto.acquiredInstrumentId === dto.disposedInstrumentId) {
       throw badRequest('INVESTMENT_TRADE_SAME_INSTRUMENT', 'A trade must acquire and dispose different instruments.');
     }
@@ -294,37 +399,50 @@ export class InvestmentsService {
     if (!acquiredQuantity.gt(0) || !disposedQuantity.gt(0) || (feeQuantity && !feeQuantity.gt(0))) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'Trade quantities must be positive.');
     }
-    return toTradeDto(
-      await this.prisma.$transaction(async (tx) => {
-        if (account.kind !== 'BANK') {
-          const movements = new Map<string, Prisma.Decimal>([
-            [acquired.id, acquiredQuantity],
-            [disposed.id, disposedQuantity.negated()],
-          ]);
-          if (fee && feeQuantity) movements.set(fee.id, (movements.get(fee.id) ?? new Prisma.Decimal(0)).sub(feeQuantity));
-          for (const [instrumentId, movement] of movements) {
-            if (movement.isNegative()) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${instrumentId}`}))`;
-          }
-          const balances = await this.balances.instrumentBalances(userId, undefined, tx);
-          for (const [instrumentId, movement] of movements) {
-            if (!movement.isNegative()) continue;
-            const held =
-              balances.find((balance) => balance.accountId === account.id && balance.instrumentId === instrumentId)?.quantity ?? new Prisma.Decimal(0);
-            if (held.add(movement).isNegative()) {
-              const instrument = instrumentId === disposed.id ? disposed : fee!;
-              throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', `Insufficient ${instrument.code}: ${held.toString()} available.`, {
-                instrumentCode: instrument.code,
-                availableQuantity: held.toString(),
-              });
-            }
-          }
+    return { account, acquired, disposed, fee, acquiredQuantity, disposedQuantity, feeQuantity };
+  }
+
+  private async assertChronologicalBalances(userId: string, tx: Prisma.TransactionClient): Promise<void> {
+    const trades = await tx.investmentTrade.findMany({
+      where: { userId },
+      include: {
+        account: { select: { kind: true } },
+        acquiredInstrument: { select: { name: true, code: true } },
+        disposedInstrument: { select: { name: true, code: true } },
+        feeInstrument: { select: { name: true, code: true } },
+      },
+      orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
+    const balances = new Map<string, Prisma.Decimal>();
+    for (const balance of await this.balances.instrumentBalances(userId, new Date('9999-12-31T00:00:00.000Z'), tx)) {
+      balances.set(`${balance.accountId}:${balance.instrumentId}`, balance.quantity);
+    }
+    for (const trade of trades) {
+      changeBalance(balances, trade.accountId, trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity).negated());
+      changeBalance(balances, trade.accountId, trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity));
+      if (trade.feeInstrumentId && trade.feeQuantity) changeBalance(balances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity));
+    }
+    for (const trade of trades) {
+      const movements = new Map<string, { quantity: Prisma.Decimal; code: string }>();
+      const add = (instrumentId: string, quantity: Prisma.Decimal, code: string) =>
+        movements.set(instrumentId, { quantity: (movements.get(instrumentId)?.quantity ?? new Prisma.Decimal(0)).add(quantity), code });
+      add(trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity), trade.acquiredInstrument.code);
+      add(trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity).negated(), trade.disposedInstrument.code);
+      if (trade.feeInstrumentId && trade.feeQuantity && trade.feeInstrument)
+        add(trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity).negated(), trade.feeInstrument.code);
+      for (const [instrumentId, movement] of movements) {
+        const key = `${trade.accountId}:${instrumentId}`;
+        const held = balances.get(key) ?? new Prisma.Decimal(0);
+        if (trade.account.kind !== 'BANK' && movement.quantity.isNegative() && held.add(movement.quantity).isNegative()) {
+          throw conflict('INVESTMENT_TRADE_INSUFFICIENT_FUNDS', `Insufficient ${movement.code}: ${held.toString()} available.`, {
+            instrumentCode: movement.code,
+            availableQuantity: held.toString(),
+            operationId: trade.id,
+          });
         }
-        return tx.investmentTrade.create({
-          data: { ...dto, userId, acquiredQuantity, disposedQuantity, feeQuantity, executedAt: new Date(dto.executedAt) },
-          include: tradeInclude,
-        });
-      }),
-    );
+        balances.set(key, held.add(movement.quantity));
+      }
+    }
   }
 
   private async assertActiveInstruments(userId: string, ...ids: string[]): Promise<void> {
@@ -340,6 +458,24 @@ export class InvestmentsService {
   private async listing(userId: string, id: string): Promise<AssetListing> {
     return assertOwnership(await this.prisma.assetListing.findUnique({ where: { id } }), userId);
   }
+  private async trade(userId: string, id: string, client: PrismaService | Prisma.TransactionClient = this.prisma): Promise<InvestmentTrade> {
+    return assertOwnership(await client.investmentTrade.findUnique({ where: { id } }), userId);
+  }
+  private async manualTrade(userId: string, id: string, client: PrismaService | Prisma.TransactionClient = this.prisma): Promise<InvestmentTrade> {
+    const trade = await this.trade(userId, id, client);
+    if (trade.isImported) throw badRequest('INVESTMENT_TRADE_IMPORTED_IMMUTABLE', 'Imported trades must be changed through their import batch.');
+    return trade;
+  }
+}
+
+function changeBalance(balances: Map<string, Prisma.Decimal>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
+  const key = `${accountId}:${instrumentId}`;
+  balances.set(key, (balances.get(key) ?? new Prisma.Decimal(0)).add(quantity));
+}
+
+function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
+  const balance = balances.get(`${accountId}:${instrumentId}`);
+  if (balance) balance.quantity = balance.quantity.add(quantity);
 }
 
 const tradeInclude = {
@@ -384,6 +520,7 @@ const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
   notes: trade.notes,
   createdAt: trade.createdAt.toISOString(),
   updatedAt: trade.updatedAt.toISOString(),
+  isImported: trade.isImported,
 });
 
 const listingInclude = { instrument: { select: { name: true } }, quoteInstrument: { select: { code: true } } } as const;

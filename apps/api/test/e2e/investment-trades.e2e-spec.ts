@@ -18,7 +18,8 @@ describe('Investment trades API (e2e)', () => {
   let userId: string;
   const email = 'investment-trades.e2e@family-budget.test';
   const password = 'correct horse battery staple';
-  const call = (method: 'get' | 'post', path: string): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
+  const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string): request.Test =>
+    request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
 
   beforeAll(async () => {
     app = (await Test.createTestingModule({ imports: [AppModule] }).compile()).createNestApplication();
@@ -328,6 +329,106 @@ describe('Investment trades API (e2e)', () => {
         }),
       ]),
     );
+  });
+
+  it('previews, edits, and removes a manual trade by replaying later operations chronologically', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const etf = (await call('post', '/instruments').send({ name: 'World ETF', code: 'VWCE', type: 'ETF' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Broker', kind: 'BROKERAGE', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .expect(201)
+    ).body as { id: string };
+    const purchase = (
+      await call('post', '/investment-trades')
+        .send({
+          accountId: account.id,
+          acquiredInstrumentId: etf.id,
+          acquiredQuantity: '10',
+          disposedInstrumentId: eur.id,
+          disposedQuantity: '1000',
+          executionValue: 100000,
+          executedAt: '2026-01-01T00:00:00.000Z',
+          notes: 'Initial purchase',
+        })
+        .expect(201)
+    ).body as { id: string };
+    const sale = (
+      await call('post', '/investment-trades')
+        .send({
+          accountId: account.id,
+          acquiredInstrumentId: eur.id,
+          acquiredQuantity: '1200',
+          disposedInstrumentId: etf.id,
+          disposedQuantity: '10',
+          executionValue: 120000,
+          executedAt: '2026-02-01T00:00:00.000Z',
+        })
+        .expect(201)
+    ).body as { id: string };
+
+    await call('get', `/investment-trades/${purchase.id}/removal-preview`)
+      .expect(200)
+      .expect(
+        ({
+          body,
+        }: {
+          body: { laterTrades: { id: string }[]; projectedBalances: { instrumentId: string; quantity: string }[]; projectedPositions: Position[] };
+        }) => {
+          expect(body.laterTrades).toEqual([expect.objectContaining({ id: sale.id })]);
+          expect(body.projectedBalances).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({ instrumentId: etf.id, quantity: '-10' }),
+              expect.objectContaining({ instrumentId: eur.id, quantity: '2200' }),
+            ]),
+          );
+          expect(body.projectedPositions).toEqual(
+            expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: etf.id, quantity: '-10' })]),
+          );
+        },
+      );
+
+    await call('patch', `/investment-trades/${purchase.id}`)
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: etf.id,
+        acquiredQuantity: '5',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '500',
+        executionValue: 50000,
+        executedAt: '2026-01-01T00:00:00.000Z',
+      })
+      .expect(409)
+      .expect(({ body }: { body: { code: string; operationId: string } }) =>
+        expect(body).toMatchObject({ code: 'INVESTMENT_TRADE_INSUFFICIENT_FUNDS', operationId: sale.id }),
+      );
+
+    await call('delete', `/investment-trades/${sale.id}`).expect(204);
+    await call('patch', `/investment-trades/${purchase.id}`)
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: etf.id,
+        acquiredQuantity: '10',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '1000',
+        executionValue: 100000,
+        executedAt: '2026-01-01T00:00:00.000Z',
+        notes: null,
+      })
+      .expect(200)
+      .expect(({ body }: { body: { notes: string | null } }) => expect(body.notes).toBeNull());
+    await call('get', '/investment-positions')
+      .expect(200)
+      .expect(({ body }: { body: Position[] }) =>
+        expect(body).toEqual(
+          expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: etf.id, quantity: '10', remainingCost: 100000 })]),
+        ),
+      );
+
+    await prisma.investmentTrade.update({ where: { id: purchase.id }, data: { isImported: true } });
+    await call('get', `/investment-trades/${purchase.id}/removal-preview`)
+      .expect(400)
+      .expect(({ body }: { body: { code: string } }) => expect(body.code).toBe('INVESTMENT_TRADE_IMPORTED_IMMUTABLE'));
   });
 });
 
