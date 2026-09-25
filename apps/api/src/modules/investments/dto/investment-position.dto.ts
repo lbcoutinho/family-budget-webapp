@@ -17,7 +17,7 @@ export class InvestmentPositionDto {
   @ApiPropertyOptional({ type: String, nullable: true, description: 'Latest market price in its quote instrument.' }) quotePrice!: string | null;
   @ApiPropertyOptional({ type: String, nullable: true }) quoteInstrumentCode!: string | null;
   @ApiPropertyOptional({ type: String, format: 'date', nullable: true }) quoteMarketDate!: string | null;
-  @ApiProperty({ enum: ['MANUAL', 'STALE', 'MISSING'] }) quoteStatus!: 'MANUAL' | 'STALE' | 'MISSING';
+  @ApiProperty({ enum: ['MANUAL', 'PROVIDER', 'STALE', 'MISSING', 'ERROR'] }) quoteStatus!: 'MANUAL' | 'PROVIDER' | 'STALE' | 'MISSING' | 'ERROR';
   @ApiPropertyOptional({ type: Number, nullable: true, description: 'Current EUR value, in integer cents.' }) currentValue!: number | null;
   @ApiPropertyOptional({ type: Number, nullable: true, description: 'Current EUR result, in integer cents.' }) unrealizedResult!: number | null;
 }

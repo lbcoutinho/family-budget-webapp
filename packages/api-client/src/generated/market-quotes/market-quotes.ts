@@ -87,3 +87,62 @@ const {mutation: mutationOptions} = options ?
       > => {
       return useMutation(getCreateMarketQuoteMutationOptions(options), queryClient);
     }
+    export const retryMarketQuoteSynchronization = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/market-quotes/synchronize`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+
+export const getRetryMarketQuoteSynchronizationMutationKey = () => ['retryMarketQuoteSynchronization'] as const;
+
+export const getRetryMarketQuoteSynchronizationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>, TError,void, TContext> => {
+
+const mutationKey = getRetryMarketQuoteSynchronizationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>, void> = () => {
+
+
+          return  retryMarketQuoteSynchronization()
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryMarketQuoteSynchronizationMutationResult = NonNullable<Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>>
+
+    export type RetryMarketQuoteSynchronizationMutationError = ErrorType<unknown>
+
+
+    export const useRetryMarketQuoteSynchronization = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof retryMarketQuoteSynchronization>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRetryMarketQuoteSynchronizationMutationOptions(options), queryClient);
+    }

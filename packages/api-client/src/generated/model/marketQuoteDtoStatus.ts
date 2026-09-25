@@ -11,4 +11,5 @@ export type MarketQuoteDtoStatus = typeof MarketQuoteDtoStatus[keyof typeof Mark
 
 export const MarketQuoteDtoStatus = {
   VALID: 'VALID',
+  ERROR: 'ERROR',
 } as const;

@@ -56,7 +56,8 @@ model User {
   financialInstitutions FinancialInstitution[]
   instruments     Instrument[]
   assetListings   AssetListing[]
-  marketQuotes    MarketQuote[]
+  marketQuotes     MarketQuote[]
+  marketQuoteSyncs MarketQuoteSync[]
   accountInitialBalances AccountInitialBalance[]
   investmentTrades       InvestmentTrade[]
 
@@ -251,6 +252,7 @@ model AssetListing {
   quoteInstrument Instrument @relation("QuoteInstrument", fields: [quoteInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   investmentTrades InvestmentTrade[]
   marketQuote      MarketQuote?
+  marketQuoteSync  MarketQuoteSync?
 
   @@unique([userId, instrumentId, market, ticker])
   @@index([userId, isActive])
@@ -259,14 +261,24 @@ model AssetListing {
 
 enum MarketQuoteSource {
   MANUAL
+  EODHD
 
   @@map("market_quote_source")
 }
 
 enum MarketQuoteStatus {
   VALID
+  ERROR
 
   @@map("market_quote_status")
+}
+
+enum MarketQuoteSyncStatus {
+  SUCCESS
+  FAILED
+  UNSUPPORTED
+
+  @@map("market_quote_sync_status")
 }
 
 /// The latest valid price for one listing. Historical cost remains on InvestmentTrade;
@@ -289,6 +301,23 @@ model MarketQuote {
   @@index([userId, marketDate])
   @@index([quoteInstrumentId])
   @@map("market_quotes")
+}
+
+/// The latest automatic synchronization result for one listing. This is deliberately not quote
+/// history: it only protects the provider's daily budget and explains a missing quote.
+model MarketQuoteSync {
+  id             String                 @id @default(uuid()) @db.Uuid
+  userId         String                 @map("user_id") @db.Uuid
+  assetListingId String                 @unique @map("asset_listing_id") @db.Uuid
+  status         MarketQuoteSyncStatus
+  attemptCount   Int                    @default(1) @map("attempt_count")
+  attemptedAt    DateTime               @default(now()) @map("attempted_at") @db.Timestamptz(3)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assetListing AssetListing @relation(fields: [assetListingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, attemptedAt])
+  @@map("market_quote_syncs")
 }
 
 /// An exchange of two exact Instrument quantities within one Account. It is deliberately separate

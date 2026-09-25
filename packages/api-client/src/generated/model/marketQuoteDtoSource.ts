@@ -11,4 +11,5 @@ export type MarketQuoteDtoSource = typeof MarketQuoteDtoSource[keyof typeof Mark
 
 export const MarketQuoteDtoSource = {
   MANUAL: 'MANUAL',
+  EODHD: 'EODHD',
 } as const;
