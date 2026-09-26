@@ -67,6 +67,6 @@ describe('InvestmentFlowPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'janeiro' }));
 
     expect(screen.getByText('Operações de janeiro de 2026')).toBeInTheDocument();
-    expect(screen.getByText('BTC')).toBeInTheDocument();
+    expect(screen.getByText(/EUR.*BTC/)).toBeInTheDocument();
   });
 });
