@@ -189,6 +189,9 @@
     "description": "Negociações são trocas dentro de uma conta. Elas nunca viram lançamentos do orçamento.",
     "new": "Nova negociação",
     "view": "Ver negociação de {{trade}}",
+    "edit": "Editar negociação de {{trade}}",
+    "delete": "Apagar negociação de {{trade}}",
+    "editTitle": "Editar negociação",
     "columns": { "execution": "Execução", "account": "Conta", "received": "Recebido", "delivered": "Entregue", "value": "Valor EUR" },
     "fields": {
       "account": "Conta",
@@ -204,6 +207,16 @@
       "choose": "Escolha"
     },
     "details": { "title": "Detalhes da negociação", "executionPrice": "Preço de execução" },
+    "remove": {
+      "title": "Apagar negociação",
+      "loading": "Verificando as operações posteriores afetadas…",
+      "error": "Não foi possível verificar o impacto. Tente novamente antes de apagar.",
+      "description_one": "Esta ação recalcula 1 operação posterior. Os saldos e posições serão atualizados.",
+      "description_other": "Esta ação recalcula {{count}} operações posteriores. Os saldos e posições serão atualizados.",
+      "projectedBalances": "Saldos projetados após apagar:",
+      "projectedPositions": "Posições e resultados projetados (quantidade · custo · realizado · não realizado):",
+      "confirm": "Apagar negociação"
+    },
     "empty": { "title": "Nenhuma negociação ainda", "description": "Registre uma troca para atualizar os saldos por instrumento desta conta." },
     "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." }
   },

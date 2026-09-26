@@ -13,12 +13,14 @@ import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
+import { InvestmentTradeRemovalPreviewDto } from './dto/investment-trade-removal-preview.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
+import { UpdateInvestmentTradeDto } from './dto/update-investment-trade.dto';
 import { InvestmentsService } from './investments.service';
 
 @ApiQuery({ name: 'includeInactive', type: Boolean, required: false })
@@ -189,6 +191,32 @@ export class InvestmentTradesController extends InvestmentSetupController {
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInvestmentTradeDto) {
     return this.investments.createTrade(user.id, dto);
+  }
+
+  @ApiOperation({ operationId: 'previewInvestmentTradeRemoval' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiOkResponse({ type: InvestmentTradeRemovalPreviewDto })
+  @Get(':id/removal-preview')
+  previewRemoval(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.investments.previewTradeRemoval(user.id, id);
+  }
+
+  @ApiOperation({ operationId: 'updateInvestmentTrade' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiBody({ type: UpdateInvestmentTradeDto })
+  @ApiOkResponse({ type: InvestmentTradeDto })
+  @Patch(':id')
+  update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateInvestmentTradeDto) {
+    return this.investments.updateTrade(user.id, id, dto);
+  }
+
+  @ApiOperation({ operationId: 'deleteInvestmentTrade' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.investments.removeTrade(user.id, id);
   }
 }
 

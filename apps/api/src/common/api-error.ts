@@ -85,6 +85,7 @@ export const ERROR_CODES = [
   'INVESTMENT_TRADE_SAME_INSTRUMENT',
   'INVESTMENT_TRADE_LISTING_MISMATCH',
   'INVESTMENT_TRADE_INSUFFICIENT_FUNDS',
+  'INVESTMENT_TRADE_IMPORTED_IMMUTABLE',
   'MARKET_QUOTE_LISTING_INACTIVE',
   'MARKET_QUOTE_PRICE_INVALID',
 ] as const;
@@ -105,6 +106,8 @@ export class ApiErrorDto {
   instrumentCode?: string;
   @ApiPropertyOptional({ type: String, description: 'Available exact quantity of the insufficient instrument.' })
   availableQuantity?: string;
+  @ApiPropertyOptional({ type: String, format: 'uuid', description: 'Later operation that would make the instrument balance negative.' })
+  operationId?: string;
 }
 
 // The status lives in the body as well as on the response: `HttpException` hands an object payload
@@ -112,8 +115,11 @@ export class ApiErrorDto {
 export const badRequest = (code: ErrorCode, message: string): BadRequestException =>
   new BadRequestException({ statusCode: HttpStatus.BAD_REQUEST, code, message } satisfies ApiErrorDto);
 
-export const conflict = (code: ErrorCode, message: string, details: Pick<ApiErrorDto, 'instrumentCode' | 'availableQuantity'> = {}): ConflictException =>
-  new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
+export const conflict = (
+  code: ErrorCode,
+  message: string,
+  details: Pick<ApiErrorDto, 'instrumentCode' | 'availableQuantity' | 'operationId'> = {},
+): ConflictException => new ConflictException({ statusCode: HttpStatus.CONFLICT, code, message, ...details } satisfies ApiErrorDto);
 
 export const notFound = (code: ErrorCode, message: string): NotFoundException =>
   new NotFoundException({ statusCode: HttpStatus.NOT_FOUND, code, message } satisfies ApiErrorDto);
