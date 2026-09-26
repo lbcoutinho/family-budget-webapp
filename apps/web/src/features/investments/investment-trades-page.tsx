@@ -431,7 +431,7 @@ export function InvestmentTradesPage() {
                           <li key={`${position.accountId}:${position.instrumentId}`}>
                             {position.accountName} · {position.instrumentCode}: {formatQuantity(position.quantity, i18n.language)} ·{' '}
                             {formatCents(position.remainingCost)} · {formatCents(position.realizedResult)} ·{' '}
-                            {position.unrealizedResult === null ? '—' : formatCents(position.unrealizedResult)}
+                            {position.unrealizedResult == null ? '—' : formatCents(position.unrealizedResult)}
                           </li>
                         ))}
                     </ul>
