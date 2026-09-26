@@ -8,12 +8,14 @@ import { InvestmentImportController } from './investment-import.controller';
 import { InvestmentImportService } from './investment-import.service';
 import {
   AssetListingsController,
+  BalanceAdjustmentsController,
   FinancialInstitutionsController,
   InstrumentsController,
   InvestmentFlowsController,
   InvestmentPositionsController,
   InvestmentTradesController,
   MarketQuotesController,
+  PositionAdjustmentsController,
 } from './investments.controller';
 import { InvestmentsService } from './investments.service';
 import { MarketQuoteSyncInterceptor } from './market-quote-sync.interceptor';
@@ -26,6 +28,8 @@ import { MarketQuoteSyncInterceptor } from './market-quote-sync.interceptor';
     AssetListingsController,
     InvestmentTradesController,
     InvestmentFlowsController,
+    PositionAdjustmentsController,
+    BalanceAdjustmentsController,
     MarketQuotesController,
     InvestmentPositionsController,
     InvestmentImportController,

@@ -34,6 +34,8 @@ describe('Investment trades API (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.positionAdjustment.deleteMany({ where: { userId } });
+    await prisma.balanceAdjustment.deleteMany({ where: { userId } });
     await prisma.investmentTrade.deleteMany({ where: { userId } });
     await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
@@ -43,6 +45,8 @@ describe('Investment trades API (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.positionAdjustment.deleteMany({ where: { userId } });
+    await prisma.balanceAdjustment.deleteMany({ where: { userId } });
     await prisma.investmentTrade.deleteMany({ where: { userId } });
     await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
@@ -87,6 +91,51 @@ describe('Investment trades API (e2e)', () => {
         expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '0.012345678901234567' }),
       ]),
     );
+  });
+
+  it('replays explicit adjustments without creating investment activity', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Exchange', kind: 'EXCHANGE', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .expect(201)
+    ).body as {
+      id: string;
+    };
+    const positive = (
+      await call('post', '/position-adjustments')
+        .send({ accountId: account.id, instrumentId: btc.id, quantity: '2', cost: 20000, effectiveAt: '2026-01-01T00:00:00.000Z', reason: 'Missing history' })
+        .expect(201)
+    ).body as { id: string };
+    const negative = (
+      await call('post', '/position-adjustments')
+        .send({ accountId: account.id, instrumentId: btc.id, quantity: '-0.5', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Old withdrawal' })
+        .expect(201)
+    ).body as { id: string };
+    await call('post', '/balance-adjustments')
+      .send({ accountId: account.id, instrumentId: eur.id, quantity: '-15', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Exchange fee' })
+      .expect(201);
+
+    expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '1.5', remainingCost: 15000 })]),
+    );
+    expect((await call('get', '/accounts/instrument-balances').expect(200)).body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '1.5' }),
+        expect.objectContaining({ instrumentId: eur.id, quantity: '985' }),
+      ]),
+    );
+    await call('patch', `/position-adjustments/${positive.id}`).send({ quantity: '3', cost: 30000 }).expect(200);
+    expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '2.5', remainingCost: 25000 })]),
+    );
+    await call('delete', `/position-adjustments/${positive.id}`).expect(409);
+    await call('delete', `/position-adjustments/${negative.id}`).expect(204);
+    await call('delete', `/position-adjustments/${positive.id}`).expect(204);
+    await call('get', '/position-adjustments')
+      .expect(200)
+      .expect(({ body }: { body: unknown[] }) => expect(body).toHaveLength(0));
   });
 
   it('calculates remaining cost, weighted average, and realized result per account and consolidated', async () => {

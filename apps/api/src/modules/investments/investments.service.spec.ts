@@ -1,3 +1,5 @@
+import { Prisma } from '../../generated/prisma/client';
+
 import { type MarketQuoteProvider } from './eodhd-quote.provider';
 import { InvestmentsService } from './investments.service';
 
@@ -44,5 +46,182 @@ describe('InvestmentsService quote synchronization', () => {
 
     expect(quotes.quote).toHaveBeenCalledTimes(1);
     expect(quotes.quote).toHaveBeenCalledWith('IWDA.AS');
+  });
+});
+
+describe('InvestmentsService reconciliation adjustments', () => {
+  const account = { id: 'account', userId: 'user', isActive: true, name: 'Broker' };
+  const asset = { id: 'asset', userId: 'user', isActive: true, type: 'STOCK', code: 'IWDA' };
+  const currency = { id: 'currency', userId: 'user', isActive: true, type: 'FIAT', code: 'EUR' };
+  const provider = { isConfigured: () => false } as MarketQuoteProvider;
+
+  const adjustment = (instrument = asset, quantity = '2', cost: string | null = '100') => ({
+    id: 'adjustment',
+    userId: 'user',
+    accountId: account.id,
+    instrumentId: instrument.id,
+    quantity: new Prisma.Decimal(quantity),
+    cost: cost === null ? null : new Prisma.Decimal(cost),
+    effectiveAt: new Date('2026-09-01T00:00:00.000Z'),
+    reason: 'Broker correction',
+    createdAt: new Date('2026-09-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-09-01T00:00:00.000Z'),
+    account: { name: account.name },
+    instrument: { code: instrument.code },
+  });
+
+  const setup = ({ activeInstrument = asset, held = '0' }: { activeInstrument?: typeof asset; held?: string } = {}) => {
+    const prisma = {
+      account: { findFirst: jest.fn().mockResolvedValue(account) },
+      instrument: { findFirst: jest.fn().mockResolvedValue(activeInstrument) },
+      positionAdjustment: {
+        create: jest.fn().mockResolvedValue(adjustment()),
+        update: jest.fn().mockResolvedValue(adjustment()),
+        findUnique: jest.fn().mockResolvedValue(adjustment()),
+        findUniqueOrThrow: jest.fn().mockResolvedValue({ accountId: account.id, instrumentId: asset.id }),
+        findMany: jest.fn().mockResolvedValue([]),
+        delete: jest.fn(),
+      },
+      balanceAdjustment: {
+        create: jest.fn().mockResolvedValue(adjustment(currency, '50', null)),
+        update: jest.fn().mockResolvedValue(adjustment(currency, '50', null)),
+        findUnique: jest.fn().mockResolvedValue(adjustment(currency, '50', null)),
+        delete: jest.fn(),
+      },
+      $executeRaw: jest.fn(),
+    };
+    Object.assign(prisma, { $transaction: jest.fn((callback: (tx: typeof prisma) => Promise<unknown>) => callback(prisma)) });
+    const balances = {
+      instrumentBalances: jest.fn().mockResolvedValue([{ accountId: account.id, instrumentId: activeInstrument.id, quantity: new Prisma.Decimal(held) }]),
+    };
+    return { prisma, balances, service: new InvestmentsService(prisma as never, balances as never, provider) };
+  };
+
+  it('creates positive positions with cost and negative positions without cost', async () => {
+    const { service, prisma } = setup({ held: '4' });
+
+    await expect(
+      service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '2',
+        cost: 100,
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).resolves.toBeDefined();
+    await expect(
+      service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '-2',
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).resolves.toBeDefined();
+
+    expect(prisma.positionAdjustment.create).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    { quantity: '0', cost: undefined },
+    { quantity: '2', cost: undefined },
+    { quantity: '-2', cost: 100 },
+  ])('rejects invalid position adjustment quantities', async ({ quantity, cost }) => {
+    const { service } = setup();
+
+    await expect(
+      service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity,
+        cost,
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).rejects.toThrow('weighted-average cost');
+  });
+
+  it('rejects inactive and non-investment position references', async () => {
+    const inactive = setup({ activeInstrument: { ...asset, isActive: false } });
+    inactive.prisma.instrument.findFirst.mockResolvedValue(null);
+    await expect(
+      inactive.service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '2',
+        cost: 100,
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).rejects.toThrow('investment asset');
+
+    const fiat = setup({ activeInstrument: currency });
+    await expect(
+      fiat.service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: currency.id,
+        quantity: '2',
+        cost: 100,
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).rejects.toThrow('investment asset');
+  });
+
+  it('rejects negative position history and permits currency balance adjustments', async () => {
+    const insufficient = setup({ held: '-1' });
+    insufficient.prisma.positionAdjustment.findMany.mockResolvedValue([{ effectiveAt: new Date('2026-09-01T00:00:00.000Z') }]);
+    await expect(
+      insufficient.service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '-1',
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).rejects.toThrow('position negative');
+
+    const balance = setup({ activeInstrument: currency });
+    await expect(
+      balance.service.createBalanceAdjustment('user', {
+        accountId: account.id,
+        instrumentId: currency.id,
+        quantity: '50',
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Bank correction',
+      }),
+    ).resolves.toMatchObject({ quantity: '50', cost: null });
+  });
+
+  it('rejects investment assets as balance adjustments', async () => {
+    const { service } = setup();
+
+    await expect(
+      service.createBalanceAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '50',
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Bank correction',
+      }),
+    ).rejects.toThrow('currency instrument');
+  });
+
+  it('updates and removes reconciliation adjustments', async () => {
+    const { service, prisma } = setup();
+    prisma.positionAdjustment.findUnique.mockResolvedValue(adjustment());
+    prisma.balanceAdjustment.findUnique.mockResolvedValue(adjustment(currency, '50', null));
+    prisma.instrument.findFirst.mockResolvedValueOnce(asset).mockResolvedValueOnce(currency);
+
+    await expect(service.updatePositionAdjustment('user', 'adjustment', {})).resolves.toMatchObject({ quantity: '2' });
+    await expect(service.updateBalanceAdjustment('user', 'adjustment', {})).resolves.toMatchObject({ quantity: '50', cost: null });
+    await service.removePositionAdjustment('user', 'adjustment');
+    await service.removeBalanceAdjustment('user', 'adjustment');
+
+    expect(prisma.positionAdjustment.update).toHaveBeenCalledTimes(1);
+    expect(prisma.positionAdjustment.delete).toHaveBeenCalledTimes(1);
+    expect(prisma.balanceAdjustment.update).toHaveBeenCalledTimes(1);
+    expect(prisma.balanceAdjustment.delete).toHaveBeenCalledTimes(1);
   });
 });
