@@ -84,7 +84,7 @@ export function InvestmentFlowPage() {
           )}
           {!flow.isPending && !flow.isError && hasActivity && (
             <div className="overflow-x-auto">
-              <Table className="min-w-[900px] text-xs">
+              <Table className="min-w-224 text-xs">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="sticky left-0 z-10 bg-card">{t('investmentFlow.columns.month')}</TableHead>
@@ -186,7 +186,7 @@ function FlowDetails({ flow, year, locale }: { flow: InvestmentFlowDto; year: nu
         <p className="text-sm text-muted-foreground">{t('investmentFlow.operationsDescription')}</p>
       </div>
       {flow.trades.map((trade) => (
-        <div key={trade.id} className="grid gap-1 border-t pt-3 text-sm sm:grid-cols-[1fr_auto_auto] sm:gap-4">
+        <div key={trade.id} className="flex flex-wrap justify-between gap-1 border-t pt-3 text-sm sm:gap-4">
           <span>
             <strong>
               {new Intl.DateTimeFormat(locale, { timeZone: 'Europe/Lisbon', day: '2-digit', month: '2-digit' }).format(new Date(trade.executedAt))}
@@ -197,7 +197,7 @@ function FlowDetails({ flow, year, locale }: { flow: InvestmentFlowDto; year: nu
             {t('investmentTrades.columns.value')}: {formatCents(trade.executionValue)}
           </span>
           <span className="tabular-nums text-muted-foreground">
-            {t('investmentFlow.columns.fees')}: {trade.feeValue === null ? '—' : formatCents(trade.feeValue)}
+            {t('investmentFlow.columns.fees')}: {trade.feeValue == null ? '—' : formatCents(trade.feeValue)}
           </span>
         </div>
       ))}
