@@ -19,6 +19,8 @@ export * from './generated/instruments/instruments';
 export * from './generated/investment-flows/investment-flows';
 export * from './generated/investment-trades/investment-trades';
 export * from './generated/investment-positions/investment-positions';
+export * from './generated/position-adjustments/position-adjustments';
+export * from './generated/balance-adjustments/balance-adjustments';
 export * from './generated/market-quotes/market-quotes';
 export * from './generated/asset-listings/asset-listings';
 export * from './generated/recurrence-rules/recurrence-rules';

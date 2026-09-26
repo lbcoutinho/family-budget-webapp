@@ -6,12 +6,14 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { EodhdQuoteProvider, MARKET_QUOTE_PROVIDER } from './eodhd-quote.provider';
 import {
   AssetListingsController,
+  BalanceAdjustmentsController,
   FinancialInstitutionsController,
   InstrumentsController,
   InvestmentFlowsController,
   InvestmentPositionsController,
   InvestmentTradesController,
   MarketQuotesController,
+  PositionAdjustmentsController,
 } from './investments.controller';
 import { InvestmentsService } from './investments.service';
 import { MarketQuoteSyncInterceptor } from './market-quote-sync.interceptor';
@@ -24,6 +26,8 @@ import { MarketQuoteSyncInterceptor } from './market-quote-sync.interceptor';
     AssetListingsController,
     InvestmentTradesController,
     InvestmentFlowsController,
+    PositionAdjustmentsController,
+    BalanceAdjustmentsController,
     MarketQuotesController,
     InvestmentPositionsController,
   ],

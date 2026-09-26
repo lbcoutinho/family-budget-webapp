@@ -103,7 +103,7 @@ export class BalancesService {
   ): Promise<AccountInstrumentBalance[]> {
     const tradeAsOf = asOf === undefined ? new Date() : endOfUtcDay(asOf);
     const prisma = client ?? this.prisma;
-    const [initialBalances, movements, eur, trades] = await Promise.all([
+    const [initialBalances, movements, eur, trades, positionAdjustments, balanceAdjustments] = await Promise.all([
       prisma.accountInitialBalance.findMany({
         where: { userId },
         include: { account: { select: { createdAt: true } }, instrument: { select: { name: true, code: true } } },
@@ -118,6 +118,14 @@ export class BalancesService {
           disposedInstrument: { select: { name: true, code: true } },
           feeInstrument: { select: { name: true, code: true } },
         },
+      }),
+      prisma.positionAdjustment.findMany({
+        where: { userId, effectiveAt: { lte: tradeAsOf } },
+        include: { instrument: { select: { name: true, code: true } } },
+      }),
+      prisma.balanceAdjustment.findMany({
+        where: { userId, effectiveAt: { lte: tradeAsOf } },
+        include: { instrument: { select: { name: true, code: true } } },
       }),
     ]);
     const balances = new Map<string, AccountInstrumentBalance>(
@@ -164,6 +172,9 @@ export class BalancesService {
       if (trade.feeInstrumentId && trade.feeQuantity && trade.feeInstrument) {
         applyInstrumentMovement(balances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity).negated(), trade.feeInstrument);
       }
+    }
+    for (const adjustment of [...positionAdjustments, ...balanceAdjustments]) {
+      applyInstrumentMovement(balances, adjustment.accountId, adjustment.instrumentId, adjustment.quantity, adjustment.instrument);
     }
 
     return [...balances.values()];

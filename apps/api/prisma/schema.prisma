@@ -60,6 +60,8 @@ model User {
   marketQuoteSyncs MarketQuoteSync[]
   accountInitialBalances AccountInitialBalance[]
   investmentTrades       InvestmentTrade[]
+  positionAdjustments    PositionAdjustment[]
+  balanceAdjustments     BalanceAdjustment[]
 
   @@map("users")
 }
@@ -132,6 +134,8 @@ model Account {
   destinationTransactions Transaction[]    @relation("TransactionDestinationAccount")
   recurrenceRules         RecurrenceRule[]
   investmentTrades        InvestmentTrade[]
+  positionAdjustments     PositionAdjustment[]
+  balanceAdjustments      BalanceAdjustment[]
 
   @@unique([userId, name])
   @@index([userId, isActive])
@@ -224,6 +228,8 @@ model Instrument {
   acquiredTrades InvestmentTrade[] @relation("AcquiredInstrument")
   disposedTrades InvestmentTrade[] @relation("DisposedInstrument")
   feeTrades      InvestmentTrade[] @relation("FeeInstrument")
+  positionAdjustments PositionAdjustment[]
+  balanceAdjustments  BalanceAdjustment[]
 
   @@unique([userId, code])
   @@index([userId, isActive])
@@ -352,6 +358,49 @@ model InvestmentTrade {
   @@index([feeInstrumentId])
   @@index([assetListingId])
   @@map("investment_trades")
+}
+
+/// An explicit custody correction. It never represents a purchase or sale.
+model PositionAdjustment {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  accountId    String   @map("account_id") @db.Uuid
+  instrumentId String   @map("instrument_id") @db.Uuid
+  quantity     Decimal  @db.Decimal(36, 18)
+  cost         Int?     @map("cost")
+  effectiveAt  DateTime @map("effective_at") @db.Timestamptz(3)
+  reason       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  account    Account    @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, effectiveAt])
+  @@index([accountId, instrumentId, effectiveAt])
+  @@map("position_adjustments")
+}
+
+/// An explicit currency custody correction. It never enters the budget ledger.
+model BalanceAdjustment {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  accountId    String   @map("account_id") @db.Uuid
+  instrumentId String   @map("instrument_id") @db.Uuid
+  quantity     Decimal  @db.Decimal(36, 18)
+  effectiveAt  DateTime @map("effective_at") @db.Timestamptz(3)
+  reason       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  account    Account    @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId, effectiveAt])
+  @@index([accountId, instrumentId, effectiveAt])
+  @@map("balance_adjustments")
 }
 
 /// What a transaction is *for*. Income and expense are the only two sides that need classifying:
