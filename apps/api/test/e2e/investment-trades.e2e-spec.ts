@@ -108,9 +108,11 @@ describe('Investment trades API (e2e)', () => {
         .send({ accountId: account.id, instrumentId: btc.id, quantity: '2', cost: 20000, effectiveAt: '2026-01-01T00:00:00.000Z', reason: 'Missing history' })
         .expect(201)
     ).body as { id: string };
-    await call('post', '/position-adjustments')
-      .send({ accountId: account.id, instrumentId: btc.id, quantity: '-0.5', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Old withdrawal' })
-      .expect(201);
+    const negative = (
+      await call('post', '/position-adjustments')
+        .send({ accountId: account.id, instrumentId: btc.id, quantity: '-0.5', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Old withdrawal' })
+        .expect(201)
+    ).body as { id: string };
     await call('post', '/balance-adjustments')
       .send({ accountId: account.id, instrumentId: eur.id, quantity: '-15', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Exchange fee' })
       .expect(201);
@@ -128,10 +130,12 @@ describe('Investment trades API (e2e)', () => {
     expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
       expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '2.5', remainingCost: 25000 })]),
     );
+    await call('delete', `/position-adjustments/${positive.id}`).expect(409);
+    await call('delete', `/position-adjustments/${negative.id}`).expect(204);
     await call('delete', `/position-adjustments/${positive.id}`).expect(204);
     await call('get', '/position-adjustments')
       .expect(200)
-      .expect(({ body }: { body: unknown[] }) => expect(body).toHaveLength(1));
+      .expect(({ body }: { body: unknown[] }) => expect(body).toHaveLength(0));
   });
 
   it('calculates remaining cost, weighted average, and realized result per account and consolidated', async () => {
