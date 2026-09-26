@@ -207,6 +207,33 @@
     "empty": { "title": "Nenhuma negociação ainda", "description": "Registre uma troca para atualizar os saldos por instrumento desta conta." },
     "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." }
   },
+  "investmentFlow": {
+    "title": "Fluxo mensal",
+    "description": "Compras, vendas, fluxo líquido, taxas e resultado realizado por mês de execução.",
+    "year": "Ano",
+    "previousYear": "Ano anterior",
+    "nextYear": "Próximo ano",
+    "fundingNote": "Aportes não são compras. Transferir dinheiro para uma corretora ou exchange não entra no fluxo líquido de investimentos.",
+    "columns": {
+      "month": "Mês",
+      "purchases": "Compras",
+      "sales": "Vendas líquidas",
+      "netFlow": "Fluxo líquido",
+      "fees": "Taxas",
+      "realized": "Resultado realizado"
+    },
+    "operationsFor": "Operações de {{month}} de {{year}}",
+    "operationsDescription": "Os valores reconciliam com a linha selecionada.",
+    "funding": "Aporte",
+    "excluded": "Fora do fluxo",
+    "total": "Total até o mês {{month}}",
+    "noOperations": "Nenhuma operação contribuiu para o fluxo neste mês.",
+    "empty": {
+      "title": "Nenhuma atividade em {{year}}",
+      "description": "Compras e vendas aparecerão aqui quando houver operações de investimento neste ano. Aportes sozinhos não preenchem esta tabela."
+    },
+    "error": { "title": "Não foi possível carregar o fluxo mensal", "description": "Verifique a conexão e tente novamente." }
+  },
   "investmentOverview": {
     "title": "Visão geral",
     "recordQuote": "Registar cotação",

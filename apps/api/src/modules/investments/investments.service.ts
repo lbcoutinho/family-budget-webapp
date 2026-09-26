@@ -22,6 +22,7 @@ import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentFlowDto } from './dto/investment-flow.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
@@ -123,6 +124,72 @@ export class InvestmentsService {
     return (
       await this.prisma.investmentTrade.findMany({ where: { userId }, include: tradeInclude, orderBy: [{ executedAt: 'desc' }, { createdAt: 'desc' }] })
     ).map(toTradeDto);
+  }
+
+  async listFlows(userId: string, year: number): Promise<InvestmentFlowDto[]> {
+    const trades = await this.prisma.investmentTrade.findMany({
+      where: { userId },
+      include: flowTradeInclude,
+      orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
+    const flows = Array.from({ length: 12 }, (_, index) => emptyFlow(index + 1));
+    const positions = new Map<string, Position>();
+
+    for (const trade of trades) {
+      const month = lisbonMonth(trade.executedAt);
+      const flow = month.year === year ? flows[month.month - 1] : undefined;
+      const dto = flow ? toTradeDto(trade) : undefined;
+      const feeValue = new Prisma.Decimal(trade.feeValue ?? 0);
+      if (isInvestmentAsset(trade.acquiredInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.acquiredInstrument);
+        position.quantity = position.quantity.add(trade.acquiredQuantity);
+        position.remainingCost = position.remainingCost.add(trade.executionValue).add(feeValue);
+        if (flow && dto) flow.investmentPurchaseAmount += trade.executionValue;
+      }
+      if (isInvestmentAsset(trade.disposedInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.disposedInstrument);
+        const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(trade.disposedQuantity).div(position.quantity);
+        const result = new Prisma.Decimal(trade.executionValue).sub(trade.feeInstrumentId === trade.disposedInstrumentId ? feeValue : 0).sub(removedCost);
+        position.quantity = position.quantity.sub(trade.disposedQuantity);
+        position.remainingCost = position.remainingCost.sub(removedCost);
+        position.realizedResult = position.realizedResult.add(result);
+        if (flow) {
+          flow.netSales += new Prisma.Decimal(trade.executionValue).sub(feeValue).toNumber();
+          flow.realizedResult += result.toDecimalPlaces(0).toNumber();
+        }
+      }
+      if (trade.feeInstrument && trade.feeQuantity && isInvestmentAsset(trade.feeInstrument.type)) {
+        const position = positionFor(positions, trade.account, trade.feeInstrument);
+        const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(trade.feeQuantity).div(position.quantity);
+        const result = feeValue.sub(trade.feeInstrumentId === trade.disposedInstrumentId ? feeValue : 0).sub(removedCost);
+        position.quantity = position.quantity.sub(trade.feeQuantity);
+        position.remainingCost = position.remainingCost.sub(removedCost);
+        position.realizedResult = position.realizedResult.add(result);
+        if (flow) flow.realizedResult += result.toDecimalPlaces(0).toNumber();
+      }
+      if (flow && dto) {
+        flow.tradeFees += trade.feeValue ?? 0;
+        flow.trades.push(dto);
+      }
+    }
+
+    const fundingTransfers = await this.prisma.transaction.findMany({
+      where: { userId, type: 'TRANSFER', status: 'CONFIRMED', destinationAccount: { is: { kind: { not: 'BANK' } } } },
+      include: { account: { select: { name: true } }, destinationAccount: { select: { name: true } } },
+    });
+    for (const transfer of fundingTransfers) {
+      if (transfer.date.getUTCFullYear() !== year || !transfer.account || !transfer.destinationAccount || transfer.amount === null) continue;
+      const flow = flows[transfer.date.getUTCMonth()];
+      if (!flow) continue;
+      flow.fundingTransfers.push({
+        id: transfer.id,
+        date: transfer.date.toISOString().slice(0, 10),
+        sourceAccountName: transfer.account.name,
+        destinationAccountName: transfer.destinationAccount.name,
+        amount: transfer.amount,
+      });
+    }
+    return flows.map((flow) => ({ ...flow, netInvestmentFlow: flow.investmentPurchaseAmount - flow.netSales }));
   }
 
   async listPositions(userId: string): Promise<InvestmentPositionDto[]> {
@@ -349,6 +416,13 @@ const tradeInclude = {
   feeInstrument: { select: { name: true, code: true, displayPrecision: true } },
   assetListing: { select: { market: true, ticker: true } },
 } as const;
+const flowTradeInclude = {
+  account: { select: { id: true, name: true } },
+  acquiredInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+  disposedInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+  feeInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+  assetListing: { select: { market: true, ticker: true } },
+} as const;
 const positionTradeInclude = {
   account: { select: { id: true, name: true } },
   acquiredInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
@@ -436,6 +510,15 @@ interface Valuation {
 
 function isInvestmentAsset(type: InstrumentType): boolean {
   return type !== 'FIAT' && type !== 'STABLECOIN';
+}
+
+function emptyFlow(month: number): InvestmentFlowDto {
+  return { month, investmentPurchaseAmount: 0, netSales: 0, netInvestmentFlow: 0, tradeFees: 0, realizedResult: 0, trades: [], fundingTransfers: [] };
+}
+
+function lisbonMonth(date: Date): { year: number; month: number } {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Lisbon', year: 'numeric', month: 'numeric' }).formatToParts(date);
+  return { year: Number(parts.find((part) => part.type === 'year')!.value), month: Number(parts.find((part) => part.type === 'month')!.value) };
 }
 
 function positionFor(positions: Map<string, Position>, account: PositionAccount | null, instrument: PositionInstrument): Position {

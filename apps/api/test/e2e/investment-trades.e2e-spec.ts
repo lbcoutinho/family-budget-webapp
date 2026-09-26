@@ -161,6 +161,51 @@ describe('Investment trades API (e2e)', () => {
     );
   });
 
+  it('reports Lisbon execution months without counting fiat conversions as purchases', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const usdc = (await call('post', '/instruments').send({ name: 'USD Coin', code: 'USDC', type: 'STABLECOIN' }).expect(201)).body as { id: string };
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({ name: 'Exchange', kind: 'EXCHANGE', initialBalances: [{ instrumentId: eur.id, quantity: '10000' }] })
+        .expect(201)
+    ).body as { id: string };
+    const trade = (body: Record<string, unknown>) =>
+      call('post', '/investment-trades')
+        .send({ accountId: account.id, ...body })
+        .expect(201);
+
+    await trade({
+      acquiredInstrumentId: usdc.id,
+      acquiredQuantity: '1000',
+      disposedInstrumentId: eur.id,
+      disposedQuantity: '1000',
+      executionValue: 100000,
+      executedAt: '2025-12-31T23:30:00.000Z',
+    });
+    await trade({
+      acquiredInstrumentId: btc.id,
+      acquiredQuantity: '0.01',
+      disposedInstrumentId: usdc.id,
+      disposedQuantity: '1000',
+      feeInstrumentId: usdc.id,
+      feeQuantity: '10',
+      feeValue: 1000,
+      executionValue: 100000,
+      executedAt: '2026-01-01T00:30:00.000Z',
+    });
+
+    const flow = (await call('get', '/investment-flows?year=2026').expect(200)).body as {
+      month: number;
+      investmentPurchaseAmount: number;
+      netSales: number;
+      netInvestmentFlow: number;
+      tradeFees: number;
+    }[];
+    expect(flow).toHaveLength(12);
+    expect(flow[0]).toMatchObject({ month: 1, investmentPurchaseAmount: 100000, netSales: 0, netInvestmentFlow: 100000, tradeFees: 1000 });
+  });
+
   it('keeps the weighted average after a partial sale with fractional-cent cost', async () => {
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
     const etf = (await call('post', '/instruments').send({ name: 'Small ETF', code: 'SMALL', type: 'ETF' }).expect(201)).body as { id: string };
