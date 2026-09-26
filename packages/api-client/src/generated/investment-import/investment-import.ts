@@ -16,6 +16,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ConfirmInvestmentImportBody,
+  InvestmentImportConfirmationDto,
   InvestmentImportPreviewDto,
   PreviewInvestmentImportBody
 } from '../model';
@@ -94,4 +96,73 @@ export const usePreviewInvestmentImport = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPreviewInvestmentImportMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Atomically persist a validated normalized investment CSV
+ */
+export const confirmInvestmentImport = (
+    confirmInvestmentImportBody: BodyType<ConfirmInvestmentImportBody>,
+ signal?: AbortSignal
+) => {
+
+      const formData = new FormData();
+formData.append(`file`, confirmInvestmentImportBody.file);
+
+      return customInstance<InvestmentImportConfirmationDto>(
+      {url: `/investment-import/confirm`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+
+
+
+
+export const getConfirmInvestmentImportMutationKey = () => ['confirmInvestmentImport'] as const;
+
+export const getConfirmInvestmentImportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmInvestmentImport>>, TError,ConfirmInvestmentImportMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof confirmInvestmentImport>>, TError,ConfirmInvestmentImportMutationVariables, TContext> => {
+
+const mutationKey = getConfirmInvestmentImportMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmInvestmentImport>>, ConfirmInvestmentImportMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmInvestmentImport(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmInvestmentImportMutationResult = NonNullable<Awaited<ReturnType<typeof confirmInvestmentImport>>>
+    export type ConfirmInvestmentImportMutationBody = BodyType<ConfirmInvestmentImportBody>
+    export type ConfirmInvestmentImportMutationError = ErrorType<unknown>
+    export type ConfirmInvestmentImportMutationVariables = {data: BodyType<ConfirmInvestmentImportBody>}
+
+    /**
+ * @summary Atomically persist a validated normalized investment CSV
+ */
+export const useConfirmInvestmentImport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmInvestmentImport>>, TError,ConfirmInvestmentImportMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmInvestmentImport>>,
+        TError,
+        ConfirmInvestmentImportMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmInvestmentImportMutationOptions(options), queryClient);
     }
