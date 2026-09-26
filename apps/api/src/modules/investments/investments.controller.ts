@@ -12,8 +12,10 @@ import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
+import { InvestmentFlowDto } from './dto/investment-flow.dto';
 import { InvestmentPositionDto } from './dto/investment-position.dto';
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
+import { ListInvestmentFlowQueryDto } from './dto/list-investment-flow-query.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { MarketQuoteDto } from './dto/market-quote.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
@@ -189,6 +191,18 @@ export class InvestmentTradesController extends InvestmentSetupController {
   @Post()
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInvestmentTradeDto) {
     return this.investments.createTrade(user.id, dto);
+  }
+}
+
+@ApiTags('investment-flows')
+@Controller('investment-flows')
+export class InvestmentFlowsController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'listInvestmentFlows' })
+  @ApiQuery({ name: 'year', type: Number, required: true })
+  @ApiOkResponse({ type: [InvestmentFlowDto] })
+  @Get()
+  list(@CurrentUser() user: AuthenticatedUser, @Query() query: ListInvestmentFlowQueryDto) {
+    return this.investments.listFlows(user.id, query.year);
   }
 }
 

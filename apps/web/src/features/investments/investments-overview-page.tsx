@@ -73,6 +73,9 @@ export function InvestmentsOverviewPage() {
           <NavLink to="/investments/operations" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
             {t('investmentTrades.title')}
           </NavLink>
+          <NavLink to="/investments/flow" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
+            {t('investmentFlow.title')}
+          </NavLink>
         </nav>
         <p className="text-sm text-muted-foreground">{t('investmentOverview.description')}</p>
         <div className="flex justify-end">

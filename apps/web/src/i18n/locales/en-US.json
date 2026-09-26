@@ -210,6 +210,26 @@
     "empty": { "title": "No trades yet", "description": "Record an exchange to update the instrument balances in this account." },
     "error": { "title": "Could not load trades", "description": "Check your connection and try again." }
   },
+  "investmentFlow": {
+    "title": "Monthly flow",
+    "description": "Purchases, sales, net flow, fees, and realized result by execution month.",
+    "year": "Year",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "fundingNote": "Funding is not a purchase. Moving money to a broker or exchange does not count toward net investment flow.",
+    "columns": { "month": "Month", "purchases": "Purchases", "sales": "Net sales", "netFlow": "Net flow", "fees": "Fees", "realized": "Realized result" },
+    "operationsFor": "Operations for {{month}} {{year}}",
+    "operationsDescription": "The values reconcile with the selected row.",
+    "funding": "Funding",
+    "excluded": "Excluded from flow",
+    "total": "Total through month {{month}}",
+    "noOperations": "No operation contributed to this month's flow.",
+    "empty": {
+      "title": "No activity in {{year}}",
+      "description": "Purchases and sales appear here once this year has investment operations. Funding alone does not populate this table."
+    },
+    "error": { "title": "Could not load monthly flow", "description": "Check your connection and try again." }
+  },
   "investmentOverview": {
     "title": "Overview",
     "sections": "Investment sections",

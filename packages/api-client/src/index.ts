@@ -16,6 +16,7 @@ export * from './generated/csv-import-models/csv-import-models';
 export * from './generated/health/health';
 export * from './generated/financial-institutions/financial-institutions';
 export * from './generated/instruments/instruments';
+export * from './generated/investment-flows/investment-flows';
 export * from './generated/investment-trades/investment-trades';
 export * from './generated/investment-positions/investment-positions';
 export * from './generated/market-quotes/market-quotes';
