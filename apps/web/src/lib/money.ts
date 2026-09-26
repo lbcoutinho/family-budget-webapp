@@ -66,6 +66,13 @@ export function formatCents(cents: number | null, { sign = false, locale = i18n.
   return sign ? `+ ${amount} €` : `${amount} €`;
 }
 
+/** Exact, unlocalized cents for editable inputs. */
+export function formatCentsInput(cents: number): string {
+  const sign = cents < 0 ? '-' : '';
+  const absolute = Math.abs(cents);
+  return `${sign}${Math.trunc(absolute / 100)}.${String(absolute % 100).padStart(2, '0')}`;
+}
+
 /**
  * The other direction: what someone typed into a currency field, as integer cents.
  *

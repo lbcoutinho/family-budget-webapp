@@ -17,4 +17,6 @@ export interface ApiErrorDto {
   instrumentCode?: string;
   /** Available exact quantity of the insufficient instrument. */
   availableQuantity?: string;
+  /** Later operation that would make the instrument balance negative. */
+  operationId?: string;
 }

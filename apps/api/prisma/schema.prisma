@@ -334,6 +334,7 @@ model InvestmentTrade {
   executedAt           DateTime @map("executed_at") @db.Timestamptz(3)
   executionValue       Int      @map("execution_value")
   notes                String?
+  isImported           Boolean  @default(false) @map("is_imported")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 

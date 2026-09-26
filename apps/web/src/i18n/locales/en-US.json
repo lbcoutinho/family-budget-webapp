@@ -192,6 +192,9 @@
     "description": "Trades are exchanges inside one account. They never become budget transactions.",
     "new": "New trade",
     "view": "View {{trade}} trade",
+    "edit": "Edit {{trade}} trade",
+    "delete": "Delete {{trade}} trade",
+    "editTitle": "Edit trade",
     "columns": { "execution": "Execution", "account": "Account", "received": "Received", "delivered": "Delivered", "value": "EUR value" },
     "fields": {
       "account": "Account",
@@ -207,6 +210,16 @@
       "choose": "Choose"
     },
     "details": { "title": "Trade details", "executionPrice": "Execution price" },
+    "remove": {
+      "title": "Delete trade",
+      "loading": "Checking affected later operations…",
+      "error": "Could not check the impact. Try again before deleting.",
+      "description_one": "This will replay 1 later operation. Balances and positions will be updated.",
+      "description_other": "This will replay {{count}} later operations. Balances and positions will be updated.",
+      "projectedBalances": "Projected balances after deletion:",
+      "projectedPositions": "Projected positions and results (quantity · cost · realized · unrealized):",
+      "confirm": "Delete trade"
+    },
     "empty": { "title": "No trades yet", "description": "Record an exchange to update the instrument balances in this account." },
     "error": { "title": "Could not load trades", "description": "Check your connection and try again." }
   },

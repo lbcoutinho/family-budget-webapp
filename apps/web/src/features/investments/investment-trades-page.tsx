@@ -1,16 +1,20 @@
 import {
   type InvestmentTradeDto,
   useCreateInvestmentTrade,
+  useDeleteInvestmentTrade,
   useListAccounts,
   useListAssetListings,
   useListInstruments,
   useListInvestmentTrades,
+  usePreviewInvestmentTradeRemoval,
+  useUpdateInvestmentTrade,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
-import { EyeIcon, PlusIcon, TriangleAlertIcon } from 'lucide-react';
+import { EyeIcon, PencilIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -21,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { apiErrorMessage } from '@/lib/api-error';
-import { formatCents, parseCurrencyInput } from '@/lib/money';
+import { formatCents, formatCentsInput, parseCurrencyInput } from '@/lib/money';
 
 interface TradeValues {
   accountId: string;
@@ -60,41 +64,105 @@ export function InvestmentTradesPage() {
   const accounts = useListAccounts();
   const instruments = useListInstruments();
   const listings = useListAssetListings();
+  const invalidate = () => {
+    void client.invalidateQueries({ queryKey: ['/investment-trades'] });
+    void client.invalidateQueries({ queryKey: ['/accounts/instrument-balances'] });
+    void client.invalidateQueries({ queryKey: ['/investment-positions'] });
+  };
+  const closeForm = () => {
+    setValues(emptyTrade());
+    setEditing(null);
+    setOpen(false);
+  };
   const create = useCreateInvestmentTrade({
     mutation: {
       onSuccess: () => {
-        void client.invalidateQueries({ queryKey: ['/investment-trades'] });
-        void client.invalidateQueries({ queryKey: ['/accounts/instrument-balances'] });
-        setValues(emptyTrade());
-        setOpen(false);
+        invalidate();
+        closeForm();
+      },
+    },
+  });
+  const update = useUpdateInvestmentTrade({
+    mutation: {
+      onSuccess: () => {
+        invalidate();
+        closeForm();
+      },
+    },
+  });
+  const remove = useDeleteInvestmentTrade({
+    mutation: {
+      onSuccess: () => {
+        invalidate();
+        setRemoving(null);
+        setDetail(null);
       },
     },
   });
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<InvestmentTradeDto | null>(null);
+  const [editing, setEditing] = useState<InvestmentTradeDto | null>(null);
+  const [removing, setRemoving] = useState<InvestmentTradeDto | null>(null);
   const [values, setValues] = useState<TradeValues>(emptyTrade);
+  const removalPreview = usePreviewInvestmentTradeRemoval(removing?.id ?? '', { query: { enabled: removing !== null } });
   const eligibleListings = (listings.data ?? []).filter((listing) => listing.instrumentId === values.acquiredInstrumentId);
+  const mutation = editing ? update : create;
+
+  const startNew = () => {
+    setEditing(null);
+    setValues(emptyTrade());
+    setOpen(true);
+  };
+  const startEdit = (trade: InvestmentTradeDto) => {
+    setEditing(trade);
+    setValues({
+      accountId: trade.accountId,
+      acquiredInstrumentId: trade.acquiredInstrumentId,
+      acquiredQuantity: trade.acquiredQuantity,
+      disposedInstrumentId: trade.disposedInstrumentId,
+      disposedQuantity: trade.disposedQuantity,
+      feeInstrumentId: trade.feeInstrumentId ?? '',
+      feeQuantity: trade.feeQuantity ?? '',
+      feeValue: trade.feeValue == null ? '' : formatCentsInput(trade.feeValue),
+      assetListingId: trade.assetListingId ?? 'none',
+      executedAt: trade.executedAt.slice(0, 16),
+      executionValue: formatCentsInput(trade.executionValue),
+      notes: trade.notes ?? '',
+    });
+    setOpen(true);
+  };
 
   const submit = () => {
     const executionValue = parseCurrencyInput(values.executionValue);
     const feeValue = parseCurrencyInput(values.feeValue);
     if (executionValue === null || (values.feeValue && feeValue === null)) return;
-    create.mutate({
-      data: {
-        accountId: values.accountId,
-        acquiredInstrumentId: values.acquiredInstrumentId,
-        acquiredQuantity: values.acquiredQuantity,
-        disposedInstrumentId: values.disposedInstrumentId,
-        disposedQuantity: values.disposedQuantity,
-        ...(values.feeInstrumentId && values.feeQuantity && feeValue !== null
-          ? { feeInstrumentId: values.feeInstrumentId, feeQuantity: values.feeQuantity, feeValue }
-          : {}),
-        ...(values.assetListingId === 'none' ? {} : { assetListingId: values.assetListingId }),
-        executedAt: `${values.executedAt}:00.000Z`,
-        executionValue,
-        ...(values.notes.trim() ? { notes: values.notes.trim() } : {}),
-      },
-    });
+    const data = {
+      accountId: values.accountId,
+      acquiredInstrumentId: values.acquiredInstrumentId,
+      acquiredQuantity: values.acquiredQuantity,
+      disposedInstrumentId: values.disposedInstrumentId,
+      disposedQuantity: values.disposedQuantity,
+      ...(values.feeInstrumentId && values.feeQuantity && feeValue !== null
+        ? { feeInstrumentId: values.feeInstrumentId, feeQuantity: values.feeQuantity, feeValue }
+        : {}),
+      ...(values.assetListingId === 'none' ? {} : { assetListingId: values.assetListingId }),
+      executedAt: `${values.executedAt}:00.000Z`,
+      executionValue,
+      ...(values.notes.trim() ? { notes: values.notes.trim() } : {}),
+    };
+    if (editing) {
+      update.mutate({
+        id: editing.id,
+        data: {
+          ...data,
+          feeInstrumentId: values.feeInstrumentId || null,
+          feeQuantity: values.feeQuantity || null,
+          feeValue: feeValue ?? null,
+          assetListingId: values.assetListingId === 'none' ? null : values.assetListingId,
+          notes: values.notes.trim() || null,
+        },
+      });
+    } else create.mutate({ data });
   };
 
   return (
@@ -102,7 +170,7 @@ export function InvestmentTradesPage() {
       <PageHeader
         title={t('investmentTrades.title')}
         actions={
-          <Button size="sm" onClick={() => setOpen(true)}>
+          <Button size="sm" onClick={startNew}>
             <PlusIcon />
             {t('investmentTrades.new')}
           </Button>
@@ -125,7 +193,7 @@ export function InvestmentTradesPage() {
               icon={PlusIcon}
               title={t('investmentTrades.empty.title')}
               description={t('investmentTrades.empty.description')}
-              action={<Button onClick={() => setOpen(true)}>{t('investmentTrades.new')}</Button>}
+              action={<Button onClick={startNew}>{t('investmentTrades.new')}</Button>}
             />
           )}
           {!trades.isPending && !trades.isError && (trades.data?.length ?? 0) > 0 && (
@@ -163,6 +231,26 @@ export function InvestmentTradesPage() {
                       >
                         <EyeIcon />
                       </Button>
+                      {!trade.isImported && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => startEdit(trade)}
+                            aria-label={t('investmentTrades.edit', { trade: trade.acquiredInstrumentCode })}
+                          >
+                            <PencilIcon />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setRemoving(trade)}
+                            aria-label={t('investmentTrades.delete', { trade: trade.acquiredInstrumentCode })}
+                          >
+                            <Trash2Icon />
+                          </Button>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -172,10 +260,10 @@ export function InvestmentTradesPage() {
         </Card>
       </PageContent>
 
-      <Dialog open={open} onOpenChange={(next) => !create.isPending && setOpen(next)}>
+      <Dialog open={open} onOpenChange={(next) => !mutation.isPending && (next ? setOpen(true) : closeForm())}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('investmentTrades.new')}</DialogTitle>
+            <DialogTitle>{editing ? t('investmentTrades.editTitle') : t('investmentTrades.new')}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4">
             <Field label={t('investmentTrades.fields.account')}>
@@ -249,19 +337,19 @@ export function InvestmentTradesPage() {
             <Field label={t('investmentTrades.fields.notes')}>
               <Input value={values.notes} onChange={(event) => setValues({ ...values, notes: event.target.value })} />
             </Field>
-            {create.error && (
+            {mutation.error && (
               <p role="alert" className="text-sm text-destructive">
-                {apiErrorMessage(create.error, t)}
+                {apiErrorMessage(mutation.error, t)}
               </p>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={closeForm}>
               {t('common.cancel')}
             </Button>
             <Button
               disabled={
-                create.isPending ||
+                mutation.isPending ||
                 !values.accountId ||
                 !values.acquiredInstrumentId ||
                 !values.acquiredQuantity ||
@@ -284,24 +372,80 @@ export function InvestmentTradesPage() {
             <DialogTitle>{t('investmentTrades.details.title')}</DialogTitle>
           </DialogHeader>
           {detail && (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <Detail label={t('investmentTrades.fields.account')} value={detail.accountName} />
-              <Detail label={t('investmentTrades.fields.received')} value={`${detail.acquiredQuantity} ${detail.acquiredInstrumentCode}`} />
-              <Detail label={t('investmentTrades.fields.delivered')} value={`${detail.disposedQuantity} ${detail.disposedInstrumentCode}`} />
-              {detail.feeInstrumentCode && <Detail label={t('investmentTrades.fields.fee')} value={`${detail.feeQuantity} ${detail.feeInstrumentCode}`} />}
-              {detail.feeValue != null && <Detail label={t('investmentTrades.fields.feeValue')} value={formatCents(detail.feeValue)} />}
-              <Detail
-                label={t('investmentTrades.details.executionPrice')}
-                value={`${detail.executionPrice} ${detail.disposedInstrumentCode}/${detail.acquiredInstrumentCode}`}
-              />
-              <Detail label={t('investmentTrades.fields.executionTime')} value={formatExecution(detail.executedAt, i18n.language)} />
-              <Detail label={t('investmentTrades.fields.executionValue')} value={formatCents(detail.executionValue)} />
-              <Detail label={t('investmentTrades.fields.listing')} value={detail.assetListing ?? '—'} />
-              <Detail label={t('investmentTrades.fields.notes')} value={detail.notes ?? '—'} />
-            </dl>
+            <>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <Detail label={t('investmentTrades.fields.account')} value={detail.accountName} />
+                <Detail label={t('investmentTrades.fields.received')} value={`${detail.acquiredQuantity} ${detail.acquiredInstrumentCode}`} />
+                <Detail label={t('investmentTrades.fields.delivered')} value={`${detail.disposedQuantity} ${detail.disposedInstrumentCode}`} />
+                {detail.feeInstrumentCode && <Detail label={t('investmentTrades.fields.fee')} value={`${detail.feeQuantity} ${detail.feeInstrumentCode}`} />}
+                {detail.feeValue != null && <Detail label={t('investmentTrades.fields.feeValue')} value={formatCents(detail.feeValue)} />}
+                <Detail
+                  label={t('investmentTrades.details.executionPrice')}
+                  value={`${detail.executionPrice} ${detail.disposedInstrumentCode}/${detail.acquiredInstrumentCode}`}
+                />
+                <Detail label={t('investmentTrades.fields.executionTime')} value={formatExecution(detail.executedAt, i18n.language)} />
+                <Detail label={t('investmentTrades.fields.executionValue')} value={formatCents(detail.executionValue)} />
+                <Detail label={t('investmentTrades.fields.listing')} value={detail.assetListing ?? '—'} />
+                <Detail label={t('investmentTrades.fields.notes')} value={detail.notes ?? '—'} />
+              </dl>
+              {!detail.isImported && (
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => startEdit(detail)}>
+                    {t('common.edit')}
+                  </Button>
+                  <Button variant="destructive" onClick={() => setRemoving(detail)}>
+                    {t('common.delete')}
+                  </Button>
+                </DialogFooter>
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={removing !== null}
+        onOpenChange={(next) => !next && setRemoving(null)}
+        title={t('investmentTrades.remove.title')}
+        description={
+          removalPreview.isPending
+            ? t('investmentTrades.remove.loading')
+            : removalPreview.isError
+              ? t('investmentTrades.remove.error')
+              : removalPreview.data && (
+                  <div className="grid gap-2">
+                    <p>{t('investmentTrades.remove.description', { count: removalPreview.data.laterTrades.length })}</p>
+                    <p className="text-xs text-muted-foreground">{t('investmentTrades.remove.projectedBalances')}</p>
+                    <ul className="grid gap-1 text-sm tabular-nums">
+                      {removalPreview.data.projectedBalances.map((balance) => (
+                        <li key={`${balance.accountId}:${balance.instrumentId}`}>
+                          {balance.instrumentCode}: {formatQuantity(balance.quantity, i18n.language)}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-muted-foreground">{t('investmentTrades.remove.projectedPositions')}</p>
+                    <ul className="grid gap-1 text-sm tabular-nums">
+                      {removalPreview.data.projectedPositions
+                        .filter((position) => position.accountId !== null)
+                        .map((position) => (
+                          <li key={`${position.accountId}:${position.instrumentId}`}>
+                            {position.accountName} · {position.instrumentCode}: {formatQuantity(position.quantity, i18n.language)} ·{' '}
+                            {formatCents(position.remainingCost)} · {formatCents(position.realizedResult)} ·{' '}
+                            {position.unrealizedResult == null ? '—' : formatCents(position.unrealizedResult)}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )
+        }
+        confirmLabel={t('investmentTrades.remove.confirm')}
+        variant="destructive"
+        isPending={remove.isPending || removalPreview.isPending}
+        onConfirm={() => {
+          if (removing && removalPreview.data) remove.mutate({ id: removing.id });
+          else void removalPreview.refetch();
+        }}
+      />
     </>
   );
 }

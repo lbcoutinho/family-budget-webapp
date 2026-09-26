@@ -36,6 +36,7 @@ const flow = Array.from({ length: 12 }, (_, index) => ({
             executedAt: '2026-01-01T10:00:00.000Z',
             executionValue: 100000,
             executionPrice: '100000',
+            isImported: false,
             createdAt: '2026-01-01T10:00:00.000Z',
             updatedAt: '2026-01-01T10:00:00.000Z',
           },

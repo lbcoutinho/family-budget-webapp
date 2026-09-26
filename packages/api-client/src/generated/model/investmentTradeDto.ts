@@ -37,4 +37,5 @@ export interface InvestmentTradeDto {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  isImported: boolean;
 }

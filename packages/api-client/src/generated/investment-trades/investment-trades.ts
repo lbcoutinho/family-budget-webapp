@@ -26,7 +26,9 @@ import type {
 
 import type {
   CreateInvestmentTradeDto,
-  InvestmentTradeDto
+  InvestmentTradeDto,
+  InvestmentTradeRemovalPreviewDto,
+  UpdateInvestmentTradeDto
 } from '../model';
 
 import { customInstance } from '../../lib/axios';
@@ -196,4 +198,211 @@ const {mutation: mutationOptions} = options ?
         TContext
       > => {
       return useMutation(getCreateInvestmentTradeMutationOptions(options), queryClient);
+    }
+    export const previewInvestmentTradeRemoval = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<InvestmentTradeRemovalPreviewDto>(
+      {url: `/investment-trades/${id}/removal-preview`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getPreviewInvestmentTradeRemovalQueryKey = (id: string,) => {
+    return [
+    `/investment-trades/${id}/removal-preview`
+    ] as const;
+    }
+
+
+export const getPreviewInvestmentTradeRemovalQueryOptions = <TData = Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewInvestmentTradeRemovalQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>> = ({ signal }) => previewInvestmentTradeRemoval(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreviewInvestmentTradeRemovalQueryResult = NonNullable<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>>
+export type PreviewInvestmentTradeRemovalQueryError = ErrorType<unknown>
+
+
+export function usePreviewInvestmentTradeRemoval<TData = Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>,
+          TError,
+          Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewInvestmentTradeRemoval<TData = Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>,
+          TError,
+          Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewInvestmentTradeRemoval<TData = Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePreviewInvestmentTradeRemoval<TData = Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentTradeRemoval>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreviewInvestmentTradeRemovalQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const updateInvestmentTrade = (
+    id: string,
+    updateInvestmentTradeDto: BodyType<UpdateInvestmentTradeDto>,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<InvestmentTradeDto>(
+      {url: `/investment-trades/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateInvestmentTradeDto, signal
+    },
+      );
+    }
+
+
+
+
+export const getUpdateInvestmentTradeMutationKey = () => ['updateInvestmentTrade'] as const;
+
+export const getUpdateInvestmentTradeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestmentTrade>>, TError,UpdateInvestmentTradeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateInvestmentTrade>>, TError,UpdateInvestmentTradeMutationVariables, TContext> => {
+
+const mutationKey = getUpdateInvestmentTradeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInvestmentTrade>>, UpdateInvestmentTradeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateInvestmentTrade(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInvestmentTradeMutationResult = NonNullable<Awaited<ReturnType<typeof updateInvestmentTrade>>>
+    export type UpdateInvestmentTradeMutationBody = BodyType<UpdateInvestmentTradeDto>
+    export type UpdateInvestmentTradeMutationError = ErrorType<unknown>
+    export type UpdateInvestmentTradeMutationVariables = {id: string;data: BodyType<UpdateInvestmentTradeDto>}
+
+    export const useUpdateInvestmentTrade = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestmentTrade>>, TError,UpdateInvestmentTradeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateInvestmentTrade>>,
+        TError,
+        UpdateInvestmentTradeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateInvestmentTradeMutationOptions(options), queryClient);
+    }
+    export const deleteInvestmentTrade = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/investment-trades/${id}`, method: 'DELETE', signal
+    },
+      );
+    }
+
+
+
+
+export const getDeleteInvestmentTradeMutationKey = () => ['deleteInvestmentTrade'] as const;
+
+export const getDeleteInvestmentTradeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestmentTrade>>, TError,DeleteInvestmentTradeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInvestmentTrade>>, TError,DeleteInvestmentTradeMutationVariables, TContext> => {
+
+const mutationKey = getDeleteInvestmentTradeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInvestmentTrade>>, DeleteInvestmentTradeMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInvestmentTrade(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInvestmentTradeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInvestmentTrade>>>
+
+    export type DeleteInvestmentTradeMutationError = ErrorType<unknown>
+    export type DeleteInvestmentTradeMutationVariables = {id: string}
+
+    export const useDeleteInvestmentTrade = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestmentTrade>>, TError,DeleteInvestmentTradeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInvestmentTrade>>,
+        TError,
+        DeleteInvestmentTradeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteInvestmentTradeMutationOptions(options), queryClient);
     }
