@@ -4,6 +4,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransactionsModule } from '../transactions/transactions.module';
 
 import { EodhdQuoteProvider, MARKET_QUOTE_PROVIDER } from './eodhd-quote.provider';
+import { InvestmentImportController } from './investment-import.controller';
+import { InvestmentImportService } from './investment-import.service';
 import {
   AssetListingsController,
   FinancialInstitutionsController,
@@ -26,9 +28,11 @@ import { MarketQuoteSyncInterceptor } from './market-quote-sync.interceptor';
     InvestmentFlowsController,
     MarketQuotesController,
     InvestmentPositionsController,
+    InvestmentImportController,
   ],
   providers: [
     InvestmentsService,
+    InvestmentImportService,
     EodhdQuoteProvider,
     { provide: MARKET_QUOTE_PROVIDER, useExisting: EodhdQuoteProvider },
     { provide: APP_INTERCEPTOR, useClass: MarketQuoteSyncInterceptor },
