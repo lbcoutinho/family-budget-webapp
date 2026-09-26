@@ -5,11 +5,14 @@ import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { AssetListingDto } from './dto/asset-listing.dto';
+import { BalanceAdjustmentDto } from './dto/balance-adjustment.dto';
 import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
+import { CreateBalanceAdjustmentDto } from './dto/create-balance-adjustment.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
+import { CreatePositionAdjustmentDto } from './dto/create-position-adjustment.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentFlowDto } from './dto/investment-flow.dto';
@@ -19,10 +22,13 @@ import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentFlowQueryDto } from './dto/list-investment-flow-query.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { MarketQuoteDto } from './dto/market-quote.dto';
+import { PositionAdjustmentDto } from './dto/position-adjustment.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
+import { UpdateBalanceAdjustmentDto } from './dto/update-balance-adjustment.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
 import { UpdateInvestmentTradeDto } from './dto/update-investment-trade.dto';
+import { UpdatePositionAdjustmentDto } from './dto/update-position-adjustment.dto';
 import { InvestmentsService } from './investments.service';
 
 @ApiQuery({ name: 'includeInactive', type: Boolean, required: false })
@@ -231,6 +237,74 @@ export class InvestmentFlowsController extends InvestmentSetupController {
   @Get()
   list(@CurrentUser() user: AuthenticatedUser, @Query() query: ListInvestmentFlowQueryDto) {
     return this.investments.listFlows(user.id, query.year);
+  }
+}
+
+@ApiTags('position-adjustments')
+@Controller('position-adjustments')
+export class PositionAdjustmentsController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'listPositionAdjustments' })
+  @ApiOkResponse({ type: [PositionAdjustmentDto] })
+  @Get()
+  list(@CurrentUser() user: AuthenticatedUser) {
+    return this.investments.listPositionAdjustments(user.id);
+  }
+  @ApiOperation({ operationId: 'createPositionAdjustment' })
+  @ApiBody({ type: CreatePositionAdjustmentDto })
+  @ApiCreatedResponse({ type: PositionAdjustmentDto })
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreatePositionAdjustmentDto) {
+    return this.investments.createPositionAdjustment(user.id, dto);
+  }
+  @ApiOperation({ operationId: 'updatePositionAdjustment' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiBody({ type: UpdatePositionAdjustmentDto })
+  @ApiOkResponse({ type: PositionAdjustmentDto })
+  @Patch(':id')
+  update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePositionAdjustmentDto) {
+    return this.investments.updatePositionAdjustment(user.id, id, dto);
+  }
+  @ApiOperation({ operationId: 'deletePositionAdjustment' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.investments.removePositionAdjustment(user.id, id);
+  }
+}
+
+@ApiTags('balance-adjustments')
+@Controller('balance-adjustments')
+export class BalanceAdjustmentsController extends InvestmentSetupController {
+  @ApiOperation({ operationId: 'listBalanceAdjustments' })
+  @ApiOkResponse({ type: [BalanceAdjustmentDto] })
+  @Get()
+  list(@CurrentUser() user: AuthenticatedUser) {
+    return this.investments.listBalanceAdjustments(user.id);
+  }
+  @ApiOperation({ operationId: 'createBalanceAdjustment' })
+  @ApiBody({ type: CreateBalanceAdjustmentDto })
+  @ApiCreatedResponse({ type: BalanceAdjustmentDto })
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateBalanceAdjustmentDto) {
+    return this.investments.createBalanceAdjustment(user.id, dto);
+  }
+  @ApiOperation({ operationId: 'updateBalanceAdjustment' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiBody({ type: UpdateBalanceAdjustmentDto })
+  @ApiOkResponse({ type: BalanceAdjustmentDto })
+  @Patch(':id')
+  update(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateBalanceAdjustmentDto) {
+    return this.investments.updateBalanceAdjustment(user.id, id, dto);
+  }
+  @ApiOperation({ operationId: 'deleteBalanceAdjustment' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.investments.removeBalanceAdjustment(user.id, id);
   }
 }
 

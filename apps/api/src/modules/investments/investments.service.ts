@@ -6,20 +6,25 @@ import {
   InstrumentType,
   Prisma,
   type AssetListing,
+  type BalanceAdjustment,
   type FinancialInstitution,
   type Instrument,
   type InvestmentTrade,
   type MarketQuote,
+  type PositionAdjustment,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService, type AccountInstrumentBalance } from '../transactions/balances.service';
 
 import { AssetListingDto } from './dto/asset-listing.dto';
+import { BalanceAdjustmentDto } from './dto/balance-adjustment.dto';
 import { CreateAssetListingDto } from './dto/create-asset-listing.dto';
+import { CreateBalanceAdjustmentDto } from './dto/create-balance-adjustment.dto';
 import { CreateFinancialInstitutionDto } from './dto/create-financial-institution.dto';
 import { CreateInstrumentDto } from './dto/create-instrument.dto';
 import { CreateInvestmentTradeDto } from './dto/create-investment-trade.dto';
 import { CreateMarketQuoteDto } from './dto/create-market-quote.dto';
+import { CreatePositionAdjustmentDto } from './dto/create-position-adjustment.dto';
 import { FinancialInstitutionDto } from './dto/financial-institution.dto';
 import { InstrumentDto } from './dto/instrument.dto';
 import { InvestmentFlowDto } from './dto/investment-flow.dto';
@@ -28,10 +33,13 @@ import { InvestmentTradeRemovalPreviewDto } from './dto/investment-trade-removal
 import { InvestmentTradeDto } from './dto/investment-trade.dto';
 import { ListInvestmentSetupQueryDto } from './dto/list-investment-setup-query.dto';
 import { MarketQuoteDto } from './dto/market-quote.dto';
+import { PositionAdjustmentDto } from './dto/position-adjustment.dto';
 import { UpdateAssetListingDto } from './dto/update-asset-listing.dto';
+import { UpdateBalanceAdjustmentDto } from './dto/update-balance-adjustment.dto';
 import { UpdateFinancialInstitutionDto } from './dto/update-financial-institution.dto';
 import { UpdateInstrumentDto } from './dto/update-instrument.dto';
 import { UpdateInvestmentTradeDto } from './dto/update-investment-trade.dto';
+import { UpdatePositionAdjustmentDto } from './dto/update-position-adjustment.dto';
 import { MARKET_QUOTE_PROVIDER, type MarketQuoteProvider } from './eodhd-quote.provider';
 
 @Injectable()
@@ -136,7 +144,6 @@ export class InvestmentsService {
     });
     const flows = Array.from({ length: 12 }, (_, index) => emptyFlow(index + 1));
     const positions = new Map<string, Position>();
-
     for (const trade of trades) {
       const month = lisbonMonth(trade.executedAt);
       const flow = month.year === year ? flows[month.month - 1] : undefined;
@@ -174,7 +181,6 @@ export class InvestmentsService {
         flow.trades.push(dto);
       }
     }
-
     const fundingTransfers = await this.prisma.transaction.findMany({
       where: { userId, type: 'TRANSFER', status: 'CONFIRMED', destinationAccount: { is: { kind: { not: 'BANK' } } } },
       include: { account: { select: { name: true } }, destinationAccount: { select: { name: true } } },
@@ -194,15 +200,119 @@ export class InvestmentsService {
     return flows.map((flow) => ({ ...flow, netInvestmentFlow: flow.investmentPurchaseAmount - flow.netSales }));
   }
 
-  async listPositions(userId: string, excludedTradeId?: string): Promise<InvestmentPositionDto[]> {
-    const trades = await this.prisma.investmentTrade.findMany({
-      where: { userId, ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}) },
-      include: positionTradeInclude,
-      orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+  async listPositionAdjustments(userId: string): Promise<PositionAdjustmentDto[]> {
+    return (
+      await this.prisma.positionAdjustment.findMany({
+        where: { userId },
+        include: adjustmentInclude,
+        orderBy: [{ effectiveAt: 'desc' }, { createdAt: 'desc' }],
+      })
+    ).map(toPositionAdjustmentDto);
+  }
+
+  async listBalanceAdjustments(userId: string): Promise<BalanceAdjustmentDto[]> {
+    return (
+      await this.prisma.balanceAdjustment.findMany({
+        where: { userId },
+        include: adjustmentInclude,
+        orderBy: [{ effectiveAt: 'desc' }, { createdAt: 'desc' }],
+      })
+    ).map(toBalanceAdjustmentDto);
+  }
+
+  async createPositionAdjustment(userId: string, dto: CreatePositionAdjustmentDto): Promise<PositionAdjustmentDto> {
+    return toPositionAdjustmentDto(await this.savePositionAdjustment(userId, dto));
+  }
+
+  async updatePositionAdjustment(userId: string, id: string, dto: UpdatePositionAdjustmentDto): Promise<PositionAdjustmentDto> {
+    const current = await this.positionAdjustment(userId, id);
+    return toPositionAdjustmentDto(
+      await this.savePositionAdjustment(
+        userId,
+        {
+          accountId: dto.accountId ?? current.accountId,
+          instrumentId: dto.instrumentId ?? current.instrumentId,
+          quantity: dto.quantity ?? current.quantity.toString(),
+          cost: dto.cost ?? (new Prisma.Decimal(dto.quantity ?? current.quantity).isNegative() ? undefined : (current.cost ?? undefined)),
+          effectiveAt: dto.effectiveAt ?? current.effectiveAt.toISOString(),
+          reason: dto.reason ?? current.reason,
+        },
+        id,
+      ),
+    );
+  }
+
+  async removePositionAdjustment(userId: string, id: string): Promise<void> {
+    const adjustment = await this.positionAdjustment(userId, id);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${adjustment.accountId}:${adjustment.instrumentId}`}))`;
+      await tx.positionAdjustment.delete({ where: { id } });
+      await this.assertPositionHistory(userId, adjustment.accountId, adjustment.instrumentId, tx);
     });
+  }
+
+  async createBalanceAdjustment(userId: string, dto: CreateBalanceAdjustmentDto): Promise<BalanceAdjustmentDto> {
+    return toBalanceAdjustmentDto(await this.saveBalanceAdjustment(userId, dto));
+  }
+
+  async updateBalanceAdjustment(userId: string, id: string, dto: UpdateBalanceAdjustmentDto): Promise<BalanceAdjustmentDto> {
+    const current = await this.balanceAdjustment(userId, id);
+    return toBalanceAdjustmentDto(
+      await this.saveBalanceAdjustment(
+        userId,
+        {
+          accountId: dto.accountId ?? current.accountId,
+          instrumentId: dto.instrumentId ?? current.instrumentId,
+          quantity: dto.quantity ?? current.quantity.toString(),
+          effectiveAt: dto.effectiveAt ?? current.effectiveAt.toISOString(),
+          reason: dto.reason ?? current.reason,
+        },
+        id,
+      ),
+    );
+  }
+
+  async removeBalanceAdjustment(userId: string, id: string): Promise<void> {
+    await this.balanceAdjustment(userId, id);
+    await this.prisma.balanceAdjustment.delete({ where: { id } });
+  }
+
+  async listPositions(userId: string, excludedTradeId?: string): Promise<InvestmentPositionDto[]> {
+    const [trades, adjustments] = await Promise.all([
+      this.prisma.investmentTrade.findMany({
+        where: { userId, ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}) },
+        include: positionTradeInclude,
+      }),
+      this.prisma.positionAdjustment.findMany({ where: { userId }, include: positionAdjustmentInclude }),
+    ]);
     const positions = new Map<string, Position>();
 
-    for (const trade of trades) {
+    for (const event of [
+      ...trades.map((trade) => ({ kind: 'trade' as const, at: trade.executedAt, createdAt: trade.createdAt, id: trade.id, value: trade })),
+      ...adjustments.map((adjustment) => ({
+        kind: 'adjustment' as const,
+        at: adjustment.effectiveAt,
+        createdAt: adjustment.createdAt,
+        id: adjustment.id,
+        value: adjustment,
+      })),
+    ].sort(
+      (left, right) => left.at.getTime() - right.at.getTime() || left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id),
+    )) {
+      if (event.kind === 'adjustment') {
+        const adjustment = event.value;
+        const position = positionFor(positions, adjustment.account, adjustment.instrument);
+        if (adjustment.quantity.isPositive()) {
+          position.quantity = position.quantity.add(adjustment.quantity);
+          position.remainingCost = position.remainingCost.add(adjustment.cost!);
+        } else {
+          const removedCost = position.quantity.isZero() ? new Prisma.Decimal(0) : position.remainingCost.mul(adjustment.quantity.abs()).div(position.quantity);
+          position.quantity = position.quantity.add(adjustment.quantity);
+          position.remainingCost = position.remainingCost.sub(removedCost);
+        }
+        continue;
+      }
+      const trade = event.value;
       if (isInvestmentAsset(trade.acquiredInstrument.type)) {
         const position = positionFor(positions, trade.account, trade.acquiredInstrument);
         position.quantity = position.quantity.add(trade.acquiredQuantity);
@@ -512,6 +622,76 @@ export class InvestmentsService {
     }
   }
 
+  private async savePositionAdjustment(userId: string, dto: CreatePositionAdjustmentDto, id?: string): Promise<PositionAdjustmentRow> {
+    const quantity = new Prisma.Decimal(dto.quantity);
+    const [account, instrument] = await Promise.all([
+      this.prisma.account.findFirst({ where: { id: dto.accountId, userId, isActive: true } }),
+      this.prisma.instrument.findFirst({ where: { id: dto.instrumentId, userId, isActive: true } }),
+    ]);
+    if (!account || !instrument || !isInvestmentAsset(instrument.type))
+      throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and investment asset are required.');
+    if (quantity.isZero() || (quantity.isPositive() && dto.cost === undefined) || (quantity.isNegative() && dto.cost !== undefined)) {
+      throw badRequest(
+        'POSITION_ADJUSTMENT_INVALID',
+        'A positive adjustment requires a EUR cost; a negative adjustment removes the current weighted-average cost.',
+      );
+    }
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${instrument.id}`}))`;
+      const previous = id ? await tx.positionAdjustment.findUniqueOrThrow({ where: { id }, select: { accountId: true, instrumentId: true } }) : undefined;
+      const data = {
+        accountId: account.id,
+        instrumentId: instrument.id,
+        quantity,
+        cost: dto.cost,
+        effectiveAt: new Date(dto.effectiveAt),
+        reason: dto.reason,
+        userId,
+      };
+      const adjustment = id
+        ? await tx.positionAdjustment.update({ where: { id }, data, include: adjustmentInclude })
+        : await tx.positionAdjustment.create({ data, include: adjustmentInclude });
+      const affectedPositions = previous
+        ? [{ accountId: account.id, instrumentId: instrument.id }, previous]
+        : [{ accountId: account.id, instrumentId: instrument.id }];
+      for (const position of affectedPositions) {
+        await this.assertPositionHistory(userId, position.accountId, position.instrumentId, tx);
+      }
+      return adjustment;
+    });
+  }
+
+  private async assertPositionHistory(userId: string, accountId: string, instrumentId: string, tx: Prisma.TransactionClient): Promise<void> {
+    const adjustments = await tx.positionAdjustment.findMany({ where: { userId, accountId, instrumentId }, select: { effectiveAt: true } });
+    for (const { effectiveAt } of adjustments) {
+      const held =
+        (await this.balances.instrumentBalances(userId, effectiveAt, tx)).find(
+          (balance) => balance.accountId === accountId && balance.instrumentId === instrumentId,
+        )?.quantity ?? new Prisma.Decimal(0);
+      if (held.isNegative()) throw conflict('POSITION_ADJUSTMENT_INSUFFICIENT_FUNDS', 'A position adjustment would make the position negative.');
+    }
+  }
+
+  private async saveBalanceAdjustment(userId: string, dto: CreateBalanceAdjustmentDto, id?: string): Promise<BalanceAdjustmentRow> {
+    const [account, instrument] = await Promise.all([
+      this.prisma.account.findFirst({ where: { id: dto.accountId, userId, isActive: true } }),
+      this.prisma.instrument.findFirst({ where: { id: dto.instrumentId, userId, isActive: true } }),
+    ]);
+    if (!account || !instrument || isInvestmentAsset(instrument.type))
+      throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and currency instrument are required.');
+    const data = {
+      accountId: account.id,
+      instrumentId: instrument.id,
+      quantity: new Prisma.Decimal(dto.quantity),
+      effectiveAt: new Date(dto.effectiveAt),
+      reason: dto.reason,
+      userId,
+    };
+    return id
+      ? this.prisma.balanceAdjustment.update({ where: { id }, data, include: adjustmentInclude })
+      : this.prisma.balanceAdjustment.create({ data, include: adjustmentInclude });
+  }
+
   private async assertActiveInstruments(userId: string, ...ids: string[]): Promise<void> {
     const active = await this.prisma.instrument.count({ where: { userId, isActive: true, id: { in: ids } } });
     if (active !== new Set(ids).size) throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active instrument is required.');
@@ -532,6 +712,12 @@ export class InvestmentsService {
     const trade = await this.trade(userId, id, client);
     if (trade.isImported) throw badRequest('INVESTMENT_TRADE_IMPORTED_IMMUTABLE', 'Imported trades must be changed through their import batch.');
     return trade;
+  }
+  private async positionAdjustment(userId: string, id: string): Promise<PositionAdjustment> {
+    return assertOwnership(await this.prisma.positionAdjustment.findUnique({ where: { id } }), userId);
+  }
+  private async balanceAdjustment(userId: string, id: string): Promise<BalanceAdjustment> {
+    return assertOwnership(await this.prisma.balanceAdjustment.findUnique({ where: { id } }), userId);
   }
 }
 
@@ -565,7 +751,14 @@ const positionTradeInclude = {
   disposedInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
   feeInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
 } as const;
+const adjustmentInclude = { account: { select: { name: true } }, instrument: { select: { code: true } } } as const;
+const positionAdjustmentInclude = {
+  account: { select: { id: true, name: true } },
+  instrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
+} as const;
 type TradeRow = InvestmentTrade & Prisma.InvestmentTradeGetPayload<{ include: typeof tradeInclude }>;
+type PositionAdjustmentRow = PositionAdjustment & Prisma.PositionAdjustmentGetPayload<{ include: typeof adjustmentInclude }>;
+type BalanceAdjustmentRow = BalanceAdjustment & Prisma.BalanceAdjustmentGetPayload<{ include: typeof adjustmentInclude }>;
 const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
   id: trade.id,
   accountId: trade.accountId,
@@ -595,6 +788,24 @@ const toTradeDto = (trade: TradeRow): InvestmentTradeDto => ({
   createdAt: trade.createdAt.toISOString(),
   updatedAt: trade.updatedAt.toISOString(),
   isImported: trade.isImported,
+});
+
+const toPositionAdjustmentDto = (adjustment: PositionAdjustmentRow): PositionAdjustmentDto => ({
+  id: adjustment.id,
+  accountId: adjustment.accountId,
+  accountName: adjustment.account.name,
+  instrumentId: adjustment.instrumentId,
+  instrumentCode: adjustment.instrument.code,
+  quantity: adjustment.quantity.toString(),
+  cost: adjustment.cost,
+  effectiveAt: adjustment.effectiveAt.toISOString(),
+  reason: adjustment.reason,
+  createdAt: adjustment.createdAt.toISOString(),
+  updatedAt: adjustment.updatedAt.toISOString(),
+});
+const toBalanceAdjustmentDto = (adjustment: BalanceAdjustmentRow): BalanceAdjustmentDto => ({
+  ...toPositionAdjustmentDto(adjustment as unknown as PositionAdjustmentRow),
+  cost: null,
 });
 
 const listingInclude = { instrument: { select: { name: true } }, quoteInstrument: { select: { code: true } } } as const;

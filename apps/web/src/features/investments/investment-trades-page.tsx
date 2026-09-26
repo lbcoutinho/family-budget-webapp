@@ -1,13 +1,23 @@
 import {
+  type BalanceAdjustmentDto,
   type InvestmentTradeDto,
+  type PositionAdjustmentDto,
+  useCreateBalanceAdjustment,
   useCreateInvestmentTrade,
+  useCreatePositionAdjustment,
+  useDeleteBalanceAdjustment,
   useDeleteInvestmentTrade,
+  useDeletePositionAdjustment,
   useListAccounts,
   useListAssetListings,
+  useListBalanceAdjustments,
   useListInstruments,
   useListInvestmentTrades,
+  useListPositionAdjustments,
   usePreviewInvestmentTradeRemoval,
   useUpdateInvestmentTrade,
+  useUpdateBalanceAdjustment,
+  useUpdatePositionAdjustment,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { EyeIcon, PencilIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from 'lucide-react';
@@ -42,6 +52,17 @@ interface TradeValues {
   notes: string;
 }
 
+interface AdjustmentValues {
+  kind: 'position' | 'balance';
+  accountId: string;
+  instrumentId: string;
+  quantity: string;
+  cost: string;
+  effectiveAt: string;
+  reason: string;
+}
+type AdjustmentRow = (PositionAdjustmentDto | BalanceAdjustmentDto) & { kind: AdjustmentValues['kind'] };
+
 const emptyTrade = (): TradeValues => ({
   accountId: '',
   acquiredInstrumentId: '',
@@ -56,6 +77,15 @@ const emptyTrade = (): TradeValues => ({
   executionValue: '',
   notes: '',
 });
+const emptyAdjustment = (): AdjustmentValues => ({
+  kind: 'position',
+  accountId: '',
+  instrumentId: '',
+  quantity: '',
+  cost: '',
+  effectiveAt: new Date().toISOString().slice(0, 16),
+  reason: '',
+});
 
 export function InvestmentTradesPage() {
   const { t, i18n } = useTranslation();
@@ -64,11 +94,59 @@ export function InvestmentTradesPage() {
   const accounts = useListAccounts();
   const instruments = useListInstruments();
   const listings = useListAssetListings();
+  const positionAdjustments = useListPositionAdjustments();
+  const balanceAdjustments = useListBalanceAdjustments();
+  const [adjustmentOpen, setAdjustmentOpen] = useState(false);
+  const [adjustment, setAdjustment] = useState<AdjustmentValues>(emptyAdjustment);
+  const [editingAdjustment, setEditingAdjustment] = useState<AdjustmentRow | null>(null);
   const invalidate = () => {
     void client.invalidateQueries({ queryKey: ['/investment-trades'] });
     void client.invalidateQueries({ queryKey: ['/accounts/instrument-balances'] });
     void client.invalidateQueries({ queryKey: ['/investment-positions'] });
   };
+  const invalidateAdjustments = () => {
+    void client.invalidateQueries({ queryKey: ['/position-adjustments'] });
+    void client.invalidateQueries({ queryKey: ['/balance-adjustments'] });
+    invalidate();
+  };
+  const createPosition = useCreatePositionAdjustment({
+    mutation: {
+      onSuccess: () => {
+        invalidateAdjustments();
+        setAdjustmentOpen(false);
+        setAdjustment(emptyAdjustment());
+      },
+    },
+  });
+  const createBalance = useCreateBalanceAdjustment({
+    mutation: {
+      onSuccess: () => {
+        invalidateAdjustments();
+        setAdjustmentOpen(false);
+        setAdjustment(emptyAdjustment());
+      },
+    },
+  });
+  const updatePosition = useUpdatePositionAdjustment({
+    mutation: {
+      onSuccess: () => {
+        invalidateAdjustments();
+        setAdjustmentOpen(false);
+        setEditingAdjustment(null);
+      },
+    },
+  });
+  const updateBalance = useUpdateBalanceAdjustment({
+    mutation: {
+      onSuccess: () => {
+        invalidateAdjustments();
+        setAdjustmentOpen(false);
+        setEditingAdjustment(null);
+      },
+    },
+  });
+  const deletePosition = useDeletePositionAdjustment({ mutation: { onSuccess: invalidateAdjustments } });
+  const deleteBalance = useDeleteBalanceAdjustment({ mutation: { onSuccess: invalidateAdjustments } });
   const closeForm = () => {
     setValues(emptyTrade());
     setEditing(null);
@@ -131,6 +209,23 @@ export function InvestmentTradesPage() {
     });
     setOpen(true);
   };
+  const startAdjustment = (row?: AdjustmentRow) => {
+    setEditingAdjustment(row ?? null);
+    setAdjustment(
+      row
+        ? {
+            kind: row.kind,
+            accountId: row.accountId,
+            instrumentId: row.instrumentId,
+            quantity: row.quantity,
+            cost: row.cost == null ? '' : formatCentsInput(row.cost),
+            effectiveAt: row.effectiveAt.slice(0, 16),
+            reason: row.reason,
+          }
+        : emptyAdjustment(),
+    );
+    setAdjustmentOpen(true);
+  };
 
   const submit = () => {
     const executionValue = parseCurrencyInput(values.executionValue);
@@ -170,10 +265,16 @@ export function InvestmentTradesPage() {
       <PageHeader
         title={t('investmentTrades.title')}
         actions={
-          <Button size="sm" onClick={startNew}>
-            <PlusIcon />
-            {t('investmentTrades.new')}
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => startAdjustment()}>
+              <PlusIcon />
+              {t('investmentTrades.adjustment')}
+            </Button>
+            <Button size="sm" onClick={startNew}>
+              <PlusIcon />
+              {t('investmentTrades.new')}
+            </Button>
+          </div>
         }
       />
       <PageContent>
@@ -257,6 +358,50 @@ export function InvestmentTradesPage() {
               </TableBody>
             </Table>
           )}
+        </Card>
+        <Card className="mt-4 py-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('investmentTrades.columns.execution')}</TableHead>
+                <TableHead>{t('investmentTrades.columns.account')}</TableHead>
+                <TableHead>{t('investmentTrades.adjustments')}</TableHead>
+                <TableHead className="text-right">
+                  <span className="sr-only">{t('common.actions')}</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[
+                ...(positionAdjustments.data ?? []).map((row) => ({ ...row, kind: 'position' as const })),
+                ...(balanceAdjustments.data ?? []).map((row) => ({ ...row, kind: 'balance' as const })),
+              ]
+                .sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt))
+                .map((row) => (
+                  <TableRow key={`${row.kind}:${row.id}`}>
+                    <TableCell className="tabular-nums">{formatExecution(row.effectiveAt, i18n.language)}</TableCell>
+                    <TableCell>{row.accountName}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {row.kind === 'position' ? t('investmentTrades.positionAdjustment') : t('investmentTrades.balanceAdjustment')} · {row.quantity}{' '}
+                      {row.instrumentCode}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t('common.delete')}
+                        onClick={() => (row.kind === 'position' ? deletePosition.mutate({ id: row.id }) : deleteBalance.mutate({ id: row.id }))}
+                      >
+                        <Trash2Icon />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => startAdjustment(row)}>
+                        <PencilIcon />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
         </Card>
       </PageContent>
 
@@ -359,6 +504,119 @@ export function InvestmentTradesPage() {
                 !values.executionValue
               }
               onClick={submit}
+            >
+              {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={adjustmentOpen}
+        onOpenChange={(next) => {
+          setAdjustmentOpen(next);
+          if (!next) setEditingAdjustment(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('investmentTrades.adjustment')}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <Field label={t('investmentTrades.adjustmentType')}>
+              <Select
+                value={adjustment.kind}
+                disabled={editingAdjustment !== null}
+                onValueChange={(kind: 'position' | 'balance') => setAdjustment({ ...adjustment, kind, cost: '' })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="position">{t('investmentTrades.positionAdjustment')}</SelectItem>
+                  <SelectItem value="balance">{t('investmentTrades.balanceAdjustment')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label={t('investmentTrades.fields.account')}>
+              <Select value={adjustment.accountId} onValueChange={(accountId) => setAdjustment({ ...adjustment, accountId })}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('investmentTrades.fields.choose')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(accounts.data ?? []).map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label={t('investmentTrades.instrument')}>
+              <Select value={adjustment.instrumentId} onValueChange={(instrumentId) => setAdjustment({ ...adjustment, instrumentId })}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('investmentTrades.fields.choose')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(instruments.data ?? [])
+                    .filter((instrument) =>
+                      adjustment.kind === 'position' ? !['FIAT', 'STABLECOIN'].includes(instrument.type) : ['FIAT', 'STABLECOIN'].includes(instrument.type),
+                    )
+                    .map((instrument) => (
+                      <SelectItem key={instrument.id} value={instrument.id}>
+                        {instrument.code}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label={t('investmentTrades.quantity')}>
+              <Input inputMode="decimal" value={adjustment.quantity} onChange={(event) => setAdjustment({ ...adjustment, quantity: event.target.value })} />
+            </Field>
+            {adjustment.kind === 'position' && !adjustment.quantity.startsWith('-') && (
+              <Field label={t('investmentTrades.cost')}>
+                <Input inputMode="decimal" value={adjustment.cost} onChange={(event) => setAdjustment({ ...adjustment, cost: event.target.value })} />
+              </Field>
+            )}
+            <Field label={t('investmentTrades.fields.executionTime')}>
+              <Input
+                type="datetime-local"
+                value={adjustment.effectiveAt}
+                onChange={(event) => setAdjustment({ ...adjustment, effectiveAt: event.target.value })}
+              />
+            </Field>
+            <Field label={t('investmentTrades.reason')}>
+              <Input value={adjustment.reason} onChange={(event) => setAdjustment({ ...adjustment, reason: event.target.value })} />
+            </Field>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdjustmentOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              disabled={
+                !adjustment.accountId ||
+                !adjustment.instrumentId ||
+                !adjustment.quantity ||
+                !adjustment.effectiveAt ||
+                !adjustment.reason ||
+                (adjustment.kind === 'position' && !adjustment.quantity.startsWith('-') && parseCurrencyInput(adjustment.cost) === null)
+              }
+              onClick={() => {
+                const data = {
+                  accountId: adjustment.accountId,
+                  instrumentId: adjustment.instrumentId,
+                  quantity: adjustment.quantity,
+                  effectiveAt: `${adjustment.effectiveAt}:00.000Z`,
+                  reason: adjustment.reason,
+                };
+                if (adjustment.kind === 'position') {
+                  const positionData = { ...data, ...(adjustment.quantity.startsWith('-') ? {} : { cost: parseCurrencyInput(adjustment.cost)! }) };
+                  if (editingAdjustment) updatePosition.mutate({ id: editingAdjustment.id, data: positionData });
+                  else createPosition.mutate({ data: positionData });
+                } else if (editingAdjustment) updateBalance.mutate({ id: editingAdjustment.id, data });
+                else createBalance.mutate({ data });
+              }}
             >
               {t('common.save')}
             </Button>
