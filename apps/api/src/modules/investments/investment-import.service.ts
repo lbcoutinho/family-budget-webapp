@@ -1,12 +1,14 @@
+import { createHash } from 'node:crypto';
+
 import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
 
-import { badRequest } from '../../common/api-error';
+import { badRequest, conflict } from '../../common/api-error';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
-import { type InvestmentImportPreviewDto } from './dto/investment-import-preview.dto';
+import { type InvestmentImportConfirmationDto, type InvestmentImportPreviewDto } from './dto/investment-import-preview.dto';
 
 const headers = [
   'external_id',
@@ -41,6 +43,8 @@ interface Operation {
   feeValue?: number;
   executionValue: number;
   executedAt: Date;
+  assetListingId?: string;
+  sourceKey?: string;
 }
 
 @Injectable()
@@ -51,6 +55,67 @@ export class InvestmentImportService {
   ) {}
 
   async preview(userId: string, file: Buffer | undefined): Promise<InvestmentImportPreviewDto> {
+    return (await this.prepare(userId, file)).preview;
+  }
+
+  async confirm(userId: string, file: Buffer | undefined): Promise<InvestmentImportConfirmationDto> {
+    const { preview, operations } = await this.prepare(userId, file);
+    const rows = operations.filter(
+      (operation): operation is Operation & { row: Row; sourceKey: string } => operation.row !== undefined && operation.sourceKey !== undefined,
+    );
+    const fingerprints = new Set<string>();
+    for (const operation of rows) {
+      const fingerprint = contentFingerprint(operation);
+      if (fingerprints.has(`${operation.sourceKey}:${fingerprint}`))
+        throw conflict('INVESTMENT_IMPORT_DUPLICATE_CONTENT', 'Equivalent operations are repeated in this file.');
+      fingerprints.add(`${operation.sourceKey}:${fingerprint}`);
+    }
+    const batch = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.investmentTrade.findMany({
+        where: {
+          userId,
+          OR: rows.flatMap((operation) => [
+            { sourceKey: operation.sourceKey, externalId: operation.row.external_id },
+            { sourceKey: operation.sourceKey, contentFingerprint: contentFingerprint(operation) },
+          ]),
+        },
+        select: { sourceKey: true, externalId: true, contentFingerprint: true },
+      });
+      if (existing.some((trade) => rows.some((operation) => trade.sourceKey === operation.sourceKey && trade.externalId === operation.row.external_id)))
+        throw conflict('INVESTMENT_IMPORT_DUPLICATE_EXTERNAL_ID', 'An operation with this external ID was already imported.');
+      if (existing.length) throw conflict('INVESTMENT_IMPORT_DUPLICATE_CONTENT', 'An equivalent operation was already imported.');
+
+      if (preview.errors.length) throw badRequest('INVESTMENT_IMPORT_INVALID', 'Resolve every import error before confirmation.');
+
+      const batch = await tx.importBatch.create({ data: { userId, rowCount: rows.length, fileFingerprint: createHash('sha256').update(file!).digest('hex') } });
+      await tx.investmentTrade.createMany({
+        data: rows.map((operation) => ({
+          userId,
+          accountId: operation.accountId,
+          acquiredInstrumentId: operation.acquired.id,
+          acquiredQuantity: operation.acquiredQuantity,
+          disposedInstrumentId: operation.disposed.id,
+          disposedQuantity: operation.disposedQuantity,
+          feeInstrumentId: operation.fee?.id,
+          feeQuantity: operation.feeQuantity,
+          feeValue: operation.feeValue,
+          assetListingId: operation.assetListingId,
+          executedAt: operation.executedAt,
+          executionValue: operation.executionValue,
+          notes: operation.row.notes || null,
+          isImported: true,
+          importBatchId: batch.id,
+          sourceKey: operation.sourceKey,
+          externalId: operation.row.external_id,
+          contentFingerprint: contentFingerprint(operation),
+        })),
+      });
+      return batch;
+    });
+    return { batchId: batch.id, importedRows: rows.length };
+  }
+
+  private async prepare(userId: string, file: Buffer | undefined): Promise<{ preview: InvestmentImportPreviewDto; operations: Operation[] }> {
     if (!file) throw badRequest('CSV_IMPORT_FILE_REQUIRED', 'A CSV file is required.');
     let records: string[][];
     try {
@@ -160,6 +225,8 @@ export class InvestmentImportService {
         feeValue: item.fee ? Number(item.row.fee_value_eur_cents) : undefined,
         executionValue: Number(item.row.execution_value_eur_cents),
         executedAt: new Date(item.row.executed_at_utc),
+        assetListingId: listingByKey.get(`${item.row.asset_listing_ticker}|${item.row.asset_listing_market}`)?.id,
+        sourceKey: accountByName.get(item.row.account)!.financialInstitutionId ?? item.accountId,
       })),
     ];
     for (const trade of operations.filter((item) => item.row === undefined)) {
@@ -228,26 +295,50 @@ export class InvestmentImportService {
       if (item.row) validRows += 1;
     }
     return {
-      validRows,
-      errors,
-      warnings,
-      balances: [...quantities.entries()].map(([key, quantity]) => {
-        const [accountId, instrumentId] = key.split('|');
-        return {
-          accountName: accounts.find((item) => item.id === accountId)?.name ?? '',
-          instrumentCode: instruments.find((item) => item.id === instrumentId)?.code ?? '',
-          quantity: quantity.toString(),
-        };
-      }),
-      positions: [...positions.values()].map((item) => ({
-        accountName: item.accountName,
-        instrumentCode: item.instrumentCode,
-        quantity: item.quantity.toString(),
-        remainingCost: item.remainingCost.toDecimalPlaces(0).toNumber(),
-        realizedResult: item.realizedResult.toDecimalPlaces(0).toNumber(),
-      })),
+      operations,
+      preview: {
+        validRows,
+        errors,
+        warnings,
+        balances: [...quantities.entries()].map(([key, quantity]) => {
+          const [accountId, instrumentId] = key.split('|');
+          return {
+            accountName: accounts.find((item) => item.id === accountId)?.name ?? '',
+            instrumentCode: instruments.find((item) => item.id === instrumentId)?.code ?? '',
+            quantity: quantity.toString(),
+          };
+        }),
+        positions: [...positions.values()].map((item) => ({
+          accountName: item.accountName,
+          instrumentCode: item.instrumentCode,
+          quantity: item.quantity.toString(),
+          remainingCost: item.remainingCost.toDecimalPlaces(0).toNumber(),
+          realizedResult: item.realizedResult.toDecimalPlaces(0).toNumber(),
+        })),
+      },
     };
   }
+}
+
+function contentFingerprint(operation: Operation): string {
+  return createHash('sha256')
+    .update(
+      [
+        operation.accountId,
+        operation.acquired.id,
+        operation.acquiredQuantity.toString(),
+        operation.disposed.id,
+        operation.disposedQuantity.toString(),
+        operation.fee?.id ?? '',
+        operation.feeQuantity?.toString() ?? '',
+        operation.feeValue ?? '',
+        operation.assetListingId ?? '',
+        operation.executedAt.toISOString(),
+        operation.executionValue,
+        operation.row?.notes ?? '',
+      ].join('\0'),
+    )
+    .digest('hex');
 }
 function decimal(value: string): boolean {
   return /^\d+(?:\.\d{1,18})?$/.test(value) && new Prisma.Decimal(value).gt(0);

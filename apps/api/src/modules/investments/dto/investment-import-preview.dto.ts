@@ -27,3 +27,8 @@ export class InvestmentImportPreviewDto {
   @ApiProperty({ type: [InvestmentImportPreviewBalanceDto] }) balances!: InvestmentImportPreviewBalanceDto[];
   @ApiProperty({ type: [InvestmentImportPreviewPositionDto] }) positions!: InvestmentImportPreviewPositionDto[];
 }
+
+export class InvestmentImportConfirmationDto {
+  @ApiProperty({ type: String, format: 'uuid' }) batchId!: string;
+  @ApiProperty({ type: Number }) importedRows!: number;
+}

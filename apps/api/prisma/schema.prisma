@@ -62,6 +62,7 @@ model User {
   investmentTrades       InvestmentTrade[]
   positionAdjustments    PositionAdjustment[]
   balanceAdjustments     BalanceAdjustment[]
+  importBatches          ImportBatch[]
 
   @@map("users")
 }
@@ -341,6 +342,10 @@ model InvestmentTrade {
   executionValue       Int      @map("execution_value")
   notes                String?
   isImported           Boolean  @default(false) @map("is_imported")
+  importBatchId        String?  @map("import_batch_id") @db.Uuid
+  sourceKey            String?  @map("source_key")
+  externalId           String?  @map("external_id")
+  contentFingerprint   String?  @map("content_fingerprint")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
@@ -350,6 +355,7 @@ model InvestmentTrade {
   disposedInstrument Instrument    @relation("DisposedInstrument", fields: [disposedInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   feeInstrument      Instrument?   @relation("FeeInstrument", fields: [feeInstrumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   assetListing       AssetListing? @relation(fields: [assetListingId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  importBatch        ImportBatch?  @relation(fields: [importBatchId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([userId, executedAt])
   @@index([accountId, executedAt])
@@ -357,6 +363,9 @@ model InvestmentTrade {
   @@index([disposedInstrumentId])
   @@index([feeInstrumentId])
   @@index([assetListingId])
+  @@index([importBatchId])
+  @@unique([sourceKey, externalId])
+  @@unique([sourceKey, contentFingerprint])
   @@map("investment_trades")
 }
 
@@ -401,6 +410,21 @@ model BalanceAdjustment {
   @@index([userId, effectiveAt])
   @@index([accountId, instrumentId, effectiveAt])
   @@map("balance_adjustments")
+}
+
+/// An auditable atomic import of normalized Investment Trades.
+model ImportBatch {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  rowCount        Int      @map("row_count")
+  fileFingerprint String   @map("file_fingerprint")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user   User              @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  trades InvestmentTrade[]
+
+  @@index([userId, createdAt])
+  @@map("import_batches")
 }
 
 /// What a transaction is *for*. Income and expense are the only two sides that need classifying:
