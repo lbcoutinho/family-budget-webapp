@@ -159,8 +159,6 @@
       "market": "Market",
       "quote": "Quote"
     },
-    "institutions": { "title": "Financial institutions", "description": "Banks, brokers and exchanges that hold accounts." },
-    "instruments": { "title": "Instruments", "description": "Currencies and assets held in accounts, with display precision." },
     "showInactive": "Show inactive",
     "new": "New record",
     "editTitle": "Edit record",
@@ -179,13 +177,24 @@
       "ETF": "ETF",
       "ETC": "ETC"
     },
-    "listings": { "title": "Asset listings", "description": "Each asset's market, ticker and quote currency.", "empty": "No asset listings yet" },
+    "listings": {
+      "title": "Asset listings",
+      "description": "Each asset's market, ticker and quote currency.",
+      "empty": "No asset listings yet",
+      "new": "New Listing"
+    },
     "institutions": {
       "title": "Financial institutions",
       "description": "Banks, brokers and exchanges that hold accounts.",
-      "empty": "No financial institutions yet"
+      "empty": "No financial institutions yet",
+      "new": "New Institution"
     },
-    "instruments": { "title": "Instruments", "description": "Currencies and assets held in accounts, with display precision.", "empty": "No instruments yet" }
+    "instruments": {
+      "title": "Instruments",
+      "description": "Currencies and assets held in accounts, with display precision.",
+      "empty": "No instruments yet",
+      "new": "New Instrument"
+    }
   },
   "investmentTrades": {
     "title": "Operations",
