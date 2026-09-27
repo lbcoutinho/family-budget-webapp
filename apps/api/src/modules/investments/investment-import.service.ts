@@ -60,7 +60,6 @@ export class InvestmentImportService {
 
   async confirm(userId: string, file: Buffer | undefined): Promise<InvestmentImportConfirmationDto> {
     const { preview, operations } = await this.prepare(userId, file);
-    if (preview.errors.length) throw badRequest('INVESTMENT_IMPORT_INVALID', 'Resolve every import error before confirmation.');
     const rows = operations.filter(
       (operation): operation is Operation & { row: Row; sourceKey: string } => operation.row !== undefined && operation.sourceKey !== undefined,
     );
@@ -85,6 +84,8 @@ export class InvestmentImportService {
       if (existing.some((trade) => rows.some((operation) => trade.sourceKey === operation.sourceKey && trade.externalId === operation.row.external_id)))
         throw conflict('INVESTMENT_IMPORT_DUPLICATE_EXTERNAL_ID', 'An operation with this external ID was already imported.');
       if (existing.length) throw conflict('INVESTMENT_IMPORT_DUPLICATE_CONTENT', 'An equivalent operation was already imported.');
+
+      if (preview.errors.length) throw badRequest('INVESTMENT_IMPORT_INVALID', 'Resolve every import error before confirmation.');
 
       const batch = await tx.importBatch.create({ data: { userId, rowCount: rows.length, fileFingerprint: createHash('sha256').update(file!).digest('hex') } });
       await tx.investmentTrade.createMany({
