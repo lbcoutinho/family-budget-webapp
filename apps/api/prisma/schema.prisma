@@ -370,8 +370,8 @@ model PositionAdjustment {
   cost         Int?     @map("cost")
   effectiveAt  DateTime @map("effective_at") @db.Timestamptz(3)
   reason       String
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   account    Account    @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -391,8 +391,8 @@ model BalanceAdjustment {
   quantity     Decimal  @db.Decimal(36, 18)
   effectiveAt  DateTime @map("effective_at") @db.Timestamptz(3)
   reason       String
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   account    Account    @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Cascade)

@@ -81,6 +81,13 @@ jobs:
           pnpm gen
           git diff --exit-code -- packages/api-client
 
+      # Compare the schema with a database rebuilt from committed migrations. The separate
+      # PostgreSQL database is disposable and prevents Prisma from touching the test database.
+      - name: Verify Prisma schema matches migrations
+        env:
+          SHADOW_DATABASE_URL: postgresql://budget:budget@localhost:5432/postgres?schema=public
+        run: pnpm --filter api exec prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --exit-code
+
       # Apply migrations to the test database before any test touches it. A no-op until the
       # first schema-changing task adds a migration, but wiring it here means later milestones
       # need no CI change.
