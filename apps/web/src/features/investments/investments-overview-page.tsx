@@ -12,7 +12,6 @@ import { type TFunction } from 'i18next';
 import { SlidersHorizontalIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { EmptyState } from '@/components/empty-state';
@@ -27,6 +26,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
+
+import { InvestmentSectionNav } from './investment-section-nav';
 
 const all = 'all';
 
@@ -58,7 +59,7 @@ export function InvestmentsOverviewPage() {
   return (
     <>
       <PageHeader
-        title={t('investmentOverview.title')}
+        title={t('nav.investments')}
         actions={
           <Button size="sm" onClick={() => setQuoteOpen(true)}>
             {t('investmentOverview.recordQuote')}
@@ -66,17 +67,7 @@ export function InvestmentsOverviewPage() {
         }
       />
       <PageContent className="space-y-4">
-        <nav className="flex gap-1 overflow-x-auto border-b" aria-label={t('investmentOverview.sections')}>
-          <NavLink to="/investments/overview" className="border-b-2 border-foreground px-3 py-2 text-sm font-medium">
-            {t('investmentOverview.title')}
-          </NavLink>
-          <NavLink to="/investments/operations" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentTrades.title')}
-          </NavLink>
-          <NavLink to="/investments/flow" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentFlow.title')}
-          </NavLink>
-        </nav>
+        <InvestmentSectionNav />
         <p className="text-sm text-muted-foreground">{t('investmentOverview.description')}</p>
         <div className="flex justify-end">
           <details className="group relative">

@@ -37,6 +37,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, formatCentsInput, parseCurrencyInput } from '@/lib/money';
 
+import { InvestmentSectionNav } from './investment-section-nav';
+
 interface TradeValues {
   accountId: string;
   acquiredInstrumentId: string;
@@ -263,7 +265,7 @@ export function InvestmentTradesPage() {
   return (
     <>
       <PageHeader
-        title={t('investmentTrades.title')}
+        title={t('nav.investments')}
         actions={
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => startAdjustment()}>
@@ -277,8 +279,9 @@ export function InvestmentTradesPage() {
           </div>
         }
       />
-      <PageContent>
-        <p className="mb-4 text-sm text-muted-foreground">{t('investmentTrades.description')}</p>
+      <PageContent className="space-y-4">
+        <InvestmentSectionNav />
+        <p className="text-sm text-muted-foreground">{t('investmentTrades.description')}</p>
         <Card className="py-0">
           {trades.isPending && <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>}
           {trades.isError && (
