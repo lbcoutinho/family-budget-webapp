@@ -31,6 +31,8 @@ const row = (overrides: Partial<Account> = {}): AccountRow => ({
 const prismaDouble = (): {
   prisma: PrismaService;
   account: Record<'findMany' | 'findUnique' | 'findUniqueOrThrow' | 'create' | 'update' | 'delete', jest.Mock>;
+  instrument: { findMany: jest.Mock };
+  financialInstitution: { findFirst: jest.Mock };
 } => {
   const account = {
     findMany: jest.fn(),
@@ -41,23 +43,27 @@ const prismaDouble = (): {
     delete: jest.fn(),
   };
 
-  const instrument = { findFirst: jest.fn().mockResolvedValue({ id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee' }), create: jest.fn(), count: jest.fn() };
+  const instrument = { findMany: jest.fn().mockResolvedValue([]) };
   const financialInstitution = { findFirst: jest.fn() };
-  const accountInitialBalance = { deleteMany: jest.fn(), upsert: jest.fn() };
+  const accountInitialBalance = { deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]), upsert: jest.fn() };
   const transaction = jest.fn((callback: (client: PrismaService) => Promise<unknown>) => callback(prisma));
   const prisma = { account, instrument, financialInstitution, accountInitialBalance, $transaction: transaction } as unknown as PrismaService;
-  return { prisma, account };
+  return { prisma, account, instrument, financialInstitution };
 };
 
 describe('AccountsService', () => {
   let service: AccountsService;
   let account: ReturnType<typeof prismaDouble>['account'];
+  let instrument: ReturnType<typeof prismaDouble>['instrument'];
+  let financialInstitution: ReturnType<typeof prismaDouble>['financialInstitution'];
   let instrumentBalances: jest.Mock;
 
   beforeEach(() => {
     const double = prismaDouble();
 
     account = double.account;
+    instrument = double.instrument;
+    financialInstitution = double.financialInstitution;
     instrumentBalances = jest.fn().mockResolvedValue([]);
     service = new AccountsService(double.prisma, { instrumentBalances } as unknown as BalancesService);
   });
@@ -136,14 +142,53 @@ describe('AccountsService', () => {
   it('creates with the userId from the token, never from the body', async () => {
     account.create.mockResolvedValue(row());
 
-    await service.create(userId, { name: 'Millennium' });
+    await service.create(userId, { name: 'Millennium', kind: 'OTHER' });
 
     expect(account.create).toHaveBeenCalled();
   });
 
+  it.each(['BANK', 'BROKERAGE', 'EXCHANGE'] as const)('requires an active institution for a %s account', async (kind) => {
+    await expect(service.create(userId, { name: 'Custody', kind })).rejects.toMatchObject({ response: { code: 'ACCOUNT_INSTITUTION_REQUIRED' } });
+    expect(account.create).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['BANK', 'FIAT', true],
+    ['BANK', 'CRYPTOCURRENCY', false],
+    ['BROKERAGE', 'ETF', true],
+    ['BROKERAGE', 'CRYPTOCURRENCY', false],
+    ['WALLET', 'CRYPTOCURRENCY', true],
+    ['WALLET', 'FIAT', false],
+    ['EXCHANGE', 'CRYPTOCURRENCY', true],
+    ['OTHER', 'STOCK', true],
+  ] as const)('allows %s initial balances with %s instruments only when compatible', async (kind, type, allowed) => {
+    financialInstitution.findFirst.mockResolvedValue({ id: 'institution' });
+    instrument.findMany.mockResolvedValue([{ id: 'instrument', type }]);
+    account.create.mockResolvedValue(row({ kind, financialInstitutionId: kind === 'WALLET' || kind === 'OTHER' ? null : 'institution' }));
+    const dto = {
+      name: 'Custody',
+      kind,
+      financialInstitutionId: kind === 'WALLET' || kind === 'OTHER' ? null : 'institution',
+      initialBalances: [{ instrumentId: 'instrument', quantity: '1' }],
+    };
+
+    if (allowed) {
+      await expect(service.create(userId, dto)).resolves.toMatchObject({ kind });
+    } else {
+      await expect(service.create(userId, dto)).rejects.toMatchObject({ response: { code: 'ACCOUNT_INSTRUMENT_INCOMPATIBLE' } });
+    }
+  });
+
+  it('requires an institution when a legacy bank account is edited', async () => {
+    account.findUnique.mockResolvedValue(row({ kind: 'BANK', financialInstitutionId: null }));
+
+    await expect(service.update(userId, accountId, { name: 'Renamed' })).rejects.toMatchObject({ response: { code: 'ACCOUNT_INSTITUTION_REQUIRED' } });
+    expect(account.update).not.toHaveBeenCalled();
+  });
+
   it('updates a row it owns', async () => {
-    account.findUnique.mockResolvedValue(row());
-    account.update.mockResolvedValue(row({ name: 'Renamed' }));
+    account.findUnique.mockResolvedValue(row({ kind: 'OTHER' }));
+    account.update.mockResolvedValue(row({ name: 'Renamed', kind: 'OTHER' }));
 
     await expect(service.update(userId, accountId, { name: 'Renamed' })).resolves.toMatchObject({ name: 'Renamed' });
     expect(account.update).toHaveBeenCalled();

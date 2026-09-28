@@ -15,15 +15,33 @@ import { type TranslationKey } from '@/i18n';
 import { apiErrorMessage } from '@/lib/api-error';
 
 // Module-level, like `login-page.tsx`'s schema: `t` does not exist here, so messages are keys.
-const accountSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'accounts.form.nameRequired' satisfies TranslationKey)
-    .max(80, 'accounts.form.nameTooLong' satisfies TranslationKey),
-  kind: z.enum(['BANK', 'BROKERAGE', 'EXCHANGE', 'WALLET', 'OTHER']),
-  financialInstitutionId: z.string(),
-});
+const accountSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'accounts.form.nameRequired' satisfies TranslationKey)
+      .max(80, 'accounts.form.nameTooLong' satisfies TranslationKey),
+    kind: z.enum(['BANK', 'BROKERAGE', 'EXCHANGE', 'WALLET', 'OTHER']),
+    financialInstitutionId: z.string(),
+  })
+  .superRefine(({ kind, financialInstitutionId }, ctx) => {
+    if (requiresInstitution(kind) && financialInstitutionId === 'none') {
+      ctx.addIssue({ code: 'custom', message: 'accounts.form.institutionRequired' satisfies TranslationKey, path: ['financialInstitutionId'] });
+    }
+  });
+
+const allowedInstrumentTypes: Record<AccountKind, string[]> = {
+  BANK: ['FIAT'],
+  BROKERAGE: ['FIAT', 'STOCK', 'ETF', 'ETC'],
+  EXCHANGE: ['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'],
+  WALLET: ['STABLECOIN', 'CRYPTOCURRENCY'],
+  OTHER: ['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'],
+};
+
+function requiresInstitution(kind: AccountKind): boolean {
+  return kind === 'BANK' || kind === 'BROKERAGE' || kind === 'EXCHANGE';
+}
 
 type AccountFormValues = z.infer<typeof accountSchema>;
 
@@ -64,6 +82,7 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
   });
   const kind = useWatch({ control, name: 'kind' });
   const financialInstitutionId = useWatch({ control, name: 'financialInstitutionId' });
+  const compatibleInstruments = (instruments.data ?? []).filter((instrument) => allowedInstrumentTypes[kind].includes(instrument.type));
 
   // The form only needs to know the account when the dialog opens, not on every parent render —
   // resetting on every render would fight back against whatever the user just typed.
@@ -97,11 +116,18 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
           <div className="grid gap-1.5">
             <Label htmlFor="account-institution">{t('accounts.form.institution')}</Label>
             <Select value={financialInstitutionId} onValueChange={(financialInstitutionId) => setValue('financialInstitutionId', financialInstitutionId)}>
-              <SelectTrigger id="account-institution" disabled={isPending || institutions.isPending}>
+              <SelectTrigger
+                id="account-institution"
+                aria-invalid={errors.financialInstitutionId !== undefined}
+                aria-describedby={errors.financialInstitutionId ? 'account-institution-error' : undefined}
+                disabled={isPending || institutions.isPending}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">{t('accounts.form.selfCustody')}</SelectItem>
+                {!requiresInstitution(kind) && (
+                  <SelectItem value="none">{t(kind === 'WALLET' ? 'accounts.form.selfCustody' : 'accounts.form.noInstitution')}</SelectItem>
+                )}
                 {(institutions.data ?? []).map((institution) => (
                   <SelectItem key={institution.id} value={institution.id}>
                     {institution.name}
@@ -109,6 +135,11 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
                 ))}
               </SelectContent>
             </Select>
+            {errors.financialInstitutionId && (
+              <span id="account-institution-error" className="text-xs text-destructive">
+                {t(errors.financialInstitutionId.message as TranslationKey)}
+              </span>
+            )}
           </div>
 
           <div className="grid gap-1.5">
@@ -158,7 +189,7 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(instruments.data ?? []).map((instrument) => (
+                    {compatibleInstruments.map((instrument) => (
                       <SelectItem key={instrument.id} value={instrument.id}>
                         {instrument.code}
                       </SelectItem>
@@ -181,8 +212,8 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
             <Button
               type="button"
               variant="outline"
-              disabled={!instruments.data?.length}
-              onClick={() => setInitialBalances((rows) => [...rows, { instrumentId: instruments.data?.[0]?.id ?? '', quantity: '' }])}
+              disabled={!compatibleInstruments.length}
+              onClick={() => setInitialBalances((rows) => [...rows, { instrumentId: compatibleInstruments[0]?.id ?? '', quantity: '' }])}
             >
               {t('accounts.form.addInstrument')}
             </Button>

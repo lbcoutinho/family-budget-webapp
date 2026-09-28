@@ -90,6 +90,8 @@
     "CSV_IMPORT_MAPPED_HEADER_MISSING": "The file does not contain one of the columns configured in the CSV model.",
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file.",
     "INVESTMENT_REFERENCE_INACTIVE": "Choose active accounts and instruments.",
+    "ACCOUNT_INSTITUTION_REQUIRED": "Choose an active financial institution for this account type.",
+    "ACCOUNT_INSTRUMENT_INCOMPATIBLE": "This instrument type is not supported by this account type.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "The received and delivered instruments must be different.",
     "INVESTMENT_TRADE_LISTING_MISMATCH": "The listing must belong to the received instrument.",
     "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "There is not enough of the delivered instrument in this account."
@@ -104,6 +106,7 @@
       "balance": "Instrument balances"
     },
     "inactiveBadge": "inactive",
+    "institutionRequired": "Institution required",
     "actions": {
       "deactivate": "Deactivate",
       "activate": "Reactivate"
@@ -117,7 +120,9 @@
       "nameTooLong": "The name can have at most 80 characters.",
       "kind": "Account type",
       "institution": "Financial institution",
+      "institutionRequired": "Choose a financial institution.",
       "selfCustody": "Self-custody",
+      "noInstitution": "No institution",
       "instrumentBalances": "Instrument initial balances",
       "instrument": "Instrument",
       "quantity": "Quantity",
