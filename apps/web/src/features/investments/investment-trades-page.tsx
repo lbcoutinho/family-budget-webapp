@@ -37,6 +37,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { apiErrorMessage } from '@/lib/api-error';
+import { formatDecimal } from '@/lib/decimal';
 import { formatCents, formatCentsInput, parseCurrencyInput } from '@/lib/money';
 
 interface TradeValues {
@@ -320,10 +321,10 @@ export function InvestmentTradesPage() {
                     <TableCell className="whitespace-nowrap tabular-nums">{formatExecution(trade.executedAt, i18n.language)}</TableCell>
                     <TableCell>{trade.accountName}</TableCell>
                     <TableCell className="whitespace-nowrap tabular-nums">
-                      {formatQuantity(trade.acquiredQuantity, i18n.language)} {trade.acquiredInstrumentCode}
+                      {formatDecimal(trade.acquiredQuantity, i18n.language, trade.acquiredDisplayPrecision)} {trade.acquiredInstrumentCode}
                     </TableCell>
                     <TableCell className="whitespace-nowrap tabular-nums">
-                      {formatQuantity(trade.disposedQuantity, i18n.language)} {trade.disposedInstrumentCode}
+                      {formatDecimal(trade.disposedQuantity, i18n.language, trade.disposedDisplayPrecision)} {trade.disposedInstrumentCode}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{formatCents(trade.executionValue)}</TableCell>
                     <TableCell className="text-right">
@@ -385,8 +386,8 @@ export function InvestmentTradesPage() {
                     <TableCell className="tabular-nums">{formatExecution(row.effectiveAt, i18n.language)}</TableCell>
                     <TableCell>{row.accountName}</TableCell>
                     <TableCell className="tabular-nums">
-                      {row.kind === 'position' ? t('investmentTrades.positionAdjustment') : t('investmentTrades.balanceAdjustment')} · {row.quantity}{' '}
-                      {row.instrumentCode}
+                      {row.kind === 'position' ? t('investmentTrades.positionAdjustment') : t('investmentTrades.balanceAdjustment')} ·{' '}
+                      {formatDecimal(row.quantity, i18n.language, row.displayPrecision)} {row.instrumentCode}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -765,9 +766,7 @@ function InstrumentLeg({
 }
 
 function formatQuantity(value: string, locale: string): string {
-  const [whole, fraction = ''] = value.split('.');
-  const separator = new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.';
-  return `${new Intl.NumberFormat(locale).format(BigInt(whole ?? '0'))}${separator}${fraction.padEnd(4, '0').slice(0, 4)}`;
+  return formatDecimal(value, locale);
 }
 
 function formatExecution(value: string, locale: string): string {

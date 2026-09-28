@@ -81,7 +81,13 @@ describe('Investment trades API (e2e)', () => {
       })
       .expect(201)
       .expect(({ body }: { body: unknown }) =>
-        expect(body).toMatchObject({ acquiredQuantity: '0.012345678901234567', disposedQuantity: '500', executionPrice: '40500.000364500006' }),
+        expect(body).toMatchObject({
+          acquiredDisplayPrecision: 8,
+          acquiredQuantity: '0.012345678901234567',
+          disposedDisplayPrecision: 2,
+          disposedQuantity: '500',
+          executionPrice: '40500.000364500006',
+        }),
       );
 
     const balances = (await call('get', '/accounts/instrument-balances').expect(200)).body as { accountId: string; instrumentId: string; quantity: string }[];
@@ -95,7 +101,9 @@ describe('Investment trades API (e2e)', () => {
 
   it('replays explicit adjustments without creating investment activity', async () => {
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
-    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 }).expect(201)).body as {
+      id: string;
+    };
     const account = (
       await call('post', '/accounts')
         .send({ name: 'Exchange', kind: 'EXCHANGE', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
@@ -116,6 +124,10 @@ describe('Investment trades API (e2e)', () => {
     await call('post', '/balance-adjustments')
       .send({ accountId: account.id, instrumentId: eur.id, quantity: '-15', effectiveAt: '2026-02-01T00:00:00.000Z', reason: 'Exchange fee' })
       .expect(201);
+
+    expect((await call('get', '/position-adjustments').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: positive.id, displayPrecision: 8 })]),
+    );
 
     expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
       expect.arrayContaining([expect.objectContaining({ accountId: account.id, instrumentId: btc.id, quantity: '1.5', remainingCost: 15000 })]),

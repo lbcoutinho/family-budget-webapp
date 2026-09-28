@@ -12,6 +12,11 @@ export interface BalanceAdjustmentDto {
   accountName: string;
   instrumentId: string;
   instrumentCode: string;
+  /**
+     * @minimum 0
+     * @maximum 18
+     */
+  displayPrecision: number;
   quantity: string;
   /** EUR cost in integer cents. */
   cost?: number;
