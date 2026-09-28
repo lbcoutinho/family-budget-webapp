@@ -9,13 +9,25 @@
 export interface CreateAssetListingDto {
   instrumentId: string;
   quoteInstrumentId: string;
-  /** @maxLength 80 */
+  /**
+     * Market venue, for example XETRA or Kraken.
+     * @maxLength 80
+     */
   market: string;
-  /** @maxLength 40 */
+  /**
+     * Venue asset or pair code, for example VWCE or BTC-EUR.
+     * @maxLength 40
+     */
   ticker: string;
-  /** @maxLength 12 */
+  /**
+     * Security identifier. Native cryptocurrencies normally have no ISIN.
+     * @maxLength 12
+     */
   isin?: string;
-  /** @maxLength 120 */
+  /**
+     * Optional quote-provider identifier, for example VWCE.XETRA or BTC-EUR.CC.
+     * @maxLength 120
+     */
   providerSymbol?: string;
   sortOrder?: number;
 }

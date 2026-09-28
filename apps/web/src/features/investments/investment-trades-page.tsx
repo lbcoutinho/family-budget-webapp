@@ -186,7 +186,11 @@ export function InvestmentTradesPage() {
   const [removing, setRemoving] = useState<InvestmentTradeDto | null>(null);
   const [values, setValues] = useState<TradeValues>(emptyTrade);
   const removalPreview = usePreviewInvestmentTradeRemoval(removing?.id ?? '', { query: { enabled: removing !== null } });
-  const eligibleListings = (listings.data ?? []).filter((listing) => listing.instrumentId === values.acquiredInstrumentId);
+  const eligibleListings = (listings.data ?? []).filter(
+    (listing) =>
+      (listing.instrumentId === values.acquiredInstrumentId && listing.quoteInstrumentId === values.disposedInstrumentId) ||
+      (listing.instrumentId === values.disposedInstrumentId && listing.quoteInstrumentId === values.acquiredInstrumentId),
+  );
   const mutation = editing ? update : create;
 
   const startNew = () => {

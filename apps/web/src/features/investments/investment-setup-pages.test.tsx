@@ -128,4 +128,23 @@ describe('Investment setup registries', () => {
 
     expect(updated).toEqual({ name: 'Banco Editado' });
   });
+
+  it('explains listing fields with accessible market and cryptocurrency examples', async () => {
+    server.use(
+      http.get('/api/asset-listings', () => HttpResponse.json([])),
+      http.get('/api/instruments', () => HttpResponse.json([INSTRUMENT])),
+    );
+
+    const { user } = renderPage(<AssetListingsPage />);
+    await user.click(await screen.findByRole('button', { name: 'Nova listagem' }));
+
+    expect(screen.getByLabelText('Mercado')).toHaveAccessibleDescription('Local de negociação, por exemplo XETRA ou Kraken.');
+    expect(screen.getByLabelText('Ticker')).toHaveAccessibleDescription('Código do ativo ou par no local, por exemplo VWCE ou BTC-EUR.');
+    expect(screen.getByLabelText('ISIN')).toHaveAccessibleDescription(
+      'Identificador do título, por exemplo IE00BK5BQT80. Criptomoedas nativas normalmente não têm ISIN.',
+    );
+    expect(screen.getByLabelText('Símbolo do provedor')).toHaveAccessibleDescription(
+      'Identificador opcional do provedor de cotações, por exemplo VWCE.XETRA ou BTC-EUR.CC.',
+    );
+  });
 });

@@ -91,7 +91,7 @@
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo.",
     "INVESTMENT_REFERENCE_INACTIVE": "Escolha contas e instrumentos ativos.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "Os instrumentos recebido e entregue precisam ser diferentes.",
-    "INVESTMENT_TRADE_LISTING_MISMATCH": "A listagem precisa pertencer ao instrumento recebido.",
+    "INVESTMENT_TRADE_LISTING_MISMATCH": "A listagem deve corresponder ao par de instrumentos recebido e entregue.",
     "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "Não há saldo suficiente do instrumento entregue nesta conta."
   },
   "accounts": {
@@ -173,7 +173,11 @@
       "title": "Listagens de ativos",
       "description": "Mercado, ticker e moeda de cotação de cada ativo.",
       "empty": "Nenhuma listagem cadastrada",
-      "new": "Nova listagem"
+      "new": "Nova listagem",
+      "marketHint": "Local de negociação, por exemplo XETRA ou Kraken.",
+      "tickerHint": "Código do ativo ou par no local, por exemplo VWCE ou BTC-EUR.",
+      "isinHint": "Identificador do título, por exemplo IE00BK5BQT80. Criptomoedas nativas normalmente não têm ISIN.",
+      "providerSymbolHint": "Identificador opcional do provedor de cotações, por exemplo VWCE.XETRA ou BTC-EUR.CC."
     },
     "institutions": {
       "title": "Instituições financeiras",

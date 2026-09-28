@@ -190,7 +190,14 @@ export class InvestmentImportService {
       if (row.notes.length > 1000) add('NOTES_INVALID', 'notes must be at most 1,000 characters.');
       if (row.asset_listing_ticker || row.asset_listing_market) {
         const listing = listingByKey.get(`${row.asset_listing_ticker}|${row.asset_listing_market}`);
-        if (!listing || listing.instrumentId !== acquired?.id) add('LISTING_INVALID', 'The listing must be active and belong to the acquired instrument.');
+        if (
+          !listing ||
+          !(
+            (listing.instrumentId === acquired?.id && listing.quoteInstrumentId === disposed?.id) ||
+            (listing.instrumentId === disposed?.id && listing.quoteInstrumentId === acquired?.id)
+          )
+        )
+          add('LISTING_INVALID', 'The listing must be active and match the acquired and disposed instrument pair.');
       }
       if (rowErrors.length) errors.push(...rowErrors);
       else valid.push({ row, accountId: account!.id, accountName: account!.name, kind: account!.kind, acquired: acquired!, disposed: disposed!, fee });

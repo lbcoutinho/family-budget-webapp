@@ -566,8 +566,14 @@ export class InvestmentsService {
     if (!account || !acquired || !disposed || (dto.feeInstrumentId !== undefined && !fee) || (dto.assetListingId !== undefined && !listing)) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instruments are required.');
     }
-    if (listing && listing.instrumentId !== dto.acquiredInstrumentId) {
-      throw badRequest('INVESTMENT_TRADE_LISTING_MISMATCH', 'The listing must belong to the acquired instrument.');
+    if (
+      listing &&
+      !(
+        (listing.instrumentId === dto.acquiredInstrumentId && listing.quoteInstrumentId === dto.disposedInstrumentId) ||
+        (listing.instrumentId === dto.disposedInstrumentId && listing.quoteInstrumentId === dto.acquiredInstrumentId)
+      )
+    ) {
+      throw badRequest('INVESTMENT_TRADE_LISTING_MISMATCH', 'The listing must match the acquired and disposed instrument pair.');
     }
 
     const acquiredQuantity = new Prisma.Decimal(dto.acquiredQuantity);
