@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
-import { type Account, type Prisma } from '../../generated/prisma/client';
+import { AccountKind, type Account, type InstrumentType, type Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
@@ -52,7 +52,7 @@ export class AccountsService {
   }
 
   async create(userId: string, dto: CreateAccountDto): Promise<AccountDto> {
-    await this.assertReferences(userId, dto.financialInstitutionId, dto.initialBalances);
+    await this.assertReferences(userId, dto.kind ?? AccountKind.BANK, dto.financialInstitutionId, dto.initialBalances);
     const { initialBalances = [], ...data } = dto;
     this.assertUniqueInstruments(initialBalances);
 
@@ -65,8 +65,14 @@ export class AccountsService {
   }
 
   async update(userId: string, id: string, dto: UpdateAccountDto): Promise<AccountDto> {
-    await this.load(userId, id);
-    await this.assertReferences(userId, dto.financialInstitutionId, dto.initialBalances);
+    const account = await this.load(userId, id);
+    const balances = dto.initialBalances ?? (await this.prisma.accountInitialBalance.findMany({ where: { accountId: id }, select: { instrumentId: true } }));
+    await this.assertReferences(
+      userId,
+      dto.kind ?? account.kind,
+      dto.financialInstitutionId === undefined ? account.financialInstitutionId : dto.financialInstitutionId,
+      balances,
+    );
     const { initialBalances, ...data } = dto;
     if (initialBalances !== undefined) this.assertUniqueInstruments(initialBalances);
 
@@ -118,17 +124,27 @@ export class AccountsService {
 
   private async assertReferences(
     userId: string,
+    kind: AccountKind,
     financialInstitutionId: string | null | undefined,
-    balances: CreateAccountDto['initialBalances'],
+    balances: readonly { instrumentId: string }[] | undefined,
   ): Promise<void> {
+    if (requiresInstitution(kind) && (financialInstitutionId === undefined || financialInstitutionId === null)) {
+      throw conflict('ACCOUNT_INSTITUTION_REQUIRED', 'An active financial institution is required for this account kind.');
+    }
     if (financialInstitutionId !== undefined && financialInstitutionId !== null) {
       const institution = await this.prisma.financialInstitution.findFirst({ where: { id: financialInstitutionId, userId, isActive: true } });
       if (!institution) throw conflict('INVESTMENT_REFERENCE_INACTIVE', 'An active financial institution is required.');
     }
     if (balances?.length) {
-      const count = await this.prisma.instrument.count({ where: { userId, isActive: true, id: { in: balances.map((balance) => balance.instrumentId) } } });
-      if (count !== new Set(balances.map((balance) => balance.instrumentId)).size) {
+      const instruments = await this.prisma.instrument.findMany({
+        where: { userId, isActive: true, id: { in: balances.map((balance) => balance.instrumentId) } },
+        select: { id: true, type: true },
+      });
+      if (instruments.length !== new Set(balances.map((balance) => balance.instrumentId)).size) {
         throw conflict('INVESTMENT_REFERENCE_INACTIVE', 'An active instrument is required.');
+      }
+      if (instruments.some((instrument) => !allowedInstrumentTypes[kind].includes(instrument.type))) {
+        throw conflict('ACCOUNT_INSTRUMENT_INCOMPATIBLE', 'This instrument type is not supported by this account kind.');
       }
     }
   }
@@ -152,6 +168,18 @@ export class AccountsService {
 
     return { OR: query.includeId === undefined ? [{ isActive: true }] : [{ isActive: true }, { id: query.includeId }] };
   }
+}
+
+const allowedInstrumentTypes: Record<AccountKind, readonly InstrumentType[]> = {
+  [AccountKind.BANK]: ['FIAT'],
+  [AccountKind.BROKERAGE]: ['FIAT', 'STOCK', 'ETF', 'ETC'],
+  [AccountKind.EXCHANGE]: ['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'],
+  [AccountKind.WALLET]: ['STABLECOIN', 'CRYPTOCURRENCY'],
+  [AccountKind.OTHER]: ['FIAT', 'STABLECOIN', 'CRYPTOCURRENCY', 'STOCK', 'ETF', 'ETC'],
+};
+
+function requiresInstitution(kind: AccountKind): boolean {
+  return kind === AccountKind.BANK || kind === AccountKind.BROKERAGE || kind === AccountKind.EXCHANGE;
 }
 
 /** Prisma row → response body. `Date`s become ISO strings, and `userId` is dropped on the floor. */

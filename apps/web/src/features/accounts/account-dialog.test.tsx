@@ -36,9 +36,38 @@ describe('AccountDialog', () => {
   it('posts Instrument Balance inputs without a scalar initial balance', async () => {
     const { user, onSubmit } = renderDialog();
 
+    await user.click(screen.getByLabelText('Tipo de conta'));
+    await user.click(screen.getByRole('option', { name: 'Outro' }));
     await fillAndSubmit(user, 'Millennium');
 
-    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', kind: 'BANK', financialInstitutionId: null, initialBalances: [] });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Millennium', kind: 'OTHER', financialInstitutionId: null, initialBalances: [] });
+  });
+
+  it('requires an institution for a bank account', async () => {
+    const { user, onSubmit } = renderDialog();
+
+    await fillAndSubmit(user, 'Millennium');
+
+    expect(await screen.findByText('Escolha uma instituição financeira.')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('offers only compatible instruments for the selected account kind', async () => {
+    server.use(
+      http.get('/api/instruments', () =>
+        HttpResponse.json([
+          { id: 'eur', name: 'Euro', code: 'EUR', type: 'FIAT' },
+          { id: 'btc', name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' },
+        ]),
+      ),
+    );
+    const { user } = renderDialog();
+
+    await user.click(await screen.findByRole('button', { name: 'Adicionar instrumento' }));
+    await user.click(screen.getByLabelText('Instrumento'));
+
+    expect(screen.getByRole('option', { name: 'EUR' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'BTC' })).not.toBeInTheDocument();
   });
 
   it('blocks submit on a blank name, without calling onSubmit', async () => {

@@ -16,6 +16,10 @@ function initials(name: string): string {
   return words.length > 1 ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}`.toUpperCase() : name.slice(0, 2).toUpperCase();
 }
 
+function requiresInstitution(kind: AccountDto['kind']): boolean {
+  return kind === 'BANK' || kind === 'BROKERAGE' || kind === 'EXCHANGE' || kind === undefined;
+}
+
 export interface AccountsTableProps {
   accounts: AccountDto[];
   /** Native Instrument quantities by account. */
@@ -99,7 +103,14 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
               </div>
             </TableCell>
             <TableCell>{t(`accounts.kinds.${account.kind ?? 'BANK'}`)}</TableCell>
-            <TableCell>{account.financialInstitutionName ?? '—'}</TableCell>
+            <TableCell>
+              {account.financialInstitutionName ?? (account.kind === 'WALLET' ? t('accounts.form.selfCustody') : t('accounts.form.noInstitution'))}
+              {account.financialInstitutionName === null && requiresInstitution(account.kind) && (
+                <span role="alert" className="ml-2 text-xs text-destructive">
+                  {t('accounts.institutionRequired')}
+                </span>
+              )}
+            </TableCell>
             <TableCell className="text-right tabular-nums">
               {balancesLoading ? (
                 <Skeleton className="ml-auto h-4 w-16" />

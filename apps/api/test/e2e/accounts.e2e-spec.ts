@@ -34,7 +34,11 @@ describe('Accounts API (e2e)', () => {
     request(server)[method](`/api${path}`).set('Authorization', `Bearer ${as}`);
 
   const createAccount = async (body: Record<string, unknown>, as = token): Promise<AccountDto> =>
-    (await authed('post', '/accounts', as).send(body).expect(201)).body as AccountDto;
+    (
+      await authed('post', '/accounts', as)
+        .send({ kind: 'OTHER', ...body })
+        .expect(201)
+    ).body as AccountDto;
 
   // Accounts hold a foreign key onto the user with `onDelete: Restrict`, so they come off first.
   const removeFixtures = async (): Promise<void> => {
@@ -137,7 +141,7 @@ describe('Accounts API (e2e)', () => {
     it('lets the two users hold accounts with the same name', async () => {
       await createAccount({ name: 'Revolut' });
 
-      await authed('post', '/accounts', otherToken).send({ name: 'Revolut' }).expect(201);
+      await createAccount({ name: 'Revolut' }, otherToken);
     });
 
     it.each([
@@ -147,6 +151,45 @@ describe('Accounts API (e2e)', () => {
       ['a field that does not exist', { name: 'Millennium', userId: 'someone-else' }],
     ])('rejects %s with 400', async (_case, body) => {
       await authed('post', '/accounts').send(body).expect(400);
+    });
+  });
+
+  describe('custody rules', () => {
+    it('enforces active institutions and compatible initial-balance instruments on create and edit', async () => {
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
+      const [institution, eur, bitcoin, etf] = await Promise.all([
+        prisma.financialInstitution.create({ data: { userId: user.id, name: 'DEGIRO' } }),
+        prisma.instrument.create({ data: { userId: user.id, name: 'Euro', code: 'EUR', type: 'FIAT' } }),
+        prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' } }),
+        prisma.instrument.create({ data: { userId: user.id, name: 'World ETF', code: 'VWCE', type: 'ETF' } }),
+      ]);
+
+      await authed('post', '/accounts').send({ name: 'Missing bank', kind: 'BANK' }).expect(409);
+      await authed('post', '/accounts')
+        .send({ name: 'Invalid bank', kind: 'BANK', financialInstitutionId: institution.id, initialBalances: [{ instrumentId: bitcoin.id, quantity: '1' }] })
+        .expect(409);
+      await authed('post', '/accounts')
+        .send({
+          name: 'Brokerage',
+          kind: 'BROKERAGE',
+          financialInstitutionId: institution.id,
+          initialBalances: [
+            { instrumentId: eur.id, quantity: '1' },
+            { instrumentId: etf.id, quantity: '2' },
+          ],
+        })
+        .expect(201);
+      const wallet = (
+        await authed('post', '/accounts')
+          .send({ name: 'Wallet', kind: 'WALLET', initialBalances: [{ instrumentId: bitcoin.id, quantity: '1' }] })
+          .expect(201)
+      ).body as AccountDto;
+      await authed('patch', `/accounts/${wallet.id}`).send({ kind: 'BANK', financialInstitutionId: institution.id }).expect(409);
+
+      const legacy = await prisma.account.create({ data: { userId: user.id, name: 'Legacy bank', kind: 'BANK' } });
+      await authed('get', `/accounts/${legacy.id}`).expect(200);
+      await authed('patch', `/accounts/${legacy.id}`).send({ name: 'Legacy bank renamed' }).expect(409);
+      await authed('patch', `/accounts/${legacy.id}`).send({ financialInstitutionId: institution.id }).expect(200);
     });
   });
 
@@ -220,6 +263,7 @@ describe('Accounts API (e2e)', () => {
           { instrumentId: bitcoin.id, quantity: '0.010000000000000001' },
         ],
       });
+
       await prisma.account.update({ where: { id: account.id }, data: { createdAt: date } });
       await prisma.transaction.createMany({
         data: [

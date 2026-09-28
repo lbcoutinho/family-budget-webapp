@@ -90,6 +90,8 @@
     "CSV_IMPORT_MAPPED_HEADER_MISSING": "O arquivo não contém uma das colunas configuradas no modelo CSV.",
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo.",
     "INVESTMENT_REFERENCE_INACTIVE": "Escolha contas e instrumentos ativos.",
+    "ACCOUNT_INSTITUTION_REQUIRED": "Escolha uma instituição financeira ativa para este tipo de conta.",
+    "ACCOUNT_INSTRUMENT_INCOMPATIBLE": "Este tipo de instrumento não é compatível com este tipo de conta.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "Os instrumentos recebido e entregue precisam ser diferentes.",
     "INVESTMENT_TRADE_LISTING_MISMATCH": "A listagem deve corresponder ao par de instrumentos recebido e entregue.",
     "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "Não há saldo suficiente do instrumento entregue nesta conta."
@@ -104,6 +106,7 @@
       "balance": "Saldos por instrumento"
     },
     "inactiveBadge": "inativa",
+    "institutionRequired": "Instituição obrigatória",
     "actions": {
       "deactivate": "Desativar",
       "activate": "Reativar"
@@ -117,7 +120,9 @@
       "nameTooLong": "O nome pode ter no máximo 80 caracteres.",
       "kind": "Tipo de conta",
       "institution": "Instituição financeira",
+      "institutionRequired": "Escolha uma instituição financeira.",
       "selfCustody": "Autocustódia",
+      "noInstitution": "Sem instituição",
       "instrumentBalances": "Saldos iniciais por instrumento",
       "instrument": "Instrumento",
       "quantity": "Quantidade",

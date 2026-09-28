@@ -13,6 +13,7 @@ import { server } from '@/test/server';
 const ACTIVE: AccountDto = {
   id: 'a1',
   name: 'Millennium',
+  kind: 'OTHER',
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -88,6 +89,23 @@ describe('AccountsPage', () => {
     expect(screen.getByText('Outro')).toBeInTheDocument();
   });
 
+  it('marks an institution-less bank account as requiring action, while an Other account stays neutral', async () => {
+    server.use(
+      http.get('/api/accounts', () =>
+        HttpResponse.json([
+          { ...ACTIVE, id: 'legacy', kind: 'BANK', financialInstitutionId: null, financialInstitutionName: null },
+          { ...ACTIVE, id: 'other', name: 'Cash', kind: 'OTHER', financialInstitutionId: null, financialInstitutionName: null },
+        ]),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Instituição obrigatória');
+    expect(screen.getAllByText('Sem instituição')).toHaveLength(2);
+    expect(screen.queryByText('Autocustódia')).not.toBeInTheDocument();
+  });
+
   it('shows an em dash when an account has no matching balance', async () => {
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([ACTIVE, INACTIVE])),
@@ -97,7 +115,7 @@ describe('AccountsPage', () => {
     renderPage();
 
     expect(await screen.findByText('Millennium')).toBeInTheDocument();
-    expect(screen.getAllByText('—')).toHaveLength(4);
+    expect(screen.getAllByText('—')).toHaveLength(2);
   });
 
   it('sends no includeInactive and shows only active rows by default', async () => {
@@ -154,6 +172,8 @@ describe('AccountsPage', () => {
 
     await screen.findByText('Millennium');
     await user.click(screen.getByRole('button', { name: 'Nova conta' }));
+    await user.click(screen.getByLabelText('Tipo de conta'));
+    await user.click(screen.getByRole('option', { name: 'Outro' }));
     await user.type(screen.getByLabelText('Nome'), 'Revolut');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
