@@ -85,7 +85,7 @@ describe('AppLayout', () => {
     expect(within(nav).getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/settings/accounts');
     expect(within(nav).getByRole('link', { name: 'Categorias' })).toHaveAttribute('href', '/settings/categories');
     expect(within(nav).getByRole('link', { name: 'Listagens de ativos' })).toHaveAttribute('href', '/settings/listings');
-    expect(within(nav).queryByRole('link', { name: 'Investimentos' })).toHaveLength(1);
+    expect(within(nav).getAllByRole('link', { name: 'Investimentos' })).toHaveLength(1);
 
     await user.click(within(nav).getByRole('link', { name: 'Investimentos' }));
 
