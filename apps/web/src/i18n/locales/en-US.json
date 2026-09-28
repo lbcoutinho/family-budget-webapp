@@ -90,6 +90,7 @@
     "CSV_IMPORT_MAPPED_HEADER_MISSING": "The file does not contain one of the columns configured in the CSV model.",
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file.",
     "INVESTMENT_REFERENCE_INACTIVE": "Choose active accounts and instruments.",
+    "INVESTMENT_ACCOUNT_KIND_INVALID": "This account type cannot be used for this investment operation.",
     "ACCOUNT_INSTITUTION_REQUIRED": "Choose an active financial institution for this account type.",
     "ACCOUNT_INSTRUMENT_INCOMPATIBLE": "This instrument type is not supported by this account type.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "The received and delivered instruments must be different.",
@@ -208,6 +209,7 @@
     "title": "Operations",
     "description": "Trades are exchanges inside one account. They never become budget transactions.",
     "new": "New trade",
+    "trade": "Trade",
     "adjustment": "New adjustment",
     "adjustments": "Adjustments",
     "adjustmentType": "Adjustment type",
@@ -221,7 +223,15 @@
     "edit": "Edit {{trade}} trade",
     "delete": "Delete {{trade}} trade",
     "editTitle": "Edit trade",
-    "columns": { "execution": "Execution", "account": "Account", "received": "Received", "delivered": "Delivered", "value": "EUR value" },
+    "columns": {
+      "operation": "Operation",
+      "execution": "Execution",
+      "account": "Account",
+      "received": "Received",
+      "delivered": "Delivered",
+      "value": "EUR value",
+      "reason": "Reason"
+    },
     "fields": {
       "account": "Account",
       "received": "Received",
@@ -247,7 +257,9 @@
       "confirm": "Delete trade"
     },
     "empty": { "title": "No trades yet", "description": "Record an exchange to update the instrument balances in this account." },
-    "error": { "title": "Could not load trades", "description": "Check your connection and try again." }
+    "emptyHistory": { "title": "No operations yet", "description": "Record a trade or adjustment to begin the investment history." },
+    "error": { "title": "Could not load trades", "description": "Check your connection and try again." },
+    "historyError": { "title": "Could not load operations", "description": "Check your connection and try again." }
   },
   "investmentFlow": {
     "title": "Monthly flow",

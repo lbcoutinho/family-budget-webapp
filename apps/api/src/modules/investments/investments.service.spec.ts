@@ -50,7 +50,7 @@ describe('InvestmentsService quote synchronization', () => {
 });
 
 describe('InvestmentsService reconciliation adjustments', () => {
-  const account = { id: 'account', userId: 'user', isActive: true, name: 'Broker' };
+  const account = { id: 'account', userId: 'user', isActive: true, name: 'Broker', kind: 'BROKERAGE' };
   const asset = { id: 'asset', userId: 'user', isActive: true, type: 'STOCK', code: 'IWDA' };
   const currency = { id: 'currency', userId: 'user', isActive: true, type: 'FIAT', code: 'EUR' };
   const provider = { isConfigured: () => false } as MarketQuoteProvider;
@@ -206,6 +206,35 @@ describe('InvestmentsService reconciliation adjustments', () => {
         reason: 'Bank correction',
       }),
     ).rejects.toThrow('currency instrument');
+  });
+
+  it('rejects operation account kinds that cannot hold them', async () => {
+    const position = setup();
+    position.prisma.account.findFirst.mockResolvedValue({ ...account, kind: 'BANK' });
+    await expect(
+      position.service.createPositionAdjustment('user', {
+        accountId: account.id,
+        instrumentId: asset.id,
+        quantity: '2',
+        cost: 100,
+        effectiveAt: '2026-09-01T00:00:00.000Z',
+        reason: 'Broker correction',
+      }),
+    ).rejects.toThrow('Brokerage, Exchange, or Wallet');
+
+    const trade = setup();
+    trade.prisma.account.findFirst.mockResolvedValue({ ...account, kind: 'WALLET' });
+    await expect(
+      trade.service.createTrade('user', {
+        accountId: account.id,
+        acquiredInstrumentId: asset.id,
+        acquiredQuantity: '2',
+        disposedInstrumentId: currency.id,
+        disposedQuantity: '100',
+        executedAt: '2026-09-01T00:00:00.000Z',
+        executionValue: 100,
+      }),
+    ).rejects.toThrow('Brokerage or Exchange');
   });
 
   it('updates and removes reconciliation adjustments', async () => {
