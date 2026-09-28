@@ -53,6 +53,7 @@ describe('AccountsPage', () => {
     server.use(
       http.get('/api/accounts/instrument-balances', () => HttpResponse.json(BALANCES)),
       http.get('/api/financial-institutions', () => HttpResponse.json([])),
+      http.get('/api/instruments', () => HttpResponse.json([])),
     );
   });
 
@@ -63,6 +64,28 @@ describe('AccountsPage', () => {
 
     expect(await screen.findByText('Millennium')).toBeInTheDocument();
     expect(screen.getByText('3482.15 EUR')).toBeInTheDocument();
+  });
+
+  it('shows localized account kinds instead of enum values', async () => {
+    server.use(
+      http.get('/api/accounts', () =>
+        HttpResponse.json([
+          { ...ACTIVE, id: 'bank', kind: 'BANK' },
+          { ...ACTIVE, id: 'brokerage', kind: 'BROKERAGE' },
+          { ...ACTIVE, id: 'exchange', kind: 'EXCHANGE' },
+          { ...ACTIVE, id: 'wallet', kind: 'WALLET' },
+          { ...ACTIVE, id: 'other', kind: 'OTHER' },
+        ]),
+      ),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('Banco')).toBeInTheDocument();
+    expect(screen.getByText('Corretora')).toBeInTheDocument();
+    expect(screen.getByText('Exchange')).toBeInTheDocument();
+    expect(screen.getByText('Carteira')).toBeInTheDocument();
+    expect(screen.getByText('Outro')).toBeInTheDocument();
   });
 
   it('shows an em dash when an account has no matching balance', async () => {
@@ -138,13 +161,19 @@ describe('AccountsPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('edits an account and reflects the change without a reload', async () => {
-    let current = ACTIVE;
+  it('edits an account and reflects name, kind, and Financial Institution without a reload', async () => {
+    let current: AccountDto = { ...ACTIVE, kind: 'BANK', financialInstitutionId: 'institution-1', financialInstitutionName: 'Banco Antigo' };
     server.use(
       http.get('/api/accounts', () => HttpResponse.json([current])),
+      http.get('/api/financial-institutions', () =>
+        HttpResponse.json([
+          { id: 'institution-1', name: 'Banco Antigo' },
+          { id: 'institution-2', name: 'Banco Novo' },
+        ]),
+      ),
       http.patch('/api/accounts/:id', async ({ request }) => {
-        const body = (await request.json()) as { name: string };
-        current = { ...current, name: body.name };
+        const body = (await request.json()) as { name: string; kind: 'BROKERAGE'; financialInstitutionId: string };
+        current = { ...current, name: body.name, kind: body.kind, financialInstitutionId: body.financialInstitutionId, financialInstitutionName: 'Banco Novo' };
 
         return HttpResponse.json(current);
       }),
@@ -156,9 +185,48 @@ describe('AccountsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Editar' }));
     await user.clear(screen.getByLabelText('Nome'));
     await user.type(screen.getByLabelText('Nome'), 'Millennium bcp');
+    await user.click(screen.getByLabelText('Tipo de conta'));
+    await user.click(screen.getByRole('option', { name: 'Corretora' }));
+    await user.click(screen.getByLabelText('Instituição financeira'));
+    await user.click(screen.getByRole('option', { name: 'Banco Novo' }));
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Millennium bcp')).toBeInTheDocument();
+    expect(screen.getByText('Corretora')).toBeInTheDocument();
+    expect(screen.getByText('Banco Novo')).toBeInTheDocument();
+  });
+
+  it('refreshes Instrument Balances after editing an Initial Balance', async () => {
+    const initialBalance = { instrumentId: 'eur', instrumentName: 'Euro', instrumentCode: 'EUR', quantity: '1' };
+    let current: AccountDto = {
+      ...ACTIVE,
+      initialBalances: [initialBalance],
+    };
+    let balance = '1';
+    server.use(
+      http.get('/api/accounts', () => HttpResponse.json([current])),
+      http.get('/api/instruments', () =>
+        HttpResponse.json([{ id: 'eur', name: 'Euro', code: 'EUR', type: 'FIAT', displayPrecision: 2, isActive: true, sortOrder: 0 }]),
+      ),
+      http.get('/api/accounts/instrument-balances', () => HttpResponse.json([{ ...BALANCES[0], quantity: balance }])),
+      http.patch('/api/accounts/:id', async ({ request }) => {
+        const body = (await request.json()) as { initialBalances: [{ quantity: string }] };
+        balance = body.initialBalances[0].quantity;
+        current = { ...current, initialBalances: [{ ...initialBalance, quantity: balance }] };
+
+        return HttpResponse.json(current);
+      }),
+    );
+
+    const { user } = renderPage();
+
+    await screen.findByText('1 EUR');
+    await user.click(screen.getByRole('button', { name: 'Editar' }));
+    await user.clear(screen.getByLabelText('Quantidade'));
+    await user.type(screen.getByLabelText('Quantidade'), '2');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('2 EUR')).toBeInTheDocument();
   });
 
   it('fires no request until the deactivate confirmation is clicked', async () => {

@@ -95,6 +95,23 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
 
         <form noValidate onSubmit={(event) => void submit(event)} className="grid gap-3.5">
           <div className="grid gap-1.5">
+            <Label htmlFor="account-institution">{t('accounts.form.institution')}</Label>
+            <Select value={financialInstitutionId} onValueChange={(financialInstitutionId) => setValue('financialInstitutionId', financialInstitutionId)}>
+              <SelectTrigger id="account-institution" disabled={isPending || institutions.isPending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('accounts.form.selfCustody')}</SelectItem>
+                {(institutions.data ?? []).map((institution) => (
+                  <SelectItem key={institution.id} value={institution.id}>
+                    {institution.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-1.5">
             <Label htmlFor="account-name">{t('accounts.form.name')}</Label>
             <Input
               id="account-name"
@@ -109,6 +126,22 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
                 {t(errors.name.message as TranslationKey)}
               </span>
             )}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="account-kind">{t('accounts.form.kind')}</Label>
+            <Select value={kind} onValueChange={(kind) => setValue('kind', kind as AccountKind)}>
+              <SelectTrigger id="account-kind" disabled={isPending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(['BANK', 'BROKERAGE', 'EXCHANGE', 'WALLET', 'OTHER'] as const).map((kind) => (
+                  <SelectItem key={kind} value={kind}>
+                    {t(`accounts.kinds.${kind}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-1.5">
@@ -153,39 +186,6 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
             >
               {t('accounts.form.addInstrument')}
             </Button>
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="account-kind">{t('accounts.form.kind')}</Label>
-            <Select value={kind} onValueChange={(kind) => setValue('kind', kind as AccountKind)}>
-              <SelectTrigger id="account-kind" disabled={isPending}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(['BANK', 'BROKERAGE', 'EXCHANGE', 'WALLET', 'OTHER'] as const).map((kind) => (
-                  <SelectItem key={kind} value={kind}>
-                    {t(`accounts.kinds.${kind}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="account-institution">{t('accounts.form.institution')}</Label>
-            <Select value={financialInstitutionId} onValueChange={(financialInstitutionId) => setValue('financialInstitutionId', financialInstitutionId)}>
-              <SelectTrigger id="account-institution" disabled={isPending || institutions.isPending}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t('accounts.form.selfCustody')}</SelectItem>
-                {(institutions.data ?? []).map((institution) => (
-                  <SelectItem key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {error !== undefined && error !== null && (
