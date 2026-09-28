@@ -19,7 +19,7 @@ import {
   useUpdateInstrument,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
-import { PlusIcon, TriangleAlertIcon } from 'lucide-react';
+import { PencilIcon, PlusIcon, PowerIcon, PowerOffIcon, TriangleAlertIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -35,10 +35,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiErrorMessage } from '@/lib/api-error';
 
 interface Resource<T, V> {
   title: string;
+  newLabel: string;
   description: string;
   empty: string;
   columns: string[];
@@ -86,7 +88,7 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
             </label>
             <Button size="sm" disabled={resource.canCreate === false} onClick={() => open('new')}>
               <PlusIcon />
-              {t('investmentSetup.new')}
+              {resource.newLabel}
             </Button>
           </>
         }
@@ -111,7 +113,7 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
               action={
                 <Button disabled={resource.canCreate === false} onClick={() => open('new')}>
                   <PlusIcon />
-                  {t('investmentSetup.new')}
+                  {resource.newLabel}
                 </Button>
               }
             />
@@ -123,26 +125,45 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
                   {resource.columns.map((column) => (
                     <TableHead key={column}>{column}</TableHead>
                   ))}
-                  <TableHead>{t('common.actions')}</TableHead>
+                  <TableHead className="text-right">
+                    <span className="sr-only">{t('common.actions')}</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((item) => (
                   <TableRow key={item.id} className={!item.isActive ? 'opacity-60' : undefined}>
                     {resource.cells(item)}
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => open(item)}>
-                        {t('common.edit')}
-                      </Button>
-                      {item.isActive ? (
-                        <Button variant="ghost" size="sm" onClick={() => setRetiring(item)}>
-                          {t('investmentSetup.deactivate')}
-                        </Button>
-                      ) : (
-                        <Button variant="ghost" size="sm" onClick={() => resource.activate(item.id)}>
-                          {t('investmentSetup.activate')}
-                        </Button>
-                      )}
+                    <TableCell>
+                      <div className="flex justify-end gap-0.5">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => open(item)}>
+                              <PencilIcon />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t('common.edit')}</TooltipContent>
+                        </Tooltip>
+                        {item.isActive ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" aria-label={t('investmentSetup.deactivate')} onClick={() => setRetiring(item)}>
+                                <PowerOffIcon />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('investmentSetup.deactivate')}</TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" aria-label={t('investmentSetup.activate')} onClick={() => resource.activate(item.id)}>
+                                <PowerIcon />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('investmentSetup.activate')}</TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -211,9 +232,10 @@ export function FinancialInstitutionsPage() {
   const activate = useActivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   const deactivate = useDeactivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   return (
-    <Registry<FinancialInstitutionDto, { name: string; kind: FinancialInstitutionDto['kind']; sortOrder: string }>
+    <Registry<FinancialInstitutionDto, { name: string; kind: FinancialInstitutionDto['kind'] }>
       resource={{
         title: t('investmentSetup.institutions.title'),
+        newLabel: t('investmentSetup.institutions.new'),
         description: t('investmentSetup.institutions.description'),
         empty: t('investmentSetup.institutions.empty'),
         columns: [t('investmentSetup.columns.institution'), t('investmentSetup.columns.type')],
@@ -221,8 +243,8 @@ export function FinancialInstitutionsPage() {
         isPending: query.isPending,
         isError: query.isError,
         refetch: () => void query.refetch(),
-        values: () => ({ name: '', kind: 'BANK', sortOrder: '0' }),
-        toValues: (item) => ({ name: item.name, kind: item.kind, sortOrder: String(item.sortOrder) }),
+        values: () => ({ name: '', kind: 'BANK' }),
+        toValues: (item) => ({ name: item.name, kind: item.kind }),
         cells: (item) => (
           <>
             <TableCell>{item.name}</TableCell>
@@ -247,11 +269,10 @@ export function FinancialInstitutionsPage() {
                 </SelectContent>
               </Select>
             </div>
-            {textField('sortOrder', t('investmentSetup.fields.sortOrder'), values.sortOrder, (sortOrder) => setValues({ ...values, sortOrder }))}
           </div>
         ),
-        create: (values) => create.mutateAsync({ data: { ...values, sortOrder: Number(values.sortOrder) } }),
-        update: (id, values) => update.mutateAsync({ id, data: { ...values, sortOrder: Number(values.sortOrder) } }),
+        create: (values) => create.mutateAsync({ data: values }),
+        update: (id, values) => update.mutateAsync({ id, data: values }),
         activate: (id) => activate.mutate({ id }),
         deactivate: (id) => deactivate.mutate({ id }),
       }}
@@ -272,6 +293,7 @@ export function InstrumentsPage() {
     <Registry<InstrumentDto, { name: string; code: string; type: InstrumentDto['type']; displayPrecision: string }>
       resource={{
         title: t('investmentSetup.instruments.title'),
+        newLabel: t('investmentSetup.instruments.new'),
         description: t('investmentSetup.instruments.description'),
         empty: t('investmentSetup.instruments.empty'),
         columns: [
@@ -343,6 +365,7 @@ export function AssetListingsPage() {
     <Registry<AssetListingDto, { instrumentId: string; quoteInstrumentId: string; market: string; ticker: string; isin: string; providerSymbol: string }>
       resource={{
         title: t('investmentSetup.listings.title'),
+        newLabel: t('investmentSetup.listings.new'),
         description: t('investmentSetup.listings.description'),
         empty: t('investmentSetup.listings.empty'),
         columns: [
