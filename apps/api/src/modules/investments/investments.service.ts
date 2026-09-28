@@ -751,7 +751,7 @@ const positionTradeInclude = {
   disposedInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
   feeInstrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
 } as const;
-const adjustmentInclude = { account: { select: { name: true } }, instrument: { select: { code: true } } } as const;
+const adjustmentInclude = { account: { select: { name: true } }, instrument: { select: { code: true, displayPrecision: true } } } as const;
 const positionAdjustmentInclude = {
   account: { select: { id: true, name: true } },
   instrument: { select: { id: true, name: true, code: true, type: true, displayPrecision: true } },
@@ -796,6 +796,7 @@ const toPositionAdjustmentDto = (adjustment: PositionAdjustmentRow): PositionAdj
   accountName: adjustment.account.name,
   instrumentId: adjustment.instrumentId,
   instrumentCode: adjustment.instrument.code,
+  displayPrecision: adjustment.instrument.displayPrecision,
   quantity: adjustment.quantity.toString(),
   cost: adjustment.cost,
   effectiveAt: adjustment.effectiveAt.toISOString(),

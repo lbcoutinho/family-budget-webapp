@@ -6,6 +6,7 @@ export class PositionAdjustmentDto {
   @ApiProperty({ type: String }) accountName!: string;
   @ApiProperty({ type: String, format: 'uuid' }) instrumentId!: string;
   @ApiProperty({ type: String }) instrumentCode!: string;
+  @ApiProperty({ type: Number, minimum: 0, maximum: 18 }) displayPrecision!: number;
   @ApiProperty({ type: String }) quantity!: string;
   @ApiPropertyOptional({ type: Number, description: 'EUR cost in integer cents.' }) cost!: number | null;
   @ApiProperty({ type: String, format: 'date-time' }) effectiveAt!: string;

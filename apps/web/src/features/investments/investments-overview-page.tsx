@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { apiErrorMessage } from '@/lib/api-error';
+import { formatDecimal } from '@/lib/decimal';
 import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -364,10 +365,4 @@ function institutions(accounts: AccountDto[]): [string, string][] {
 
 function formatQuantity(value: string, precision: number, locale: string): string {
   return formatDecimal(value, locale, precision);
-}
-
-function formatDecimal(value: string, locale: string, maximumFractionDigits = 4): string {
-  const [whole, fraction = ''] = value.split('.');
-  const separator = new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.';
-  return `${new Intl.NumberFormat(locale).format(BigInt(whole ?? '0'))}${separator}${fraction.padEnd(maximumFractionDigits, '0').slice(0, maximumFractionDigits)}`;
 }
