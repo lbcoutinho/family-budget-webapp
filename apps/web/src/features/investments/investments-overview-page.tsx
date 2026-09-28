@@ -12,8 +12,9 @@ import { type TFunction } from 'i18next';
 import { SlidersHorizontalIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
 import { toast } from 'sonner';
+
+import { InvestmentSectionNav } from './investment-section-nav';
 
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
@@ -58,7 +59,7 @@ export function InvestmentsOverviewPage() {
   return (
     <>
       <PageHeader
-        title={t('investmentOverview.title')}
+        title={t('nav.investments')}
         actions={
           <Button size="sm" onClick={() => setQuoteOpen(true)}>
             {t('investmentOverview.recordQuote')}
@@ -66,17 +67,7 @@ export function InvestmentsOverviewPage() {
         }
       />
       <PageContent className="space-y-4">
-        <nav className="flex gap-1 overflow-x-auto border-b" aria-label={t('investmentOverview.sections')}>
-          <NavLink to="/investments/overview" className="border-b-2 border-foreground px-3 py-2 text-sm font-medium">
-            {t('investmentOverview.title')}
-          </NavLink>
-          <NavLink to="/investments/operations" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentTrades.title')}
-          </NavLink>
-          <NavLink to="/investments/flow" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentFlow.title')}
-          </NavLink>
-        </nav>
+        <InvestmentSectionNav />
         <p className="text-sm text-muted-foreground">{t('investmentOverview.description')}</p>
         <div className="flex justify-end">
           <details className="group relative">

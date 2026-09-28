@@ -2,7 +2,8 @@ import { type InvestmentFlowDto, useListInvestmentFlows } from '@family-budget/a
 import { ChevronLeftIcon, ChevronRightIcon, TriangleAlertIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
+
+import { InvestmentSectionNav } from './investment-section-nav';
 
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
@@ -36,19 +37,9 @@ export function InvestmentFlowPage() {
 
   return (
     <>
-      <PageHeader title={t('investmentFlow.title')} />
+      <PageHeader title={t('nav.investments')} />
       <PageContent className="space-y-4">
-        <nav className="flex gap-1 overflow-x-auto border-b" aria-label={t('investmentOverview.sections')}>
-          <NavLink to="/investments/overview" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentOverview.title')}
-          </NavLink>
-          <NavLink to="/investments/operations" className="border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground">
-            {t('investmentTrades.title')}
-          </NavLink>
-          <NavLink to="/investments/flow" className="border-b-2 border-foreground px-3 py-2 text-sm font-medium">
-            {t('investmentFlow.title')}
-          </NavLink>
-        </nav>
+        <InvestmentSectionNav />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{t('investmentFlow.description')}</p>
           <div className="flex items-center gap-1" aria-label={t('investmentFlow.year')}>

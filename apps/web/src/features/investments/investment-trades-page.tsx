@@ -24,6 +24,8 @@ import { EyeIcon, PencilIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from 'lu
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { InvestmentSectionNav } from './investment-section-nav';
+
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
@@ -263,7 +265,7 @@ export function InvestmentTradesPage() {
   return (
     <>
       <PageHeader
-        title={t('investmentTrades.title')}
+        title={t('nav.investments')}
         actions={
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => startAdjustment()}>
@@ -277,8 +279,9 @@ export function InvestmentTradesPage() {
           </div>
         }
       />
-      <PageContent>
-        <p className="mb-4 text-sm text-muted-foreground">{t('investmentTrades.description')}</p>
+      <PageContent className="space-y-4">
+        <InvestmentSectionNav />
+        <p className="text-sm text-muted-foreground">{t('investmentTrades.description')}</p>
         <Card className="py-0">
           {trades.isPending && <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>}
           {trades.isError && (

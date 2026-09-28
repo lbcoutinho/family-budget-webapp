@@ -64,11 +64,11 @@ describe('AppLayout', () => {
     expect(document.getElementById('route-content')).toHaveAttribute('tabindex', '-1');
   });
 
-  it('renders every navigation item, with the registries under Configurações', async () => {
+  it('renders Investments as a primary area and the registries under Configurações', async () => {
     const { user } = renderShell();
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
 
-    for (const label of ['Mês', 'Caixinhas', 'Relatórios', 'Lançar por voz', 'Recorrências']) {
+    for (const label of ['Mês', 'Caixinhas', 'Relatórios', 'Investimentos', 'Lançar por voz', 'Recorrências']) {
       expect(within(nav).getByRole('link', { name: label })).toBeInTheDocument();
     }
 
@@ -80,8 +80,17 @@ describe('AppLayout', () => {
     await user.click(settings);
 
     expect(within(nav).getByRole('link', { name: 'Geral' })).toHaveAttribute('href', '/settings/general');
+    expect(within(nav).getByRole('link', { name: 'Instituições financeiras' })).toHaveAttribute('href', '/settings/institutions');
+    expect(within(nav).getByRole('link', { name: 'Instrumentos' })).toHaveAttribute('href', '/settings/instruments');
     expect(within(nav).getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/settings/accounts');
     expect(within(nav).getByRole('link', { name: 'Categorias' })).toHaveAttribute('href', '/settings/categories');
+    expect(within(nav).getByRole('link', { name: 'Listagens de ativos' })).toHaveAttribute('href', '/settings/listings');
+    expect(within(nav).getAllByRole('link', { name: 'Investimentos' })).toHaveLength(1);
+
+    await user.click(within(nav).getByRole('link', { name: 'Investimentos' }));
+
+    expect(await screen.findByRole('heading', { name: 'Investimentos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('marks the active route and opens the submenu the current route lives in', () => {
@@ -93,6 +102,33 @@ describe('AppLayout', () => {
     expect(active).toHaveClass('bg-primary', 'text-primary-foreground');
     expect(screen.getByRole('link', { name: 'Mês' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('button', { name: /Configurações/ })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it.each([
+    ['/settings/institutions', 'Instituições financeiras'],
+    ['/settings/instruments', 'Instrumentos'],
+    ['/settings/accounts', 'Contas'],
+    ['/settings/categories', 'Categorias'],
+    ['/settings/listings', 'Listagens de ativos'],
+  ])('marks %s as the active Settings registry', (path, label) => {
+    renderShell(path);
+
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it.each([
+    ['/investments/overview', 'Visão geral'],
+    ['/investments/operations', 'Operações'],
+    ['/investments/flow', 'Fluxo mensal'],
+  ])('keeps the Investments shell and active section on %s', async (path, activeSection) => {
+    renderShell(path);
+
+    expect(await screen.findByRole('heading', { name: 'Investimentos' })).toBeInTheDocument();
+    const sections = screen.getByRole('navigation', { name: 'Seções de investimentos' });
+    expect(within(sections).getByRole('link', { name: activeSection })).toHaveAttribute('aria-current', 'page');
+    expect(within(sections).getByRole('link', { name: 'Visão geral' })).toBeVisible();
+    expect(within(sections).getByRole('link', { name: 'Operações' })).toBeVisible();
+    expect(within(sections).getByRole('link', { name: 'Fluxo mensal' })).toBeVisible();
   });
 
   it('navigates to another route and moves the highlight with it', async () => {
@@ -155,10 +191,10 @@ describe('AppLayout', () => {
     expect(screen.getByRole('button', { name: 'Abrir menu' })).toHaveFocus();
 
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
-    await user.click(screen.getByRole('link', { name: 'Caixinhas' }));
+    await user.click(screen.getByRole('link', { name: 'Investimentos' }));
 
     expect(sidebar).toHaveAttribute('data-open', 'false');
-    expect(await screen.findByRole('heading', { name: 'Caixinhas' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Investimentos' })).toBeInTheDocument();
   });
 
   it('closes the drawer on Escape', async () => {
