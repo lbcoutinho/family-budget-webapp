@@ -1,6 +1,7 @@
 import {
   type AccountDto,
   type AccountInstrumentBalanceDto,
+  getListAccountInstrumentBalancesQueryKey,
   useActivateAccount,
   useCreateAccount,
   useDeactivateAccount,
@@ -57,7 +58,10 @@ export function AccountsPage() {
   const balanceByAccountId = new Map<string, AccountInstrumentBalanceDto[]>();
   for (const balance of balances.data ?? []) balanceByAccountId.set(balance.accountId, [...(balanceByAccountId.get(balance.accountId) ?? []), balance]);
 
-  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY });
+    void queryClient.invalidateQueries({ queryKey: getListAccountInstrumentBalancesQueryKey() });
+  };
 
   const createAccount = useCreateAccount({
     mutation: {

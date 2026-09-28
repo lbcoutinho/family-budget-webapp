@@ -98,7 +98,7 @@ export function AccountsTable({ accounts, balances, balancesLoading, onEdit, onD
                 {!account.isActive && <Badge variant="outline">{t('accounts.inactiveBadge')}</Badge>}
               </div>
             </TableCell>
-            <TableCell>{account.kind ?? 'BANK'}</TableCell>
+            <TableCell>{t(`accounts.kinds.${account.kind ?? 'BANK'}`)}</TableCell>
             <TableCell>{account.financialInstitutionName ?? '—'}</TableCell>
             <TableCell className="text-right tabular-nums">
               {balancesLoading ? (

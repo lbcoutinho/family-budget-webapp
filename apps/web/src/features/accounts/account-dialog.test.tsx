@@ -49,4 +49,17 @@ describe('AccountDialog', () => {
     expect(await screen.findByText('Informe o nome da conta.')).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  it('orders Financial Institution, name, Account kind, then Initial Balances', () => {
+    renderDialog();
+
+    const institution = screen.getByText('Instituição financeira');
+    const name = screen.getByText('Nome');
+    const kind = screen.getByText('Tipo de conta');
+    const balances = screen.getByText('Saldos iniciais por instrumento');
+
+    expect(institution.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(name.compareDocumentPosition(kind) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(kind.compareDocumentPosition(balances) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
