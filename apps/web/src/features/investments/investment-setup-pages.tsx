@@ -232,45 +232,21 @@ export function FinancialInstitutionsPage() {
   const activate = useActivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   const deactivate = useDeactivateFinancialInstitution({ mutation: { onSuccess: invalidate } });
   return (
-    <Registry<FinancialInstitutionDto, { name: string; kind: FinancialInstitutionDto['kind'] }>
+    <Registry<FinancialInstitutionDto, { name: string }>
       resource={{
         title: t('investmentSetup.institutions.title'),
         newLabel: t('investmentSetup.institutions.new'),
         description: t('investmentSetup.institutions.description'),
         empty: t('investmentSetup.institutions.empty'),
-        columns: [t('investmentSetup.columns.institution'), t('investmentSetup.columns.type')],
+        columns: [t('investmentSetup.columns.institution')],
         list: query.data ?? [],
         isPending: query.isPending,
         isError: query.isError,
         refetch: () => void query.refetch(),
-        values: () => ({ name: '', kind: 'BANK' }),
-        toValues: (item) => ({ name: item.name, kind: item.kind }),
-        cells: (item) => (
-          <>
-            <TableCell>{item.name}</TableCell>
-            <TableCell>{t(`investmentSetup.institutionKinds.${item.kind}`)}</TableCell>
-          </>
-        ),
-        fields: (values, setValues) => (
-          <div className="grid gap-4">
-            {textField('name', t('investmentSetup.fields.name'), values.name, (name) => setValues({ ...values, name }))}
-            <div className="grid gap-2">
-              <Label htmlFor="kind">{t('investmentSetup.columns.type')}</Label>
-              <Select value={values.kind} onValueChange={(kind) => setValues({ ...values, kind: kind as FinancialInstitutionDto['kind'] })}>
-                <SelectTrigger id="kind" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(['BANK', 'BROKER', 'EXCHANGE'] as const).map((kind) => (
-                    <SelectItem key={kind} value={kind}>
-                      {t(`investmentSetup.institutionKinds.${kind}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        ),
+        values: () => ({ name: '' }),
+        toValues: (item) => ({ name: item.name }),
+        cells: (item) => <TableCell>{item.name}</TableCell>,
+        fields: (values, setValues) => textField('name', t('investmentSetup.fields.name'), values.name, (name) => setValues({ ...values, name })),
         create: (values) => create.mutateAsync({ data: values }),
         update: (id, values) => update.mutateAsync({ id, data: values }),
         activate: (id) => activate.mutate({ id }),
