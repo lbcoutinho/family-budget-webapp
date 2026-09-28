@@ -61,7 +61,6 @@ export * from './csvImportResultDto';
 export * from './csvImportRowDto';
 export * from './csvImportRowDtoType';
 export * from './financialInstitutionDto';
-export * from './financialInstitutionKind';
 export * from './generateRecurrenceRuleResultDto';
 export * from './getBalancesReportParams';
 export * from './getCashboxesReportParams';

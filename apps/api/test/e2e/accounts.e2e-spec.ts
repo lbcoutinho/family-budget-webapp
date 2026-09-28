@@ -87,7 +87,7 @@ describe('Accounts API (e2e)', () => {
     it('stores exact Instrument initial balances and permits a self-custodied wallet', async () => {
       const user = await prisma.user.findUniqueOrThrow({ where: { email: emails[0] }, select: { id: true } });
       const [institution, bitcoin] = await Promise.all([
-        prisma.financialInstitution.create({ data: { userId: user.id, name: 'Kraken', kind: 'EXCHANGE' } }),
+        prisma.financialInstitution.create({ data: { userId: user.id, name: 'Kraken' } }),
         prisma.instrument.create({ data: { userId: user.id, name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY', displayPrecision: 8 } }),
       ]);
 

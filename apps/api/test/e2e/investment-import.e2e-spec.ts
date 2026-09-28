@@ -57,7 +57,7 @@ describe('Investment import API (e2e)', () => {
   });
 
   async function setup(): Promise<void> {
-    const institution = (await call('post', '/financial-institutions').send({ name: 'Kraken', kind: 'EXCHANGE' }).expect(201)).body as { id: string };
+    const institution = (await call('post', '/financial-institutions').send({ name: 'Kraken' }).expect(201)).body as { id: string };
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
     await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201);
     await call('post', '/accounts')

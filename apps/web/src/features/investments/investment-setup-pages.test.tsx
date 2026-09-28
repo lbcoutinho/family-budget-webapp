@@ -15,7 +15,6 @@ import { server } from '@/test/server';
 const INSTITUTION: FinancialInstitutionDto = {
   id: 'institution-1',
   name: 'Banco Example',
-  kind: 'BANK',
   isActive: true,
   sortOrder: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -95,12 +94,17 @@ describe('Investment setup registries', () => {
     expect(within(screen.getAllByText(INSTITUTION.name)[1]!.closest('tr')!).getByRole('button', { name: 'Reativar' })).toBeInTheDocument();
   });
 
-  it('does not show or submit a financial institution sort order', async () => {
+  it('does not show or submit a financial institution kind', async () => {
     let posted: unknown;
+    let updated: unknown;
     server.use(
       http.get('/api/financial-institutions', () => HttpResponse.json([INSTITUTION])),
       http.post('/api/financial-institutions', async ({ request }) => {
         posted = await request.json();
+        return HttpResponse.json(INSTITUTION);
+      }),
+      http.patch('/api/financial-institutions/:id', async ({ request }) => {
+        updated = await request.json();
         return HttpResponse.json(INSTITUTION);
       }),
     );
@@ -109,10 +113,19 @@ describe('Investment setup registries', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Nova instituição' }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).queryByLabelText('Ordem')).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Tipo')).not.toBeInTheDocument();
     await user.type(within(dialog).getByLabelText('Nome'), 'Banco Novo');
     await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
 
-    expect(posted).toEqual({ name: 'Banco Novo', kind: 'BANK' });
+    expect(posted).toEqual({ name: 'Banco Novo' });
+
+    const row = screen.getByText(INSTITUTION.name).closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: 'Editar' }));
+    expect(within(await screen.findByRole('dialog')).queryByLabelText('Tipo')).not.toBeInTheDocument();
+    await user.clear(screen.getByLabelText('Nome'));
+    await user.type(screen.getByLabelText('Nome'), 'Banco Editado');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(updated).toEqual({ name: 'Banco Editado' });
   });
 });

@@ -5,11 +5,9 @@
  * REST API for the family budget web application.
  * OpenAPI spec version: 1.0.0
  */
-import type { FinancialInstitutionKind } from './financialInstitutionKind';
 
 export interface UpdateFinancialInstitutionDto {
   /** @maxLength 80 */
   name?: string;
-  kind?: FinancialInstitutionKind;
   sortOrder?: number;
 }

@@ -54,11 +54,17 @@ describe('Investment setup API (e2e)', () => {
   });
 
   it('creates, orders and deactivates institutions for only the authenticated user', async () => {
-    await call('post', '/financial-institutions').send({ name: 'Kraken', kind: 'EXCHANGE', sortOrder: 1 }).expect(201);
-    const bank = (await call('post', '/financial-institutions').send({ name: 'Banco Invest', kind: 'BANK' }).expect(201)).body as { id: string };
+    const krakenResponse = await call('post', '/financial-institutions').send({ name: 'Kraken', sortOrder: 1 }).expect(201);
+    expect(krakenResponse.body).not.toHaveProperty('kind');
+    const kraken = krakenResponse.body as { id: string };
+    const updatedKraken = await call('patch', `/financial-institutions/${kraken.id}`).send({ name: 'Kraken Pro' }).expect(200);
+    expect(updatedKraken.body).not.toHaveProperty('kind');
+    const bank = (await call('post', '/financial-institutions').send({ name: 'Banco Invest' }).expect(201)).body as { id: string };
     await call('patch', `/financial-institutions/${bank.id}/deactivate`).expect(200);
 
-    await expect(call('get', '/financial-institutions').expect(200)).resolves.toMatchObject({ body: [{ name: 'Kraken', kind: 'EXCHANGE' }] });
+    const institutions = (await call('get', '/financial-institutions').expect(200)).body as { name: string }[];
+    expect(institutions).toMatchObject([{ name: 'Kraken Pro' }]);
+    expect(institutions[0]).not.toHaveProperty('kind');
     await expect(call('get', '/financial-institutions?includeInactive=true', otherToken).expect(200)).resolves.toMatchObject({ body: [] });
   });
 
