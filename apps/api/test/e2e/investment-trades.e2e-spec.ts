@@ -93,6 +93,81 @@ describe('Investment trades API (e2e)', () => {
     );
   });
 
+  it('accepts a listing for either direction of its instrument pair', async () => {
+    const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
+    const etf = (await call('post', '/instruments').send({ name: 'World ETF', code: 'VWCE', type: 'ETF' }).expect(201)).body as { id: string };
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const eth = (await call('post', '/instruments').send({ name: 'Ether', code: 'ETH', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const account = (
+      await call('post', '/accounts')
+        .send({
+          name: 'Exchange',
+          kind: 'EXCHANGE',
+          initialBalances: [
+            { instrumentId: eur.id, quantity: '1000' },
+            { instrumentId: eth.id, quantity: '2' },
+          ],
+        })
+        .expect(201)
+    ).body as { id: string };
+    const vwceEur = (
+      await call('post', '/asset-listings').send({ instrumentId: etf.id, quoteInstrumentId: eur.id, market: 'XETRA', ticker: 'VWCE' }).expect(201)
+    ).body as { id: string };
+    const ethBtc = (
+      await call('post', '/asset-listings').send({ instrumentId: eth.id, quoteInstrumentId: btc.id, market: 'Kraken', ticker: 'ETH-BTC' }).expect(201)
+    ).body as { id: string };
+
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: etf.id,
+        acquiredQuantity: '1',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '100',
+        assetListingId: vwceEur.id,
+        executionValue: 10000,
+        executedAt: '2026-01-01T00:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: eur.id,
+        acquiredQuantity: '120',
+        disposedInstrumentId: etf.id,
+        disposedQuantity: '1',
+        assetListingId: vwceEur.id,
+        executionValue: 12000,
+        executedAt: '2026-01-02T00:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: btc.id,
+        acquiredQuantity: '0.05',
+        disposedInstrumentId: eth.id,
+        disposedQuantity: '1',
+        assetListingId: ethBtc.id,
+        executionValue: 100000,
+        executedAt: '2026-01-03T00:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/investment-trades')
+      .send({
+        accountId: account.id,
+        acquiredInstrumentId: eth.id,
+        acquiredQuantity: '1',
+        disposedInstrumentId: eur.id,
+        disposedQuantity: '100',
+        assetListingId: vwceEur.id,
+        executionValue: 10000,
+        executedAt: '2026-01-04T00:00:00.000Z',
+      })
+      .expect(400)
+      .expect(({ body }: { body: { code: string } }) => expect(body.code).toBe('INVESTMENT_TRADE_LISTING_MISMATCH'));
+  });
+
   it('replays explicit adjustments without creating investment activity', async () => {
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
     const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };

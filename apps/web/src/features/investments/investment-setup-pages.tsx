@@ -215,10 +215,15 @@ function Registry<T extends ActiveRow, V>({ resource }: { resource: Resource<T, 
   );
 }
 
-const textField = (id: string, label: string, value: string, setValue: (value: string) => void) => (
+const textField = (id: string, label: string, value: string, setValue: (value: string) => void, hint?: string) => (
   <div className="grid gap-2">
     <Label htmlFor={id}>{label}</Label>
-    <Input id={id} value={value} onChange={(event) => setValue(event.target.value)} />
+    <Input id={id} value={value} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(event) => setValue(event.target.value)} />
+    {hint && (
+      <p id={`${id}-hint`} className="text-sm text-muted-foreground">
+        {hint}
+      </p>
+    )}
   </div>
 );
 
@@ -418,11 +423,27 @@ export function AssetListingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            {textField('market', t('investmentSetup.columns.market'), values.market, (market) => setValues({ ...values, market }))}
-            {textField('ticker', t('investmentSetup.columns.ticker'), values.ticker, (ticker) => setValues({ ...values, ticker }))}
-            {textField('isin', t('investmentSetup.fields.isin'), values.isin, (isin) => setValues({ ...values, isin }))}
-            {textField('providerSymbol', t('investmentSetup.fields.providerSymbol'), values.providerSymbol, (providerSymbol) =>
-              setValues({ ...values, providerSymbol }),
+            {textField(
+              'market',
+              t('investmentSetup.columns.market'),
+              values.market,
+              (market) => setValues({ ...values, market }),
+              t('investmentSetup.listings.marketHint'),
+            )}
+            {textField(
+              'ticker',
+              t('investmentSetup.columns.ticker'),
+              values.ticker,
+              (ticker) => setValues({ ...values, ticker }),
+              t('investmentSetup.listings.tickerHint'),
+            )}
+            {textField('isin', t('investmentSetup.fields.isin'), values.isin, (isin) => setValues({ ...values, isin }), t('investmentSetup.listings.isinHint'))}
+            {textField(
+              'providerSymbol',
+              t('investmentSetup.fields.providerSymbol'),
+              values.providerSymbol,
+              (providerSymbol) => setValues({ ...values, providerSymbol }),
+              t('investmentSetup.listings.providerSymbolHint'),
             )}
           </div>
         ),

@@ -91,7 +91,7 @@
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "A column configured in the CSV model appears more than once in the file.",
     "INVESTMENT_REFERENCE_INACTIVE": "Choose active accounts and instruments.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "The received and delivered instruments must be different.",
-    "INVESTMENT_TRADE_LISTING_MISMATCH": "The listing must belong to the received instrument.",
+    "INVESTMENT_TRADE_LISTING_MISMATCH": "The listing must match the received and delivered instrument pair.",
     "INVESTMENT_TRADE_INSUFFICIENT_FUNDS": "There is not enough of the delivered instrument in this account."
   },
   "accounts": {
@@ -180,7 +180,11 @@
       "title": "Asset listings",
       "description": "Each asset's market, ticker and quote currency.",
       "empty": "No asset listings yet",
-      "new": "New Listing"
+      "new": "New Listing",
+      "marketHint": "Venue, for example XETRA or Kraken.",
+      "tickerHint": "Venue asset or pair code, for example VWCE or BTC-EUR.",
+      "isinHint": "Security identifier, for example IE00BK5BQT80. Native cryptocurrencies normally have no ISIN.",
+      "providerSymbolHint": "Optional quote-provider identifier, for example VWCE.XETRA or BTC-EUR.CC."
     },
     "institutions": {
       "title": "Financial institutions",
