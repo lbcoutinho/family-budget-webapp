@@ -3,6 +3,8 @@ import { ChevronLeftIcon, ChevronRightIcon, TriangleAlertIcon } from 'lucide-rea
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { InvestmentSectionNav } from './investment-section-nav';
+
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -11,8 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
-
-import { InvestmentSectionNav } from './investment-section-nav';
 
 export function InvestmentFlowPage() {
   const { t, i18n } = useTranslation();

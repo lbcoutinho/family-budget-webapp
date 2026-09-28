@@ -14,6 +14,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { InvestmentSectionNav } from './investment-section-nav';
+
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -26,8 +28,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents } from '@/lib/money';
 import { cn } from '@/lib/utils';
-
-import { InvestmentSectionNav } from './investment-section-nav';
 
 const all = 'all';
 

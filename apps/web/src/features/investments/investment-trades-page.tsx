@@ -24,6 +24,8 @@ import { EyeIcon, PencilIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from 'lu
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { InvestmentSectionNav } from './investment-section-nav';
+
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PageContent, PageHeader } from '@/components/page-header';
@@ -36,8 +38,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { apiErrorMessage } from '@/lib/api-error';
 import { formatCents, formatCentsInput, parseCurrencyInput } from '@/lib/money';
-
-import { InvestmentSectionNav } from './investment-section-nav';
 
 interface TradeValues {
   accountId: string;
