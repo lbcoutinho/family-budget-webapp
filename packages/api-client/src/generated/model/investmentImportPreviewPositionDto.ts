@@ -7,7 +7,9 @@
  */
 
 export interface InvestmentImportPreviewPositionDto {
+  accountId: string;
   accountName: string;
+  instrumentId: string;
   instrumentCode: string;
   quantity: string;
   remainingCost: number;

@@ -8,7 +8,10 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
+import { type CreateBalanceAdjustmentDto } from './dto/create-balance-adjustment.dto';
+import { type CreatePositionAdjustmentDto } from './dto/create-position-adjustment.dto';
 import { type InvestmentImportConfirmationDto, type InvestmentImportPreviewDto } from './dto/investment-import-preview.dto';
+import { InvestmentsService } from './investments.service';
 
 const headers = [
   'external_id',
@@ -52,14 +55,16 @@ export class InvestmentImportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly balances: BalancesService,
+    private readonly investments: InvestmentsService,
   ) {}
 
   async preview(userId: string, file: Buffer | undefined): Promise<InvestmentImportPreviewDto> {
     return (await this.prepare(userId, file)).preview;
   }
 
-  async confirm(userId: string, file: Buffer | undefined): Promise<InvestmentImportConfirmationDto> {
+  async confirm(userId: string, file: Buffer | undefined, reconciliation?: string): Promise<InvestmentImportConfirmationDto> {
     const { preview, operations } = await this.prepare(userId, file);
+    const adjustments = reconciliationAdjustments(preview, reconciliation);
     const rows = operations.filter(
       (operation): operation is Operation & { row: Row; sourceKey: string } => operation.row !== undefined && operation.sourceKey !== undefined,
     );
@@ -110,6 +115,7 @@ export class InvestmentImportService {
           contentFingerprint: contentFingerprint(operation),
         })),
       });
+      await this.investments.createImportAdjustments(userId, adjustments, tx);
       return batch;
     });
     return { batchId: batch.id, importedRows: rows.length };
@@ -244,7 +250,15 @@ export class InvestmentImportService {
     }
     const positions = new Map<
       string,
-      { accountName: string; instrumentCode: string; quantity: Prisma.Decimal; remainingCost: Prisma.Decimal; realizedResult: Prisma.Decimal }
+      {
+        accountId: string;
+        accountName: string;
+        instrumentId: string;
+        instrumentCode: string;
+        quantity: Prisma.Decimal;
+        remainingCost: Prisma.Decimal;
+        realizedResult: Prisma.Decimal;
+      }
     >();
     let validRows = 0;
     for (const item of operations.sort((a, b) => a.executedAt.getTime() - b.executedAt.getTime() || (a.row?.line ?? 0) - (b.row?.line ?? 0))) {
@@ -268,7 +282,9 @@ export class InvestmentImportService {
       const position = (instrument: typeof item.acquired) => {
         const key = `${item.accountId}|${instrument.id}`;
         const current = positions.get(key) ?? {
+          accountId: item.accountId,
           accountName: item.accountName,
+          instrumentId: instrument.id,
           instrumentCode: instrument.code,
           quantity: new Prisma.Decimal(0),
           remainingCost: new Prisma.Decimal(0),
@@ -310,13 +326,17 @@ export class InvestmentImportService {
         balances: [...quantities.entries()].map(([key, quantity]) => {
           const [accountId, instrumentId] = key.split('|');
           return {
+            accountId: accountId!,
             accountName: accounts.find((item) => item.id === accountId)?.name ?? '',
+            instrumentId: instrumentId!,
             instrumentCode: instruments.find((item) => item.id === instrumentId)?.code ?? '',
             quantity: quantity.toString(),
           };
         }),
         positions: [...positions.values()].map((item) => ({
+          accountId: item.accountId,
           accountName: item.accountName,
+          instrumentId: item.instrumentId,
           instrumentCode: item.instrumentCode,
           quantity: item.quantity.toString(),
           remainingCost: item.remainingCost.toDecimalPlaces(0).toNumber(),
@@ -325,6 +345,65 @@ export class InvestmentImportService {
       },
     };
   }
+}
+
+function reconciliationAdjustments(preview: InvestmentImportPreviewDto, raw: string | undefined): (CreatePositionAdjustmentDto | CreateBalanceAdjustmentDto)[] {
+  if (raw === undefined || raw === '') return [];
+  let entries: unknown;
+  try {
+    entries = JSON.parse(raw);
+  } catch {
+    throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'Reconciliation must be a JSON array.');
+  }
+  if (!Array.isArray(entries)) throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'Reconciliation must be a JSON array.');
+  const calculated = new Map<string, { quantity: string; position: boolean }>();
+  for (const item of preview.positions) calculated.set(`${item.accountId}:${item.instrumentId}`, { quantity: item.quantity, position: true });
+  for (const item of preview.balances) {
+    const key = `${item.accountId}:${item.instrumentId}`;
+    if (!calculated.has(key)) calculated.set(key, { quantity: item.quantity, position: false });
+  }
+  const seen = new Set<string>();
+  return entries.flatMap((entry) => {
+    if (!reconciliationEntry(entry))
+      throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'Every reconciliation entry needs a quantity, effective time, and reason.');
+    const key = `${entry.accountId}:${entry.instrumentId}`;
+    if (seen.has(key)) throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'Each calculated balance or position can be reconciled once.');
+    seen.add(key);
+    const current = calculated.get(key);
+    if (!current) throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'A reconciliation entry must match a calculated balance or position.');
+    const quantity = new Prisma.Decimal(entry.actualQuantity).sub(current.quantity);
+    if (quantity.isZero()) return [];
+    if (current.position) {
+      if ((quantity.isPositive() && entry.cost === undefined) || (quantity.isNegative() && entry.cost !== undefined)) {
+        throw badRequest(
+          'INVESTMENT_IMPORT_RECONCILIATION_INVALID',
+          'A positive position difference requires a EUR cost; a negative difference cannot have one.',
+        );
+      }
+      return [{ ...entry, quantity: quantity.toString() }];
+    }
+    if (entry.cost !== undefined) throw badRequest('INVESTMENT_IMPORT_RECONCILIATION_INVALID', 'A balance difference cannot have a EUR cost.');
+    return [{ ...entry, quantity: quantity.toString() }];
+  });
+}
+
+function reconciliationEntry(
+  value: unknown,
+): value is { accountId: string; instrumentId: string; actualQuantity: string; cost?: number; effectiveAt: string; reason: string } {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.accountId === 'string' &&
+    typeof entry.instrumentId === 'string' &&
+    typeof entry.actualQuantity === 'string' &&
+    /^-?\d+(?:\.\d{1,18})?$/.test(entry.actualQuantity) &&
+    typeof entry.effectiveAt === 'string' &&
+    utc(entry.effectiveAt) &&
+    typeof entry.reason === 'string' &&
+    entry.reason.trim().length > 0 &&
+    entry.reason.length <= 1000 &&
+    (entry.cost === undefined || (typeof entry.cost === 'number' && Number.isInteger(entry.cost) && entry.cost >= 0))
+  );
 }
 
 function contentFingerprint(operation: Operation): string {

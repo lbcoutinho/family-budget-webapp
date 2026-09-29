@@ -98,7 +98,7 @@ export const usePreviewInvestmentImport = <TError = ErrorType<unknown>,
       return useMutation(getPreviewInvestmentImportMutationOptions(options), queryClient);
     }
     /**
- * @summary Atomically persist a validated normalized investment CSV
+ * @summary Atomically persist a validated normalized investment CSV and its explicit reconciliation adjustments
  */
 export const confirmInvestmentImport = (
     confirmInvestmentImportBody: BodyType<ConfirmInvestmentImportBody>,
@@ -107,6 +107,9 @@ export const confirmInvestmentImport = (
 
       const formData = new FormData();
 formData.append(`file`, confirmInvestmentImportBody.file);
+if(confirmInvestmentImportBody.reconciliation !== undefined) {
+ formData.append(`reconciliation`, confirmInvestmentImportBody.reconciliation);
+ }
 
       return customInstance<InvestmentImportConfirmationDto>(
       {url: `/investment-import/confirm`, method: 'POST',
@@ -154,7 +157,7 @@ const {mutation: mutationOptions} = options ?
     export type ConfirmInvestmentImportMutationVariables = {data: BodyType<ConfirmInvestmentImportBody>}
 
     /**
- * @summary Atomically persist a validated normalized investment CSV
+ * @summary Atomically persist a validated normalized investment CSV and its explicit reconciliation adjustments
  */
 export const useConfirmInvestmentImport = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmInvestmentImport>>, TError,ConfirmInvestmentImportMutationVariables, TContext>, }

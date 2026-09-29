@@ -7,6 +7,7 @@ const sections = [
   ['/investments/overview', 'investmentOverview.title'],
   ['/investments/operations', 'investmentTrades.title'],
   ['/investments/flow', 'investmentFlow.title'],
+  ['/investments/import', 'investmentImport.title'],
 ] as const;
 
 /** One navigation surface keeps the section state identical across investment routes. */
