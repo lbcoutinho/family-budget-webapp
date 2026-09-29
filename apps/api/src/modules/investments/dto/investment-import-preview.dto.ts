@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Equals, IsBoolean } from 'class-validator';
 
 import { AccountInstrumentBalanceDto } from '../../accounts/dto/account-instrument-balance.dto';
 
@@ -55,4 +56,11 @@ export class InvestmentImportRollbackPreviewDto {
   @ApiProperty({ type: [InvestmentImportRollbackAdjustmentDto] }) laterBalanceAdjustments!: InvestmentImportRollbackAdjustmentDto[];
   @ApiProperty({ type: [InvestmentPositionDto] }) projectedPositions!: InvestmentPositionDto[];
   @ApiProperty({ type: [AccountInstrumentBalanceDto] }) projectedBalances!: AccountInstrumentBalanceDto[];
+}
+
+export class RollbackInvestmentImportDto {
+  @ApiProperty({ enum: [true] })
+  @IsBoolean()
+  @Equals(true)
+  confirm!: true;
 }

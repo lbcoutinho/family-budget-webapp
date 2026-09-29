@@ -13,7 +13,7 @@ import {
   type InvestmentImportPreviewDto,
   type InvestmentImportRollbackPreviewDto,
 } from './dto/investment-import-preview.dto';
-import { InvestmentsService } from './investments.service';
+import { changeBalanceRow, InvestmentsService } from './investments.service';
 
 const headers = [
   'external_id',
@@ -148,9 +148,10 @@ export class InvestmentImportService {
       balances.map((balance) => [`${balance.accountId}:${balance.instrumentId}`, { ...balance, quantity: new Prisma.Decimal(balance.quantity) }]),
     );
     for (const trade of batch.trades) {
-      change(projectedBalances, trade.accountId, trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity).negated());
-      change(projectedBalances, trade.accountId, trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity));
-      if (trade.feeInstrumentId && trade.feeQuantity) change(projectedBalances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity));
+      changeBalanceRow(projectedBalances, trade.accountId, trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity).negated());
+      changeBalanceRow(projectedBalances, trade.accountId, trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity));
+      if (trade.feeInstrumentId && trade.feeQuantity)
+        changeBalanceRow(projectedBalances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity));
     }
     return {
       importedTrades: batch.trades.map((trade) => ({ id: trade.id, executedAt: trade.executedAt.toISOString() })),
@@ -423,10 +424,6 @@ function movements(operation: Operation): (readonly [Operation['acquired'], Pris
   ];
 }
 
-function change(balances: Map<string, { quantity: Prisma.Decimal }>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
-  const balance = balances.get(`${accountId}:${instrumentId}`);
-  if (balance) balance.quantity = balance.quantity.add(quantity);
-}
 function asset(type: string): boolean {
   return type !== 'FIAT' && type !== 'STABLECOIN';
 }

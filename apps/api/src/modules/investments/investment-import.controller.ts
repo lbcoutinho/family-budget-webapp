@@ -1,11 +1,16 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
-import { InvestmentImportConfirmationDto, InvestmentImportPreviewDto, InvestmentImportRollbackPreviewDto } from './dto/investment-import-preview.dto';
+import {
+  InvestmentImportConfirmationDto,
+  InvestmentImportPreviewDto,
+  InvestmentImportRollbackPreviewDto,
+  RollbackInvestmentImportDto,
+} from './dto/investment-import-preview.dto';
 import { InvestmentImportService } from './investment-import.service';
 
 interface UploadedCsv {
@@ -44,12 +49,13 @@ export class InvestmentImportController {
     return this.imports.previewRollback(user.id, id);
   }
 
-  @ApiOperation({ operationId: 'rollbackInvestmentImport', summary: 'Atomically remove a whole import batch after preview' })
+  @ApiOperation({ operationId: 'rollbackInvestmentImport', summary: 'Atomically remove a whole import batch after explicit confirmation' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiBody({ type: RollbackInvestmentImportDto })
   @ApiNoContentResponse()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':id')
-  rollback(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  @Post(':id/rollback')
+  rollback(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() _dto: RollbackInvestmentImportDto): Promise<void> {
     return this.imports.rollback(user.id, id);
   }
 }

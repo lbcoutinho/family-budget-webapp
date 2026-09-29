@@ -29,7 +29,8 @@ import type {
   InvestmentImportConfirmationDto,
   InvestmentImportPreviewDto,
   InvestmentImportRollbackPreviewDto,
-  PreviewInvestmentImportBody
+  PreviewInvestmentImportBody,
+  RollbackInvestmentImportDto
 } from '../model';
 
 import { customInstance } from '../../lib/axios';
@@ -284,16 +285,21 @@ export function usePreviewInvestmentImportRollback<TData = Awaited<ReturnType<ty
 
 
 /**
- * @summary Atomically remove a whole import batch after preview
+ * @summary Atomically remove a whole import batch after explicit confirmation
  */
 export const rollbackInvestmentImport = (
     id: string,
+    rollbackInvestmentImportDto: BodyType<RollbackInvestmentImportDto>,
  signal?: AbortSignal
 ) => {
 
+      const formData = new FormData();
+formData.append(`confirm`, rollbackInvestmentImportDto.confirm.toString())
 
       return customInstance<void>(
-      {url: `/investment-import/${id}`, method: 'DELETE', signal
+      {url: `/investment-import/${id}/rollback`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
     },
       );
     }
@@ -318,9 +324,9 @@ const {mutation: mutationOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof rollbackInvestmentImport>>, RollbackInvestmentImportMutationVariables> = (props) => {
-          const {id} = props ?? {};
+          const {id,data} = props ?? {};
 
-          return  rollbackInvestmentImport(id,)
+          return  rollbackInvestmentImport(id,data,)
         }
 
 
@@ -331,12 +337,12 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type RollbackInvestmentImportMutationResult = NonNullable<Awaited<ReturnType<typeof rollbackInvestmentImport>>>
-
+    export type RollbackInvestmentImportMutationBody = BodyType<RollbackInvestmentImportDto>
     export type RollbackInvestmentImportMutationError = ErrorType<unknown>
-    export type RollbackInvestmentImportMutationVariables = {id: string}
+    export type RollbackInvestmentImportMutationVariables = {id: string;data: BodyType<RollbackInvestmentImportDto>}
 
     /**
- * @summary Atomically remove a whole import batch after preview
+ * @summary Atomically remove a whole import batch after explicit confirmation
  */
 export const useRollbackInvestmentImport = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rollbackInvestmentImport>>, TError,RollbackInvestmentImportMutationVariables, TContext>, }

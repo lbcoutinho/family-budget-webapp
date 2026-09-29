@@ -748,7 +748,7 @@ function changeBalance(balances: Map<string, Prisma.Decimal>, accountId: string,
   balances.set(key, (balances.get(key) ?? new Prisma.Decimal(0)).add(quantity));
 }
 
-function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
+export function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
   const balance = balances.get(`${accountId}:${instrumentId}`);
   if (balance) balance.quantity = balance.quantity.add(quantity);
 }

@@ -126,6 +126,7 @@ export * from './recurrenceCatchUpResultDto';
 export * from './recurrenceRuleDto';
 export * from './recurrenceRuleDtoFrequency';
 export * from './recurrenceRuleDtoType';
+export * from './rollbackInvestmentImportDto';
 export * from './sessionDto';
 export * from './transactionDto';
 export * from './transactionListDto';

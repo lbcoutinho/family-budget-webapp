@@ -22,8 +22,7 @@ describe('Investment import API (e2e)', () => {
   let userId: string;
   const email = 'investment-import.e2e@family-budget.test';
   const password = 'correct horse battery staple';
-  const call = (method: 'delete' | 'get' | 'post', path: string): request.Test =>
-    request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
+  const call = (method: 'get' | 'post', path: string): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
 
   beforeAll(async () => {
     app = (await Test.createTestingModule({ imports: [AppModule] }).compile()).createNestApplication();
@@ -148,7 +147,7 @@ describe('Investment import API (e2e)', () => {
           expect(body.laterBalanceAdjustments).toHaveLength(1);
         },
       );
-    await call('delete', `/investment-import/${batchId}`).expect(204);
+    await call('post', `/investment-import/${batchId}/rollback`).send({ confirm: true }).expect(204);
 
     expect((await call('get', '/investment-trades').expect(200)).body).toEqual([expect.objectContaining({ isImported: false })]);
     expect((await call('get', '/accounts/instrument-balances').expect(200)).body).toEqual(
@@ -178,7 +177,8 @@ describe('Investment import API (e2e)', () => {
       })
       .expect(201);
 
-    await call('delete', `/investment-import/${batchId}`)
+    await call('post', `/investment-import/${batchId}/rollback`)
+      .send({ confirm: true })
       .expect(409)
       .expect(({ body }: { body: { code: string; operationId: string } }) => {
         expect(body.code).toBe('INVESTMENT_TRADE_INSUFFICIENT_FUNDS');
