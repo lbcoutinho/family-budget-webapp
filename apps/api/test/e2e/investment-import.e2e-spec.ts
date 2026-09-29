@@ -22,7 +22,8 @@ describe('Investment import API (e2e)', () => {
   let userId: string;
   const email = 'investment-import.e2e@family-budget.test';
   const password = 'correct horse battery staple';
-  const call = (method: 'get' | 'post', path: string): request.Test => request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
+  const call = (method: 'delete' | 'get' | 'post', path: string): request.Test =>
+    request(server)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
 
   beforeAll(async () => {
     app = (await Test.createTestingModule({ imports: [AppModule] }).compile()).createNestApplication();
@@ -37,6 +38,8 @@ describe('Investment import API (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.positionAdjustment.deleteMany({ where: { userId } });
+    await prisma.balanceAdjustment.deleteMany({ where: { userId } });
     await prisma.investmentTrade.deleteMany({ where: { userId } });
     await prisma.importBatch.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
@@ -46,6 +49,8 @@ describe('Investment import API (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.positionAdjustment.deleteMany({ where: { userId } });
+    await prisma.balanceAdjustment.deleteMany({ where: { userId } });
     await prisma.investmentTrade.deleteMany({ where: { userId } });
     await prisma.importBatch.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
@@ -56,13 +61,14 @@ describe('Investment import API (e2e)', () => {
     await app.close();
   });
 
-  async function setup(): Promise<void> {
+  async function setup(): Promise<{ accountId: string; btcId: string; eurId: string }> {
     const institution = (await call('post', '/financial-institutions').send({ name: 'Kraken' }).expect(201)).body as { id: string };
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
-    await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201);
-    await call('post', '/accounts')
-      .send({ name: 'Spot', kind: 'EXCHANGE', financialInstitutionId: institution.id, initialBalances: [{ instrumentId: eur.id, quantity: '100' }] })
+    const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const account = await call('post', '/accounts')
+      .send({ name: 'Spot', kind: 'EXCHANGE', financialInstitutionId: institution.id, initialBalances: [{ instrumentId: eur.id, quantity: '200' }] })
       .expect(201);
+    return { accountId: (account.body as { id: string }).id, btcId: btc.id, eurId: eur.id };
   }
 
   it('confirms a batch atomically and keeps imported trades distinguishable', async () => {
@@ -104,5 +110,80 @@ describe('Investment import API (e2e)', () => {
       .expect(400);
 
     expect((await call('get', '/investment-trades').expect(200)).body).toHaveLength(0);
+  });
+
+  it('previews and rolls back a whole batch, replaying later operations', async () => {
+    const { accountId, btcId, eurId } = await setup();
+    const confirmation = await call('post', '/investment-import/confirm').attach('file', Buffer.from(csv()), 'trades.csv').expect(201);
+    const batchId = (confirmation.body as { batchId: string }).batchId;
+    await call('post', '/investment-trades')
+      .send({
+        accountId,
+        acquiredInstrumentId: btcId,
+        acquiredQuantity: '0.001',
+        disposedInstrumentId: eurId,
+        disposedQuantity: '10',
+        executionValue: 1000,
+        executedAt: '2026-01-02T12:00:00.000Z',
+      })
+      .expect(201);
+    await call('post', '/position-adjustments')
+      .send({ accountId, instrumentId: btcId, quantity: '0.001', cost: 100, effectiveAt: '2026-01-03T12:00:00.000Z', reason: 'Custody check' })
+      .expect(201);
+    await call('post', '/balance-adjustments')
+      .send({ accountId, instrumentId: eurId, quantity: '1', effectiveAt: '2026-01-03T12:00:00.000Z', reason: 'Cash check' })
+      .expect(201);
+
+    await call('get', `/investment-import/${batchId}/rollback-preview`)
+      .expect(200)
+      .expect(
+        ({
+          body,
+        }: {
+          body: { importedTrades: unknown[]; laterTrades: unknown[]; laterPositionAdjustments: unknown[]; laterBalanceAdjustments: unknown[] };
+        }) => {
+          expect(body.importedTrades).toHaveLength(1);
+          expect(body.laterTrades).toHaveLength(1);
+          expect(body.laterPositionAdjustments).toHaveLength(1);
+          expect(body.laterBalanceAdjustments).toHaveLength(1);
+        },
+      );
+    await call('delete', `/investment-import/${batchId}`).expect(204);
+
+    expect((await call('get', '/investment-trades').expect(200)).body).toEqual([expect.objectContaining({ isImported: false })]);
+    expect((await call('get', '/accounts/instrument-balances').expect(200)).body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ accountId, instrumentId: eurId, quantity: '191' }),
+        expect.objectContaining({ accountId, instrumentId: btcId, quantity: '0.002' }),
+      ]),
+    );
+    expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accountId, instrumentId: btcId, quantity: '0.002', remainingCost: 1100 })]),
+    );
+  });
+
+  it('rejects a rollback that makes a later long-only operation invalid', async () => {
+    const { accountId, btcId, eurId } = await setup();
+    const confirmation = await call('post', '/investment-import/confirm').attach('file', Buffer.from(csv()), 'trades.csv').expect(201);
+    const batchId = (confirmation.body as { batchId: string }).batchId;
+    const laterTrade = await call('post', '/investment-trades')
+      .send({
+        accountId,
+        acquiredInstrumentId: eurId,
+        acquiredQuantity: '100',
+        disposedInstrumentId: btcId,
+        disposedQuantity: '0.01',
+        executionValue: 10000,
+        executedAt: '2026-01-02T12:00:00.000Z',
+      })
+      .expect(201);
+
+    await call('delete', `/investment-import/${batchId}`)
+      .expect(409)
+      .expect(({ body }: { body: { code: string; operationId: string } }) => {
+        expect(body.code).toBe('INVESTMENT_TRADE_INSUFFICIENT_FUNDS');
+        expect(body.operationId).toBe((laterTrade.body as { id: string }).id);
+      });
+    expect((await call('get', '/investment-trades').expect(200)).body).toHaveLength(2);
   });
 });
