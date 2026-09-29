@@ -8,4 +8,6 @@
 
 export type ConfirmInvestmentImportBody = {
   file: Blob | File;
+  /** Optional JSON array of verified actual quantities and reasons for explicit adjustments. */
+  reconciliation?: string;
 };

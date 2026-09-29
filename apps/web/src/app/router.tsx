@@ -32,6 +32,9 @@ const InvestmentsOverviewPage = lazy(() =>
 const InvestmentFlowPage = lazy(() =>
   import('@/features/investments/investment-flow-page').then(({ InvestmentFlowPage }) => ({ default: InvestmentFlowPage })),
 );
+const InvestmentImportPage = lazy(() =>
+  import('@/features/investments/investment-import-page').then(({ InvestmentImportPage }) => ({ default: InvestmentImportPage })),
+);
 
 // Everything except `/login` renders inside the shell, and everything inside the shell is behind
 // `ProtectedRoute` — a new route is protected unless it is deliberately opted out.
@@ -80,6 +83,7 @@ export const routes = [
       { path: 'investments/overview', element: <InvestmentsOverviewPage /> },
       { path: 'investments/operations', element: <InvestmentTradesPage /> },
       { path: 'investments/flow', element: <InvestmentFlowPage /> },
+      { path: 'investments/import', element: <InvestmentImportPage /> },
       // A mistyped address lands inside the shell rather than on the router's own error page, so
       // the navigation is right there to recover with.
       { path: '*', element: <NotFoundPlaceholder /> },

@@ -32,13 +32,29 @@ export class InvestmentImportController {
     return this.imports.preview(user.id, file?.buffer);
   }
 
-  @ApiOperation({ operationId: 'confirmInvestmentImport', summary: 'Atomically persist a validated normalized investment CSV' })
-  @ApiBody({ schema: { type: 'object', required: ['file'], properties: { file: { type: 'string', format: 'binary' } } } })
+  @ApiOperation({
+    operationId: 'confirmInvestmentImport',
+    summary: 'Atomically persist a validated normalized investment CSV and its explicit reconciliation adjustments',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        reconciliation: { type: 'string', description: 'Optional JSON array of verified actual quantities and reasons for explicit adjustments.' },
+      },
+    },
+  })
   @ApiCreatedResponse({ type: InvestmentImportConfirmationDto })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024, files: 1 } }))
   @Post('confirm')
-  confirm(@CurrentUser() user: AuthenticatedUser, @UploadedFile() file: UploadedCsv | undefined): Promise<InvestmentImportConfirmationDto> {
-    return this.imports.confirm(user.id, file?.buffer);
+  confirm(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile() file: UploadedCsv | undefined,
+    @Body('reconciliation') reconciliation: string | undefined,
+  ): Promise<InvestmentImportConfirmationDto> {
+    return this.imports.confirm(user.id, file?.buffer, reconciliation);
   }
 
   @ApiOperation({ operationId: 'previewInvestmentImportRollback', summary: 'Preview the impact of removing a whole import batch' })

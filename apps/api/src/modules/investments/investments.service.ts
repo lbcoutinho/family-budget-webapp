@@ -225,6 +225,42 @@ export class InvestmentsService {
     return toPositionAdjustmentDto(await this.savePositionAdjustment(userId, dto));
   }
 
+  async createImportAdjustments(
+    userId: string,
+    adjustments: (CreatePositionAdjustmentDto | CreateBalanceAdjustmentDto)[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const positions = new Set<string>();
+    for (const dto of adjustments) {
+      const [account, instrument] = await Promise.all([
+        tx.account.findFirst({ where: { id: dto.accountId, userId, isActive: true } }),
+        tx.instrument.findFirst({ where: { id: dto.instrumentId, userId, isActive: true } }),
+      ]);
+      if (!account || !instrument) throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instrument are required.');
+      const quantity = new Prisma.Decimal(dto.quantity);
+      if (quantity.isZero()) continue;
+      const data = { accountId: account.id, instrumentId: instrument.id, quantity, effectiveAt: new Date(dto.effectiveAt), reason: dto.reason, userId };
+      if (isInvestmentAsset(instrument.type)) {
+        const cost = 'cost' in dto ? dto.cost : undefined;
+        if ((quantity.isPositive() && cost === undefined) || (quantity.isNegative() && cost !== undefined)) {
+          throw badRequest(
+            'POSITION_ADJUSTMENT_INVALID',
+            'A positive adjustment requires a EUR cost; a negative adjustment removes the current weighted-average cost.',
+          );
+        }
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${account.id}:${instrument.id}`}))`;
+        await tx.positionAdjustment.create({ data: { ...data, cost } });
+        positions.add(`${account.id}:${instrument.id}`);
+      } else {
+        await tx.balanceAdjustment.create({ data });
+      }
+    }
+    for (const position of positions) {
+      const [accountId, instrumentId] = position.split(':');
+      await this.assertPositionHistory(userId, accountId!, instrumentId!, tx);
+    }
+  }
+
   async updatePositionAdjustment(userId: string, id: string, dto: UpdatePositionAdjustmentDto): Promise<PositionAdjustmentDto> {
     const current = await this.positionAdjustment(userId, id);
     return toPositionAdjustmentDto(

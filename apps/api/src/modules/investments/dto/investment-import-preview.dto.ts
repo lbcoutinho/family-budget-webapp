@@ -12,13 +12,17 @@ export class InvestmentImportPreviewErrorDto {
 }
 
 export class InvestmentImportPreviewBalanceDto {
+  @ApiProperty({ type: String, format: 'uuid' }) accountId!: string;
   @ApiProperty({ type: String }) accountName!: string;
+  @ApiProperty({ type: String, format: 'uuid' }) instrumentId!: string;
   @ApiProperty({ type: String }) instrumentCode!: string;
   @ApiProperty({ type: String }) quantity!: string;
 }
 
 export class InvestmentImportPreviewPositionDto {
+  @ApiProperty({ type: String, format: 'uuid' }) accountId!: string;
   @ApiProperty({ type: String }) accountName!: string;
+  @ApiProperty({ type: String, format: 'uuid' }) instrumentId!: string;
   @ApiProperty({ type: String }) instrumentCode!: string;
   @ApiProperty({ type: String }) quantity!: string;
   @ApiProperty({ type: Number }) remainingCost!: number;
