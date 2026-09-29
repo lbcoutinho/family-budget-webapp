@@ -1,4 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Equals, IsBoolean } from 'class-validator';
+
+import { AccountInstrumentBalanceDto } from '../../accounts/dto/account-instrument-balance.dto';
+
+import { InvestmentPositionDto } from './investment-position.dto';
 
 export class InvestmentImportPreviewErrorDto {
   @ApiProperty({ type: Number }) line!: number;
@@ -35,4 +40,31 @@ export class InvestmentImportPreviewDto {
 export class InvestmentImportConfirmationDto {
   @ApiProperty({ type: String, format: 'uuid' }) batchId!: string;
   @ApiProperty({ type: Number }) importedRows!: number;
+}
+
+export class InvestmentImportRollbackTradeDto {
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) executedAt!: string;
+}
+
+export class InvestmentImportRollbackAdjustmentDto {
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) effectiveAt!: string;
+  @ApiProperty({ type: String }) reason!: string;
+}
+
+export class InvestmentImportRollbackPreviewDto {
+  @ApiProperty({ type: [InvestmentImportRollbackTradeDto] }) importedTrades!: InvestmentImportRollbackTradeDto[];
+  @ApiProperty({ type: [InvestmentImportRollbackTradeDto] }) laterTrades!: InvestmentImportRollbackTradeDto[];
+  @ApiProperty({ type: [InvestmentImportRollbackAdjustmentDto] }) laterPositionAdjustments!: InvestmentImportRollbackAdjustmentDto[];
+  @ApiProperty({ type: [InvestmentImportRollbackAdjustmentDto] }) laterBalanceAdjustments!: InvestmentImportRollbackAdjustmentDto[];
+  @ApiProperty({ type: [InvestmentPositionDto] }) projectedPositions!: InvestmentPositionDto[];
+  @ApiProperty({ type: [AccountInstrumentBalanceDto] }) projectedBalances!: AccountInstrumentBalanceDto[];
+}
+
+export class RollbackInvestmentImportDto {
+  @ApiProperty({ enum: [true] })
+  @IsBoolean()
+  @Equals(true)
+  confirm!: true;
 }

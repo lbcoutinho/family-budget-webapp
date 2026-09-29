@@ -4,6 +4,7 @@ import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import {
   InstrumentType,
+  AccountKind,
   Prisma,
   type AssetListing,
   type BalanceAdjustment,
@@ -313,10 +314,14 @@ export class InvestmentsService {
     await this.prisma.balanceAdjustment.delete({ where: { id } });
   }
 
-  async listPositions(userId: string, excludedTradeId?: string): Promise<InvestmentPositionDto[]> {
+  async listPositions(userId: string, excludedTradeId?: string, excludedImportBatchId?: string): Promise<InvestmentPositionDto[]> {
     const [trades, adjustments] = await Promise.all([
       this.prisma.investmentTrade.findMany({
-        where: { userId, ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}) },
+        where: {
+          userId,
+          ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}),
+          ...(excludedImportBatchId ? { importBatchId: { not: excludedImportBatchId } } : {}),
+        },
         include: positionTradeInclude,
       }),
       this.prisma.positionAdjustment.findMany({ where: { userId }, include: positionAdjustmentInclude }),
@@ -602,6 +607,9 @@ export class InvestmentsService {
     if (!account || !acquired || !disposed || (dto.feeInstrumentId !== undefined && !fee) || (dto.assetListingId !== undefined && !listing)) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instruments are required.');
     }
+    if (account.kind !== AccountKind.BROKERAGE && account.kind !== AccountKind.EXCHANGE) {
+      throw badRequest('INVESTMENT_ACCOUNT_KIND_INVALID', 'Investment trades require a Brokerage or Exchange account.');
+    }
     if (
       listing &&
       !(
@@ -621,7 +629,7 @@ export class InvestmentsService {
     return { account, acquired, disposed, fee, acquiredQuantity, disposedQuantity, feeQuantity };
   }
 
-  private async assertChronologicalBalances(userId: string, tx: Prisma.TransactionClient): Promise<void> {
+  async assertChronologicalBalances(userId: string, tx: Prisma.TransactionClient): Promise<void> {
     const trades = await tx.investmentTrade.findMany({
       where: { userId },
       include: {
@@ -664,6 +672,11 @@ export class InvestmentsService {
     }
   }
 
+  async assertPositionHistories(userId: string, tx: Prisma.TransactionClient): Promise<void> {
+    const adjustments = await tx.positionAdjustment.findMany({ where: { userId }, select: { accountId: true, instrumentId: true } });
+    for (const adjustment of adjustments) await this.assertPositionHistory(userId, adjustment.accountId, adjustment.instrumentId, tx);
+  }
+
   private async savePositionAdjustment(userId: string, dto: CreatePositionAdjustmentDto, id?: string): Promise<PositionAdjustmentRow> {
     const quantity = new Prisma.Decimal(dto.quantity);
     const [account, instrument] = await Promise.all([
@@ -672,6 +685,9 @@ export class InvestmentsService {
     ]);
     if (!account || !instrument || !isInvestmentAsset(instrument.type))
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and investment asset are required.');
+    if (account.kind !== AccountKind.BROKERAGE && account.kind !== AccountKind.EXCHANGE && account.kind !== AccountKind.WALLET) {
+      throw badRequest('INVESTMENT_ACCOUNT_KIND_INVALID', 'Position adjustments require a Brokerage, Exchange, or Wallet account.');
+    }
     if (quantity.isZero() || (quantity.isPositive() && dto.cost === undefined) || (quantity.isNegative() && dto.cost !== undefined)) {
       throw badRequest(
         'POSITION_ADJUSTMENT_INVALID',
@@ -768,7 +784,7 @@ function changeBalance(balances: Map<string, Prisma.Decimal>, accountId: string,
   balances.set(key, (balances.get(key) ?? new Prisma.Decimal(0)).add(quantity));
 }
 
-function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
+export function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
   const balance = balances.get(`${accountId}:${instrumentId}`);
   if (balance) balance.quantity = balance.quantity.add(quantity);
 }

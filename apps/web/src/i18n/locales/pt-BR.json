@@ -92,6 +92,7 @@
     "CSV_IMPORT_MAPPED_HEADER_AMBIGUOUS": "Uma coluna configurada no modelo CSV aparece mais de uma vez no arquivo.",
     "INVESTMENT_IMPORT_RECONCILIATION_INVALID": "Revise as quantidades reais e os motivos obrigatórios de cada ajuste.",
     "INVESTMENT_REFERENCE_INACTIVE": "Escolha contas e instrumentos ativos.",
+    "INVESTMENT_ACCOUNT_KIND_INVALID": "Este tipo de conta não pode ser usado nesta operação de investimento.",
     "ACCOUNT_INSTITUTION_REQUIRED": "Escolha uma instituição financeira ativa para este tipo de conta.",
     "ACCOUNT_INSTRUMENT_INCOMPATIBLE": "Este tipo de instrumento não é compatível com este tipo de conta.",
     "INVESTMENT_TRADE_SAME_INSTRUMENT": "Os instrumentos recebido e entregue precisam ser diferentes.",
@@ -203,6 +204,7 @@
     "title": "Operações",
     "description": "Negociações são trocas dentro de uma conta. Elas nunca viram lançamentos do orçamento.",
     "new": "Nova negociação",
+    "trade": "Negociação",
     "adjustment": "Novo ajuste",
     "adjustments": "Ajustes",
     "adjustmentType": "Tipo de ajuste",
@@ -216,7 +218,15 @@
     "edit": "Editar negociação de {{trade}}",
     "delete": "Apagar negociação de {{trade}}",
     "editTitle": "Editar negociação",
-    "columns": { "execution": "Execução", "account": "Conta", "received": "Recebido", "delivered": "Entregue", "value": "Valor EUR" },
+    "columns": {
+      "operation": "Operação",
+      "execution": "Execução",
+      "account": "Conta",
+      "received": "Recebido",
+      "delivered": "Entregue",
+      "value": "Valor EUR",
+      "reason": "Motivo"
+    },
     "fields": {
       "account": "Conta",
       "received": "Recebido",
@@ -242,7 +252,9 @@
       "confirm": "Apagar negociação"
     },
     "empty": { "title": "Nenhuma negociação ainda", "description": "Registre uma troca para atualizar os saldos por instrumento desta conta." },
-    "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." }
+    "emptyHistory": { "title": "Nenhuma operação ainda", "description": "Registre uma negociação ou ajuste para começar o histórico de investimentos." },
+    "error": { "title": "Não foi possível carregar as negociações", "description": "Verifique a conexão e tente novamente." },
+    "historyError": { "title": "Não foi possível carregar as operações", "description": "Verifique a conexão e tente novamente." }
   },
   "investmentFlow": {
     "title": "Fluxo mensal",

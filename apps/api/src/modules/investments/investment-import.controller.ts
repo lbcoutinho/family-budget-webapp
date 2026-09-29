@@ -1,11 +1,16 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { type AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
-import { InvestmentImportConfirmationDto, InvestmentImportPreviewDto } from './dto/investment-import-preview.dto';
+import {
+  InvestmentImportConfirmationDto,
+  InvestmentImportPreviewDto,
+  InvestmentImportRollbackPreviewDto,
+  RollbackInvestmentImportDto,
+} from './dto/investment-import-preview.dto';
 import { InvestmentImportService } from './investment-import.service';
 
 interface UploadedCsv {
@@ -50,5 +55,23 @@ export class InvestmentImportController {
     @Body('reconciliation') reconciliation: string | undefined,
   ): Promise<InvestmentImportConfirmationDto> {
     return this.imports.confirm(user.id, file?.buffer, reconciliation);
+  }
+
+  @ApiOperation({ operationId: 'previewInvestmentImportRollback', summary: 'Preview the impact of removing a whole import batch' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiOkResponse({ type: InvestmentImportRollbackPreviewDto })
+  @Get(':id/rollback-preview')
+  previewRollback(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string): Promise<InvestmentImportRollbackPreviewDto> {
+    return this.imports.previewRollback(user.id, id);
+  }
+
+  @ApiOperation({ operationId: 'rollbackInvestmentImport', summary: 'Atomically remove a whole import batch after explicit confirmation' })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  @ApiBody({ type: RollbackInvestmentImportDto })
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post(':id/rollback')
+  rollback(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() _dto: RollbackInvestmentImportDto): Promise<void> {
+    return this.imports.rollback(user.id, id);
   }
 }

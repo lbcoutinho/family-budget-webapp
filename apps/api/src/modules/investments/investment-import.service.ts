@@ -3,15 +3,19 @@ import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
 
-import { badRequest, conflict } from '../../common/api-error';
+import { badRequest, conflict, notFound } from '../../common/api-error';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BalancesService } from '../transactions/balances.service';
 
 import { type CreateBalanceAdjustmentDto } from './dto/create-balance-adjustment.dto';
 import { type CreatePositionAdjustmentDto } from './dto/create-position-adjustment.dto';
-import { type InvestmentImportConfirmationDto, type InvestmentImportPreviewDto } from './dto/investment-import-preview.dto';
-import { InvestmentsService } from './investments.service';
+import {
+  type InvestmentImportConfirmationDto,
+  type InvestmentImportPreviewDto,
+  type InvestmentImportRollbackPreviewDto,
+} from './dto/investment-import-preview.dto';
+import { changeBalanceRow, InvestmentsService } from './investments.service';
 
 const headers = [
   'external_id',
@@ -119,6 +123,59 @@ export class InvestmentImportService {
       return batch;
     });
     return { batchId: batch.id, importedRows: rows.length };
+  }
+
+  async previewRollback(userId: string, batchId: string): Promise<InvestmentImportRollbackPreviewDto> {
+    const batch = await this.prisma.importBatch.findFirst({ where: { id: batchId, userId }, include: { trades: true } });
+    if (!batch) throw notFound('RECORD_NOT_FOUND', 'Import batch not found.');
+    const firstTrade = batch.trades.reduce((first, trade) => (trade.executedAt < first.executedAt ? trade : first));
+    const [laterTrades, laterPositionAdjustments, laterBalanceAdjustments, balances, projectedPositions] = await Promise.all([
+      this.prisma.investmentTrade.findMany({
+        where: { userId, id: { notIn: batch.trades.map((trade) => trade.id) }, executedAt: { gte: firstTrade.executedAt } },
+        select: { id: true, executedAt: true },
+        orderBy: [{ executedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      }),
+      this.prisma.positionAdjustment.findMany({
+        where: { userId, effectiveAt: { gte: firstTrade.executedAt } },
+        select: { id: true, effectiveAt: true, reason: true },
+        orderBy: [{ effectiveAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      }),
+      this.prisma.balanceAdjustment.findMany({
+        where: { userId, effectiveAt: { gte: firstTrade.executedAt } },
+        select: { id: true, effectiveAt: true, reason: true },
+        orderBy: [{ effectiveAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      }),
+      this.balances.instrumentBalances(userId),
+      this.investments.listPositions(userId, undefined, batchId),
+    ]);
+    const projectedBalances = new Map(
+      balances.map((balance) => [`${balance.accountId}:${balance.instrumentId}`, { ...balance, quantity: new Prisma.Decimal(balance.quantity) }]),
+    );
+    for (const trade of batch.trades) {
+      changeBalanceRow(projectedBalances, trade.accountId, trade.acquiredInstrumentId, new Prisma.Decimal(trade.acquiredQuantity).negated());
+      changeBalanceRow(projectedBalances, trade.accountId, trade.disposedInstrumentId, new Prisma.Decimal(trade.disposedQuantity));
+      if (trade.feeInstrumentId && trade.feeQuantity)
+        changeBalanceRow(projectedBalances, trade.accountId, trade.feeInstrumentId, new Prisma.Decimal(trade.feeQuantity));
+    }
+    return {
+      importedTrades: batch.trades.map((trade) => ({ id: trade.id, executedAt: trade.executedAt.toISOString() })),
+      laterTrades: laterTrades.map((trade) => ({ id: trade.id, executedAt: trade.executedAt.toISOString() })),
+      laterPositionAdjustments: laterPositionAdjustments.map((adjustment) => ({ ...adjustment, effectiveAt: adjustment.effectiveAt.toISOString() })),
+      laterBalanceAdjustments: laterBalanceAdjustments.map((adjustment) => ({ ...adjustment, effectiveAt: adjustment.effectiveAt.toISOString() })),
+      projectedPositions,
+      projectedBalances: [...projectedBalances.values()].map((balance) => ({ ...balance, quantity: balance.quantity.toString() })),
+    };
+  }
+
+  async rollback(userId: string, batchId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const batch = await tx.importBatch.findFirst({ where: { id: batchId, userId }, select: { id: true } });
+      if (!batch) throw notFound('RECORD_NOT_FOUND', 'Import batch not found.');
+      await tx.investmentTrade.deleteMany({ where: { userId, importBatchId: batch.id } });
+      await this.investments.assertChronologicalBalances(userId, tx);
+      await this.investments.assertPositionHistories(userId, tx);
+      await tx.importBatch.delete({ where: { id: batch.id } });
+    });
   }
 
   private async prepare(userId: string, file: Buffer | undefined): Promise<{ preview: InvestmentImportPreviewDto; operations: Operation[] }> {
@@ -443,6 +500,7 @@ function movements(operation: Operation): (readonly [Operation['acquired'], Pris
     ...(operation.fee && operation.feeQuantity ? [[operation.fee, operation.feeQuantity.negated()] as const] : []),
   ];
 }
+
 function asset(type: string): boolean {
   return type !== 'FIAT' && type !== 'STABLECOIN';
 }
