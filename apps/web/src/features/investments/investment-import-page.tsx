@@ -6,6 +6,7 @@ import {
   usePreviewInvestmentImport,
 } from '@family-budget/api-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { type TFunction } from 'i18next';
 import { FileUpIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -73,7 +74,10 @@ export function InvestmentImportPage() {
   const update = (row: ReconciliationRow, change: Partial<ReconciliationValue>) =>
     setValues((current) => ({ ...current, [key(row)]: { actual: '', choice: 'create', reason: '', cost: '', ...current[key(row)], ...change } }));
   const canReview = rows.every((row) => valid(row, values[key(row)]));
-  const accepted = rows.filter((row) => values[key(row)] && difference(row, values[key(row)].actual) !== '0' && values[key(row)].choice === 'create');
+  const accepted = rows.filter((row) => {
+    const value = values[key(row)];
+    return value && difference(row, value.actual) !== '0' && value.choice === 'create';
+  });
 
   return (
     <>
@@ -92,7 +96,7 @@ export function InvestmentImportPage() {
               <h2 className="font-semibold">{t('investmentImport.file')}</h2>
               <p className="text-sm text-muted-foreground">{t('investmentImport.fileDescription')}</p>
             </div>
-            <input
+            <Input
               ref={input}
               className="sr-only"
               aria-label={t('investmentImport.chooseFile')}
@@ -204,7 +208,7 @@ function ReconciliationInput({
   value?: ReconciliationValue;
   locale: string;
   update: (row: ReconciliationRow, change: Partial<ReconciliationValue>) => void;
-  t: ReturnType<typeof useTranslation>['t'];
+  t: TFunction;
 }) {
   const actual = value?.actual ?? '';
   const delta = actual && decimal(actual) ? difference(row, actual) : '';
@@ -214,7 +218,7 @@ function ReconciliationInput({
       <legend className="sr-only">{`${row.accountName} ${row.instrumentCode}`}</legend>
       <div>
         <p className="font-medium">{`${row.accountName} · ${row.instrumentCode}`}</p>
-        <p className="text-xs text-muted-foreground">{row.position ? t('investmentImport.position') : t('investmentImport.balance')}</p>
+        <p className="text-xs text-muted-foreground">{row.position ? String(t('investmentImport.position')) : String(t('investmentImport.balance'))}</p>
       </div>
       <div>
         <Label>{t('investmentImport.calculated')}</Label>
@@ -308,8 +312,8 @@ function difference(row: ReconciliationRow, actual: string): string {
   return subtract(actual, row.quantity);
 }
 function subtract(left: string, right: string): string {
-  const [leftWhole, leftFraction = ''] = left.split('.');
-  const [rightWhole, rightFraction = ''] = right.split('.');
+  const [leftWhole = '0', leftFraction = ''] = left.split('.');
+  const [rightWhole = '0', rightFraction = ''] = right.split('.');
   const scale = Math.max(leftFraction.length, rightFraction.length);
   const scaled = (whole: string, fraction: string) =>
     BigInt(whole) * 10n ** BigInt(scale) + BigInt(`${whole.startsWith('-') ? '-' : ''}${fraction.padEnd(scale, '0') || '0'}`);
