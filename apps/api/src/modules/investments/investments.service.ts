@@ -4,6 +4,7 @@ import { badRequest, conflict } from '../../common/api-error';
 import { assertOwnership } from '../../common/assert-ownership';
 import {
   InstrumentType,
+  AccountKind,
   Prisma,
   type AssetListing,
   type BalanceAdjustment,
@@ -566,6 +567,9 @@ export class InvestmentsService {
     if (!account || !acquired || !disposed || (dto.feeInstrumentId !== undefined && !fee) || (dto.assetListingId !== undefined && !listing)) {
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and instruments are required.');
     }
+    if (account.kind !== AccountKind.BROKERAGE && account.kind !== AccountKind.EXCHANGE) {
+      throw badRequest('INVESTMENT_ACCOUNT_KIND_INVALID', 'Investment trades require a Brokerage or Exchange account.');
+    }
     if (
       listing &&
       !(
@@ -636,6 +640,9 @@ export class InvestmentsService {
     ]);
     if (!account || !instrument || !isInvestmentAsset(instrument.type))
       throw badRequest('INVESTMENT_REFERENCE_INACTIVE', 'An active account and investment asset are required.');
+    if (account.kind !== AccountKind.BROKERAGE && account.kind !== AccountKind.EXCHANGE && account.kind !== AccountKind.WALLET) {
+      throw badRequest('INVESTMENT_ACCOUNT_KIND_INVALID', 'Position adjustments require a Brokerage, Exchange, or Wallet account.');
+    }
     if (quantity.isZero() || (quantity.isPositive() && dto.cost === undefined) || (quantity.isNegative() && dto.cost !== undefined)) {
       throw badRequest(
         'POSITION_ADJUSTMENT_INVALID',

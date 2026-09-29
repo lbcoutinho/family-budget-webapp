@@ -16,6 +16,7 @@ describe('Investment trades API (e2e)', () => {
   let prisma: PrismaService;
   let token: string;
   let userId: string;
+  let financialInstitutionId: string;
   const email = 'investment-trades.e2e@family-budget.test';
   const password = 'correct horse battery staple';
   const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string): request.Test =>
@@ -40,8 +41,10 @@ describe('Investment trades API (e2e)', () => {
     await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
+    await prisma.financialInstitution.deleteMany({ where: { userId } });
     await prisma.assetListing.deleteMany({ where: { userId } });
     await prisma.instrument.deleteMany({ where: { userId } });
+    financialInstitutionId = (await prisma.financialInstitution.create({ data: { userId, name: 'Investment Custodian' } })).id;
   });
 
   afterAll(async () => {
@@ -51,6 +54,7 @@ describe('Investment trades API (e2e)', () => {
     await prisma.marketQuote.deleteMany({ where: { userId } });
     await prisma.accountInitialBalance.deleteMany({ where: { userId } });
     await prisma.account.deleteMany({ where: { userId } });
+    await prisma.financialInstitution.deleteMany({ where: { userId } });
     await prisma.assetListing.deleteMany({ where: { userId } });
     await prisma.instrument.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
@@ -64,7 +68,7 @@ describe('Investment trades API (e2e)', () => {
     };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Kraken', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .send({ name: 'Kraken', kind: 'EXCHANGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
         .expect(201)
     ).body as { id: string };
 
@@ -109,6 +113,7 @@ describe('Investment trades API (e2e)', () => {
         .send({
           name: 'Exchange',
           kind: 'EXCHANGE',
+          financialInstitutionId,
           initialBalances: [
             { instrumentId: eur.id, quantity: '1000' },
             { instrumentId: eth.id, quantity: '2' },
@@ -181,7 +186,7 @@ describe('Investment trades API (e2e)', () => {
     };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Exchange', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .send({ name: 'Exchange', kind: 'EXCHANGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
         .expect(201)
     ).body as {
       id: string;
@@ -232,7 +237,7 @@ describe('Investment trades API (e2e)', () => {
     };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Broker', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '6000' }] })
+        .send({ name: 'Broker', kind: 'BROKERAGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '6000' }] })
         .expect(201)
     ).body as { id: string };
     const trade = (
@@ -304,7 +309,7 @@ describe('Investment trades API (e2e)', () => {
     const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Exchange', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '10000' }] })
+        .send({ name: 'Exchange', kind: 'EXCHANGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '10000' }] })
         .expect(201)
     ).body as { id: string };
     const trade = (body: Record<string, unknown>) =>
@@ -348,7 +353,7 @@ describe('Investment trades API (e2e)', () => {
     const etf = (await call('post', '/instruments').send({ name: 'Small ETF', code: 'SMALL', type: 'ETF' }).expect(201)).body as { id: string };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Fractional Broker', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '2' }] })
+        .send({ name: 'Fractional Broker', kind: 'BROKERAGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '2' }] })
         .expect(201)
     ).body as { id: string };
 
@@ -396,7 +401,7 @@ describe('Investment trades API (e2e)', () => {
     const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Exchange', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '2000' }] })
+        .send({ name: 'Exchange', kind: 'EXCHANGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '2000' }] })
         .expect(201)
     ).body as { id: string };
 
@@ -466,7 +471,7 @@ describe('Investment trades API (e2e)', () => {
     ).body as { id: string };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Broker', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .send({ name: 'Broker', kind: 'BROKERAGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
         .expect(201)
     ).body as { id: string };
 
@@ -517,7 +522,7 @@ describe('Investment trades API (e2e)', () => {
     const etf = (await call('post', '/instruments').send({ name: 'World ETF', code: 'VWCE', type: 'ETF' }).expect(201)).body as { id: string };
     const account = (
       await call('post', '/accounts')
-        .send({ name: 'Broker', kind: 'OTHER', initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
+        .send({ name: 'Broker', kind: 'BROKERAGE', financialInstitutionId, initialBalances: [{ instrumentId: eur.id, quantity: '1000' }] })
         .expect(201)
     ).body as { id: string };
     const purchase = (

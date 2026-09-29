@@ -65,6 +65,9 @@ interface AdjustmentValues {
   reason: string;
 }
 type AdjustmentRow = (PositionAdjustmentDto | BalanceAdjustmentDto) & { kind: AdjustmentValues['kind'] };
+type HistoryRow =
+  | { kind: 'trade'; effectiveAt: string; createdAt: string; row: InvestmentTradeDto }
+  | { kind: AdjustmentValues['kind']; effectiveAt: string; createdAt: string; row: AdjustmentRow };
 
 const emptyTrade = (): TradeValues => ({
   accountId: '',
@@ -186,6 +189,27 @@ export function InvestmentTradesPage() {
   const [removing, setRemoving] = useState<InvestmentTradeDto | null>(null);
   const [values, setValues] = useState<TradeValues>(emptyTrade);
   const removalPreview = usePreviewInvestmentTradeRemoval(removing?.id ?? '', { query: { enabled: removing !== null } });
+  const historyPending = trades.isPending || positionAdjustments.isPending || balanceAdjustments.isPending;
+  const historyError = trades.isError || positionAdjustments.isError || balanceAdjustments.isError;
+  const history: HistoryRow[] = [
+    ...(trades.data ?? []).map((row) => ({ kind: 'trade' as const, effectiveAt: row.executedAt, createdAt: row.createdAt, row })),
+    ...(positionAdjustments.data ?? []).map((row) => ({
+      kind: 'position' as const,
+      effectiveAt: row.effectiveAt,
+      createdAt: row.createdAt,
+      row: { ...row, kind: 'position' as const },
+    })),
+    ...(balanceAdjustments.data ?? []).map((row) => ({
+      kind: 'balance' as const,
+      effectiveAt: row.effectiveAt,
+      createdAt: row.createdAt,
+      row: { ...row, kind: 'balance' as const },
+    })),
+  ].sort((left, right) => right.effectiveAt.localeCompare(left.effectiveAt) || right.createdAt.localeCompare(left.createdAt));
+  const tradeAccounts = (accounts.data ?? []).filter((account) => account.kind === 'BROKERAGE' || account.kind === 'EXCHANGE');
+  const adjustmentAccounts = (accounts.data ?? []).filter(
+    (account) => adjustment.kind === 'balance' || account.kind === 'BROKERAGE' || account.kind === 'EXCHANGE' || account.kind === 'WALLET',
+  );
   const eligibleListings = (listings.data ?? []).filter(
     (listing) =>
       (listing.instrumentId === values.acquiredInstrumentId && listing.quoteInstrumentId === values.disposedInstrumentId) ||
@@ -288,128 +312,134 @@ export function InvestmentTradesPage() {
         <InvestmentSectionNav />
         <p className="text-sm text-muted-foreground">{t('investmentTrades.description')}</p>
         <Card className="py-0">
-          {trades.isPending && <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>}
-          {trades.isError && (
+          {historyPending && <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>}
+          {historyError && (
             <EmptyState
               icon={TriangleAlertIcon}
-              title={t('investmentTrades.error.title')}
-              description={t('investmentTrades.error.description')}
-              action={<Button onClick={() => void trades.refetch()}>{t('common.retry')}</Button>}
+              title={t('investmentTrades.historyError.title')}
+              description={t('investmentTrades.historyError.description')}
+              action={
+                <Button
+                  onClick={() => {
+                    void trades.refetch();
+                    void positionAdjustments.refetch();
+                    void balanceAdjustments.refetch();
+                  }}
+                >
+                  {t('common.retry')}
+                </Button>
+              }
             />
           )}
-          {!trades.isPending && !trades.isError && trades.data?.length === 0 && (
+          {!historyPending && !historyError && history.length === 0 && (
             <EmptyState
               icon={PlusIcon}
-              title={t('investmentTrades.empty.title')}
-              description={t('investmentTrades.empty.description')}
+              title={t('investmentTrades.emptyHistory.title')}
+              description={t('investmentTrades.emptyHistory.description')}
               action={<Button onClick={startNew}>{t('investmentTrades.new')}</Button>}
             />
           )}
-          {!trades.isPending && !trades.isError && (trades.data?.length ?? 0) > 0 && (
+          {!historyPending && !historyError && history.length > 0 && (
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>{t('investmentTrades.columns.operation')}</TableHead>
                   <TableHead>{t('investmentTrades.columns.execution')}</TableHead>
                   <TableHead>{t('investmentTrades.columns.account')}</TableHead>
                   <TableHead>{t('investmentTrades.columns.received')}</TableHead>
                   <TableHead>{t('investmentTrades.columns.delivered')}</TableHead>
                   <TableHead className="text-right">{t('investmentTrades.columns.value')}</TableHead>
+                  <TableHead>{t('investmentTrades.columns.reason')}</TableHead>
                   <TableHead>
                     <span className="sr-only">{t('common.actions')}</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trades.data?.map((trade) => (
-                  <TableRow key={trade.id}>
-                    <TableCell className="whitespace-nowrap tabular-nums">{formatExecution(trade.executedAt, i18n.language)}</TableCell>
-                    <TableCell>{trade.accountName}</TableCell>
-                    <TableCell className="whitespace-nowrap tabular-nums">
-                      {formatDecimal(trade.acquiredQuantity, i18n.language, trade.acquiredDisplayPrecision)} {trade.acquiredInstrumentCode}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap tabular-nums">
-                      {formatDecimal(trade.disposedQuantity, i18n.language, trade.disposedDisplayPrecision)} {trade.disposedInstrumentCode}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCents(trade.executionValue)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setDetail(trade)}
-                        aria-label={t('investmentTrades.view', { trade: trade.acquiredInstrumentCode })}
-                      >
-                        <EyeIcon />
-                      </Button>
-                      {!trade.isImported && (
-                        <>
+                {history.map((item) => {
+                  if (item.kind === 'trade') {
+                    const trade = item.row;
+                    return (
+                      <TableRow key={`trade:${trade.id}`}>
+                        <TableCell>{t('investmentTrades.trade')}</TableCell>
+                        <TableCell className="whitespace-nowrap tabular-nums">{formatExecution(trade.executedAt, i18n.language)}</TableCell>
+                        <TableCell>{trade.accountName}</TableCell>
+                        <TableCell className="whitespace-nowrap tabular-nums">
+                          {formatDecimal(trade.acquiredQuantity, i18n.language, trade.acquiredDisplayPrecision)} {trade.acquiredInstrumentCode}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap tabular-nums">
+                          {formatDecimal(trade.disposedQuantity, i18n.language, trade.disposedDisplayPrecision)} {trade.disposedInstrumentCode}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCents(trade.executionValue)}</TableCell>
+                        <TableCell>—</TableCell>
+                        <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            onClick={() => startEdit(trade)}
-                            aria-label={t('investmentTrades.edit', { trade: trade.acquiredInstrumentCode })}
+                            onClick={() => setDetail(trade)}
+                            aria-label={t('investmentTrades.view', { trade: trade.acquiredInstrumentCode })}
                           >
-                            <PencilIcon />
+                            <EyeIcon />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => setRemoving(trade)}
-                            aria-label={t('investmentTrades.delete', { trade: trade.acquiredInstrumentCode })}
-                          >
-                            <Trash2Icon />
-                          </Button>
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {!trade.isImported && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => startEdit(trade)}
+                                aria-label={t('investmentTrades.edit', { trade: trade.acquiredInstrumentCode })}
+                              >
+                                <PencilIcon />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setRemoving(trade)}
+                                aria-label={t('investmentTrades.delete', { trade: trade.acquiredInstrumentCode })}
+                              >
+                                <Trash2Icon />
+                              </Button>
+                            </>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                  const row = item.row;
+                  return (
+                    <TableRow key={`${row.kind}:${row.id}`}>
+                      <TableCell>{row.kind === 'position' ? t('investmentTrades.positionAdjustment') : t('investmentTrades.balanceAdjustment')}</TableCell>
+                      <TableCell className="whitespace-nowrap tabular-nums">{formatExecution(row.effectiveAt, i18n.language)}</TableCell>
+                      <TableCell>{row.accountName}</TableCell>
+                      <TableCell className="whitespace-nowrap tabular-nums">
+                        {formatDecimal(row.quantity, i18n.language, row.displayPrecision)} {row.instrumentCode}
+                      </TableCell>
+                      <TableCell>—</TableCell>
+                      <TableCell className="text-right">—</TableCell>
+                      <TableCell>
+                        <span className="block max-w-48 truncate" title={row.reason}>
+                          {row.reason}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t('common.delete')}
+                          onClick={() => (row.kind === 'position' ? deletePosition.mutate({ id: row.id }) : deleteBalance.mutate({ id: row.id }))}
+                        >
+                          <Trash2Icon />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => startAdjustment(row)}>
+                          <PencilIcon />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
-        </Card>
-        <Card className="mt-4 py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('investmentTrades.columns.execution')}</TableHead>
-                <TableHead>{t('investmentTrades.columns.account')}</TableHead>
-                <TableHead>{t('investmentTrades.adjustments')}</TableHead>
-                <TableHead className="text-right">
-                  <span className="sr-only">{t('common.actions')}</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[
-                ...(positionAdjustments.data ?? []).map((row) => ({ ...row, kind: 'position' as const })),
-                ...(balanceAdjustments.data ?? []).map((row) => ({ ...row, kind: 'balance' as const })),
-              ]
-                .sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt))
-                .map((row) => (
-                  <TableRow key={`${row.kind}:${row.id}`}>
-                    <TableCell className="tabular-nums">{formatExecution(row.effectiveAt, i18n.language)}</TableCell>
-                    <TableCell>{row.accountName}</TableCell>
-                    <TableCell className="tabular-nums">
-                      {row.kind === 'position' ? t('investmentTrades.positionAdjustment') : t('investmentTrades.balanceAdjustment')} ·{' '}
-                      {formatDecimal(row.quantity, i18n.language, row.displayPrecision)} {row.instrumentCode}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t('common.delete')}
-                        onClick={() => (row.kind === 'position' ? deletePosition.mutate({ id: row.id }) : deleteBalance.mutate({ id: row.id }))}
-                      >
-                        <Trash2Icon />
-                      </Button>
-                      <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} onClick={() => startAdjustment(row)}>
-                        <PencilIcon />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
         </Card>
       </PageContent>
 
@@ -425,7 +455,7 @@ export function InvestmentTradesPage() {
                   <SelectValue placeholder={t('investmentTrades.fields.choose')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {(accounts.data ?? []).map((account) => (
+                  {tradeAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
                     </SelectItem>
@@ -552,7 +582,7 @@ export function InvestmentTradesPage() {
                   <SelectValue placeholder={t('investmentTrades.fields.choose')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {(accounts.data ?? []).map((account) => (
+                  {adjustmentAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
                     </SelectItem>
