@@ -278,10 +278,14 @@ export class InvestmentsService {
     await this.prisma.balanceAdjustment.delete({ where: { id } });
   }
 
-  async listPositions(userId: string, excludedTradeId?: string): Promise<InvestmentPositionDto[]> {
+  async listPositions(userId: string, excludedTradeId?: string, excludedImportBatchId?: string): Promise<InvestmentPositionDto[]> {
     const [trades, adjustments] = await Promise.all([
       this.prisma.investmentTrade.findMany({
-        where: { userId, ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}) },
+        where: {
+          userId,
+          ...(excludedTradeId ? { id: { not: excludedTradeId } } : {}),
+          ...(excludedImportBatchId ? { importBatchId: { not: excludedImportBatchId } } : {}),
+        },
         include: positionTradeInclude,
       }),
       this.prisma.positionAdjustment.findMany({ where: { userId }, include: positionAdjustmentInclude }),
@@ -589,7 +593,7 @@ export class InvestmentsService {
     return { account, acquired, disposed, fee, acquiredQuantity, disposedQuantity, feeQuantity };
   }
 
-  private async assertChronologicalBalances(userId: string, tx: Prisma.TransactionClient): Promise<void> {
+  async assertChronologicalBalances(userId: string, tx: Prisma.TransactionClient): Promise<void> {
     const trades = await tx.investmentTrade.findMany({
       where: { userId },
       include: {
@@ -630,6 +634,11 @@ export class InvestmentsService {
         balances.set(key, held.add(movement.quantity));
       }
     }
+  }
+
+  async assertPositionHistories(userId: string, tx: Prisma.TransactionClient): Promise<void> {
+    const adjustments = await tx.positionAdjustment.findMany({ where: { userId }, select: { accountId: true, instrumentId: true } });
+    for (const adjustment of adjustments) await this.assertPositionHistory(userId, adjustment.accountId, adjustment.instrumentId, tx);
   }
 
   private async savePositionAdjustment(userId: string, dto: CreatePositionAdjustmentDto, id?: string): Promise<PositionAdjustmentRow> {
@@ -739,7 +748,7 @@ function changeBalance(balances: Map<string, Prisma.Decimal>, accountId: string,
   balances.set(key, (balances.get(key) ?? new Prisma.Decimal(0)).add(quantity));
 }
 
-function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
+export function changeBalanceRow(balances: Map<string, AccountInstrumentBalance>, accountId: string, instrumentId: string, quantity: Prisma.Decimal): void {
   const balance = balances.get(`${accountId}:${instrumentId}`);
   if (balance) balance.quantity = balance.quantity.add(quantity);
 }

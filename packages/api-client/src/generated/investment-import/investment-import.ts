@@ -6,20 +6,31 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   ConfirmInvestmentImportBody,
   InvestmentImportConfirmationDto,
   InvestmentImportPreviewDto,
-  PreviewInvestmentImportBody
+  InvestmentImportRollbackPreviewDto,
+  PreviewInvestmentImportBody,
+  RollbackInvestmentImportDto
 } from '../model';
 
 import { customInstance } from '../../lib/axios';
@@ -27,6 +38,21 @@ import type { ErrorType , BodyType } from '../../lib/axios';
 
 
 
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 /**
  * @summary Validate and simulate a normalized investment CSV without writing data
@@ -165,4 +191,166 @@ export const useConfirmInvestmentImport = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getConfirmInvestmentImportMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Preview the impact of removing a whole import batch
+ */
+export const previewInvestmentImportRollback = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<InvestmentImportRollbackPreviewDto>(
+      {url: `/investment-import/${id}/rollback-preview`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getPreviewInvestmentImportRollbackQueryKey = (id: string,) => {
+    return [
+    `/investment-import/${id}/rollback-preview`
+    ] as const;
+    }
+
+
+export const getPreviewInvestmentImportRollbackQueryOptions = <TData = Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewInvestmentImportRollbackQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewInvestmentImportRollback>>> = ({ signal }) => previewInvestmentImportRollback(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreviewInvestmentImportRollbackQueryResult = NonNullable<Awaited<ReturnType<typeof previewInvestmentImportRollback>>>
+export type PreviewInvestmentImportRollbackQueryError = ErrorType<unknown>
+
+
+export function usePreviewInvestmentImportRollback<TData = Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewInvestmentImportRollback>>,
+          TError,
+          Awaited<ReturnType<typeof previewInvestmentImportRollback>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewInvestmentImportRollback<TData = Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewInvestmentImportRollback>>,
+          TError,
+          Awaited<ReturnType<typeof previewInvestmentImportRollback>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewInvestmentImportRollback<TData = Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Preview the impact of removing a whole import batch
+ */
+
+export function usePreviewInvestmentImportRollback<TData = Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof previewInvestmentImportRollback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreviewInvestmentImportRollbackQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Atomically remove a whole import batch after explicit confirmation
+ */
+export const rollbackInvestmentImport = (
+    id: string,
+    rollbackInvestmentImportDto: BodyType<RollbackInvestmentImportDto>,
+ signal?: AbortSignal
+) => {
+
+      const formData = new FormData();
+formData.append(`confirm`, rollbackInvestmentImportDto.confirm.toString())
+
+      return customInstance<void>(
+      {url: `/investment-import/${id}/rollback`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+
+
+
+
+export const getRollbackInvestmentImportMutationKey = () => ['rollbackInvestmentImport'] as const;
+
+export const getRollbackInvestmentImportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rollbackInvestmentImport>>, TError,RollbackInvestmentImportMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof rollbackInvestmentImport>>, TError,RollbackInvestmentImportMutationVariables, TContext> => {
+
+const mutationKey = getRollbackInvestmentImportMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rollbackInvestmentImport>>, RollbackInvestmentImportMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rollbackInvestmentImport(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RollbackInvestmentImportMutationResult = NonNullable<Awaited<ReturnType<typeof rollbackInvestmentImport>>>
+    export type RollbackInvestmentImportMutationBody = BodyType<RollbackInvestmentImportDto>
+    export type RollbackInvestmentImportMutationError = ErrorType<unknown>
+    export type RollbackInvestmentImportMutationVariables = {id: string;data: BodyType<RollbackInvestmentImportDto>}
+
+    /**
+ * @summary Atomically remove a whole import batch after explicit confirmation
+ */
+export const useRollbackInvestmentImport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rollbackInvestmentImport>>, TError,RollbackInvestmentImportMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rollbackInvestmentImport>>,
+        TError,
+        RollbackInvestmentImportMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRollbackInvestmentImportMutationOptions(options), queryClient);
     }
