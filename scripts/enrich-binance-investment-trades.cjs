@@ -70,6 +70,12 @@ function multiply(a, b) {
 function divide(a, b) {
   return { n: a.n * b.d, d: a.d * b.n };
 }
+function add(a, b) {
+  return { n: a.n * b.d + b.n * a.d, d: a.d * b.d };
+}
+function equals(a, b) {
+  return a.n * b.d === b.n * a.d;
+}
 function decimal(a, places = 18) {
   const negative = a.n < 0n;
   const n = negative ? -a.n : a.n;
@@ -237,6 +243,42 @@ function feeFromNotes(notes) {
   const match = notes.match(FEE);
   return match ? { instrument: match[1], quantity: match[2] } : null;
 }
+function sourceTime(timestamp) {
+  return timestamp.replace('T', ' ').replace('Z', '');
+}
+function sourceGroups(rows) {
+  const header = rows.shift();
+  header[0] = header[0].replace(/^\uFEFF/, '');
+  const groups = new Map();
+  for (const row of rows) {
+    const item = Object.fromEntries(header.map((column, index) => [column, row[index] ?? '']));
+    if (!groups.has(item.Time)) groups.set(item.Time, []);
+    groups.get(item.Time).push(item);
+  }
+  return groups;
+}
+function sourceMatch(row, groups) {
+  const records = groups.get(sourceTime(row.executed_at_utc))?.filter((item) => item.Account === 'Spot') ?? [];
+  const acquisition = records
+    .filter((item) => item.Coin === row.acquired_instrument && fraction(item.Change).n > 0n)
+    .reduce((sum, item) => add(sum, fraction(item.Change)), fraction('0'));
+  const disposal = records
+    .filter((item) => item.Coin === row.disposed_instrument && fraction(item.Change).n < 0n)
+    .reduce((sum, item) => add(sum, { n: -fraction(item.Change).n, d: fraction(item.Change).d }), fraction('0'));
+  if (!records.length || !equals(acquisition, fraction(row.acquired_quantity)) || !equals(disposal, fraction(row.disposed_quantity)))
+    return { status: 'UNMATCHED_OR_AMBIGUOUS_SOURCE_GROUP', grossVerified: false };
+  const expectedLeg = (item) =>
+    (item.Coin === row.acquired_instrument && fraction(item.Change).n > 0n) || (item.Coin === row.disposed_instrument && fraction(item.Change).n < 0n);
+  const fees = records.filter((item) => item.Operation === 'Fee');
+  if (records.some((item) => !expectedLeg(item) && item.Operation !== 'Fee')) return { status: 'UNMATCHED_OR_AMBIGUOUS_SOURCE_GROUP', grossVerified: false };
+  const byInstrument = new Map();
+  for (const item of fees)
+    byInstrument.set(item.Coin, add(byInstrument.get(item.Coin) ?? fraction('0'), { n: -fraction(item.Change).n, d: fraction(item.Change).d }));
+  if (byInstrument.size === 0) return { status: 'CONFIRMED_FEE_FREE', grossVerified: true };
+  if (byInstrument.size > 1) return { status: 'MULTIPLE_FEE_INSTRUMENTS', grossVerified: true };
+  const [instrument, quantity] = byInstrument.entries().next().value;
+  return { status: 'SOURCE_FEE_CONFIRMED', grossVerified: true, fee: { instrument, quantity: decimal(quantity, 18) } };
+}
 function reportRow(value) {
   return value;
 }
@@ -268,23 +310,27 @@ async function mapLimit(items, limit, worker) {
 }
 
 async function main() {
-  const [input, outputDir] = process.argv.slice(2);
-  if (!input || !outputDir) throw new Error('Usage: node scripts/enrich-binance-investment-trades.mjs INPUT.csv OUTPUT_DIR');
+  const [input, outputDir, originalExport] = process.argv.slice(2);
+  if (!input || !outputDir || !originalExport)
+    throw new Error('Usage: node scripts/enrich-binance-investment-trades.cjs INPUT.csv OUTPUT_DIR ORIGINAL-EXPORT.csv');
   const inputBytes = await fs.readFile(input);
   const parsed = parseCsv(inputBytes.toString('utf8'));
   const header = parsed.shift();
   if (header.join(',') !== COLUMNS.join(',')) throw new Error('Input columns do not match the normalized investment CSV contract.');
+  const exportGroups = sourceGroups(parseCsv(await fs.readFile(originalExport, 'utf8')));
   const original = parsed.map(entry);
   const prepared = new Array(original.length);
   const enriched = new Array(original.length);
   const reportByIndex = Array.from({ length: original.length }, () => []);
   await mapLimit(original, 12, async (row, index) => {
-    const fee = feeFromNotes(row.notes);
+    const noteFee = feeFromNotes(row.notes);
+    const source = sourceMatch(row, exportGroups);
+    const fee = source.fee ?? noteFee;
     const base = { ...row };
     const prep = { ...base, fee_instrument: fee?.instrument ?? '', fee_quantity: fee?.quantity ?? '', fee_value_eur_cents: '', execution_value_eur_cents: '' };
     prepared[index] = prep;
     const result = { ...prep };
-    const flags = ['GROSS_NET_UNVERIFIED_SOURCE_EXPORT_UNAVAILABLE'];
+    const flags = [source.grossVerified ? 'GROSS_QUANTITIES_CONFIRMED_FROM_ORIGINAL_EXPORT' : 'GROSS_NET_UNVERIFIED_SOURCE_GROUP_AMBIGUOUS'];
     const candidates =
       row.disposed_instrument === 'EUR'
         ? [{ leg: 'disposed', instrument: 'EUR', quantity: row.disposed_quantity }]
@@ -353,7 +399,29 @@ async function main() {
           flags: flags.join('|'),
         }),
       );
-    if (!fee) {
+    if (!fee && source.status === 'CONFIRMED_FEE_FREE') {
+      reportByIndex[index].push(
+        reportRow({
+          external_id: row.external_id,
+          kind: 'fee',
+          status: 'CONFIRMED_FEE_FREE',
+          selected_leg: '',
+          instrument: '',
+          quantity: '',
+          eur_value_cents: '',
+          conversion_path: '',
+          price_timestamp_utc: row.executed_at_utc,
+          price_field: '',
+          rates_used: '',
+          raw_eur: '',
+          rounding_decision: '',
+          fallback: '',
+          source_requests: `original Binance export timestamp ${sourceTime(row.executed_at_utc)}`,
+          unresolved_reason: '',
+          flags: flags.join('|'),
+        }),
+      );
+    } else if (!fee) {
       flags.push('UNKNOWN_FEE_STATUS');
       reportByIndex[index].push(
         reportRow({
@@ -372,7 +440,7 @@ async function main() {
           rounding_decision: '',
           fallback: '',
           source_requests: '',
-          unresolved_reason: 'NO_FEE_ANNOTATION_AND_ORIGINAL_EXPORT_UNAVAILABLE',
+          unresolved_reason: source.status,
           flags: flags.join('|'),
         }),
       );
@@ -458,14 +526,15 @@ async function main() {
     `- Input rows: ${original.length}`,
     `- Prepared rows: ${prepared.length}`,
     `- Enriched rows: ${enriched.length}`,
-    `- Fee annotations recovered: ${feeRows.filter((item) => item.instrument).length} (BNB ${feeRows.filter((item) => item.instrument === 'BNB').length}, ETH ${feeRows.filter((item) => item.instrument === 'ETH').length}, ADA ${feeRows.filter((item) => item.instrument === 'ADA').length}, LINK ${feeRows.filter((item) => item.instrument === 'LINK').length})`,
+    `- Fee quantities recovered: ${feeRows.filter((item) => item.instrument).length} (BNB ${feeRows.filter((item) => item.instrument === 'BNB').length}, ETH ${feeRows.filter((item) => item.instrument === 'ETH').length}, ADA ${feeRows.filter((item) => item.instrument === 'ADA').length}, LINK ${feeRows.filter((item) => item.instrument === 'LINK').length})`,
+    `- Confirmed fee-free trades from original export: ${feeRows.filter((item) => item.status === 'CONFIRMED_FEE_FREE').length}`,
     `- Execution valuations resolved: ${report.filter((item) => item.kind === 'execution' && item.status === 'RESOLVED').length}`,
     `- Fee valuations resolved: ${feeRows.filter((item) => item.status === 'RESOLVED').length}`,
     `- Unresolved report entries: ${unresolved.length}`,
     '',
     '## Importer contract',
     '',
-    'The enriched CSV is not import-ready. Rows without fee annotations retain unknown fee status, and the original Binance export was not available to verify gross-versus-net quantities. Any blank execution or fee value and any positive fee rounding to zero cents also fails the current importer contract.',
+    'The enriched CSV is not import-ready. Ambiguous original-export groups retain unknown fee status. Any blank execution or fee value and any positive fee rounding to zero cents also fails the current importer contract.',
     '',
     '## Method',
     '',
