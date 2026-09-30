@@ -17,10 +17,10 @@ export class CreateInvestmentTradeDto {
   @IsOptional()
   @IsDecimal({ decimal_digits: '0,18', force_decimal: false })
   feeQuantity?: string;
-  @ApiPropertyOptional({ type: Number, example: 100, description: 'EUR fee value at execution, in integer cents.' })
+  @ApiPropertyOptional({ type: Number, example: 100, minimum: 0, description: 'EUR fee value at execution, in integer cents.' })
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(0)
   feeValue?: number;
   @ApiPropertyOptional({ type: String, format: 'uuid' }) @IsOptional() @IsUUID() assetListingId?: string;
   @ApiProperty({ type: String, format: 'date-time', example: '2026-09-23T10:30:00.000Z', description: 'UTC execution instant.' })

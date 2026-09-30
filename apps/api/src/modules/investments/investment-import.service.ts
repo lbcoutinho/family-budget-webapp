@@ -246,9 +246,9 @@ export class InvestmentImportService {
         add('INSTRUMENT_INVALID', 'acquired and disposed instruments must be different active instrument codes.');
       if (!decimal(row.acquired_quantity) || !decimal(row.disposed_quantity))
         add('QUANTITY_INVALID', 'acquired and disposed quantities must be positive decimals with at most 18 places.');
-      const hasFee = Boolean(row.fee_instrument || row.fee_quantity || row.fee_value_eur_cents);
-      if (hasFee && (!fee || !decimal(row.fee_quantity) || !cents(row.fee_value_eur_cents)))
-        add('FEE_INVALID', 'A fee requires an active instrument, positive quantity, and positive EUR cents value.');
+      const hasFee = row.fee_instrument !== '' || row.fee_quantity !== '' || row.fee_value_eur_cents !== '';
+      if (hasFee && (!fee || !decimal(row.fee_quantity) || !cents(row.fee_value_eur_cents, 0)))
+        add('FEE_INVALID', 'A fee requires an active instrument, positive quantity, and non-negative EUR cents value.');
       if (!cents(row.execution_value_eur_cents)) add('EXECUTION_VALUE_INVALID', 'execution_value_eur_cents must be positive integer cents.');
       if (row.notes.length > 1000) add('NOTES_INVALID', 'notes must be at most 1,000 characters.');
       if (row.asset_listing_ticker || row.asset_listing_market) {
@@ -486,8 +486,8 @@ function contentFingerprint(operation: Operation): string {
 function decimal(value: string): boolean {
   return /^\d+(?:\.\d{1,18})?$/.test(value) && new Prisma.Decimal(value).gt(0);
 }
-function cents(value: string): boolean {
-  return /^\d+$/.test(value) && Number(value) > 0 && Number(value) <= 2_147_483_647;
+function cents(value: string, minimum = 1): boolean {
+  return /^\d+$/.test(value) && Number(value) >= minimum && Number(value) <= 2_147_483_647;
 }
 function utc(value: string): boolean {
   const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,3}))?Z$/.exec(value);

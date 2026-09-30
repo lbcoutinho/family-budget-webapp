@@ -29,6 +29,49 @@ describe('InvestmentImportService', () => {
     expect(result.positions).toEqual([expect.objectContaining({ accountName: 'Spot', instrumentCode: 'BTC', quantity: '0.01', remainingCost: 10000 })]);
   });
 
+  it('accepts a zero-cent third-instrument fee without assigning it value', async () => {
+    const prisma = {
+      account: { findMany: jest.fn().mockResolvedValue([{ id: 'account', name: 'Spot', kind: 'EXCHANGE', financialInstitution: { name: 'Kraken' } }]) },
+      instrument: {
+        findMany: jest.fn().mockResolvedValue([
+          { id: 'eur', code: 'EUR', type: 'FIAT' },
+          { id: 'btc', code: 'BTC', type: 'CRYPTOCURRENCY' },
+          { id: 'bnb', code: 'BNB', type: 'CRYPTOCURRENCY' },
+        ]),
+      },
+      financialInstitution: { findMany: jest.fn().mockResolvedValue([{ name: 'Kraken' }]) },
+      assetListing: { findMany: jest.fn().mockResolvedValue([]) },
+      investmentTrade: { findMany: jest.fn().mockResolvedValue([]) },
+    };
+    const balances = {
+      instrumentBalances: jest.fn().mockResolvedValue([
+        { accountId: 'account', instrumentId: 'eur', quantity: '100', instrumentName: 'Euro', instrumentCode: 'EUR' },
+        { accountId: 'account', instrumentId: 'bnb', quantity: '1', instrumentName: 'BNB', instrumentCode: 'BNB' },
+      ]),
+    };
+    const row = 'trade-1,2026-01-01T12:00:00Z,Kraken,Spot,BTC,0.01,EUR,100,BNB,0.0001,0,,,10000,first';
+
+    const result = await new InvestmentImportService(prisma as never, balances as never, {} as never).preview(
+      'user',
+      Buffer.from(`${csv.split('\n')[0]}\n${row}`),
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.balances).toEqual(expect.arrayContaining([expect.objectContaining({ instrumentCode: 'BNB', quantity: '0.9999' })]));
+    expect(result.positions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ instrumentCode: 'BTC', remainingCost: 10000 }),
+        expect.objectContaining({ instrumentCode: 'BNB', quantity: '-0.0001', remainingCost: 0, realizedResult: 0 }),
+      ]),
+    );
+
+    const incompleteFee = await new InvestmentImportService(prisma as never, balances as never, {} as never).preview(
+      'user',
+      Buffer.from(`${csv.split('\n')[0]}\n${row.replace('BNB,0.0001,0', ',,0')}`),
+    );
+    expect(incompleteFee.errors).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'FEE_INVALID' })]));
+  });
+
   it('reports every invalid row and never requests a write', async () => {
     const prisma = {
       account: { findMany: jest.fn().mockResolvedValue([]) },
