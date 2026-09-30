@@ -21,6 +21,17 @@ const COLUMNS = [
 const FEE = /source fees \(unvalued\): ([A-Z]+) ([0-9]+(?:\.[0-9]+)?)/;
 const BINANCE = 'https://api.binance.com/api/v3/klines';
 const ECB = 'https://data-api.ecb.europa.eu/service/data/EXR/D.BRL.EUR.SP00.A';
+const USER_CONFIRMED_FEE_FREE = new Set([
+  'binance-row-0124',
+  'binance-row-0126',
+  'binance-row-1217',
+  'binance-row-1218',
+  'binance-row-1569',
+  'binance-row-1571',
+  'binance-row-1610',
+  'binance-row-1955',
+]);
+const USER_CONFIRMED_GROSS_QUANTITIES = new Set(['binance-row-1217', 'binance-row-1218']);
 const priceCache = new Map();
 const brlCache = new Map();
 
@@ -325,12 +336,19 @@ async function main() {
   await mapLimit(original, 12, async (row, index) => {
     const noteFee = feeFromNotes(row.notes);
     const source = sourceMatch(row, exportGroups);
-    const fee = source.fee ?? noteFee;
+    const userConfirmedFeeFree = USER_CONFIRMED_FEE_FREE.has(row.external_id);
+    const fee = userConfirmedFeeFree ? null : (source.fee ?? noteFee);
     const base = { ...row };
     const prep = { ...base, fee_instrument: fee?.instrument ?? '', fee_quantity: fee?.quantity ?? '', fee_value_eur_cents: '', execution_value_eur_cents: '' };
     prepared[index] = prep;
     const result = { ...prep };
-    const flags = [source.grossVerified ? 'GROSS_QUANTITIES_CONFIRMED_FROM_ORIGINAL_EXPORT' : 'GROSS_NET_UNVERIFIED_SOURCE_GROUP_AMBIGUOUS'];
+    const flags = [
+      source.grossVerified
+        ? 'GROSS_QUANTITIES_CONFIRMED_FROM_ORIGINAL_EXPORT'
+        : USER_CONFIRMED_GROSS_QUANTITIES.has(row.external_id)
+          ? 'GROSS_QUANTITIES_USER_CONFIRMED'
+          : 'GROSS_NET_UNVERIFIED_SOURCE_GROUP_AMBIGUOUS',
+    ];
     const candidates =
       row.disposed_instrument === 'EUR'
         ? [{ leg: 'disposed', instrument: 'EUR', quantity: row.disposed_quantity }]
@@ -399,12 +417,12 @@ async function main() {
           flags: flags.join('|'),
         }),
       );
-    if (!fee && source.status === 'CONFIRMED_FEE_FREE') {
+    if (!fee && (source.status === 'CONFIRMED_FEE_FREE' || userConfirmedFeeFree)) {
       reportByIndex[index].push(
         reportRow({
           external_id: row.external_id,
           kind: 'fee',
-          status: 'CONFIRMED_FEE_FREE',
+          status: userConfirmedFeeFree ? 'USER_CONFIRMED_FEE_FREE' : 'CONFIRMED_FEE_FREE',
           selected_leg: '',
           instrument: '',
           quantity: '',
@@ -416,7 +434,9 @@ async function main() {
           raw_eur: '',
           rounding_decision: '',
           fallback: '',
-          source_requests: `original Binance export timestamp ${sourceTime(row.executed_at_utc)}`,
+          source_requests: userConfirmedFeeFree
+            ? 'user confirmation in this conversation'
+            : `original Binance export timestamp ${sourceTime(row.executed_at_utc)}`,
           unresolved_reason: '',
           flags: flags.join('|'),
         }),
@@ -472,15 +492,16 @@ async function main() {
         const raw = multiply(fraction(fee.quantity), rate.rate);
         const cents = centsHalfUp(raw);
         if (cents > 0n) result.fee_value_eur_cents = cents.toString();
+        else result.fee_value_eur_cents = '0';
         reportByIndex[index].push(
           reportRow({
             external_id: row.external_id,
             kind: 'fee',
-            status: cents > 0n ? 'RESOLVED' : 'UNRESOLVED',
+            status: cents > 0n ? 'RESOLVED' : 'USER_ACCEPTED_ZERO_CENT_FEE',
             selected_leg: '',
             instrument: fee.instrument,
             quantity: fee.quantity,
-            eur_value_cents: cents > 0n ? cents.toString() : '',
+            eur_value_cents: cents.toString(),
             conversion_path: rate.path,
             price_timestamp_utc: rate.sources.map((source) => source.timestamp).join(' -> '),
             price_field: rate.sources.map((source) => source.priceField).join(' -> '),
@@ -489,8 +510,8 @@ async function main() {
             rounding_decision: `decimal half-up to ${cents} cents`,
             fallback: rate.fallback,
             source_requests: rate.sources.map((source) => source.request).join(' | '),
-            unresolved_reason: cents > 0n ? '' : 'FEE_ROUNDS_TO_ZERO_CENTS',
-            flags: flags.join('|'),
+            unresolved_reason: '',
+            flags: cents > 0n ? flags.join('|') : [...flags, 'FEE_VALUE_ZERO_USER_ACCEPTED_CURRENT_IMPORTER_REJECTS'].join('|'),
           }),
         );
       }
@@ -527,14 +548,15 @@ async function main() {
     `- Prepared rows: ${prepared.length}`,
     `- Enriched rows: ${enriched.length}`,
     `- Fee quantities recovered: ${feeRows.filter((item) => item.instrument).length} (BNB ${feeRows.filter((item) => item.instrument === 'BNB').length}, ETH ${feeRows.filter((item) => item.instrument === 'ETH').length}, ADA ${feeRows.filter((item) => item.instrument === 'ADA').length}, LINK ${feeRows.filter((item) => item.instrument === 'LINK').length})`,
-    `- Confirmed fee-free trades from original export: ${feeRows.filter((item) => item.status === 'CONFIRMED_FEE_FREE').length}`,
+    `- Confirmed fee-free trades: ${feeRows.filter((item) => ['CONFIRMED_FEE_FREE', 'USER_CONFIRMED_FEE_FREE'].includes(item.status)).length}`,
     `- Execution valuations resolved: ${report.filter((item) => item.kind === 'execution' && item.status === 'RESOLVED').length}`,
     `- Fee valuations resolved: ${feeRows.filter((item) => item.status === 'RESOLVED').length}`,
+    `- User-accepted zero-cent fee values: ${feeRows.filter((item) => item.status === 'USER_ACCEPTED_ZERO_CENT_FEE').length}`,
     `- Unresolved report entries: ${unresolved.length}`,
     '',
     '## Importer contract',
     '',
-    'The enriched CSV is not import-ready. Ambiguous original-export groups retain unknown fee status. Any blank execution or fee value and any positive fee rounding to zero cents also fails the current importer contract.',
+    'The enriched CSV has no unresolved fee status or valuation. It is still not import-ready because the current importer requires positive fee EUR cents and rejects the five user-accepted zero-cent fees. Active entity references and importer preview remain unverified.',
     '',
     '## Method',
     '',
