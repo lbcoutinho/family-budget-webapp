@@ -17,7 +17,10 @@ export interface CreateInvestmentTradeDto {
   feeInstrumentId?: string;
   /** Exact fee quantity. */
   feeQuantity?: string;
-  /** EUR fee value at execution, in integer cents. */
+  /**
+     * EUR fee value at execution, in integer cents.
+     * @minimum 0
+     */
   feeValue?: number;
   assetListingId?: string;
   /** UTC execution instant. */

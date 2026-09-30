@@ -22,7 +22,10 @@ export interface UpdateInvestmentTradeDto {
   feeInstrumentId?: string | null;
   /** @nullable */
   feeQuantity?: string | null;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   feeValue?: number | null;
   /** @nullable */
   assetListingId?: string | null;

@@ -60,14 +60,23 @@ describe('Investment import API (e2e)', () => {
     await app.close();
   });
 
-  async function setup(): Promise<{ accountId: string; btcId: string; eurId: string }> {
+  async function setup(): Promise<{ accountId: string; bnbId: string; btcId: string; eurId: string }> {
     const institution = (await call('post', '/financial-institutions').send({ name: 'Kraken' }).expect(201)).body as { id: string };
     const eur = (await call('post', '/instruments').send({ name: 'Euro', code: 'EUR', type: 'FIAT' }).expect(201)).body as { id: string };
     const btc = (await call('post', '/instruments').send({ name: 'Bitcoin', code: 'BTC', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
+    const bnb = (await call('post', '/instruments').send({ name: 'BNB', code: 'BNB', type: 'CRYPTOCURRENCY' }).expect(201)).body as { id: string };
     const account = await call('post', '/accounts')
-      .send({ name: 'Spot', kind: 'EXCHANGE', financialInstitutionId: institution.id, initialBalances: [{ instrumentId: eur.id, quantity: '200' }] })
+      .send({
+        name: 'Spot',
+        kind: 'EXCHANGE',
+        financialInstitutionId: institution.id,
+        initialBalances: [
+          { instrumentId: eur.id, quantity: '200' },
+          { instrumentId: bnb.id, quantity: '1' },
+        ],
+      })
       .expect(201);
-    return { accountId: (account.body as { id: string }).id, btcId: btc.id, eurId: eur.id };
+    return { accountId: (account.body as { id: string }).id, bnbId: bnb.id, btcId: btc.id, eurId: eur.id };
   }
 
   it('confirms a batch atomically and keeps imported trades distinguishable', async () => {
@@ -84,6 +93,25 @@ describe('Investment import API (e2e)', () => {
 
     const trades = (await call('get', '/investment-trades').expect(200)).body as { isImported: boolean }[];
     expect(trades).toEqual([expect.objectContaining({ isImported: true })]);
+  });
+
+  it('imports and persists a zero-cent fee without inventing cost', async () => {
+    const { accountId, bnbId, btcId } = await setup();
+    const row = 'trade-1,2026-01-01T12:00:00Z,Kraken,Spot,BTC,0.01,EUR,100,BNB,0.0001,0,,,10000,first';
+
+    await call('post', '/investment-import/confirm')
+      .attach('file', Buffer.from(`${headers}\n${row}`), 'trades.csv')
+      .expect(201);
+
+    expect((await call('get', '/investment-trades').expect(200)).body).toEqual([
+      expect.objectContaining({ feeInstrumentId: bnbId, feeQuantity: '0.0001', feeValue: 0 }),
+    ]);
+    expect((await call('get', '/accounts/instrument-balances').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accountId, instrumentId: bnbId, quantity: '0.9999' })]),
+    );
+    expect((await call('get', '/investment-positions').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accountId, instrumentId: btcId, remainingCost: 10000 })]),
+    );
   });
 
   it('rejects repeated external IDs and equivalent rows without partial writes', async () => {
