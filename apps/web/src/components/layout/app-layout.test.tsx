@@ -68,9 +68,11 @@ describe('AppLayout', () => {
     const { user } = renderShell();
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
 
-    for (const label of ['Mês', 'Caixinhas', 'Relatórios', 'Investimentos', 'Lançar por voz', 'Recorrências']) {
+    for (const label of ['Mês', 'Caixinhas', 'Relatórios', 'Investimentos', 'Recorrências']) {
       expect(within(nav).getByRole('link', { name: label })).toBeInTheDocument();
     }
+
+    expect(within(nav).queryByRole('link', { name: 'Lançar por voz' })).not.toBeInTheDocument();
 
     // Closed on a route that is not a registry, so the two links are not reachable yet.
     const settings = within(nav).getByRole('button', { name: /Configurações/ });

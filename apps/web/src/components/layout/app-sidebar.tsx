@@ -21,9 +21,9 @@ const linkClasses = (isActive: boolean) =>
  * The navigation, and the only place the session is ended.
  *
  * Below 900 px the same element is a drawer: it slides in over the content, and while it is closed
- * it is `inert`, so its seven links stay out of the tab order instead of sitting off-screen and
- * catching the first Tab. Above it there is no drawer, no menu button and no collapsed mode — 244
- * fixed pixels, because seven items fit by name and an icon alone has to be guessed at.
+ * it is `inert`, so its links stay out of the tab order instead of sitting off-screen and catching
+ * the first Tab. Above it there is no drawer, no menu button and no collapsed mode — 244 fixed
+ * pixels, because labels are clearer than icon-only navigation.
  */
 export function AppSidebar() {
   const { t } = useTranslation();

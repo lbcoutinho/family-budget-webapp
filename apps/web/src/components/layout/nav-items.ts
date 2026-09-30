@@ -2,12 +2,13 @@ import {
   Building2Icon,
   CalendarIcon,
   ChartColumnIcon,
+  CircleEuroIcon,
   type LucideIcon,
-  MicIcon,
   PiggyBankIcon,
   RepeatIcon,
   SlidersHorizontalIcon,
   TagsIcon,
+  TrendingUpIcon,
   UserRoundCogIcon,
   WalletIcon,
 } from 'lucide-react';
@@ -30,8 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/budgets', labelKey: 'nav.budgets', icon: SlidersHorizontalIcon },
   { to: '/cashboxes', labelKey: 'nav.cashboxes', icon: PiggyBankIcon },
   { to: '/reports', labelKey: 'nav.reports', icon: ChartColumnIcon },
-  { to: '/investments', labelKey: 'nav.investments', icon: SlidersHorizontalIcon },
-  { to: '/voice', labelKey: 'nav.voice', icon: MicIcon },
+  { to: '/investments', labelKey: 'nav.investments', icon: TrendingUpIcon },
   { to: '/recurrences', labelKey: 'nav.recurrences', icon: RepeatIcon },
 ];
 
@@ -40,7 +40,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const SETTINGS_NAV_ITEMS: NavItem[] = [
   { to: '/settings/general', labelKey: 'nav.settingsGeneral', icon: UserRoundCogIcon },
   { to: '/settings/institutions', labelKey: 'investmentSetup.institutions.title', icon: Building2Icon },
-  { to: '/settings/instruments', labelKey: 'investmentSetup.instruments.title', icon: SlidersHorizontalIcon },
+  { to: '/settings/instruments', labelKey: 'investmentSetup.instruments.title', icon: CircleEuroIcon },
   { to: '/settings/accounts', labelKey: 'nav.accounts', icon: WalletIcon },
   { to: '/settings/categories', labelKey: 'nav.categories', icon: TagsIcon },
   { to: '/settings/listings', labelKey: 'investmentSetup.listings.title', icon: ChartColumnIcon },
