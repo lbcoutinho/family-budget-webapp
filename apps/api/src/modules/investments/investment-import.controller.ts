@@ -43,6 +43,7 @@ export class InvestmentImportController {
       properties: {
         file: { type: 'string', format: 'binary' },
         reconciliation: { type: 'string', description: 'Optional JSON array of verified actual quantities and reasons for explicit adjustments.' },
+        acknowledgeWarnings: { type: 'boolean', description: 'Required when the server recomputes balance warnings for the CSV.' },
       },
     },
   })
@@ -53,8 +54,9 @@ export class InvestmentImportController {
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: UploadedCsv | undefined,
     @Body('reconciliation') reconciliation: string | undefined,
+    @Body('acknowledgeWarnings') acknowledgeWarnings: string | undefined,
   ): Promise<InvestmentImportConfirmationDto> {
-    return this.imports.confirm(user.id, file?.buffer, reconciliation);
+    return this.imports.confirm(user.id, file?.buffer, reconciliation, acknowledgeWarnings === 'true');
   }
 
   @ApiOperation({ operationId: 'previewInvestmentImportRollback', summary: 'Preview the impact of removing a whole import batch' })

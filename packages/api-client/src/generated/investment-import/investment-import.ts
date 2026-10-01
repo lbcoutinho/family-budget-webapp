@@ -136,6 +136,9 @@ formData.append(`file`, confirmInvestmentImportBody.file);
 if(confirmInvestmentImportBody.reconciliation !== undefined) {
  formData.append(`reconciliation`, confirmInvestmentImportBody.reconciliation);
  }
+if(confirmInvestmentImportBody.acknowledgeWarnings !== undefined) {
+ formData.append(`acknowledgeWarnings`, confirmInvestmentImportBody.acknowledgeWarnings.toString())
+ }
 
       return customInstance<InvestmentImportConfirmationDto>(
       {url: `/investment-import/confirm`, method: 'POST',

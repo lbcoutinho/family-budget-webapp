@@ -11,6 +11,14 @@ export class InvestmentImportPreviewErrorDto {
   @ApiProperty({ type: String }) message!: string;
 }
 
+export class InvestmentImportPreviewWarningDto extends InvestmentImportPreviewErrorDto {
+  @ApiProperty({ type: String }) accountName!: string;
+  @ApiProperty({ type: String }) instrumentCode!: string;
+  @ApiProperty({ type: String }) availableQuantity!: string;
+  @ApiProperty({ type: String }) requiredQuantity!: string;
+  @ApiProperty({ type: String }) projectedQuantity!: string;
+}
+
 export class InvestmentImportPreviewBalanceDto {
   @ApiProperty({ type: String, format: 'uuid' }) accountId!: string;
   @ApiProperty({ type: String }) accountName!: string;
@@ -32,7 +40,7 @@ export class InvestmentImportPreviewPositionDto {
 export class InvestmentImportPreviewDto {
   @ApiProperty({ type: Number }) validRows!: number;
   @ApiProperty({ type: [InvestmentImportPreviewErrorDto] }) errors!: InvestmentImportPreviewErrorDto[];
-  @ApiProperty({ type: [InvestmentImportPreviewErrorDto] }) warnings!: InvestmentImportPreviewErrorDto[];
+  @ApiProperty({ type: [InvestmentImportPreviewWarningDto] }) warnings!: InvestmentImportPreviewWarningDto[];
   @ApiProperty({ type: [InvestmentImportPreviewBalanceDto] }) balances!: InvestmentImportPreviewBalanceDto[];
   @ApiProperty({ type: [InvestmentImportPreviewPositionDto] }) positions!: InvestmentImportPreviewPositionDto[];
 }

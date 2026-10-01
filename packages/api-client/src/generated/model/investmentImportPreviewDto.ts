@@ -8,11 +8,12 @@
 import type { InvestmentImportPreviewBalanceDto } from './investmentImportPreviewBalanceDto';
 import type { InvestmentImportPreviewErrorDto } from './investmentImportPreviewErrorDto';
 import type { InvestmentImportPreviewPositionDto } from './investmentImportPreviewPositionDto';
+import type { InvestmentImportPreviewWarningDto } from './investmentImportPreviewWarningDto';
 
 export interface InvestmentImportPreviewDto {
   validRows: number;
   errors: InvestmentImportPreviewErrorDto[];
-  warnings: InvestmentImportPreviewErrorDto[];
+  warnings: InvestmentImportPreviewWarningDto[];
   balances: InvestmentImportPreviewBalanceDto[];
   positions: InvestmentImportPreviewPositionDto[];
 }
