@@ -81,6 +81,7 @@ export * from './investmentImportPreviewBalanceDto';
 export * from './investmentImportPreviewDto';
 export * from './investmentImportPreviewErrorDto';
 export * from './investmentImportPreviewPositionDto';
+export * from './investmentImportPreviewWarningDto';
 export * from './investmentImportRollbackAdjustmentDto';
 export * from './investmentImportRollbackPreviewDto';
 export * from './investmentImportRollbackTradeDto';

@@ -10,4 +10,6 @@ export type ConfirmInvestmentImportBody = {
   file: Blob | File;
   /** Optional JSON array of verified actual quantities and reasons for explicit adjustments. */
   reconciliation?: string;
+  /** Required when the server recomputes balance warnings for the CSV. */
+  acknowledgeWarnings?: boolean;
 };

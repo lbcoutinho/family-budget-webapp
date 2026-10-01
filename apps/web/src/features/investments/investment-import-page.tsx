@@ -108,6 +108,9 @@ export function InvestmentImportPage() {
               <FileUpIcon /> {file?.name ?? t('investmentImport.chooseFile')}
             </Button>
             {preview?.errors.length ? <Issues title={t('investmentImport.errors')} issues={preview.errors} /> : null}
+            {preview?.warnings.length ? (
+              <Issues title={t('investmentImport.warnings')} description={t('investmentImport.warningsDescription')} issues={preview.warnings} warning />
+            ) : null}
             {previewImport.error && <p className="text-sm text-destructive">{apiErrorMessage(previewImport.error, t)}</p>}
             <Button disabled={!file || previewImport.isPending} onClick={() => file && previewImport.mutate({ data: { file } })}>
               {t('investmentImport.preview')}
@@ -120,12 +123,17 @@ export function InvestmentImportPage() {
               <h2 className="font-semibold">{t('investmentImport.preview')}</h2>
               <p className="text-sm text-muted-foreground">{t('investmentImport.previewDescription', { count: preview.validRows })}</p>
             </div>
-            {preview.warnings.length > 0 && <Issues title={t('investmentImport.warnings')} issues={preview.warnings} />}
+            {preview.warnings.length > 0 && (
+              <Issues title={t('investmentImport.warnings')} description={t('investmentImport.warningsDescription')} issues={preview.warnings} warning />
+            )}
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStage('file')}>
                 {t('investmentImport.returnToFile')}
               </Button>
               <Button onClick={() => setStage('reconcile')}>{t('investmentImport.continue')}</Button>
+              <Button variant="outline" onClick={() => setStage('review')}>
+                {t('investmentImport.skipReconciliation')}
+              </Button>
             </div>
           </Card>
         )}
@@ -160,6 +168,9 @@ export function InvestmentImportPage() {
                 {t('investmentImport.reviewDescription', { rows: preview?.validRows ?? 0, adjustments: accepted.length })}
               </p>
             </div>
+            {preview?.warnings.length ? (
+              <Issues title={t('investmentImport.warnings')} description={t('investmentImport.warningsDescription')} issues={preview.warnings} warning />
+            ) : null}
             {accepted.length > 0 ? (
               <ul className="space-y-2 text-sm">
                 {accepted.map((row) => (
@@ -171,7 +182,7 @@ export function InvestmentImportPage() {
             )}
             <label className="flex items-start gap-2 text-sm">
               <Checkbox checked={confirmed} onCheckedChange={(checked) => setConfirmed(checked === true)} />
-              {t('investmentImport.confirmation')}
+              {t(preview?.warnings.length ? 'investmentImport.warningConfirmation' : 'investmentImport.confirmation')}
             </label>
             {confirm.error && <p className="text-sm text-destructive">{apiErrorMessage(confirm.error, t)}</p>}
             <div className="flex gap-2">
@@ -181,7 +192,13 @@ export function InvestmentImportPage() {
               <Button
                 disabled={!confirmed || confirm.isPending}
                 onClick={() =>
-                  confirm.mutate({ data: { file, reconciliation: JSON.stringify(accepted.map((row) => reconciliation(row, values[key(row)]!))) } })
+                  confirm.mutate({
+                    data: {
+                      file,
+                      reconciliation: JSON.stringify(accepted.map((row) => reconciliation(row, values[key(row)]!))),
+                      ...(preview?.warnings.length ? { acknowledgeWarnings: true } : {}),
+                    },
+                  })
                 }
               >
                 {t('investmentImport.confirm')}
@@ -272,10 +289,21 @@ function ReconciliationInput({
   );
 }
 
-function Issues({ title, issues }: { title: string; issues: InvestmentImportPreviewDto['errors'] }) {
+function Issues({
+  title,
+  description,
+  issues,
+  warning = false,
+}: {
+  title: string;
+  description?: string;
+  issues: InvestmentImportPreviewDto['errors'] | InvestmentImportPreviewDto['warnings'];
+  warning?: boolean;
+}) {
   return (
-    <div className="rounded-md border border-destructive/40 p-3 text-sm">
+    <div className={`rounded-md border p-3 text-sm ${warning ? 'border-amber-700/40 bg-amber-50 text-amber-950' : 'border-destructive/40'}`}>
       <p className="font-medium">{title}</p>
+      {description && <p className="mt-1 text-muted-foreground">{description}</p>}
       <ul>
         {issues.map((issue) => (
           <li key={`${issue.line}:${issue.code}`}>{`${issue.line}: ${issue.message}`}</li>

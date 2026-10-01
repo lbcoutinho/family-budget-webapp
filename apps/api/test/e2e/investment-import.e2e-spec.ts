@@ -114,6 +114,48 @@ describe('Investment import API (e2e)', () => {
     );
   });
 
+  it('warns about missing history without skipping rows and requires one acknowledgment before import', async () => {
+    const { bnbId } = await setup();
+    await call('post', '/instruments').send({ name: 'USD Coin', code: 'USDC', type: 'STABLECOIN' }).expect(201);
+    const rows = [
+      'stablecoin-gap,2026-01-01T12:00:00Z,Kraken,Spot,BTC,0.01,USDC,10,,,,,,1000,',
+      'btc-gap,2026-01-02T12:00:00Z,Kraken,Spot,EUR,100,BTC,0.02,,,,,,10000,',
+      'bnb-fee-gap,2026-01-03T12:00:00Z,Kraken,Spot,BTC,0.01,EUR,100,BNB,2,10,,,10000,',
+    ];
+    const file = Buffer.from(`${headers}\n${rows.join('\n')}`);
+
+    await call('post', '/investment-import/preview')
+      .attach('file', file, 'trades.csv')
+      .expect(201)
+      .expect(({ body }: { body: { validRows: number; errors: unknown[]; warnings: Record<string, string | number>[] } }) => {
+        expect(body.validRows).toBe(3);
+        expect(body.errors).toEqual([]);
+        expect(body.warnings).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              line: 2,
+              accountName: 'Spot',
+              instrumentCode: 'USDC',
+              availableQuantity: '0',
+              requiredQuantity: '10',
+              projectedQuantity: '-10',
+            }),
+            expect.objectContaining({ line: 3, instrumentCode: 'BTC', availableQuantity: '0.01', requiredQuantity: '0.02', projectedQuantity: '-0.01' }),
+            expect.objectContaining({ line: 4, instrumentCode: 'BNB', availableQuantity: '1', requiredQuantity: '2', projectedQuantity: '-1' }),
+          ]),
+        );
+      });
+
+    await call('post', '/investment-import/confirm').attach('file', file, 'trades.csv').expect(400);
+    expect((await call('get', '/investment-trades').expect(200)).body).toHaveLength(0);
+
+    await call('post', '/investment-import/confirm').field('acknowledgeWarnings', 'true').attach('file', file, 'trades.csv').expect(201);
+    expect((await call('get', '/investment-trades').expect(200)).body).toHaveLength(3);
+    expect((await call('get', '/accounts/instrument-balances').expect(200)).body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ instrumentId: bnbId, quantity: '-1' })]),
+    );
+  });
+
   it('rejects repeated external IDs and equivalent rows without partial writes', async () => {
     await setup();
     await call('post', '/investment-import/confirm').attach('file', Buffer.from(csv()), 'trades.csv').expect(201);

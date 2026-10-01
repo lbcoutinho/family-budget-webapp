@@ -36,6 +36,7 @@ const headers = [
 ] as const;
 type Row = Record<(typeof headers)[number], string> & { line: number; columnCount: number };
 type PreviewIssue = InvestmentImportPreviewDto['errors'][number];
+type PreviewWarning = InvestmentImportPreviewDto['warnings'][number];
 interface Operation {
   row?: Row;
   accountId: string;
@@ -66,7 +67,7 @@ export class InvestmentImportService {
     return (await this.prepare(userId, file)).preview;
   }
 
-  async confirm(userId: string, file: Buffer | undefined, reconciliation?: string): Promise<InvestmentImportConfirmationDto> {
+  async confirm(userId: string, file: Buffer | undefined, reconciliation?: string, acknowledgeWarnings = false): Promise<InvestmentImportConfirmationDto> {
     const { preview, operations } = await this.prepare(userId, file);
     const adjustments = reconciliationAdjustments(preview, reconciliation);
     const rows = operations.filter(
@@ -95,6 +96,8 @@ export class InvestmentImportService {
       if (existing.length) throw conflict('INVESTMENT_IMPORT_DUPLICATE_CONTENT', 'An equivalent operation was already imported.');
 
       if (preview.errors.length) throw badRequest('INVESTMENT_IMPORT_INVALID', 'Resolve every import error before confirmation.');
+      if (preview.warnings.length && !acknowledgeWarnings)
+        throw badRequest('INVESTMENT_IMPORT_WARNINGS_UNACKNOWLEDGED', 'Acknowledge every balance warning before confirmation.');
 
       const batch = await tx.importBatch.create({ data: { userId, rowCount: rows.length, fileFingerprint: createHash('sha256').update(file!).digest('hex') } });
       await tx.investmentTrade.createMany({
@@ -215,7 +218,7 @@ export class InvestmentImportService {
     const institutionNames = new Set(institutions.map((item) => item.name));
     const listingByKey = new Map(listings.map((item) => [`${item.ticker}|${item.market}`, item]));
     const errors: PreviewIssue[] = [],
-      warnings: PreviewIssue[] = [],
+      warnings: PreviewWarning[] = [],
       seen = new Set<string>();
     const valid: {
       row: Row;
@@ -324,16 +327,24 @@ export class InvestmentImportService {
         const current = changes.get(instrument.id);
         changes.set(instrument.id, { instrument, quantity: (current?.quantity ?? new Prisma.Decimal(0)).add(quantity) });
       }
-      let insufficient = false;
       for (const { instrument, quantity } of changes.values()) {
         const key = `${item.accountId}|${instrument.id}`;
-        const next = (quantities.get(key) ?? new Prisma.Decimal(0)).add(quantity);
-        if (item.row && item.kind !== 'BANK' && next.isNegative()) {
-          errors.push({ line: item.row.line, code: 'INSUFFICIENT_FUNDS', message: `Insufficient ${instrument.code} for this operation.` });
-          insufficient = true;
+        const available = quantities.get(key) ?? new Prisma.Decimal(0);
+        const next = available.add(quantity);
+        if (item.row && quantity.isNegative() && next.isNegative()) {
+          const required = quantity.negated();
+          warnings.push({
+            line: item.row.line,
+            code: 'INSUFFICIENT_FUNDS',
+            message: `${item.accountName}: ${instrument.code} has ${available.toString()} available, requires ${required.toString()}, and would project to ${next.toString()}.`,
+            accountName: item.accountName,
+            instrumentCode: instrument.code,
+            availableQuantity: available.toString(),
+            requiredQuantity: required.toString(),
+            projectedQuantity: next.toString(),
+          });
         }
       }
-      if (insufficient) continue;
       for (const { instrument, quantity } of changes.values())
         quantities.set(`${item.accountId}|${instrument.id}`, (quantities.get(`${item.accountId}|${instrument.id}`) ?? new Prisma.Decimal(0)).add(quantity));
       const position = (instrument: typeof item.acquired) => {

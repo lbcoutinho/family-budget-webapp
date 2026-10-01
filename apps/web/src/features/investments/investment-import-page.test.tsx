@@ -2,9 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const api = vi.hoisted(() => ({ preview: vi.fn(), confirm: vi.fn() }));
+const api = vi.hoisted(() => ({ preview: vi.fn(), confirm: vi.fn(), warnings: [] as Record<string, string | number>[] }));
 
 vi.mock('@family-budget/api-client', () => ({
   usePreviewInvestmentImport: (options: { mutation: { onSuccess: (result: unknown) => void } }) => ({
@@ -13,7 +13,7 @@ vi.mock('@family-budget/api-client', () => ({
       options.mutation.onSuccess({
         validRows: 1,
         errors: [],
-        warnings: [],
+        warnings: api.warnings,
         positions: [
           {
             accountId: 'account',
@@ -45,6 +45,46 @@ vi.mock('@family-budget/api-client', () => ({
 import { InvestmentImportPage } from './investment-import-page';
 
 describe('InvestmentImportPage', () => {
+  beforeEach(() => {
+    api.preview.mockClear();
+    api.confirm.mockClear();
+    api.warnings = [];
+  });
+
+  it('explains balance warnings and sends their acknowledgment with the batch confirmation', async () => {
+    api.warnings = [
+      {
+        line: 2,
+        code: 'INSUFFICIENT_FUNDS',
+        message: 'Spot: BTC has 0 available, requires 0.01, and would project to -0.01.',
+        accountName: 'Spot',
+        instrumentCode: 'BTC',
+        availableQuantity: '0',
+        requiredQuantity: '0.01',
+        projectedQuantity: '-0.01',
+      },
+    ];
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter>
+          <InvestmentImportPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await user.upload(screen.getByLabelText('Escolher arquivo CSV'), new File(['csv'], 'history.csv', { type: 'text/csv' }));
+    await user.click(screen.getByRole('button', { name: 'Validar e simular' }));
+    expect(await screen.findByText('Avisos para revisar')).toBeInTheDocument();
+    expect(screen.getByText(/Histórico incompleto pode afetar posições/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Confirmar sem reconciliar' }));
+    expect(screen.getByText('Avisos para revisar')).toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Confirmar lote de importação' }));
+
+    expect(api.confirm.mock.calls[0]?.[0]).toMatchObject({ data: { acknowledgeWarnings: true } });
+  });
+
   it('confirms only an explicitly reasoned reconciliation adjustment', async () => {
     const user = userEvent.setup();
     render(
