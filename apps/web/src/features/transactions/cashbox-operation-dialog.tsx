@@ -171,9 +171,9 @@ export interface CashboxOperationDialogProps {
 export function CashboxOperationDialog({ open, onOpenChange, transaction }: CashboxOperationDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const accountRef = useRef<HTMLSelectElement>(null);
-  const cashboxRef = useRef<HTMLSelectElement>(null);
-  const destinationCashboxRef = useRef<HTMLSelectElement>(null);
+  const accountRef = useRef<HTMLInputElement>(null);
+  const cashboxRef = useRef<HTMLInputElement>(null);
+  const destinationCashboxRef = useRef<HTMLInputElement>(null);
   const { data: accounts = [] } = useListAccounts(transaction?.accountId ? { includeId: transaction.accountId } : undefined);
   const { data: cashboxes = [] } = useListCashboxes(transaction ? { includeInactive: true } : undefined);
   const { data: accountBalances = [] } = useListAccountInstrumentBalances();
@@ -650,7 +650,7 @@ function BalanceSelect({
   options: { id: string; name: string; balance?: number }[];
   error?: string;
   disabled: boolean;
-  selectRef?: Ref<HTMLSelectElement>;
+  selectRef?: Ref<HTMLInputElement>;
 }) {
   return (
     <div className="grid min-w-0 content-start gap-1.5">
@@ -662,7 +662,7 @@ function BalanceSelect({
         ref={selectRef}
         id={id}
         value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
+        onValueChange={onChange}
         aria-describedby={error ? `${id}-error` : undefined}
         aria-invalid={error !== undefined}
         disabled={disabled}
@@ -702,7 +702,7 @@ function CashboxField({
   error?: string;
   disabled: boolean;
   deletedLabel?: string;
-  selectRef?: Ref<HTMLSelectElement>;
+  selectRef?: Ref<HTMLInputElement>;
 }) {
   const { t } = useTranslation();
   if (deletedLabel)

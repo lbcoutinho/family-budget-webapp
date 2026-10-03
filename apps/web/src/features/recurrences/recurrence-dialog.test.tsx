@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RecurrenceDialog } from './recurrence-dialog';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { selectOption } from '@/test/select-option';
 import { server } from '@/test/server';
 
 const ACCOUNT: AccountDto = {
@@ -86,8 +87,7 @@ function renderDialog(onSubmit = vi.fn()) {
 }
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByRole('option', { name: 'Millennium' });
-  await user.selectOptions(screen.getByLabelText('Conta'), 'Millennium');
+  await selectOption(user, screen.getByLabelText('Conta'), 'Millennium');
 
   await user.click(screen.getByRole('combobox', { name: 'Categoria' }));
   await user.click(await screen.findByRole('option', { name: 'Moradia' }));

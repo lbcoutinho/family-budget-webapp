@@ -28,3 +28,10 @@ back onto the approved design:
 Also settled in #169, not previously called out: the credit-card checkbox only appears on the
 expense tab (income on a credit card is not a thing the model represents), and the dialog titles
 itself for the mode it is in — "Novo lançamento" creating, "Editar lançamento" editing.
+
+Issue #474 updates selectors to editable comboboxes with frontend word-prefix filtering, ignoring
+case and accents. Enter confirms; Tab confirms after typing or navigating and advances; Escape
+restores the previous selection. New entries focus Expense and use Left/Right to select type;
+editing focuses the first active field. Visual order and Tab order match on both layouts, with
+entry actions ordered Save → Save and add another → Cancel. Native date/month segment navigation
+is retained. Save and add another continues preserving only type and refocusing account.

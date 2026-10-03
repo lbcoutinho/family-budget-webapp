@@ -9,7 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, useRef, useState, type FocusEvent } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useController, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
 
@@ -140,6 +140,9 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
     },
   });
 
+  const accountField = useController({ control, name: 'accountId' }).field;
+  const frequencyField = useController({ control, name: 'frequency' }).field;
+
   useEffect(() => {
     if (!open) return;
     reset({
@@ -162,9 +165,9 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
     queueMicrotask(() => setPreviewedKey(''));
   }, [open, rule, reset]);
 
-  const [type, categoryId, subcategoryId, frequency, dayOfMonth, startMonth, endMonth, autoConfirm] = useWatch({
+  const [accountId, type, categoryId, subcategoryId, frequency, dayOfMonth, startMonth, endMonth, autoConfirm] = useWatch({
     control,
-    name: ['type', 'categoryId', 'subcategoryId', 'frequency', 'dayOfMonth', 'startMonth', 'endMonth', 'autoConfirm'],
+    name: ['accountId', 'type', 'categoryId', 'subcategoryId', 'frequency', 'dayOfMonth', 'startMonth', 'endMonth', 'autoConfirm'],
   });
 
   const previewPayload = usePreviewRecurrenceRulePayload();
@@ -267,10 +270,13 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
                 <Label htmlFor="rule-account">{t(formKey('recurrences.ruleForm.account'))}</Label>
                 <NativeSelect
                   id="rule-account"
+                  value={accountId}
                   aria-describedby={errors.accountId ? 'rule-account-error' : undefined}
                   aria-invalid={errors.accountId !== undefined}
                   disabled={isPending}
-                  {...register('accountId')}
+                  ref={(element) => accountField.ref(element)}
+                  onBlur={() => accountField.onBlur()}
+                  onValueChange={(value) => accountField.onChange(value)}
                 >
                   <option value="">{t(formKey('recurrences.ruleForm.accountPlaceholder'))}</option>
                   {accounts.map((account) => (
@@ -283,7 +289,14 @@ export function RecurrenceDialog({ open, onOpenChange, rule, isPending, error, o
               </div>
               <div className="grid min-w-0 content-start gap-1.5">
                 <Label htmlFor="rule-frequency">{t(formKey('recurrences.ruleForm.frequencyLabel'))}</Label>
-                <NativeSelect id="rule-frequency" disabled={isPending} {...register('frequency')}>
+                <NativeSelect
+                  value={frequency}
+                  id="rule-frequency"
+                  disabled={isPending}
+                  ref={(element) => frequencyField.ref(element)}
+                  onBlur={() => frequencyField.onBlur()}
+                  onValueChange={(value) => frequencyField.onChange(value)}
+                >
                   <option value="MONTHLY">{t(formKey('recurrences.ruleForm.frequencyMonthly'))}</option>
                   <option value="YEARLY">{t(formKey('recurrences.ruleForm.frequencyYearly'))}</option>
                 </NativeSelect>

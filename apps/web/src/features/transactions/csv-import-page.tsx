@@ -140,7 +140,7 @@ export function CsvImportPage() {
         <div className="grid gap-3 md:grid-cols-3">
           <label className="grid gap-1.5 text-sm font-medium">
             {t('transactions.import.model')}
-            <NativeSelect value={modelId} onChange={(event) => setModelId(event.target.value)}>
+            <NativeSelect value={modelId} onValueChange={setModelId}>
               <option value="" disabled />
               {models.data?.map((model) => (
                 <option key={model.id} value={model.id}>
@@ -151,7 +151,7 @@ export function CsvImportPage() {
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
             {t('transactions.import.account')}
-            <NativeSelect value={accountId} onChange={(event) => setAccountId(event.target.value)}>
+            <NativeSelect value={accountId} onValueChange={setAccountId}>
               <option value="" disabled />
               {accounts.data?.map((account) => (
                 <option key={account.id} value={account.id}>

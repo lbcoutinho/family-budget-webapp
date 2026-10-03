@@ -235,7 +235,9 @@ function Filter({ label, value, onChange, options }: { label: string; value: str
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={all}>—</SelectItem>
+          <SelectItem value={all} alwaysVisible>
+            —
+          </SelectItem>
           {options.map(([value, label]) => (
             <SelectItem key={value} value={value}>
               {label}

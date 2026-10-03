@@ -184,7 +184,7 @@ describe('GeneralSettingsPage', () => {
 
     const { user } = renderPage();
 
-    expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveTextContent('Português (Brasil)');
+    expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveValue('Português (Brasil)');
 
     await user.click(screen.getByRole('combobox', { name: 'Idioma' }));
     await user.click(screen.getByRole('option', { name: 'English (US)' }));
@@ -202,7 +202,7 @@ describe('GeneralSettingsPage', () => {
     await user.click(screen.getByRole('option', { name: 'English (US)' }));
 
     expect(await screen.findByText('Não foi possível salvar. O idioma voltou para Português (Brasil).')).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveTextContent('Português (Brasil)');
+    expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveValue('Português (Brasil)');
   });
 
   it('hides administration from non-administrators', () => {

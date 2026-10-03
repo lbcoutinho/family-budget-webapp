@@ -231,7 +231,11 @@ function FilterSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {allLabel ? <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem> : null}
+        {allLabel ? (
+          <SelectItem value={FILTER_ALL} alwaysVisible>
+            {allLabel}
+          </SelectItem>
+        ) : null}
         {options.map((option) => (
           <SelectItem key={option.id} value={option.id}>
             {option.name}

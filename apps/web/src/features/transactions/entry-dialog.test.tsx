@@ -1,6 +1,6 @@
 import { getGetMonthlyBalanceQueryKey, getListAccountInstrumentBalancesQueryKey, getListTransactionsQueryKey } from '@family-budget/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,6 +8,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { businessCodeField, EntryDialog, suggestedSettlementDate } from './entry-dialog';
 
 import type * as ApiClient from '@family-budget/api-client';
+
+import { selectOption } from '@/test/select-option';
 
 const categoryButtonLabel = 'choose category';
 const subcategoryButtonLabel = 'choose subcategory';
@@ -157,9 +159,9 @@ function renderDialog(onOpenChange = vi.fn(), transaction?: ApiClient.Transactio
 }
 
 async function fillExpense(user: ReturnType<typeof userEvent.setup>, amount = '10') {
-  await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
-  await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
-  await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+  await selectOption(user, screen.getByLabelText('transactions.form.account'), 'account-1');
+  await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
+  await selectOption(user, screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
   await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
   await user.type(screen.getByLabelText('transactions.form.amount'), amount);
 }
@@ -212,21 +214,73 @@ describe('EntryDialog', () => {
     expect(screen.getByRole('link', { name: 'transactions.form.createAccount' })).toHaveAttribute('href', '/settings/accounts');
   });
 
+  it('starts on Expense, selects type with Left/Right, and tabs once to account', async () => {
+    const { user } = renderDialog();
+    const expense = screen.getByRole('tab', { name: 'transactions.form.expense' });
+    expect(expense).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'transactions.form.income' })).toHaveFocus());
+    expect(screen.getByRole('tab', { name: 'transactions.form.income' })).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{ArrowRight}');
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'transactions.form.transfer' })).toHaveFocus());
+    await user.keyboard('{ArrowLeft}{ArrowLeft}');
+    await waitFor(() => expect(expense).toHaveFocus());
+    await user.tab();
+    expect(screen.getByRole('combobox', { name: 'transactions.form.account' })).toHaveFocus();
+  });
+
+  it.each(['create', 'edit'])('focuses the first active field when accounts load after opening (%s)', (mode) => {
+    accounts = [];
+    const transaction = mode === 'edit' ? makeTransaction() : undefined;
+    const view = renderDialog(vi.fn(), transaction);
+    accounts = [{ id: 'account-1', name: 'Main account' }];
+    view.rerender(
+      <QueryClientProvider client={view.queryClient}>
+        <MemoryRouter>
+          <EntryDialog open onOpenChange={view.onOpenChange} transaction={transaction} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    if (mode === 'edit') expect(screen.getByRole('combobox', { name: 'transactions.form.account' })).toHaveFocus();
+    else expect(screen.getByRole('tab', { name: 'transactions.form.expense' })).toHaveFocus();
+  });
+
+  it('starts editing on account and preserves the selected type', () => {
+    renderDialog(vi.fn(), makeTransaction());
+    expect(screen.getByRole('combobox', { name: 'transactions.form.account' })).toHaveFocus();
+    expect(screen.getByRole('combobox', { name: 'transactions.form.account' })).toHaveValue('Main account');
+    expect(screen.getByRole('tab', { name: 'transactions.form.expense' })).toBeDisabled();
+  });
+
+  it('tabs from the last expense control through Save, Save and add another, and Cancel', async () => {
+    const { user } = renderDialog();
+    await user.click(screen.getByLabelText('transactions.form.creditCard'));
+    await user.click(screen.getByLabelText('transactions.form.settlementDate'));
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'transactions.form.save' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'common.cancel' })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' })).toHaveFocus();
+  });
+
   it('exposes the account placeholder on "Conta", "De" and "Para", and clears the value when reselected', async () => {
     const { user } = renderDialog();
 
     const account = screen.getByLabelText('transactions.form.account');
-    expect(within(account).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
-    await user.selectOptions(account, 'account-1');
-    expect(account).toHaveValue('account-1');
-    await user.selectOptions(account, '');
+    expect(account).toHaveAttribute('placeholder', 'transactions.form.accountPlaceholder');
+    await selectOption(user, account, 'account-1');
+    expect(account).toHaveValue('Main account');
+    await selectOption(user, account, '');
     expect(account).toHaveValue('');
 
     await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
     const source = screen.getByLabelText('transactions.form.sourceAccount');
     const destination = screen.getByLabelText('transactions.form.destinationAccount');
-    expect(within(source).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
-    expect(within(destination).getByRole('option', { name: 'transactions.form.accountPlaceholder' })).toBeInTheDocument();
+    expect(source).toHaveAttribute('placeholder', 'transactions.form.accountPlaceholder');
+    expect(destination).toHaveAttribute('placeholder', 'transactions.form.accountPlaceholder');
   });
 
   it('focuses "Conta" with a red border on an empty save, and shows exactly one required error for category', async () => {
@@ -256,15 +310,15 @@ describe('EntryDialog', () => {
     await save();
     expect(screen.getByLabelText('transactions.form.account')).toHaveFocus();
 
-    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.account'), 'account-1');
     await save();
     expect(screen.getByLabelText(categoryButtonLabel)).toHaveFocus();
 
-    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
     await save();
     expect(screen.getByLabelText(subcategoryButtonLabel)).toHaveFocus();
 
-    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await selectOption(user, screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
     await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
     await save();
     expect(screen.getByLabelText('transactions.form.amount')).toHaveFocus();
@@ -279,7 +333,7 @@ describe('EntryDialog', () => {
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
     expect(screen.getByLabelText('transactions.form.sourceAccount')).toHaveFocus();
 
-    await user.selectOptions(screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
     expect(screen.getByLabelText('transactions.form.destinationAccount')).toHaveFocus();
   });
@@ -287,17 +341,17 @@ describe('EntryDialog', () => {
   it('blocks save when description is blank, on both the expense and transfer tabs', async () => {
     const { user } = renderDialog();
 
-    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
-    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
-    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.account'), 'account-1');
+    await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await selectOption(user, screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
     await user.type(screen.getByLabelText('transactions.form.amount'), '10');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
     expect(document.getElementById('entry-description-error')).toHaveTextContent('transactions.form.required');
     expect(mutate).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
-    await user.selectOptions(screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('transactions.form.destinationAccount'), 'account-2');
+    await selectOption(user, screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.destinationAccount'), 'account-2');
     await user.type(screen.getByLabelText('transactions.form.amount'), '10');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
     expect(document.getElementById('entry-description-error')).toHaveTextContent('transactions.form.required');
@@ -307,10 +361,10 @@ describe('EntryDialog', () => {
   it('never shows a subcategory error right after choosing a category, before or after a prior failed submit', async () => {
     const { user } = renderDialog();
 
-    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
     expect(document.getElementById('entry-subcategory-error')).toBeNull();
 
-    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.account'), 'account-1');
     await user.type(screen.getByLabelText('transactions.form.description'), 'Groceries');
     await user.type(screen.getByLabelText('transactions.form.amount'), '10');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
@@ -328,7 +382,7 @@ describe('EntryDialog', () => {
     expect(categoryControl).toHaveAttribute('aria-describedby', 'entry-category-error');
     expect(document.getElementById('entry-category-error')).toHaveTextContent('transactions.form.required');
 
-    await user.selectOptions(categoryControl, 'category-1');
+    await selectOption(user, categoryControl, 'category-1');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
     const subcategoryControl = screen.getByLabelText(subcategoryButtonLabel);
     expect(subcategoryControl).toHaveAttribute('aria-describedby', 'entry-subcategory-error');
@@ -393,8 +447,8 @@ describe('EntryDialog', () => {
 
     await user.click(screen.getByRole('tab', { name: 'transactions.form.transfer' }));
     expect(screen.queryByRole('button', { name: categoryButtonLabel })).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('transactions.form.destinationAccount'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.sourceAccount'), 'account-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.destinationAccount'), 'account-1');
     await user.type(screen.getByLabelText('transactions.form.description'), 'Move');
     await user.type(screen.getByLabelText('transactions.form.amount'), '10');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
@@ -420,9 +474,9 @@ describe('EntryDialog', () => {
 
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
     await user.click(screen.getByRole('tab', { name: 'transactions.form.income' }));
-    await user.selectOptions(screen.getByLabelText('transactions.form.account'), 'account-1');
-    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
-    await user.selectOptions(screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
+    await selectOption(user, screen.getByLabelText('transactions.form.account'), 'account-1');
+    await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await selectOption(user, screen.getByLabelText(subcategoryButtonLabel), 'subcategory-1');
     await user.type(screen.getByLabelText('transactions.form.description'), 'Bonus');
     await user.type(screen.getByLabelText('transactions.form.amount'), '10');
     await user.click(screen.getByRole('button', { name: 'transactions.form.save' }));
@@ -457,7 +511,7 @@ describe('EntryDialog', () => {
   it('clears category and credit-card fields when switching transaction type', async () => {
     const { user } = renderDialog();
 
-    await user.selectOptions(screen.getByLabelText(categoryButtonLabel), 'category-1');
+    await selectOption(user, screen.getByLabelText(categoryButtonLabel), 'category-1');
     await user.click(screen.getByLabelText('transactions.form.creditCard'));
     await user.click(screen.getByRole('tab', { name: 'transactions.form.income' }));
 
@@ -529,7 +583,7 @@ describe('EntryDialog', () => {
     expect(screen.getByText('transactions.form.title')).toBeInTheDocument();
   });
 
-  it('places the primary save action last on desktop while keeping it the default submitter for a new entry', () => {
+  it('places Save before Save and add another and Cancel in visual and DOM order', () => {
     renderDialog();
 
     const saveAnother = screen.getByRole('button', { name: 'transactions.form.saveAndAddAnother' });
@@ -537,7 +591,9 @@ describe('EntryDialog', () => {
 
     expect(save.compareDocumentPosition(saveAnother) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(save).toHaveAttribute('data-variant', 'default');
-    expect(save).toHaveClass('sm:order-1');
+    expect(save).not.toHaveClass('sm:order-1');
+    const cancel = screen.getByRole('button', { name: 'common.cancel' });
+    expect(saveAnother.compareDocumentPosition(cancel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('treats Enter as Save after a failed save-and-add request', async () => {

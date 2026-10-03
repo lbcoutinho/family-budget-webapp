@@ -55,6 +55,8 @@ vi.mock('@family-budget/api-client', () => ({
 
 import { CsvImportPage } from './csv-import-page';
 
+import { selectOption } from '@/test/select-option';
+
 function renderPage() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return {
@@ -70,8 +72,8 @@ function renderPage() {
 }
 
 async function uploadPreview(user: ReturnType<typeof userEvent.setup>) {
-  await user.selectOptions(screen.getByLabelText('Modelo CSV'), 'model-1');
-  await user.selectOptions(screen.getByLabelText('Conta de destino'), 'account-1');
+  await selectOption(user, screen.getByLabelText('Modelo CSV'), 'model-1');
+  await selectOption(user, screen.getByLabelText('Conta de destino'), 'account-1');
   await user.upload(screen.getByLabelText('Arquivo CSV'), new File(['data'], 'statement.csv', { type: 'text/csv' }));
   await user.click(screen.getByRole('button', { name: 'Gerar prévia' }));
 }

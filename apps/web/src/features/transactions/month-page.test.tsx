@@ -882,9 +882,9 @@ describe('MonthPage', () => {
       await screen.findByText('Nada lançado em Julho de 2026');
 
       await openFilters(user);
-      expect(screen.getByRole('combobox', { name: 'Filtrar por tipo' })).toHaveTextContent('Todos');
-      expect(screen.getByRole('combobox', { name: 'Filtrar por categoria' })).toHaveTextContent('Todas');
-      expect(screen.getByRole('combobox', { name: 'Filtrar por conta' })).toHaveTextContent('Todas');
+      expect(screen.getByRole('combobox', { name: 'Filtrar por tipo' })).toHaveValue('Todos');
+      expect(screen.getByRole('combobox', { name: 'Filtrar por categoria' })).toHaveValue('Todas');
+      expect(screen.getByRole('combobox', { name: 'Filtrar por conta' })).toHaveValue('Todas');
       expect(screen.getByRole('combobox', { name: 'Ordenar' })).toHaveAttribute('data-size', 'sm');
 
       await user.click(document.body);

@@ -21,6 +21,7 @@
     "logout": "Log out"
   },
   "common": {
+    "noOptionsFound": "No options found",
     "loading": "Loading…",
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -804,9 +805,11 @@
       "subcategory": "Subcategory"
     },
     "category": {
+      "none": "No category",
       "placeholder": "Select a category"
     },
     "subcategory": {
+      "none": "No subcategory",
       "placeholder": "Select a subcategory",
       "placeholderNoCategory": "Select a category first"
     },

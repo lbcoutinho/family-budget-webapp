@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { InstallmentDialog } from './installment-dialog';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { selectOption } from '@/test/select-option';
 import { server } from '@/test/server';
 
 const ACCOUNT: AccountDto = {
@@ -61,8 +62,7 @@ function renderDialog(onSubmit = vi.fn()) {
 }
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByRole('option', { name: 'Revolut' });
-  await user.selectOptions(screen.getByLabelText('Conta'), 'Revolut');
+  await selectOption(user, screen.getByLabelText('Conta'), 'Revolut');
   await user.click(screen.getByRole('combobox', { name: 'Categoria' }));
   await user.click(await screen.findByRole('option', { name: 'Outros' }));
   await user.click(screen.getByRole('combobox', { name: 'Subcategoria' }));

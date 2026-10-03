@@ -2,7 +2,7 @@ import { type CreateCsvImportModelDto } from '@family-budget/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
+import { useController, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
 
@@ -58,6 +58,7 @@ export function CsvImportModelDialog({
 }) {
   const { t } = useTranslation();
   const {
+    control,
     register,
     handleSubmit,
     reset,
@@ -67,9 +68,13 @@ export function CsvImportModelDialog({
     defaultValues: { name: '', headerLineCount: 1, separator: ';', dateHeader: '', descriptionHeader: '', amountHeader: '' },
   });
 
+  const separatorField = useController({ control, name: 'separator' }).field;
+
   useEffect(() => {
     if (open) reset();
   }, [open, reset]);
+
+  const separator = useWatch({ control, name: 'separator' });
 
   const fieldError = (name: keyof CsvImportModelFormValues) => errors[name]?.message as TranslationKey | undefined;
 
@@ -111,7 +116,14 @@ export function CsvImportModelDialog({
             </Field>
             <div className="grid gap-1.5">
               <Label htmlFor="csv-model-separator">{t('settingsGeneral.models.form.separator')}</Label>
-              <NativeSelect id="csv-model-separator" disabled={isPending} {...register('separator')}>
+              <NativeSelect
+                value={separator}
+                id="csv-model-separator"
+                disabled={isPending}
+                ref={(element) => separatorField.ref(element)}
+                onBlur={() => separatorField.onBlur()}
+                onValueChange={(value) => separatorField.onChange(value)}
+              >
                 <option value=";">{t('settingsGeneral.models.separators.semicolon')}</option>
                 <option value=",">{t('settingsGeneral.models.separators.comma')}</option>
                 <option value="\t">{t('settingsGeneral.models.separators.tab')}</option>
