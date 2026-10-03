@@ -2,7 +2,7 @@ import { type CreateInstallmentPlanDto, useListAccounts } from '@family-budget/a
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, type FocusEvent } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useController, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
 
@@ -105,14 +105,16 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
     defaultValues: emptyValues(),
   });
 
+  const accountField = useController({ control, name: 'accountId' }).field;
+
   useEffect(() => {
     if (!open) return;
     reset(emptyValues());
   }, [open, reset]);
 
-  const [categoryId, subcategoryId, firstPaymentDate, count, description, total, autoConfirm] = useWatch({
+  const [accountId, categoryId, subcategoryId, firstPaymentDate, count, description, total, autoConfirm] = useWatch({
     control,
-    name: ['categoryId', 'subcategoryId', 'firstPaymentDate', 'count', 'description', 'total', 'autoConfirm'],
+    name: ['accountId', 'categoryId', 'subcategoryId', 'firstPaymentDate', 'count', 'description', 'total', 'autoConfirm'],
   });
 
   const installments = Math.min(120, Math.max(1, Number(count) || 1));
@@ -156,10 +158,13 @@ export function InstallmentDialog({ open, onOpenChange, isPending, error, onSubm
                 <Label htmlFor="installment-account">{t(formKey('recurrences.installmentForm.account'))}</Label>
                 <NativeSelect
                   id="installment-account"
+                  value={accountId}
                   aria-describedby={errors.accountId ? 'installment-account-error' : undefined}
                   aria-invalid={errors.accountId !== undefined}
                   disabled={isPending}
-                  {...register('accountId')}
+                  ref={(element) => accountField.ref(element)}
+                  onBlur={() => accountField.onBlur()}
+                  onValueChange={(value) => accountField.onChange(value)}
                 >
                   <option value="" />
                   {accounts.map((account) => (

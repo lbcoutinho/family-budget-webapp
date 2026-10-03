@@ -126,7 +126,9 @@ export function AccountDialog({ open, onOpenChange, account, isPending, error, o
               </SelectTrigger>
               <SelectContent>
                 {!requiresInstitution(kind) && (
-                  <SelectItem value="none">{t(kind === 'WALLET' ? 'accounts.form.selfCustody' : 'accounts.form.noInstitution')}</SelectItem>
+                  <SelectItem value="none" alwaysVisible>
+                    {t(kind === 'WALLET' ? 'accounts.form.selfCustody' : 'accounts.form.noInstitution')}
+                  </SelectItem>
                 )}
                 {(institutions.data ?? []).map((institution) => (
                   <SelectItem key={institution.id} value={institution.id}>

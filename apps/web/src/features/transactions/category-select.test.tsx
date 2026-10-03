@@ -144,6 +144,23 @@ describe('CategorySelect', () => {
     expect(onChange).toHaveBeenCalledWith('r3', undefined);
   });
 
+  it('keeps clear options visible while filtering and clears subcategory together with category', async () => {
+    server.use(http.get('/api/categories', () => HttpResponse.json([HABITACAO])));
+    const { user, onChange } = renderSelect({ kind: 'EXPENSE', initialCategoryId: 'r1', initialSubcategoryId: 'c1' });
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Subcategoria' })).toHaveValue('Renda'));
+    await user.click(screen.getByRole('combobox', { name: 'Subcategoria' }));
+    await user.keyboard('renda');
+    await user.click(screen.getByRole('option', { name: 'Sem subcategoria' }));
+    expect(onChange).toHaveBeenLastCalledWith('r1', undefined);
+    await user.click(screen.getByRole('combobox', { name: 'Categoria' }));
+    await user.keyboard('hab');
+    await user.click(screen.getByRole('option', { name: 'Sem categoria' }));
+    expect(onChange).toHaveBeenLastCalledWith(undefined, undefined);
+    expect(screen.getByRole('combobox', { name: 'Categoria' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Subcategoria' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Subcategoria' })).toBeDisabled();
+  });
+
   it('does not offer an inactive category when creating a new entry', async () => {
     server.use(
       http.get('/api/categories', () => HttpResponse.json([{ ...HABITACAO, isActive: false }, SALARIO].filter((c) => c.kind === 'EXPENSE' && c.isActive))),
@@ -162,7 +179,7 @@ describe('CategorySelect', () => {
     renderSelect({ kind: 'EXPENSE', initialCategoryId: 'r1', initialSubcategoryId: 'c1' });
 
     await waitFor(() => {
-      expect(screen.getByRole('combobox', { name: 'Categoria' })).toHaveTextContent('Habitação (inativa)');
+      expect(screen.getByRole('combobox', { name: 'Categoria' })).toHaveValue('Habitação (inativa)');
     });
   });
 
@@ -177,7 +194,7 @@ describe('CategorySelect', () => {
     renderSelect({ kind: 'EXPENSE', initialCategoryId: 'r1', initialSubcategoryId: 'c1' });
 
     await waitFor(() => {
-      expect(screen.getByRole('combobox', { name: 'Subcategoria' })).toHaveTextContent('Renda (inativa)');
+      expect(screen.getByRole('combobox', { name: 'Subcategoria' })).toHaveValue('Renda (inativa)');
     });
   });
 
@@ -189,8 +206,8 @@ describe('CategorySelect', () => {
     const { user } = renderSelect({ kind: 'EXPENSE', initialCategoryId: 'r1' });
 
     await user.click(screen.getByRole('combobox', { name: 'Categoria' }));
-    expect(await screen.findByRole('option', { name: /^Outra/ })).toHaveAttribute('data-disabled');
-    expect(screen.getByRole('option', { name: /^Habitação/ })).not.toHaveAttribute('data-disabled');
+    expect(await screen.findByRole('option', { name: /^Outra/ })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('option', { name: /^Habitação/ })).not.toHaveAttribute('aria-disabled', 'true');
   });
 
   function user_click_category() {

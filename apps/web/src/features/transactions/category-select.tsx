@@ -14,8 +14,8 @@ export interface CategorySelectProps {
   disabled?: boolean;
   categoryError?: string;
   subcategoryError?: string;
-  categoryRef?: Ref<HTMLButtonElement>;
-  subcategoryRef?: Ref<HTMLButtonElement>;
+  categoryRef?: Ref<HTMLInputElement>;
+  subcategoryRef?: Ref<HTMLInputElement>;
   idPrefix?: string;
 }
 
@@ -53,7 +53,7 @@ export function CategorySelect({
     <>
       <div className="grid min-w-0 content-start gap-1.5">
         <Label htmlFor={`${idPrefix}-category`}>{t('transactions.field.category')}</Label>
-        <Select value={categoryId} onValueChange={(value) => onChange(value, undefined)} disabled={disabled}>
+        <Select value={categoryId} onValueChange={(value) => onChange(value === 'none' ? undefined : value, undefined)} disabled={disabled}>
           <SelectTrigger
             ref={categoryRef}
             id={`${idPrefix}-category`}
@@ -64,6 +64,9 @@ export function CategorySelect({
             <SelectValue placeholder={t('transactions.category.placeholder')} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="none" alwaysVisible>
+              {t('transactions.category.none')}
+            </SelectItem>
             {roots.map((root) => (
               <SelectItem key={root.id} value={root.id} disabled={!root.isActive && root.id !== categoryId}>
                 {root.name}
@@ -77,7 +80,11 @@ export function CategorySelect({
 
       <div className="grid min-w-0 content-start gap-1.5">
         <Label htmlFor={`${idPrefix}-subcategory`}>{t('transactions.field.subcategory')}</Label>
-        <Select value={subcategoryId} onValueChange={(value) => onChange(categoryId, value)} disabled={(disabled ?? false) || categoryId === undefined}>
+        <Select
+          value={subcategoryId}
+          onValueChange={(value) => onChange(categoryId, value === 'none' ? undefined : value)}
+          disabled={(disabled ?? false) || categoryId === undefined}
+        >
           <SelectTrigger
             ref={subcategoryRef}
             id={`${idPrefix}-subcategory`}
@@ -90,6 +97,9 @@ export function CategorySelect({
             />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="none" alwaysVisible>
+              {t('transactions.subcategory.none')}
+            </SelectItem>
             {subcategories.map((subcategory) => (
               <SelectItem key={subcategory.id} value={subcategory.id} disabled={!subcategory.isActive && subcategory.id !== subcategoryId}>
                 {subcategory.name}

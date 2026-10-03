@@ -21,6 +21,7 @@
     "logout": "Sair"
   },
   "common": {
+    "noOptionsFound": "Nenhuma opção encontrada",
     "loading": "Carregando…",
     "confirm": "Confirmar",
     "cancel": "Cancelar",
@@ -804,9 +805,11 @@
       "subcategory": "Subcategoria"
     },
     "category": {
+      "none": "Sem categoria",
       "placeholder": "Selecione uma categoria"
     },
     "subcategory": {
+      "none": "Sem subcategoria",
       "placeholder": "Selecione uma subcategoria",
       "placeholderNoCategory": "Selecione uma categoria primeiro"
     },

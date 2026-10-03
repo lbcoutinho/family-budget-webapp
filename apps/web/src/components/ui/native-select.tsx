@@ -1,20 +1,19 @@
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
+import { optionText, SearchableSelect, type SelectOption } from './searchable-select';
 
-function NativeSelect({ className, ...props }: React.ComponentProps<'select'>) {
-  return (
-    <select
-      data-slot="native-select"
-      className={cn(
-        'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs transition-color-shadow outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
-        'focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50',
-        'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
-        className,
-      )}
-      {...props}
-    />
-  );
+type NativeSelectProps = Omit<React.ComponentProps<typeof SearchableSelect>, 'options'> & { children: React.ReactNode };
+
+/** Retains native option markup at call sites; interaction is shared with every other selector. */
+function NativeSelect({ children, placeholder, ...props }: NativeSelectProps) {
+  const options = React.Children.toArray(children)
+    .filter((child): child is React.ReactElement<React.ComponentProps<'option'>> => React.isValidElement(child))
+    .map((child): SelectOption => ({
+      value: String(child.props.value ?? optionText(child.props.children)),
+      label: optionText(child.props.children),
+      disabled: child.props.disabled,
+    }));
+  return <SearchableSelect {...props} placeholder={placeholder ?? options.find((option) => option.value === '')?.label} options={options} />;
 }
 
 export { NativeSelect };

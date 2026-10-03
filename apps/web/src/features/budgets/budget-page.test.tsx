@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { routes } from '@/app/router';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthContext } from '@/features/auth/auth-context';
+import { selectOption } from '@/test/select-option';
 import { server } from '@/test/server';
 
 const USER = { id: 'u1', email: 'luis@example.com', name: 'Luís', locale: 'pt-BR' as const };
@@ -127,7 +128,7 @@ describe('BudgetPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Próximo trimestre' }));
     expect(router.state.location.pathname).toBe('/budgets/2026/4');
-    await user.selectOptions(screen.getByLabelText('Trimestre'), '2027-2');
+    await selectOption(user, screen.getByLabelText('Trimestre'), '2027-2');
     expect(router.state.location.pathname).toBe('/budgets/2027/2');
   });
 

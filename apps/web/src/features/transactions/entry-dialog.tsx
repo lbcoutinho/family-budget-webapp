@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect, useRef, useState, type FocusEvent } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { type Control, useController, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -148,8 +148,9 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   const saveAnother = useRef(false);
   const saveAndConfirm = useRef(false);
   const [referenceMonthOverridden, setReferenceMonthOverridden] = useState(Boolean(transaction));
-  const categoryRef = useRef<HTMLButtonElement>(null);
-  const subcategoryRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const categoryRef = useRef<HTMLInputElement>(null);
+  const subcategoryRef = useRef<HTMLInputElement>(null);
   const { data: accounts = [] } = useListAccounts(transaction ? { includeInactive: true } : undefined);
   const {
     control,
@@ -187,8 +188,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   const categoryId = selectedCategoryId || undefined;
   const subcategoryId = selectedSubcategoryId || undefined;
 
-  /** categoryId/subcategoryId are Radix triggers with no registered input ref, so neither RHF's
-   * shouldFocusError nor setFocus can reach them — this is the shared escape hatch for both. */
+  /** Category fields are not registered with RHF, so their input refs handle error focus. */
   const focusCategoryOrSubcategory = (field: 'categoryId' | 'subcategoryId') => {
     if (field === 'categoryId') categoryRef.current?.focus();
     else subcategoryRef.current?.focus();
@@ -426,10 +426,22 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
   );
 
   const accountsEmpty = accounts.length === 0;
+  // The dialog may open before accounts arrive, so also focus when its form first becomes available.
+  useEffect(() => {
+    if (!open || accountsEmpty) return;
+    dialogRef.current?.querySelector<HTMLElement>(transaction ? 'input:not(:disabled)' : '[role="tab"][data-state="active"]')?.focus();
+  }, [open, accountsEmpty, transaction]);
   return (
     <Dialog open={open} onOpenChange={activeMutation.isPending ? undefined : onOpenChange}>
       <DialogContent
+        ref={dialogRef}
         showCloseButton={!activeMutation.isPending}
+        onOpenAutoFocus={(event) => {
+          if (accountsEmpty) return;
+          event.preventDefault();
+          const dialog = event.currentTarget as HTMLElement;
+          dialog.querySelector<HTMLElement>(transaction ? 'input:not(:disabled)' : '[role="tab"][data-state="active"]')?.focus();
+        }}
         onEscapeKeyDown={activeMutation.isPending ? (event) => event.preventDefault() : undefined}
         onPointerDownOutside={activeMutation.isPending ? (event) => event.preventDefault() : undefined}
       >
@@ -474,7 +486,8 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                 selectedId={selectedAccountId}
                 disabled={activeMutation.isPending}
                 error={errors.accountId?.message}
-                registration={register('accountId')}
+                control={control}
+                name="accountId"
               />
               {type === 'TRANSFER' ? (
                 <AccountField
@@ -484,7 +497,8 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   selectedId={selectedDestinationAccountId}
                   disabled={activeMutation.isPending}
                   error={errors.destinationAccountId?.message}
-                  registration={register('destinationAccountId')}
+                  control={control}
+                  name="destinationAccountId"
                 />
               ) : (
                 <div className="grid min-w-0 content-start gap-1.5">
@@ -634,15 +648,7 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
               </div>
             ) : null}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={activeMutation.isPending}>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant={transaction?.status === TransactionStatus.DRAFT ? 'outline' : 'default'}
-                className={!transaction ? 'sm:order-1' : undefined}
-                disabled={activeMutation.isPending}
-              >
+              <Button type="submit" variant={transaction?.status === TransactionStatus.DRAFT ? 'outline' : 'default'} disabled={activeMutation.isPending}>
                 {activeMutation.isPending ? <Loader2Icon className="animate-spin" /> : null}
                 {t(formKey('transactions.form.save'))}
               </Button>
@@ -656,6 +662,9 @@ export function EntryDialog({ open, onOpenChange, transaction }: EntryDialogProp
                   {t(formKey('transactions.form.saveAndConfirm'))}
                 </Button>
               ) : null}
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={activeMutation.isPending}>
+                {t('common.cancel')}
+              </Button>
             </DialogFooter>
           </form>
         )}
@@ -671,7 +680,8 @@ function AccountField({
   selectedId,
   disabled,
   error,
-  registration,
+  control,
+  name,
 }: {
   id: string;
   label: string;
@@ -679,13 +689,24 @@ function AccountField({
   selectedId: string;
   disabled: boolean;
   error?: string;
-  registration: ReturnType<ReturnType<typeof useForm<EntryFormValues>>['register']>;
+  control: Control<EntryFormValues>;
+  name: 'accountId' | 'destinationAccountId';
 }) {
   const { t } = useTranslation();
+  const { field } = useController({ control, name });
   return (
     <div className="grid min-w-0 content-start gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <NativeSelect id={id} aria-describedby={error ? `${id}-error` : undefined} aria-invalid={error !== undefined} disabled={disabled} {...registration}>
+      <NativeSelect
+        value={selectedId}
+        id={id}
+        aria-describedby={error ? `${id}-error` : undefined}
+        aria-invalid={error !== undefined}
+        disabled={disabled}
+        ref={(element) => field.ref(element)}
+        onBlur={() => field.onBlur()}
+        onValueChange={(value) => field.onChange(value)}
+      >
         <option value="">{t(formKey('transactions.form.accountPlaceholder'))}</option>
         {accounts.map((account) => (
           <option key={account.id} value={account.id} disabled={account.isActive === false && account.id !== selectedId}>

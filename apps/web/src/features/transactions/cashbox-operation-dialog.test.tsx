@@ -9,6 +9,8 @@ import { CashboxOperationDialog, cashboxOperationPayload, eurQuantityToCents } f
 
 import type * as ApiClient from '@family-budget/api-client';
 
+import { selectOption } from '@/test/select-option';
+
 const mutate = vi.fn<(variables: { data: ApiClient.CreateTransactionDto }) => void>();
 const updateMutate = vi.fn<(variables: { id: string; data: ApiClient.UpdateTransactionDto }) => void>();
 interface MutationOptions {
@@ -160,8 +162,8 @@ describe('CashboxOperationDialog', () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-15' } });
-    await user.selectOptions(screen.getByLabelText('Conta de origem'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Conta de origem'), 'account-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
     await fillCommon(user);
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
@@ -262,9 +264,9 @@ describe('CashboxOperationDialog', () => {
 
     await user.click(screen.getByRole('tab', { name: tab }));
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-15' } });
-    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
-    if (accountLabel) await user.selectOptions(screen.getByLabelText(accountLabel), 'account-1');
-    else await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
+    await selectOption(user, screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    if (accountLabel) await selectOption(user, screen.getByLabelText(accountLabel), 'account-1');
+    else await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
     await fillCommon(user, '20');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
@@ -275,8 +277,8 @@ describe('CashboxOperationDialog', () => {
   it('shows the selected balance beside both selectors', async () => {
     const { user } = renderDialog();
 
-    await user.selectOptions(screen.getByLabelText('Conta de origem'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Conta de origem'), 'account-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
 
     expect(screen.getByText('2.000,00 €')).toBeInTheDocument();
     expect(screen.getByText('1.000,00 €')).toBeInTheDocument();
@@ -289,8 +291,8 @@ describe('CashboxOperationDialog', () => {
     expect(screen.getByRole('tab', { name: 'Depositar' })).toHaveAttribute('data-state', 'active');
     await user.click(screen.getByRole('tab', { name: 'Transferir' }));
     expect(screen.queryByLabelText('Conta de origem')).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
+    await selectOption(user, screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-2');
     unmount();
 
     accounts = [{ id: 'account-1', name: 'Conta principal', isActive: true }];
@@ -344,8 +346,8 @@ describe('CashboxOperationDialog', () => {
     renderDialog(vi.fn(), transaction);
 
     expect(cashboxListParams).toEqual({ includeInactive: true });
-    expect(screen.getAllByRole('option', { name: 'Férias (inativa)' })).toHaveLength(2);
-    expect(screen.getAllByRole('option', { name: 'Obras (inativa)' })).toHaveLength(2);
+    expect(screen.getByLabelText('Caixinha de origem')).toHaveValue('Férias (inativa)');
+    expect(screen.getByLabelText('Caixinha de destino')).toHaveValue('Obras (inativa)');
   });
 
   it('shows the approved explanatory callouts for deposits and transfers', async () => {
@@ -360,8 +362,8 @@ describe('CashboxOperationDialog', () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByRole('tab', { name: 'Retirar' }));
-    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
-    await user.selectOptions(screen.getByLabelText('Conta de destino'), 'account-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Conta de destino'), 'account-1');
     await fillCommon(user, '1.000,01');
     expect(screen.queryByText(/Saldo da caixinha:/)).not.toBeInTheDocument();
 
@@ -370,7 +372,7 @@ describe('CashboxOperationDialog', () => {
     expect(screen.getByText(/Saldo da caixinha: 1.000,00 €/)).toBeInTheDocument();
     expect(mutate).toHaveBeenCalledOnce();
 
-    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-2');
+    await selectOption(user, screen.getByLabelText('Caixinha de origem'), 'cashbox-2');
     expect(screen.queryByText(/Saldo da caixinha:/)).not.toBeInTheDocument();
   });
 
@@ -378,8 +380,8 @@ describe('CashboxOperationDialog', () => {
     const { user } = renderDialog();
 
     await user.click(screen.getByRole('tab', { name: 'Transferir' }));
-    await user.selectOptions(screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de origem'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
     await fillCommon(user, '20');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
@@ -406,8 +408,8 @@ describe('CashboxOperationDialog', () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-15' } });
-    await user.selectOptions(screen.getByLabelText('Conta de origem'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Conta de origem'), 'account-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
     await fillCommon(user, '1.000,01');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
     await user.click(screen.getByRole('tab', { name: 'Retirar' }));
@@ -469,17 +471,17 @@ describe('CashboxOperationDialog', () => {
   it('shows placeholder option text for the account and cashbox selects, and a placeholder for Descrição, on every tab', async () => {
     const { user } = renderDialog();
 
-    expect(screen.getByRole('option', { name: 'Escolha uma conta' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escolha uma conta')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escolha uma caixinha')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
 
     await user.click(screen.getByRole('tab', { name: 'Retirar' }));
-    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Escolha uma conta' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escolha uma caixinha')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escolha uma conta')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
 
     await user.click(screen.getByRole('tab', { name: 'Transferir' }));
-    expect(screen.getAllByRole('option', { name: 'Escolha uma caixinha' })).toHaveLength(2);
+    expect(screen.getAllByPlaceholderText('Escolha uma caixinha')).toHaveLength(2);
     expect(screen.getByLabelText('Descrição')).toHaveAttribute('placeholder', 'Reserva para férias');
   });
 
@@ -512,7 +514,7 @@ describe('CashboxOperationDialog', () => {
 
     renderDialog(vi.fn(), transaction);
 
-    expect(screen.getByRole('option', { name: 'Escolha uma caixinha' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escolha uma caixinha')).toBeInTheDocument();
   });
 
   it.each([
@@ -533,8 +535,8 @@ describe('CashboxOperationDialog', () => {
     const { user } = renderDialog();
 
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-08-15' } });
-    await user.selectOptions(screen.getByLabelText('Conta de origem'), 'account-1');
-    await user.selectOptions(screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
+    await selectOption(user, screen.getByLabelText('Conta de origem'), 'account-1');
+    await selectOption(user, screen.getByLabelText('Caixinha de destino'), 'cashbox-1');
     await user.type(screen.getByLabelText('Descrição'), 'Fundo de férias');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 

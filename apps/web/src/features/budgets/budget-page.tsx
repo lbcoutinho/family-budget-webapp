@@ -205,7 +205,7 @@ export function BudgetPage() {
               id="budget-quarter"
               className="w-auto min-w-36"
               value={`${year}-${quarter}`}
-              onChange={(event) => void navigate(`/budgets/${event.target.value.replace('-', '/')}`)}
+              onValueChange={(value) => void navigate(`/budgets/${value.replace('-', '/')}`)}
             >
               {PERIODS.map((period) => (
                 <option key={`${period.year}-${period.quarter}`} value={`${period.year}-${period.quarter}`}>

@@ -88,11 +88,7 @@ function DialogFooter({
   const { t } = useTranslation();
 
   return (
-    <div
-      data-slot="dialog-footer"
-      className={cn('sticky bottom-0 z-10 flex flex-col-reverse gap-2 bg-background sm:flex-row sm:justify-end', className)}
-      {...props}
-    >
+    <div data-slot="dialog-footer" className={cn('sticky bottom-0 z-10 flex flex-col gap-2 bg-background sm:flex-row sm:justify-end', className)} {...props}>
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>

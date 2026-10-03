@@ -508,7 +508,9 @@ export function InvestmentTradesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">{t('investmentTrades.fields.noListing')}</SelectItem>
+                  <SelectItem value="none" alwaysVisible>
+                    {t('investmentTrades.fields.noListing')}
+                  </SelectItem>
                   {eligibleListings.map((listing) => (
                     <SelectItem key={listing.id} value={listing.id}>
                       {listing.ticker} · {listing.market}
