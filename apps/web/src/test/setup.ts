@@ -10,10 +10,10 @@ import { server } from './server';
 // jsdom reports `navigator.language` as en-US and the suites are written in the default locale.
 import i18n, { DEFAULT_LOCALE } from '@/i18n';
 
-// `onUnhandledRequest: 'error'` turns a typo'd path into a failing test rather than a request that
+// `onUnhandledFrame: 'error'` turns a typo'd path into a failing test rather than a request that
 // quietly leaves jsdom and hangs.
 beforeAll(async () => {
-  server.listen({ onUnhandledRequest: 'error' });
+  server.listen({ onUnhandledFrame: 'error' });
   await i18n.changeLanguage(DEFAULT_LOCALE);
 });
 
