@@ -74,6 +74,15 @@ module.exports = tseslint.config(
       'import/no-duplicates': 'error',
     },
   },
+  {
+    name: 'family-budget/binance-enrichment-script',
+    files: ['scripts/enrich-binance-investment-trades.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.node,
+      sourceType: 'commonjs',
+    },
+  },
 
   // ---------------------------------------------------------------------------------------
   // TypeScript, type-aware. `projectService` resolves each file against the nearest
