@@ -135,6 +135,69 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml ps -a
 The migration gate runs on every deployment. Expect a short outage while the single API and web
 containers are recreated.
 
+## Rehearse the Investments migration
+
+Before deploying the Investments migration, perform this rehearsal against an access-controlled
+restore of a fresh production backup. It proves the committed migration chain without changing
+production. Do not use `prisma migrate dev`, `prisma migrate reset`, or any reset command.
+
+1. Download a new custom-format backup as described below. Validate it before restoring and record
+   its SHA-256 digest, creation time, source version, and the operator who received it:
+
+   ```bash
+   sha256sum production-before-investments.dump
+   pg_restore --list production-before-investments.dump >/dev/null
+   ```
+
+   Keep the dump and the restored database on encrypted, access-controlled storage.
+
+2. Restore the dump into an isolated PostgreSQL 16+ instance with a newly created empty database.
+   Confirm its transaction count and backup digest before proceeding. Its connection URL must not
+   point to production.
+3. From the reviewed release checkout, run the rehearsal with a date and accounting month that are
+   relevant to the deployment window:
+
+   ```bash
+   export REHEARSAL_DATABASE_URL='postgresql://...isolated-restored-copy...'
+   export REHEARSAL_CONFIRM='restored-production-copy'
+   scripts/rehearse-investments-migration.sh \
+     --as-of 2026-09-29 \
+     --report-month 2026-09 \
+     --output /secure/path/investments-migration-rehearsal
+   ```
+
+   The script uses the same non-interactive `prisma migrate deploy` operation as the deployment
+   gate. Preserve its output directory with the backup metadata. It records and compares the
+   transaction count/checksum, per-account EUR balances, and monthly budget totals. It also proves
+   every pre-existing scalar initial balance became exactly one EUR instrument initial balance and
+   writes the Bank/Brokerage/Exchange accounts still awaiting progressive financial-institution
+   onboarding.
+
+4. Proceed only when the command exits successfully and an operator reviews the generated
+   `institution-onboarding.tsv`. Any mismatch, migration failure, unexpected transaction change,
+   unavailable backup metadata, or inability to complete the smoke check is a release failure.
+   Keep production on its existing release; do not retry against production.
+5. Record the command's start/end time and resulting artifact directory in the release record.
+   The expected availability impact is the normal short outage while the single API and web
+   containers are recreated after the migration gate completes.
+6. After production deployment, verify the migration container exited with status `0`, then sign
+   in and check the Accounts page, one monthly balance report, one monthly budget report, and
+   `curl --fail https://family-budget.localhost/api/health`.
+
+If deployment fails after the backup has been validated, an authorized operator recovers from that
+backup manually; this is not part of the deployment command:
+
+```bash
+docker compose --env-file .env.prod -f docker-compose.prod.yml stop api web
+docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T postgres sh -c \
+  'pg_restore --clean --if-exists --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+  < production-before-investments.dump
+```
+
+Validate the restored transaction count/checksum against the rehearsal artifacts before accepting
+the recovery. Restart only from a clean checkout at the previous reviewed release, following
+**Update the application** above. Never use a reset command as recovery.
+
 ## Download a backup
 
 Sign in as `ADMIN_EMAIL`, open **Settings → General → Administration**, and choose **Create
